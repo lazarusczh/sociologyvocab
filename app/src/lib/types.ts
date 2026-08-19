@@ -1,0 +1,42 @@
+// 词库条目类型：统一表示术语和学者人名
+export interface VocabItem {
+  id: string;
+  type: 'term' | 'scholar';
+  term: string;        // 英文术语 或 学者姓名
+  chinese: string;     // 中文翻译（学者人名为空）
+  definition: string; // 英文释义 或 学者理论描述
+  category: string;    // 所属主题
+  theory?: string;     // 学者所属理论流派（仅学者）
+  notes?: string;      // 备注（仅学者）
+}
+
+// 导入结果
+export interface ImportResult {
+  items: VocabItem[];
+  termCount: number;
+  scholarCount: number;
+  categories: string[];
+  warnings: string[];
+}
+
+// 单条练习进度
+export interface ItemProgress {
+  // 闪卡掌握度：0=未学 1=不熟 2=熟悉 3=掌握
+  mastery: number;
+  seenCount: number;     // 练习过的次数
+  correctCount: number;  // 答对次数
+  lastSeen: number;      // 时间戳
+}
+
+// 全局进度
+export interface Progress {
+  [itemId: string]: ItemProgress;
+}
+
+// 范文语境（用于选词填空）
+export interface ContextPassage {
+  id: string;
+  title: string;
+  text: string;          // 范文原文，用 {{术语}} 标记填空位置
+  category?: string;
+}
