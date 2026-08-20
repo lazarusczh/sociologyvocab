@@ -16,8 +16,9 @@ export interface Clue {
   col: number;
   direction: 'across' | 'down';
   answer: string;
-  hint: string;
   term: string;
+  zh: string; // 中文提示（术语的中文翻译；学者为空）
+  en: string; // 英文提示（英文释义 / 学者理论描述）
 }
 
 export interface GeneratedCrossword {
@@ -37,16 +38,17 @@ interface Placement {
 
 // 从词库提取候选单词。注意：词组中的空格及连字符等非字母字符会被省略，
 // 例如 "social control" -> "SOCIALCONTROL"，作为一个连续字母串参与填字。
-function candidates(items: VocabItem[]): { word: string; term: string; hint: string }[] {
+function candidates(items: VocabItem[]): { word: string; term: string; zh: string; en: string }[] {
   const seen = new Set<string>();
-  const out: { word: string; term: string; hint: string }[] = [];
+  const out: { word: string; term: string; zh: string; en: string }[] = [];
   for (const it of items) {
     const word = it.term.toUpperCase().replace(/[^A-Z]/g, '');
     if (word.length < 3 || word.length > 16) continue;
     if (seen.has(word)) continue;
     seen.add(word);
-    const hint = it.chinese || it.definition?.slice(0, 40) || it.theory || '';
-    out.push({ word, term: it.term, hint });
+    const zh = it.chinese || '';
+    const en = it.definition?.trim() || it.theory || '';
+    out.push({ word, term: it.term, zh, en });
   }
   return out;
 }
@@ -178,7 +180,8 @@ export function generateCrossword(items: VocabItem[], maxWords = 8): GeneratedCr
       col: p.col - minC,
       direction: p.direction,
       answer: p.word,
-      hint: cand?.hint || '',
+      zh: cand?.zh || '',
+      en: cand?.en || '',
       term: p.term,
     };
   });

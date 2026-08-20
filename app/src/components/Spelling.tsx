@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useStore, useStudySession } from '../lib/store';
 import { sample, shuffle } from '../lib/shuffle';
-import { isCorrectAnswer } from '../lib/answers';
+import { isCorrectAnswer, maskAnswer } from '../lib/answers';
 import CategoryFilter from './CategoryFilter';
 import type { VocabItem } from '../lib/types';
 
@@ -110,7 +110,7 @@ export default function Spelling() {
         {!current.chinese && current.theory && (
           <div className="badge" style={{ margin: '0.3rem 0' }}>{current.theory}</div>
         )}
-        <p className="muted" style={{ fontSize: '0.9rem' }}>释义提示：{current.definition}</p>
+        <p className="muted" style={{ fontSize: '0.9rem' }}>释义提示：{maskAnswer(current, current.definition)}</p>
 
         <div className="row" style={{ marginTop: '0.8rem' }}>
           <input

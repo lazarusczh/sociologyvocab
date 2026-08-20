@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef, type CSSProperties } from 'react';
 import { useStore } from '../lib/store';
 import { shuffle } from '../lib/shuffle';
 import CategoryFilter from './CategoryFilter';
@@ -157,7 +157,7 @@ export default function Wordle() {
           共 {len} 个字母 · 剩余 {Math.max(0, maxGuesses - guesses.length)} 次机会
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center' }}>
+        <div className="wordle-board" style={{ '--cols': len } as CSSProperties}>
           {guesses.map((g, gi) => {
             const res = computeResult(g, target.answer);
             return (
@@ -187,7 +187,7 @@ export default function Wordle() {
               onChange={(e) => setInput(e.target.value.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, len))}
               onKeyDown={(e) => e.key === 'Enter' && submit()}
               placeholder={`输入 ${len} 个字母`}
-              style={{ maxWidth: 260, textAlign: 'center', letterSpacing: 2, textTransform: 'uppercase' }}
+              style={{ maxWidth: 'min(260px, 100%)', textAlign: 'center', letterSpacing: 2, textTransform: 'uppercase', fontSize: 16 }}
               autoComplete="off"
             />
             <button className="primary" onClick={submit}>提交</button>

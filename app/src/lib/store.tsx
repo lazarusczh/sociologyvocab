@@ -1,7 +1,7 @@
 import {
   createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode,
 } from 'react';
-import type { VocabItem, Progress, ContextPassage, ImportResult, CheckInState, WrongBook } from './types';
+import type { VocabItem, Progress, ContextPassage, ImportResult, CheckInState, WrongBook, StudentIdentity } from './types';
 import {
   loadVocab, saveVocab, clearVocab,
   loadProgress, saveProgress, recordAnswer, setMastery,
@@ -13,6 +13,7 @@ import {
   applyWrongAnswer, emptyCheckIn,
 } from './checkin';
 import { parseExcelFiles } from './excelImport';
+import { loadIdentity, saveIdentity, exportBackupJson, performImport } from './backup';
 
 const STUDY_TICK_SECONDS = 10;
 
@@ -38,6 +39,13 @@ interface StoreValue {
   applyMakeup: (dayKey: string) => boolean;
   // 范文
   saveContextList: (ctxs: ContextPassage[]) => void;
+  // 身份与备份
+  identity: StudentIdentity | null;
+  skipped: boolean; // 本次会话是否跳过了身份绑定（不持久化，刷新后重新弹绑定）
+  setIdentity: (studentId: string, name: string) => void;
+  skipIdentity: () => void;
+  exportBackup: () => Promise<string | null>;
+  importBackup: (text: string, resetCode?: string) => Promise<string>;
 }
 
 const StoreContext = createContext<StoreValue | null>(null);
@@ -48,6 +56,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [contexts, setContexts] = useState<ContextPassage[]>([]);
   const [checkin, setCheckin] = useState<CheckInState>(emptyCheckIn());
   const [wrongBook, setWrongBook] = useState<WrongBook>({});
+  const [identity, setIdentityState] = useState<StudentIdentity | null>(null);
+  const [skipped, setSkipped] = useState(false);
   const activeRef = useRef(0);
 
   useEffect(() => {
@@ -55,6 +65,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setContexts(loadContexts());
     setCheckin(loadCheckIn());
     setWrongBook(loadWrongBook());
+    setIdentityState(loadIdentity());
 
     const local = loadVocab();
     if (local.length > 0) {
@@ -176,6 +187,36 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setContexts(ctxs);
   }, []);
 
+  const setIdentity = useCallback((studentId: string, name: string) => {
+    const ident: StudentIdentity = {
+      studentId: studentId.trim(),
+      name: name.trim(),
+      lockedAt: Date.now(),
+    };
+    saveIdentity(ident);
+    setIdentityState(ident);
+  }, []);
+
+  const skipIdentity = useCallback(() => {
+    setSkipped(true);
+  }, []);
+
+  const exportBackup = useCallback(async (): Promise<string | null> => {
+    if (!identity) return null;
+    return exportBackupJson(identity, checkin, progress, wrongBook);
+  }, [identity, checkin, progress, wrongBook]);
+
+  const importBackup = useCallback(async (text: string, resetCode?: string): Promise<string> => {
+    const res = await performImport(text, resetCode || null);
+    if (res.ok) {
+      setCheckin(loadCheckIn());
+      setProgress(loadProgress());
+      setWrongBook(loadWrongBook());
+      setIdentityState(loadIdentity());
+    }
+    return res.message;
+  }, []);
+
   const categories = [...new Set(vocab.map((i) => i.category))].sort();
 
   const value: StoreValue = {
@@ -196,6 +237,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     endStudy,
     applyMakeup,
     saveContextList,
+    identity,
+    skipped,
+    setIdentity,
+    skipIdentity,
+    exportBackup,
+    importBackup,
   };
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

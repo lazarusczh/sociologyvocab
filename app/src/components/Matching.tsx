@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useStore, useStudySession } from '../lib/store';
 import { sample, shuffle } from '../lib/shuffle';
+import { maskAnswer } from '../lib/answers';
 import CategoryFilter from './CategoryFilter';
 import type { VocabItem } from '../lib/types';
 
@@ -159,7 +160,7 @@ export default function Matching() {
                     fontSize: '0.88rem',
                   }}
                 >
-                  <span>{item.definition}</span>
+                  <span>{maskAnswer(item, item.definition)}</span>
                 </button>
               );
             })}

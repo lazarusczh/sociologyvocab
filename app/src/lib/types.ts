@@ -62,3 +62,32 @@ export interface WrongEntry {
   consecutiveCorrect: number;  // 连续答对次数
 }
 export type WrongBook = Record<string, WrongEntry>;
+
+// 学生身份（首次填写并锁定，用于防冒名顶替）
+export interface StudentIdentity {
+  studentId: string; // 学号
+  name: string;      // 姓名
+  lockedAt: number;  // 锁定时间戳
+}
+
+// 备份文件汇总（供教师核验时快速阅读）
+export interface BackupSummary {
+  totalCheckinDays: number; // 累计打卡天数（含补签）
+  bestStreak: number;       // 最长连续天数
+  totalQuestions: number;   // 累计正式练习题数
+  wrongCount: number;       // 当前错题本条目数
+}
+
+// 备份文件格式（单 JSON 文件，附明文身份与隐藏设备指纹）
+export interface BackupFile {
+  version: 1;
+  studentId: string;
+  name: string;
+  fingerprint: string;    // SHA-256(studentId|deviceCode)，隐藏设备指纹
+  exportedAt: number;     // 导出时间戳（毫秒）
+  exportedDate: string;   // 导出时间（可读）
+  summary: BackupSummary;
+  checkin: CheckInState;
+  progress: Progress;
+  wrongBook: WrongBook;
+}

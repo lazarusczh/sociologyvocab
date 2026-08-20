@@ -7,6 +7,8 @@ export function normalizeKey(s: string): string {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '') // 去变音符号（é->e, ü->u …）
     .toLowerCase()
+    .replace(/\b([a-z]+?)isation\b/g, '$1ization') // 英式 -isation -> 美式 -ization
+    .replace(/\b([a-z]+?)ise\b/g, '$1ize') // 英式 -ise -> 美式 -ize
     .replace(/[^a-z0-9]/g, '');
 }
 
@@ -74,6 +76,85 @@ const ORG_KEYWORDS = [
   'congress', 'council', 'national', 'world',
 ];
 
+// ---- 单复数互认：通用为术语生成单/复数变体 ----
+const IRREGULAR_PLURALS: Record<string, string> = {
+  child: 'children',
+  person: 'people',
+  man: 'men',
+  woman: 'women',
+  foot: 'feet',
+  tooth: 'teeth',
+  mouse: 'mice',
+  leaf: 'leaves',
+  life: 'lives',
+  wife: 'wives',
+  analysis: 'analyses',
+  criterion: 'criteria',
+  phenomenon: 'phenomena',
+  hypothesis: 'hypotheses',
+  thesis: 'theses',
+  index: 'indices',
+  matrix: 'matrices',
+};
+
+const IRREGULAR_SINGULARS: Record<string, string> = {
+  children: 'child',
+  people: 'person',
+  men: 'man',
+  women: 'woman',
+  feet: 'foot',
+  teeth: 'tooth',
+  mice: 'mouse',
+  leaves: 'leaf',
+  lives: 'life',
+  wives: 'wife',
+  analyses: 'analysis',
+  criteria: 'criterion',
+  phenomena: 'phenomenon',
+  hypotheses: 'hypothesis',
+  theses: 'thesis',
+  indices: 'index',
+  matrices: 'matrix',
+};
+
+// 单数 -> 复数（无法可靠复数化时返回 null）
+function toPlural(word: string): string | null {
+  const w = word.toLowerCase();
+  if (IRREGULAR_PLURALS[w]) return IRREGULAR_PLURALS[w];
+  if (/(ss|us|is)$/.test(w)) return null; // 本身似单数但不可规则复数
+  if (/s$/.test(w)) return null; // 已以 s 结尾，视为复数，不再复数化
+  if (/[^aeiou]y$/.test(w)) return w.slice(0, -1) + 'ies';
+  if (/(x|z|ch|sh)$/.test(w)) return w + 'es';
+  return w + 's';
+}
+
+// 复数 -> 单数（无法可靠单数化时返回 null）
+function toSingular(word: string): string | null {
+  const w = word.toLowerCase();
+  if (IRREGULAR_SINGULARS[w]) return IRREGULAR_SINGULARS[w];
+  if (/ies$/.test(w) && w.length > 3) return w.slice(0, -3) + 'y';
+  if (/(ss|us|is)$/.test(w)) return null; // analysis/status/basis 等非简单复数
+  if (/(ches|shes|xes|zes|sses)$/.test(w)) return w.slice(0, -2); // watches->watch, boxes->box, classes->class
+  if (/es$/.test(w)) return w.slice(0, -1); // cases->case, roles->role, values->value
+  if (/s$/.test(w)) return w.slice(0, -1);
+  return null;
+}
+
+// 生成短语最后一个单词的单/复数变体（保留前面的词）
+function singularPluralVariants(phrase: string): string[] {
+  const trimmed = phrase.trim();
+  if (!trimmed) return [];
+  const idx = trimmed.lastIndexOf(' ');
+  const head = idx === -1 ? '' : trimmed.slice(0, idx + 1);
+  const last = trimmed.slice(idx + 1);
+  const out: string[] = [];
+  const pl = toPlural(last);
+  const sg = toSingular(last);
+  if (pl) out.push(head + pl);
+  if (sg) out.push(head + sg);
+  return out;
+}
+
 function lastWord(s: string): string {
   const words = s.trim().split(/\s+/);
   return words[words.length - 1] || '';
@@ -120,7 +201,10 @@ export function getAcceptableKeys(item: VocabItem): string[] {
 
   if (item.type === 'term') {
     const list = TERM_ALIASES[item.term] ?? [item.term];
-    list.forEach(push);
+    list.forEach((base) => {
+      push(base);
+      singularPluralVariants(base).forEach(push);
+    });
   } else {
     if (SCHOLAR_ALIASES[item.term]) {
       SCHOLAR_ALIASES[item.term].forEach(push);
@@ -144,4 +228,58 @@ export function getAcceptableKeys(item: VocabItem): string[] {
 // 判断用户输入是否为某词条的正确答案
 export function isCorrectAnswer(item: VocabItem, input: string): boolean {
   return getAcceptableKeys(item).includes(normalizeKey(input));
+}
+
+// ---- 提示脱敏：将答案（术语/学者名）在其自身释义上下文里替换为下划线 ----
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// 学者姓氏（用于脱敏定义中出现的 "Beck (1992)..." 这类写法）；机构返回空
+function scholarSurnames(term: string): string[] {
+  const clean = (seg: string) => lastWord(seg.replace(/\([^)]*\)/g, ' ').trim());
+  if (/et\s+al/i.test(term)) {
+    return [clean(term.split(/et\s+al/i)[0])];
+  }
+  if (/[&,]/.test(term)) {
+    return term.split(/[&,]/).map(clean).filter(Boolean);
+  }
+  if (isSinglePersonName(term)) {
+    return [clean(term)];
+  }
+  return [];
+}
+
+// 收集需要脱敏的"答案表面形式"（含别名、单复数变体、学者姓氏），长短语优先
+function collectMaskForms(item: VocabItem): string[] {
+  const forms = new Set<string>();
+  const add = (s: string) => {
+    const t = (s || '').replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, '').trim();
+    if (t.length >= 2) forms.add(t);
+  };
+
+  if (item.type === 'term') {
+    const list = TERM_ALIASES[item.term] ?? [item.term];
+    list.forEach((base) => {
+      add(base);
+      singularPluralVariants(base).forEach(add);
+    });
+  } else {
+    const list = SCHOLAR_ALIASES[item.term] ?? [item.term];
+    list.forEach(add);
+    scholarSurnames(item.term).forEach(add);
+  }
+
+  return [...forms].sort((a, b) => b.length - a.length);
+}
+
+// 将文本中出现的答案词替换为下划线（保留空格与标点），用于各题型展示释义提示
+export function maskAnswer(item: VocabItem, text: string): string {
+  if (!text) return text;
+  let out = text;
+  for (const form of collectMaskForms(item)) {
+    const re = new RegExp(`\\b${escapeRegExp(form)}\\b`, 'gi');
+    out = out.replace(re, (m) => m.replace(/[A-Za-z0-9]/g, '_'));
+  }
+  return out;
 }

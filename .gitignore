@@ -14,3 +14,10 @@ desktop.ini
 
 # 由 Excel 生成的内置词库数据（同属知识产权，不纳入公开备份）
 app/public/vocab-data.json
+
+# 教师本地重置码工具与私钥（绝不纳入公开备份）
+reset-tool/
+teacher-private-key.json
+
+# 打包生成的安装包（内含内置词库数据，属于教师知识产权，不纳入公开备份）
+*.apk

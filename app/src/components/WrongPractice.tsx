@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useStore, useStudySession } from '../lib/store';
 import { isInWrongBook } from '../lib/checkin';
+import { maskAnswer } from '../lib/answers';
 import { sample, shuffle } from '../lib/shuffle';
 import type { VocabItem } from '../lib/types';
 
@@ -13,11 +14,12 @@ interface WQuestion {
 const ROUND = 20;
 
 function makeQuestion(item: VocabItem, pool: VocabItem[]): WQuestion {
-  // 题干展示术语，选项为中文（缺少中文时退化为英文释义）
-  const answer = item.chinese || item.definition || item.term;
+  // 题干展示术语，选项为中文（缺少中文时退化为英文释义，并对释义脱敏）
+  const maskedDef = (it: VocabItem) => maskAnswer(it, it.definition);
+  const answer = item.chinese || maskedDef(item) || item.term;
   const distractors = pool
     .filter((p) => p.id !== item.id)
-    .map((p) => p.chinese || p.definition)
+    .map((p) => p.chinese || maskedDef(p))
     .filter((t) => t && t !== answer)
     .filter((t, i, arr) => arr.indexOf(t) === i);
   const wrong = sample(distractors, 3);

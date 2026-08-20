@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useStore, useStudySession } from '../lib/store';
 import { shuffle, sample } from '../lib/shuffle';
+import { maskAnswer } from '../lib/answers';
 import CategoryFilter from './CategoryFilter';
 import type { VocabItem } from '../lib/types';
 
@@ -21,13 +22,14 @@ function buildQuestion(item: VocabItem, pool: VocabItem[]): Question {
   const dir = dirs[Math.floor(Math.random() * dirs.length)];
 
   let prompt: string, answer: string, promptLabel: string, optionSource: 'term' | 'def';
+  const maskedDef = (it: VocabItem) => maskAnswer(it, it.definition);
   if (dir === 'term2def') {
     prompt = item.term;
-    answer = item.definition;
+    answer = maskedDef(item);
     promptLabel = '术语';
     optionSource = 'def';
   } else if (dir === 'def2term') {
-    prompt = item.definition;
+    prompt = maskedDef(item);
     answer = item.term;
     promptLabel = '释义';
     optionSource = 'term';
@@ -41,7 +43,7 @@ function buildQuestion(item: VocabItem, pool: VocabItem[]): Question {
   // 取干扰项：同一类型（学者用名字作选项，术语视情况）
   const distractors = pool
     .filter((p) => p.id !== item.id)
-    .map((p) => (optionSource === 'term' ? p.term : p.definition))
+    .map((p) => (optionSource === 'term' ? p.term : maskedDef(p)))
     .filter((t) => t && t !== answer)
     .filter((t, i, arr) => arr.indexOf(t) === i);
 

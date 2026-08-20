@@ -28,6 +28,9 @@ export default function Crossword() {
   const [cellSize, setCellSize] = useState(MAX_CELL);
   const boardRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  // 记录上一次输入/删除字母的格子，用于交叉格方向判断
+  const lastInputPos = useRef<{ r: number; c: number } | null>(null);
+  const lastDeletePos = useRef<{ r: number; c: number } | null>(null);
 
   const filtered = vocab.filter(
     (i) => (cat === 'all' || i.category === cat) && (typeFilter === 'all' || i.type === typeFilter),
@@ -39,6 +42,8 @@ export default function Crossword() {
     setRevealed(false);
     setUser({});
     setSelected(null);
+    lastInputPos.current = null;
+    lastDeletePos.current = null;
     const p = generateCrossword(filtered, 8);
     setPuzzle(p);
     if (!p) setMsg('当前词库中可用的单词太少，无法生成填字。请换个主题或类型。');
@@ -84,6 +89,9 @@ export default function Crossword() {
 
   function move(r: number, c: number, dr: number, dc: number) {
     if (!puzzle) return;
+    // 手动方向键跳格视为重新开始一段输入，清空方向记忆
+    lastInputPos.current = null;
+    lastDeletePos.current = null;
     let nr = r + dr;
     let nc = c + dc;
     while (nr >= 0 && nr < puzzle.height && nc >= 0 && nc < puzzle.width) {
@@ -97,12 +105,21 @@ export default function Crossword() {
     }
   }
 
-  // 自动推进：格子只属于一个词时，沿该词方向移动一格；属于两个词（交叉格）时不推进
+  // 输入字母后自动推进：格子只属于一个词时沿该词方向移动；
+  // 属于两个词（交叉格）时依据上一个输入格子判断方向，同行→横词往右，同列→纵词往下，否则不推进
   function autoAdvance(r: number, c: number) {
     if (!puzzle) return;
     const dirs = cellDirs.get(`${r},${c}`);
-    if (!dirs || dirs.size !== 1) return;
-    const dir = dirs.values().next().value as 'across' | 'down';
+    let dir: 'across' | 'down' | null = null;
+    if (dirs && dirs.size === 1) {
+      dir = dirs.values().next().value as 'across' | 'down';
+    } else if (dirs && dirs.size >= 2) {
+      const last = lastInputPos.current;
+      if (last && last.r === r && last.c !== c) dir = 'across';
+      else if (last && last.c === c && last.r !== r) dir = 'down';
+    }
+    lastInputPos.current = { r, c };
+    if (!dir) return;
     const dr = dir === 'down' ? 1 : 0;
     const dc = dir === 'across' ? 1 : 0;
     const nr = r + dr;
@@ -121,13 +138,38 @@ export default function Crossword() {
     if (e.key === 'Backspace') {
       e.preventDefault();
       const cellKey = `${r},${c}`;
-      setUser((prev) => {
-        if (!prev[cellKey]) return prev;
-        const next = { ...prev };
-        delete next[cellKey];
-        return next;
-      });
+      const hasVal = !!user[cellKey];
+      // 先依据上一次删除记录决定退格方向（交叉格时用于判断往左还是往上）
+      const dirs = cellDirs.get(cellKey);
+      let dir: 'across' | 'down' | null = null;
+      if (dirs && dirs.size === 1) {
+        dir = dirs.values().next().value as 'across' | 'down';
+      } else if (dirs && dirs.size >= 2) {
+        const last = lastDeletePos.current;
+        if (last && last.r === r && last.c !== c) dir = 'across';
+        else if (last && last.c === c && last.r !== r) dir = 'down';
+      }
+      // 删除当前格并记录位置
+      if (hasVal) {
+        setUser((prev) => {
+          const next = { ...prev };
+          delete next[cellKey];
+          return next;
+        });
+        lastDeletePos.current = { r, c };
+      }
       setChecked(false);
+      // 自动退格到上一个格子
+      if (dir) {
+        const dr = dir === 'down' ? -1 : 0;
+        const dc = dir === 'across' ? -1 : 0;
+        const nr = r + dr;
+        const nc = c + dc;
+        if (nr >= 0 && nr < puzzle.height && nc >= 0 && nc < puzzle.width) {
+          const target = puzzle.grid[nr][nc];
+          if (target && !target.blocked) setSelected({ r: nr, c: nc });
+        }
+      }
     } else if (e.key === 'ArrowRight') {
       e.preventDefault();
       move(r, c, 0, 1);
@@ -157,6 +199,8 @@ export default function Crossword() {
   };
 
   const selectCell = (r: number, c: number) => {
+    lastInputPos.current = null;
+    lastDeletePos.current = null;
     setSelected({ r, c });
     inputRef.current?.focus();
   };
@@ -194,6 +238,18 @@ export default function Crossword() {
   const down = puzzle?.clues.filter((c) => c.direction === 'down').sort((a, b) => a.number - b.number) ?? [];
   const gridStyle = { '--cw': `${cellSize}px` } as CSSProperties;
   const numFont = cellSize < 20 ? 6 : 8;
+
+  // 每条线索随机选择中文或英文提示（有一方为空则用另一方），并在生成谜题期间保持不变
+  const clueText = useMemo(() => {
+    const map: Record<string, string> = {};
+    if (!puzzle) return map;
+    for (const cl of puzzle.clues) {
+      const opts = [cl.zh, cl.en].filter((s) => s && s.trim().length > 0);
+      const key = `${cl.direction}:${cl.row},${cl.col}`;
+      map[key] = opts.length ? opts[Math.floor(Math.random() * opts.length)] : cl.term;
+    }
+    return map;
+  }, [puzzle]);
 
   return (
     <div>
@@ -292,19 +348,25 @@ export default function Crossword() {
 
             <div className="cw-clues">
               <h3 className="muted" style={{ fontSize: '0.9rem' }}>横向</h3>
-              {across.map((cl) => (
-                <div key={cl.number} style={{ fontSize: '0.85rem', marginBottom: '0.4rem' }}>
-                  <b>{cl.number}.</b> {cl.hint || cl.term} <span className="muted">({cl.answer.length}格)</span>
-                </div>
-              ))}
+              {across.map((cl) => {
+                const ck = `${cl.direction}:${cl.row},${cl.col}`;
+                return (
+                  <div key={ck} style={{ fontSize: '0.85rem', marginBottom: '0.4rem' }}>
+                    <b>{cl.number}.</b> {clueText[ck] || cl.term} <span className="muted">({cl.answer.length}格)</span>
+                  </div>
+                );
+              })}
               <h3 className="muted" style={{ fontSize: '0.9rem', marginTop: '0.6rem' }}>纵向</h3>
-              {down.map((cl) => (
-                <div key={cl.number} style={{ fontSize: '0.85rem', marginBottom: '0.4rem' }}>
-                  <b>{cl.number}.</b> {cl.hint || cl.term} <span className="muted">({cl.answer.length}格)</span>
-                </div>
-              ))}
+              {down.map((cl) => {
+                const ck = `${cl.direction}:${cl.row},${cl.col}`;
+                return (
+                  <div key={ck} style={{ fontSize: '0.85rem', marginBottom: '0.4rem' }}>
+                    <b>{cl.number}.</b> {clueText[ck] || cl.term} <span className="muted">({cl.answer.length}格)</span>
+                  </div>
+                );
+              })}
               <p className="muted" style={{ fontSize: '0.8rem', marginTop: '0.6rem' }}>
-                点击格子后直接输入字母，用方向键（↑↓←→）选择下一个格子，退格键删除当前格。
+                点击格子后直接输入字母，输入后自动前进；退格键删除当前格并后退，方向键（↑↓←→）可手动跳格。
               </p>
             </div>
           </div>
