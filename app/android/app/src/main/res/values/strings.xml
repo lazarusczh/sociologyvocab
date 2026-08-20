@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">社会学词汇练习</string>
-    <string name="title_activity_main">社会学词汇练习</string>
+    <string name="app_name">9699vocab</string>
+    <string name="title_activity_main">9699vocab</string>
     <string name="package_name">com.sda.vocabulary</string>
     <string name="custom_url_scheme">com.sda.vocabulary</string>
 </resources>

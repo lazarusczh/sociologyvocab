@@ -9,14 +9,15 @@ import {
   type FormEvent as ReactFormEvent,
 } from 'react';
 import { useStore } from '../lib/store';
-import CategoryFilter from './CategoryFilter';
+import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
 import { generateCrossword, type GeneratedCrossword } from '../lib/crossword';
 
 const MIN_CELL = 16;
 const MAX_CELL = 30;
 
 export default function Crossword() {
-  const { vocab, categories } = useStore();
+  const { vocab, papers, categories } = useStore();
+  const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'term' | 'scholar'>('term');
   const [puzzle, setPuzzle] = useState<GeneratedCrossword | null>(null);
@@ -32,8 +33,13 @@ export default function Crossword() {
   const lastInputPos = useRef<{ r: number; c: number } | null>(null);
   const lastDeletePos = useRef<{ r: number; c: number } | null>(null);
 
-  const filtered = vocab.filter(
-    (i) => (cat === 'all' || i.category === cat) && (typeFilter === 'all' || i.type === typeFilter),
+  const onPaperChange = (p: string) => {
+    setPaper(p);
+    setCat('all');
+  };
+
+  const filtered = filterByPaperCat(vocab, paper, cat).filter(
+    (i) => typeFilter === 'all' || i.type === typeFilter,
   );
 
   const start = useCallback(() => {
@@ -259,9 +265,12 @@ export default function Crossword() {
         <>
           <CategoryFilter
             items={vocab}
+            papers={papers}
             categories={categories}
-            selected={cat}
-            onSelect={setCat}
+            paper={paper}
+            onPaperChange={onPaperChange}
+            cat={cat}
+            onCatChange={setCat}
             typeFilter={typeFilter}
             onTypeChange={setTypeFilter}
           />

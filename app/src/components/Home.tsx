@@ -1,4 +1,5 @@
 import { useStore } from '../lib/store';
+import { masteryLevel } from '../lib/storage';
 import { isInWrongBook } from '../lib/checkin';
 import StreakCard from './StreakCard';
 import type { View } from '../App';
@@ -8,7 +9,7 @@ interface Props {
 }
 
 const MODES: { key: View; icon: string; title: string; desc: string }[] = [
-  { key: 'flashcards', icon: '🂠', title: '闪卡记忆', desc: '翻卡看释义，标记掌握程度' },
+  { key: 'flashcards', icon: '🂠', title: '闪卡记忆', desc: '翻卡看释义，纯自学浏览' },
   { key: 'choice', icon: '☑', title: '选择题测验', desc: '四选一，术语与释义配对' },
   { key: 'spelling', icon: '✎', title: '拼写默写', desc: '看中文释义拼写英文术语' },
   { key: 'matching', icon: '⇄', title: '匹配题', desc: '术语与释义连线配对' },
@@ -18,10 +19,13 @@ const MODES: { key: View; icon: string; title: string; desc: string }[] = [
 ];
 
 export default function Home({ go }: Props) {
-  const { vocab, progress, categories, wrongBook } = useStore();
-  const learned = Object.values(progress).filter((p) => p.mastery >= 2).length;
+  const { vocab, progress, papers, wrongBook } = useStore();
+  const mastered = Object.values(progress).filter((p) => masteryLevel(p.mastery) >= 3).length;
   const total = vocab.length;
-  const pct = total > 0 ? Math.round((learned / total) * 100) : 0;
+  // 整体掌握度：所有词条掌握度（0-100）的平均值，未练习的词条计为 0
+  const avgMastery = total > 0
+    ? Math.round(vocab.reduce((s, it) => s + (progress[it.id]?.mastery ?? 0), 0) / total)
+    : 0;
   const wrongCount = Object.keys(wrongBook).filter((id) => isInWrongBook(wrongBook[id])).length;
 
   return (
@@ -47,11 +51,11 @@ export default function Home({ go }: Props) {
                 <span className="label">词汇总数</span>
               </div>
               <div className="stat">
-                <span className="num">{categories.length}</span>
-                <span className="label">主题分类</span>
+                <span className="num">{papers.length}</span>
+                <span className="label">考卷分类</span>
               </div>
               <div className="stat">
-                <span className="num">{learned}</span>
+                <span className="num">{mastered}</span>
                 <span className="label">已掌握</span>
               </div>
             </div>
@@ -59,10 +63,10 @@ export default function Home({ go }: Props) {
               <div className="row" style={{ marginBottom: '0.3rem' }}>
                 <span className="muted" style={{ fontSize: '0.85rem' }}>整体掌握度</span>
                 <span className="spacer" />
-                <span className="muted" style={{ fontSize: '0.85rem' }}>{pct}%</span>
+                <span className="muted" style={{ fontSize: '0.85rem' }}>{avgMastery}%</span>
               </div>
               <div className="progress-bar">
-                <div style={{ width: `${pct}%` }} />
+                <div style={{ width: `${avgMastery}%` }} />
               </div>
             </div>
           </div>

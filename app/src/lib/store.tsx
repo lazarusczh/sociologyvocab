@@ -1,10 +1,10 @@
 import {
   createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode,
 } from 'react';
-import type { VocabItem, Progress, ContextPassage, ImportResult, CheckInState, WrongBook, StudentIdentity } from './types';
+import type { VocabItem, Progress, ContextPassage, ImportResult, CheckInState, WrongBook, StudentIdentity, PracticeMode } from './types';
 import {
   loadVocab, saveVocab, clearVocab,
-  loadProgress, saveProgress, recordAnswer, setMastery,
+  loadProgress, saveProgress, recordAnswer, resetMastery, PAPER_ORDER,
   loadContexts, saveContexts, isConfigured, setConfigured,
   loadCheckIn, saveCheckIn, loadWrongBook, saveWrongBook,
 } from './storage';
@@ -12,16 +12,28 @@ import {
   recordFormalAnswer, addStudySeconds, applyMakeup as applyMakeupCheck,
   applyWrongAnswer, emptyCheckIn,
 } from './checkin';
-import { parseExcelFiles } from './excelImport';
+import { parseExcelFiles, migrateVocabItems } from './excelImport';
 import { loadIdentity, saveIdentity, exportBackupJson, performImport } from './backup';
 
 const STUDY_TICK_SECONDS = 10;
+
+const MASTERY_V2_KEY = 'socio_vocab_mastery_v2';
+
+// 掌握度模型 v2 上线后做一次性迁移：把旧版离散档位掌握度重置为 0
+function migrateProgressOnce(): Progress {
+  if (localStorage.getItem(MASTERY_V2_KEY)) return loadProgress();
+  const reset = resetMastery(loadProgress());
+  saveProgress(reset);
+  localStorage.setItem(MASTERY_V2_KEY, '1');
+  return reset;
+}
 
 interface StoreValue {
   vocab: VocabItem[];
   progress: Progress;
   contexts: ContextPassage[];
   categories: string[];
+  papers: string[];
   checkin: CheckInState;
   wrongBook: WrongBook;
   // 词库操作
@@ -30,8 +42,7 @@ interface StoreValue {
   replaceVocab: (items: VocabItem[]) => void;
   clearAll: () => void;
   // 进度操作
-  recordItem: (itemId: string, correct: boolean) => void;
-  setItemMastery: (itemId: string, mastery: number) => void;
+  recordItem: (itemId: string, correct: boolean, mode: PracticeMode) => void;
   resetProgress: () => void;
   // 打卡
   beginStudy: () => void;
@@ -61,23 +72,25 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const activeRef = useRef(0);
 
   useEffect(() => {
-    setProgress(loadProgress());
+    setProgress(migrateProgressOnce());
     setContexts(loadContexts());
     setCheckin(loadCheckIn());
     setWrongBook(loadWrongBook());
     setIdentityState(loadIdentity());
 
-    const local = loadVocab();
+    const local = migrateVocabItems(loadVocab());
     if (local.length > 0) {
       setVocab(local);
+      saveVocab(local); // 旧词库可能缺少 paper 字段，迁移后回写
     } else if (!isConfigured()) {
       // 首次使用：加载内置词库（public/vocab-data.json）
       fetch(`${import.meta.env.BASE_URL}vocab-data.json`)
         .then((r) => r.json())
         .then((data: VocabItem[]) => {
           if (data && data.length > 0) {
-            setVocab(data);
-            saveVocab(data);
+            const migrated = migrateVocabItems(data);
+            setVocab(migrated);
+            saveVocab(migrated);
             setConfigured();
           }
         })
@@ -134,10 +147,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setVocab([]);
   }, []);
 
-  // 记录一次正式练习结果：同时更新掌握度、当日打卡题数、错题本
-  const recordItem = useCallback((itemId: string, correct: boolean) => {
+  // 记录一次正式练习结果：同时更新掌握度（按模式权重）、当日打卡题数、错题本
+  const recordItem = useCallback((itemId: string, correct: boolean, mode: PracticeMode) => {
     setProgress((prev) => {
-      const next = recordAnswer(itemId, correct, prev);
+      const next = recordAnswer(itemId, correct, mode, prev);
       saveProgress(next);
       return next;
     });
@@ -149,14 +162,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setWrongBook((prev) => {
       const next = applyWrongAnswer(prev, itemId, correct);
       saveWrongBook(next);
-      return next;
-    });
-  }, []);
-
-  const setItemMastery = useCallback((itemId: string, mastery: number) => {
-    setProgress((prev) => {
-      const next = setMastery(itemId, mastery, prev);
-      saveProgress(next);
       return next;
     });
   }, []);
@@ -217,13 +222,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return res.message;
   }, []);
 
-  const categories = [...new Set(vocab.map((i) => i.category))].sort();
+  const categories = [...new Set(vocab.map((i) => i.category).filter(Boolean))].sort();
+  const papers = PAPER_ORDER.filter((p) => vocab.some((v) => v.paper === p));
 
   const value: StoreValue = {
     vocab,
     progress,
     contexts,
     categories,
+    papers,
     checkin,
     wrongBook,
     importFiles,
@@ -231,7 +238,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     replaceVocab,
     clearAll,
     recordItem,
-    setItemMastery,
     resetProgress,
     beginStudy,
     endStudy,

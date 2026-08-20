@@ -2,14 +2,15 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useStore, useStudySession } from '../lib/store';
 import { sample, shuffle } from '../lib/shuffle';
 import { maskAnswer } from '../lib/answers';
-import CategoryFilter from './CategoryFilter';
+import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
 import type { VocabItem } from '../lib/types';
 
 const PAIRS = 6;
 
 export default function Matching() {
-  const { vocab, recordItem, categories } = useStore();
+  const { vocab, recordItem, papers, categories } = useStore();
   useStudySession();
+  const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'term' | 'scholar'>('all');
   const [left, setLeft] = useState<VocabItem[]>([]);
@@ -21,12 +22,14 @@ export default function Matching() {
   const [mistakes, setMistakes] = useState(0);
   const timeoutRef = useRef<number | null>(null);
 
+  const onPaperChange = (p: string) => {
+    setPaper(p);
+    setCat('all');
+  };
+
   const filtered = useMemo(
-    () =>
-      vocab.filter(
-        (i) => (cat === 'all' || i.category === cat) && (typeFilter === 'all' || i.type === typeFilter),
-      ),
-    [vocab, cat, typeFilter],
+    () => filterByPaperCat(vocab, paper, cat).filter((i) => typeFilter === 'all' || i.type === typeFilter),
+    [vocab, paper, cat, typeFilter],
   );
 
   const start = useCallback(() => {
@@ -47,11 +50,11 @@ export default function Matching() {
     if (!selLeft || !selRight) return;
     if (selLeft === selRight) {
       setMatched((prev) => new Set(prev).add(selLeft));
-      recordItem(selLeft, true);
+      recordItem(selLeft, true, 'matching');
     } else {
       setWrongPair([selLeft, selRight]);
       setMistakes((m) => m + 1);
-      recordItem(selRight, false);
+      recordItem(selRight, false, 'matching');
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = window.setTimeout(() => setWrongPair(null), 600);
     }
@@ -79,9 +82,12 @@ export default function Matching() {
         <h1>匹配题</h1>
         <CategoryFilter
           items={vocab}
+          papers={papers}
           categories={categories}
-          selected={cat}
-          onSelect={setCat}
+          paper={paper}
+          onPaperChange={onPaperChange}
+          cat={cat}
+          onCatChange={setCat}
           typeFilter={typeFilter}
           onTypeChange={setTypeFilter}
         />

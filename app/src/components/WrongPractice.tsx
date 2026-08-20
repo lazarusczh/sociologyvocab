@@ -59,7 +59,7 @@ export default function WrongPractice() {
     setPicked(opt);
     const correct = opt === q.answer;
     if (correct) setScore((s) => s + 1);
-    recordItem(q.item.id, correct);
+    recordItem(q.item.id, correct, 'choice');
   };
 
   const next = () => {

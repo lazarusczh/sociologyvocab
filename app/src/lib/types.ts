@@ -5,23 +5,28 @@ export interface VocabItem {
   term: string;        // 英文术语 或 学者姓名
   chinese: string;     // 中文翻译（学者人名为空）
   definition: string; // 英文释义 或 学者理论描述
-  category: string;    // 所属主题
+  paper: string;       // 考卷大类：'Paper 1' | 'Paper 2' | 'Paper 3' | 'Paper 4'
+  category: string;    // 次级标签（Paper 4 为 Globalisation/Media；Paper 1 合并为空）
   theory?: string;     // 学者所属理论流派（仅学者）
   notes?: string;      // 备注（仅学者）
 }
+
+// 正式练习模式（用于区分掌握度增减权重）
+export type PracticeMode = 'choice' | 'spelling' | 'matching';
 
 // 导入结果
 export interface ImportResult {
   items: VocabItem[];
   termCount: number;
   scholarCount: number;
-  categories: string[];
+  papers: string[];     // 考卷大类
+  categories: string[]; // 次级标签（非空）
   warnings: string[];
 }
 
 // 单条练习进度
 export interface ItemProgress {
-  // 闪卡掌握度：0=未学 1=不熟 2=熟悉 3=掌握
+  // 掌握度：0-100 连续值；0=未学，1-40=不熟，41-70=熟悉，71-100=掌握
   mastery: number;
   seenCount: number;     // 练习过的次数
   correctCount: number;  // 答对次数

@@ -2,14 +2,15 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useStore, useStudySession } from '../lib/store';
 import { sample, shuffle } from '../lib/shuffle';
 import { isCorrectAnswer, maskAnswer } from '../lib/answers';
-import CategoryFilter from './CategoryFilter';
+import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
 import type { VocabItem } from '../lib/types';
 
 const ROUND = 10;
 
 export default function Spelling() {
-  const { vocab, recordItem, categories } = useStore();
+  const { vocab, recordItem, papers, categories } = useStore();
   useStudySession();
+  const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'term' | 'scholar'>('term');
   const [round, setRound] = useState<VocabItem[]>([]);
@@ -20,12 +21,14 @@ export default function Spelling() {
   const [score, setScore] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const onPaperChange = (p: string) => {
+    setPaper(p);
+    setCat('all');
+  };
+
   const filtered = useMemo(
-    () =>
-      vocab.filter(
-        (i) => (cat === 'all' || i.category === cat) && (typeFilter === 'all' || i.type === typeFilter),
-      ),
-    [vocab, cat, typeFilter],
+    () => filterByPaperCat(vocab, paper, cat).filter((i) => typeFilter === 'all' || i.type === typeFilter),
+    [vocab, paper, cat, typeFilter],
   );
 
   const start = useCallback(() => {
@@ -49,7 +52,7 @@ export default function Spelling() {
     setCorrect(ok);
     setRevealed(true);
     if (ok) setScore((s) => s + 1);
-    recordItem(current.id, ok);
+    recordItem(current.id, ok, 'spelling');
   };
 
   const next = () => {
@@ -69,9 +72,12 @@ export default function Spelling() {
         <h1>拼写默写</h1>
         <CategoryFilter
           items={vocab}
+          papers={papers}
           categories={categories}
-          selected={cat}
-          onSelect={setCat}
+          paper={paper}
+          onPaperChange={onPaperChange}
+          cat={cat}
+          onCatChange={setCat}
           typeFilter={typeFilter}
           onTypeChange={setTypeFilter}
         />
@@ -135,7 +141,7 @@ export default function Spelling() {
         </div>
 
         {!revealed && (
-          <button className="ghost" style={{ marginTop: '0.4rem', fontSize: '0.85rem' }} onClick={() => { setRevealed(true); setCorrect(false); recordItem(current.id, false); }}>
+          <button className="ghost" style={{ marginTop: '0.4rem', fontSize: '0.85rem' }} onClick={() => { setRevealed(true); setCorrect(false); recordItem(current.id, false, 'spelling'); }}>
             不会，看答案
           </button>
         )}

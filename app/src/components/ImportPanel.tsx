@@ -100,8 +100,14 @@ export default function ImportPanel() {
           <div className="row">
             <span className="badge success">术语 {result.termCount}</span>
             <span className="badge">学者 {result.scholarCount}</span>
+            <span className="badge">{result.papers.length} 个考卷</span>
             <span className="badge">{result.categories.length} 个主题</span>
           </div>
+          {result.papers.length > 0 && (
+            <p className="muted" style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}>
+              考卷：{result.papers.join('、')}
+            </p>
+          )}
           {result.categories.length > 0 && (
             <p className="muted" style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}>
               主题：{result.categories.join('、')}

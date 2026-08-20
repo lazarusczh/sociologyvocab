@@ -38,6 +38,22 @@ function categoryFromFilename(f) {
   return name.replace(/^A[12]\s+/i, '').trim() || '学者';
 }
 
+// 旧「主题」→ { 考卷 Paper, 次级标签 sub } 的映射（与 app/src/lib/excelImport.ts 保持一致）
+const CATEGORY_TO_PAPER = {
+  'Social theories & socialisation': { paper: 'Paper 1', sub: '' },
+  'Research methods': { paper: 'Paper 1', sub: '' },
+  'Social identities': { paper: 'Paper 1', sub: '' },
+  'Socialisation Methodology Identity': { paper: 'Paper 1', sub: '' },
+  'Family': { paper: 'Paper 2', sub: 'Family' },
+  'Education': { paper: 'Paper 3', sub: 'Education' },
+  'Globalisation': { paper: 'Paper 4', sub: 'Globalisation' },
+  'Media': { paper: 'Paper 4', sub: 'Media' },
+};
+
+function paperInfo(category) {
+  return CATEGORY_TO_PAPER[category] || { paper: 'Paper 1', sub: category };
+}
+
 const items = [];
 let termCount = 0;
 let schCount = 0;
@@ -62,6 +78,7 @@ for (const file of FILES) {
     if (useNameSheet) {
       // 学者表
       const category = isNameFile ? categoryFromFilename(file) : sheetName;
+      const { paper, sub } = paperInfo(category);
       let headerIdx = -1;
       let theoryCol = 0, nameCol = 2, descCol = 3, notesCol = 4;
       for (let i = 0; i < Math.min(5, rows.length); i++) {
@@ -97,7 +114,8 @@ for (const file of FILES) {
           term: name,
           chinese: '',
           definition: desc || notes || lastTheory,
-          category,
+          paper,
+          category: sub,
           theory: lastTheory,
           notes: notes || undefined,
         });
@@ -105,6 +123,7 @@ for (const file of FILES) {
     } else {
       // 术语表
       const category = sheetName;
+      const { paper, sub } = paperInfo(category);
       let startIdx = 0;
       if (rows[0] && rows[0][0]) {
         const first = String(rows[0][0]);
@@ -123,7 +142,8 @@ for (const file of FILES) {
           term: english,
           chinese,
           definition,
-          category,
+          paper,
+          category: sub,
         });
       }
     }

@@ -21,3 +21,9 @@ teacher-private-key.json
 
 # 打包生成的安装包（内含内置词库数据，属于教师知识产权，不纳入公开备份）
 *.apk
+
+# 设备相关的生成产物（Capacitor 在平板等具体设备上 sync 生成，文件名带设备名后缀）
+**/*TABLET-*
+app/package-TABLET-*.json
+app/package-lock-TABLET-*.json
+app/android/app/src/main/assets/

@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useStore, useStudySession } from '../lib/store';
 import { shuffle, sample } from '../lib/shuffle';
 import { maskAnswer } from '../lib/answers';
-import CategoryFilter from './CategoryFilter';
+import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
 import type { VocabItem } from '../lib/types';
 
 interface Question {
@@ -53,8 +53,9 @@ function buildQuestion(item: VocabItem, pool: VocabItem[]): Question {
 }
 
 export default function MultipleChoice() {
-  const { vocab, recordItem, categories } = useStore();
+  const { vocab, recordItem, papers, categories } = useStore();
   useStudySession();
+  const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'term' | 'scholar'>('all');
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -62,12 +63,14 @@ export default function MultipleChoice() {
   const [picked, setPicked] = useState<string | null>(null);
   const [score, setScore] = useState(0);
 
+  const onPaperChange = (p: string) => {
+    setPaper(p);
+    setCat('all');
+  };
+
   const filtered = useMemo(
-    () =>
-      vocab.filter(
-        (i) => (cat === 'all' || i.category === cat) && (typeFilter === 'all' || i.type === typeFilter),
-      ),
-    [vocab, cat, typeFilter],
+    () => filterByPaperCat(vocab, paper, cat).filter((i) => typeFilter === 'all' || i.type === typeFilter),
+    [vocab, paper, cat, typeFilter],
   );
 
   const start = useCallback(() => {
@@ -87,7 +90,7 @@ export default function MultipleChoice() {
     setPicked(opt);
     const correct = opt === q.answer;
     if (correct) setScore((s) => s + 1);
-    recordItem(q.item.id, correct);
+    recordItem(q.item.id, correct, 'choice');
   };
 
   const next = () => {
@@ -105,9 +108,12 @@ export default function MultipleChoice() {
         <h1>选择题测验</h1>
         <CategoryFilter
           items={vocab}
+          papers={papers}
           categories={categories}
-          selected={cat}
-          onSelect={setCat}
+          paper={paper}
+          onPaperChange={onPaperChange}
+          cat={cat}
+          onCatChange={setCat}
           typeFilter={typeFilter}
           onTypeChange={setTypeFilter}
         />

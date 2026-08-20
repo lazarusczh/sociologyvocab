@@ -2,6 +2,33 @@ import * as XLSX from 'xlsx';
 import type { VocabItem, ImportResult } from './types';
 import { cleanText, uid } from './shuffle';
 
+// 旧「主题」→ { 考卷 Paper, 次级标签 sub } 的映射（对应 9699A Level 社会学大纲四张考卷）
+// Paper 1 完全合并为一级，sub 为空；Paper 4 含 Globalisation / Media 两个次级标签
+const CATEGORY_TO_PAPER: Record<string, { paper: string; sub: string }> = {
+  'Social theories & socialisation': { paper: 'Paper 1', sub: '' },
+  'Research methods': { paper: 'Paper 1', sub: '' },
+  'Social identities': { paper: 'Paper 1', sub: '' },
+  'Socialisation Methodology Identity': { paper: 'Paper 1', sub: '' },
+  'Family': { paper: 'Paper 2', sub: 'Family' },
+  'Education': { paper: 'Paper 3', sub: 'Education' },
+  'Globalisation': { paper: 'Paper 4', sub: 'Globalisation' },
+  'Media': { paper: 'Paper 4', sub: 'Media' },
+};
+
+// 由旧主题名推断考卷与次级标签（未知主题默认归入 Paper 1，次级标签保留原名）
+export function paperInfo(category: string): { paper: string; sub: string } {
+  return CATEGORY_TO_PAPER[category] ?? { paper: 'Paper 1', sub: category };
+}
+
+// 迁移旧词库数据：补齐 paper 字段，并把三级主题收敛为次级标签
+export function migrateVocabItems(items: VocabItem[]): VocabItem[] {
+  return items.map((i) => {
+    if (i.paper) return i;
+    const { paper, sub } = paperInfo(i.category);
+    return { ...i, paper, category: sub };
+  });
+}
+
 // 从文件名推断学者表的主题
 function categoryFromFilename(filename: string): string {
   const base = filename.replace(/\.xlsx$/i, '').replace(/\s*name\s*sheet/i, '');
@@ -19,10 +46,11 @@ function isNameSheetHeader(row: string[]): boolean {
 // 解析学者人名表（单 sheet）
 function parseNameSheet(
   rows: string[][],
-  category: string,
+  source: string,
 ): { items: VocabItem[]; warnings: string[] } {
   const items: VocabItem[] = [];
   const warnings: string[] = [];
+  const { paper, sub } = paperInfo(source);
   let headerIdx = -1;
   let theoryCol = 0;
   let nameCol = 2;
@@ -69,14 +97,15 @@ function parseNameSheet(
       term: name,
       chinese: '',
       definition: desc || notes || lastTheory,
-      category,
+      paper,
+      category: sub,
       theory: lastTheory,
       notes: notes || undefined,
     });
   }
 
   if (items.length === 0) {
-    warnings.push(`学者表「${category}」未解析到数据`);
+    warnings.push(`学者表「${source}」未解析到数据`);
   }
   return { items, warnings };
 }
@@ -84,10 +113,11 @@ function parseNameSheet(
 // 解析术语表（多 sheet）
 function parseTermSheet(
   rows: string[][],
-  category: string,
+  source: string,
 ): { items: VocabItem[]; warnings: string[] } {
   const items: VocabItem[] = [];
   const warnings: string[] = [];
+  const { paper, sub } = paperInfo(source);
   let startIdx = 0;
 
   // 跳过标题行（通常第 0 行是 "Part I: ..." 这类标题）
@@ -114,12 +144,13 @@ function parseTermSheet(
       term: english,
       chinese,
       definition,
-      category,
+      paper,
+      category: sub,
     });
   }
 
   if (items.length === 0) {
-    warnings.push(`术语表「${category}」未解析到数据`);
+    warnings.push(`术语表「${source}」未解析到数据`);
   }
   return { items, warnings };
 }
@@ -165,9 +196,10 @@ export async function parseExcelFile(file: File): Promise<ImportResult> {
 
   const termCount = items.filter((i) => i.type === 'term').length;
   const scholarCount = items.filter((i) => i.type === 'scholar').length;
-  const categories = [...new Set(items.map((i) => i.category))].sort();
+  const papers = [...new Set(items.map((i) => i.paper).filter(Boolean))].sort();
+  const categories = [...new Set(items.map((i) => i.category).filter(Boolean))].sort();
 
-  return { items, termCount, scholarCount, categories, warnings };
+  return { items, termCount, scholarCount, papers, categories, warnings };
 }
 
 // 批量解析多个文件
@@ -185,6 +217,7 @@ export async function parseExcelFiles(files: File[]): Promise<ImportResult> {
   }
   const termCount = allItems.filter((i) => i.type === 'term').length;
   const scholarCount = allItems.filter((i) => i.type === 'scholar').length;
-  const categories = [...new Set(allItems.map((i) => i.category))].sort();
-  return { items: allItems, termCount, scholarCount, categories, warnings: allWarnings };
+  const papers = [...new Set(allItems.map((i) => i.paper).filter(Boolean))].sort();
+  const categories = [...new Set(allItems.map((i) => i.category).filter(Boolean))].sort();
+  return { items: allItems, termCount, scholarCount, papers, categories, warnings: allWarnings };
 }

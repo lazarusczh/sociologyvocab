@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef, type CSSProperties } from 'react';
 import { useStore } from '../lib/store';
 import { shuffle } from '../lib/shuffle';
-import CategoryFilter from './CategoryFilter';
+import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
 
 type CellState = 'correct' | 'present' | 'absent' | 'empty';
 
@@ -54,7 +54,8 @@ function pickTarget(items: Target[]): Target | null {
 }
 
 export default function Wordle() {
-  const { vocab, categories } = useStore();
+  const { vocab, papers, categories } = useStore();
+  const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'term' | 'scholar'>('term');
   const [target, setTarget] = useState<Target | null>(null);
@@ -63,11 +64,15 @@ export default function Wordle() {
   const [message, setMessage] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const onPaperChange = (p: string) => {
+    setPaper(p);
+    setCat('all');
+  };
+
   const candidates = useMemo(() => {
     const out: Target[] = [];
     const seen = new Set<string>();
-    for (const it of vocab) {
-      if (cat !== 'all' && it.category !== cat) continue;
+    for (const it of filterByPaperCat(vocab, paper, cat)) {
       if (typeFilter !== 'all' && it.type !== typeFilter) continue;
       const c = getCandidates(it.term);
       if (c && !seen.has(c.answer)) {
@@ -76,7 +81,7 @@ export default function Wordle() {
       }
     }
     return out;
-  }, [vocab, cat, typeFilter]);
+  }, [vocab, paper, cat, typeFilter]);
 
   const start = useCallback(() => {
     const t = pickTarget(candidates);
@@ -121,9 +126,12 @@ export default function Wordle() {
         <h1>Wordle</h1>
         <CategoryFilter
           items={vocab}
+          papers={papers}
           categories={categories}
-          selected={cat}
-          onSelect={setCat}
+          paper={paper}
+          onPaperChange={onPaperChange}
+          cat={cat}
+          onCatChange={setCat}
           typeFilter={typeFilter}
           onTypeChange={setTypeFilter}
         />

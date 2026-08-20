@@ -1,24 +1,47 @@
 import type { VocabItem } from '../lib/types';
 
+// 依据考卷与次级标签筛选（都是 'all' 时不过滤对应层级）
+export function filterByPaperCat(items: VocabItem[], paper: string, cat: string): VocabItem[] {
+  return items.filter(
+    (i) => (paper === 'all' || i.paper === paper) && (cat === 'all' || i.category === cat),
+  );
+}
+
 interface Props {
   items: VocabItem[];
-  categories: string[];
-  selected: string; // 'all' or category name
-  onSelect: (cat: string) => void;
+  papers: string[];         // 考卷大类（Paper 1-4）
+  categories: string[];     // 次级标签（非空）
+  paper: string;            // 选中考卷：'all' 或 'Paper N'
+  onPaperChange: (p: string) => void;
+  cat: string;              // 选中次级标签：'all' 或次级标签名
+  onCatChange: (c: string) => void;
   typeFilter?: 'all' | 'term' | 'scholar';
   onTypeChange?: (t: 'all' | 'term' | 'scholar') => void;
 }
 
 export default function CategoryFilter({
   items,
+  papers,
   categories,
-  selected,
-  onSelect,
+  paper,
+  onPaperChange,
+  cat,
+  onCatChange,
   typeFilter = 'all',
   onTypeChange,
 }: Props) {
-  const count = (cat: string) =>
-    items.filter((i) => (cat === 'all' || i.category === cat) && (typeFilter === 'all' || i.type === typeFilter)).length;
+  const typeOk = (i: VocabItem) => typeFilter === 'all' || i.type === typeFilter;
+
+  const paperCount = (p: string) =>
+    items.filter((i) => (p === 'all' || i.paper === p) && typeOk(i)).length;
+
+  // 当前考卷下的次级标签；仅当该卷有多个次级标签时展示（如 Paper 4 的 Globalisation/Media）
+  const subLabels =
+    paper === 'all'
+      ? []
+      : categories.filter((c) => items.some((i) => i.paper === paper && i.category === c));
+
+  const shown = paperCount(paper);
 
   return (
     <div className="card" style={{ marginBottom: '0.8rem' }}>
@@ -36,19 +59,31 @@ export default function CategoryFilter({
             </button>
           ))}
           <span className="spacer" />
-          <span className="muted" style={{ fontSize: '0.85rem' }}>共 {count(selected)} 条</span>
+          <span className="muted" style={{ fontSize: '0.85rem' }}>共 {shown} 条</span>
         </div>
       )}
       <div className="tag-filter">
-        <button className={selected === 'all' ? 'active' : ''} onClick={() => onSelect('all')}>
-          全部主题
+        <button className={paper === 'all' ? 'active' : ''} onClick={() => onPaperChange('all')}>
+          全部考卷
         </button>
-        {categories.map((c) => (
-          <button key={c} className={selected === c ? 'active' : ''} onClick={() => onSelect(c)}>
-            {c} ({count(c)})
+        {papers.map((p) => (
+          <button key={p} className={paper === p ? 'active' : ''} onClick={() => onPaperChange(p)}>
+            {p} ({paperCount(p)})
           </button>
         ))}
       </div>
+      {subLabels.length > 1 && (
+        <div className="tag-filter" style={{ marginTop: '0.4rem' }}>
+          <button className={cat === 'all' ? 'active' : ''} onClick={() => onCatChange('all')}>
+            全部主题
+          </button>
+          {subLabels.map((c) => (
+            <button key={c} className={cat === c ? 'active' : ''} onClick={() => onCatChange(c)}>
+              {c} ({items.filter((i) => i.paper === paper && i.category === c && typeOk(i)).length})
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

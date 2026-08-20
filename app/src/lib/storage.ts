@@ -1,5 +1,33 @@
-import type { VocabItem, Progress, ContextPassage, CheckInState, WrongBook } from './types';
+import type { VocabItem, Progress, ContextPassage, CheckInState, WrongBook, PracticeMode } from './types';
 import { emptyCheckIn } from './checkin';
+
+// 掌握度四档标签（界面展示用）
+export const MASTERY_LABELS = ['未学', '不熟', '熟悉', '掌握'] as const;
+
+// 考卷大类顺序（对应 9699A Level 社会学大纲四张考卷）
+export const PAPER_ORDER = ['Paper 1', 'Paper 2', 'Paper 3', 'Paper 4'] as const;
+
+// 掌握度数值 → 四档（0=未学 1=不熟 2=熟悉 3=掌握）
+export function masteryLevel(mastery: number): number {
+  if (mastery <= 0) return 0;
+  if (mastery <= 40) return 1;
+  if (mastery <= 70) return 2;
+  return 3;
+}
+
+// 不同练习模式的掌握度增减权重（拼写最高、配对居中、选择最低；扣分 > 加分，防止靠蒙虚高）
+const MASTERY_WEIGHTS: Record<PracticeMode, { gain: number; loss: number }> = {
+  choice: { gain: 6, loss: 12 },
+  matching: { gain: 8, loss: 16 },
+  spelling: { gain: 12, loss: 24 },
+};
+
+// 依据答对/答错动态调整掌握度（0-100 区间）
+export function adjustMastery(mastery: number, correct: boolean, mode: PracticeMode): number {
+  const { gain, loss } = MASTERY_WEIGHTS[mode];
+  const next = correct ? mastery + gain : mastery - loss;
+  return Math.max(0, Math.min(100, next));
+}
 
 const VOCAB_KEY = 'socio_vocab_items';
 const PROGRESS_KEY = 'socio_vocab_progress';
@@ -49,10 +77,11 @@ export function saveProgress(progress: Progress): void {
   localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
 }
 
-// 记录一次练习结果
+// 记录一次练习结果（含按模式权重的掌握度动态调整）
 export function recordAnswer(
   itemId: string,
   correct: boolean,
+  mode: PracticeMode,
   progress: Progress,
 ): Progress {
   const cur = progress[itemId] || { mastery: 0, seenCount: 0, correctCount: 0, lastSeen: 0 };
@@ -61,26 +90,19 @@ export function recordAnswer(
     seenCount: cur.seenCount + 1,
     correctCount: cur.correctCount + (correct ? 1 : 0),
     lastSeen: Date.now(),
+    mastery: adjustMastery(cur.mastery, correct, mode),
   };
-  // 自动调整掌握度：连续答对提升，答错降低
-  const rate = next.correctCount / next.seenCount;
-  if (next.seenCount >= 3 && rate >= 0.8) next.mastery = Math.max(next.mastery, 2);
-  if (next.seenCount >= 5 && rate >= 0.9) next.mastery = 3;
-  if (rate < 0.5 && next.seenCount >= 2) next.mastery = Math.min(next.mastery, 1);
   return { ...progress, [itemId]: next };
 }
 
-// 手动设置掌握度（闪卡用）
-export function setMastery(
-  itemId: string,
-  mastery: number,
-  progress: Progress,
-): Progress {
-  const cur = progress[itemId] || { mastery: 0, seenCount: 0, correctCount: 0, lastSeen: 0 };
-  return {
-    ...progress,
-    [itemId]: { ...cur, mastery, lastSeen: Date.now() },
-  };
+// 掌握度模型 v2 一次性迁移：旧版掌握度为离散档位（0-3），语义与新的 0-100 连续值不同，
+// 直接重置为 0，保留练习次数等统计。
+export function resetMastery(progress: Progress): Progress {
+  const next: Progress = {};
+  for (const [id, p] of Object.entries(progress)) {
+    next[id] = { ...p, mastery: 0 };
+  }
+  return next;
 }
 
 // ---- 范文语境 ----
