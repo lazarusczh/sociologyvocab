@@ -37,24 +37,41 @@ const NAV: { key: View; label: string }[] = [
 
 function App() {
   const [view, setView] = useState<View>('home');
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const goto = (next: View) => {
+    setView(next);
+    setMenuOpen(false);
+  };
 
   return (
     <StoreProvider>
       <header className="topbar">
-        <span className="brand" onClick={() => setView('home')} style={{ cursor: 'pointer' }}>
+        <span className="brand" onClick={() => goto('home')} style={{ cursor: 'pointer' }}>
           社会学词汇练习
         </span>
-        <nav>
+        <nav className={menuOpen ? 'open' : ''}>
           {NAV.map((n) => (
             <button
               key={n.key}
               className={view === n.key ? 'active' : ''}
-              onClick={() => setView(n.key)}
+              onClick={() => goto(n.key)}
             >
               {n.label}
             </button>
           ))}
         </nav>
+        <span className="spacer" />
+        <button
+          className="nav-toggle"
+          aria-label="菜单"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((v) => !v)}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
       </header>
       <main className="container">
         {view === 'home' && <Home go={setView} />}
