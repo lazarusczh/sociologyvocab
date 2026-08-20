@@ -19,10 +19,14 @@ export interface ImportResult {
   items: VocabItem[];
   termCount: number;
   scholarCount: number;
-  papers: string[];     // 考卷大类
-  categories: string[]; // 次级标签（非空）
+  papers: string[];           // 考卷大类
+  categories: string[];       // 次级标签（非空）
   warnings: string[];
+  suspiciousScholars: string[]; // 疑似非常规格式的学者名（去重），需用户人工指定姓氏处理方式
 }
+
+// 特殊姓氏覆盖表：键为词库原文 term，值为应作为「姓氏」的正确写法（默写时只答此写法即算对）
+export type SurnameOverrides = Record<string, string>;
 
 // 单条练习进度
 export interface ItemProgress {

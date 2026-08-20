@@ -1,4 +1,4 @@
-import type { VocabItem, Progress, ContextPassage, CheckInState, WrongBook, PracticeMode } from './types';
+import type { VocabItem, Progress, ContextPassage, CheckInState, WrongBook, PracticeMode, SurnameOverrides } from './types';
 import { emptyCheckIn } from './checkin';
 
 // 掌握度四档标签（界面展示用）
@@ -35,6 +35,7 @@ const CONTEXT_KEY = 'socio_vocab_contexts';
 const CONFIG_KEY = 'socio_vocab_configured';
 const CHECKIN_KEY = 'socio_vocab_checkin';
 const WRONG_KEY = 'socio_vocab_wrong';
+const SURNAME_OVERRIDES_KEY = 'socio_vocab_surname_overrides';
 
 // ---- 词库 ----
 export function loadVocab(): VocabItem[] {
@@ -153,4 +154,18 @@ export function loadWrongBook(): WrongBook {
 
 export function saveWrongBook(book: WrongBook): void {
   localStorage.setItem(WRONG_KEY, JSON.stringify(book));
+}
+
+// ---- 特殊姓氏覆盖表（用户人工指定非常规学者名的「姓氏」处理方式）----
+export function loadSurnameOverrides(): SurnameOverrides {
+  try {
+    const raw = localStorage.getItem(SURNAME_OVERRIDES_KEY);
+    return raw ? (JSON.parse(raw) as SurnameOverrides) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function saveSurnameOverrides(overrides: SurnameOverrides): void {
+  localStorage.setItem(SURNAME_OVERRIDES_KEY, JSON.stringify(overrides));
 }

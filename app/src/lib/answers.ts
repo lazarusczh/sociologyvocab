@@ -1,5 +1,6 @@
 // 答案判定与容错逻辑
 import type { VocabItem } from './types';
+import { loadSurnameOverrides } from './storage';
 
 // 归一化：忽略大小写、空格、连字符、标点、重音等，只保留小写字母与数字
 export function normalizeKey(s: string): string {
@@ -71,9 +72,14 @@ const SCHOLAR_ALIASES: Record<string, string[]> = {
 // 特殊姓氏映射：学界以完整笔名称呼的作者，其"姓"是整个笔名而非最后一个词。
 // 例：bell hooks 是完整笔名（本名 Gloria Jean Watkins），不能拆成"姓 hooks 名 bell"。
 // 键为词库原文 term，值为应作为"姓氏"的完整写法（默写时只答此写法即算对）。
-const SCHOLAR_SURNAME_OVERRIDES: Record<string, string> = {
+const BUILTIN_SURNAME_OVERRIDES: Record<string, string> = {
   '(Gloria Jean Watkins) bell hooks': 'bell hooks',
 };
+
+// 合并内置默认 + 用户手动指定的姓氏覆盖（用户覆盖优先）
+function surnameOverrides(): Record<string, string> {
+  return { ...BUILTIN_SURNAME_OVERRIDES, ...loadSurnameOverrides() };
+}
 
 // 机构/来源特征词：命中则视为非人名，不套用"只认姓氏"
 const ORG_KEYWORDS = [
@@ -197,6 +203,20 @@ function isSinglePersonName(term: string): boolean {
   return words.length >= 1 && words.length <= 3; // 通常为 First Last 或 First Middle Last
 }
 
+// 判断学者名是否为「非常规格式」，需要用户人工指定姓氏处理方式。
+// 判定依据：含括号本名/说明、或全小写（疑似笔名）——自动取「最后一个词当姓氏」会出错。
+// 已有人工配置（别名 / 姓氏覆盖）或合著 et al. / & 条目的，视为规则已覆盖，不再提示。
+export function isSuspiciousScholarName(term: string): boolean {
+  if (SCHOLAR_ALIASES[term]) return false;
+  if (surnameOverrides()[term]) return false;
+  if (/et\s+al/i.test(term)) return false;
+  if (term.includes('&')) return false;
+  if (/[()]/.test(term)) return true; // 含括号本名/说明
+  const letters = term.replace(/[^A-Za-z]/g, '');
+  if (letters.length > 0 && letters === letters.toLowerCase()) return true; // 全小写笔名
+  return false;
+}
+
 // 获取某词条所有可接受写法的归一化键集合
 export function getAcceptableKeys(item: VocabItem): string[] {
   const keys = new Set<string>();
@@ -214,9 +234,9 @@ export function getAcceptableKeys(item: VocabItem): string[] {
   } else {
     if (SCHOLAR_ALIASES[item.term]) {
       SCHOLAR_ALIASES[item.term].forEach(push);
-    } else if (SCHOLAR_SURNAME_OVERRIDES[item.term]) {
+    } else if (surnameOverrides()[item.term]) {
       push(item.term); // 完整原文（笔名 + 本名）
-      push(SCHOLAR_SURNAME_OVERRIDES[item.term]); // 特殊姓氏整体（如 "bell hooks"）
+      push(surnameOverrides()[item.term]); // 特殊姓氏整体（如 "bell hooks"）
     } else if (/et\s+al/i.test(item.term)) {
       push(item.term); // 完整原文
       push(firstSurnameEtAl(item.term)); // 第一作者姓氏 + et al.
@@ -246,7 +266,7 @@ function escapeRegExp(s: string): string {
 
 // 学者姓氏（用于脱敏定义中出现的 "Beck (1992)..." 这类写法）；机构返回空
 export function scholarSurnames(term: string): string[] {
-  if (SCHOLAR_SURNAME_OVERRIDES[term]) return [SCHOLAR_SURNAME_OVERRIDES[term]];
+  if (surnameOverrides()[term]) return [surnameOverrides()[term]];
   const clean = (seg: string) => lastWord(seg.replace(/\([^)]*\)/g, ' ').trim());
   if (/et\s+al/i.test(term)) {
     return [clean(term.split(/et\s+al/i)[0])];

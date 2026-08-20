@@ -3,17 +3,31 @@ import { useStore } from '../lib/store';
 import type { ImportResult } from '../lib/types';
 
 export default function ImportPanel() {
-  const { vocab, importFiles, appendVocab, replaceVocab, clearAll } = useStore();
+  const { vocab, importFiles, appendVocab, replaceVocab, clearAll, surnameOverrides, setSurnameOverride, removeSurnameOverride } = useStore();
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [error, setError] = useState('');
+  // 待人工确认的非常规学者名，及用户为每个名字填写的「姓氏」草稿
+  const [pending, setPending] = useState<string[]>([]);
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const finalizeConfirm = () => {
+    pending.forEach((name) => {
+      const v = (drafts[name] ?? '').trim();
+      if (v) setSurnameOverride(name, v);
+    });
+    setPending([]);
+    setDrafts({});
+  };
 
   const handleFiles = async (files: FileList | null, mode: 'append' | 'replace') => {
     if (!files || files.length === 0) return;
     setBusy(true);
     setError('');
     setResult(null);
+    setPending([]);
+    setDrafts({});
     try {
       const res = await importFiles(Array.from(files));
       if (res.items.length === 0) {
@@ -22,6 +36,12 @@ export default function ImportPanel() {
         if (mode === 'replace') replaceVocab(res.items);
         else appendVocab(res.items);
         setResult(res);
+        // 出现非常规格式学者名时，弹出待确认名单（去重且排除已有配置）
+        const names = res.suspiciousScholars.filter((n) => !surnameOverrides[n]);
+        if (names.length > 0) {
+          setPending(names);
+          setDrafts(Object.fromEntries(names.map((n) => [n, ''])));
+        }
       }
     } catch (e) {
       setError(`导入失败：${(e as Error).message}`);
@@ -88,6 +108,40 @@ export default function ImportPanel() {
         </p>
       </div>
 
+      {pending.length > 0 && (
+        <div className="card" style={{ marginTop: '0.8rem', borderColor: 'var(--accent)' }}>
+          <h3>发现 {pending.length} 个非常规格式的学者名，请确认「姓氏」</h3>
+          <p className="muted" style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>
+            这些姓名因含括号本名或全小写（可能是笔名），系统无法可靠判断默写时应认哪个词。
+            请在右侧填入「默写时只答它就判对」的写法（如 bell hooks 填 <b>bell hooks</b>）；留空则跳过、保持自动识别。
+          </p>
+          <div style={{ marginTop: '0.6rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {pending.map((name) => (
+              <div key={name} className="row" style={{ alignItems: 'center', gap: '0.6rem' }}>
+                <span style={{ minWidth: '16rem', fontFamily: 'monospace' }}>{name}</span>
+                <input
+                  type="text"
+                  placeholder="留空 = 自动识别"
+                  value={drafts[name] ?? ''}
+                  onChange={(e) => setDrafts((d) => ({ ...d, [name]: e.target.value }))}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="row" style={{ marginTop: '0.8rem' }}>
+            <button className="primary" onClick={finalizeConfirm}>保存并继续</button>
+            <button
+              onClick={() => {
+                setPending([]);
+                setDrafts({});
+              }}
+            >
+              跳过，全部用自动识别
+            </button>
+          </div>
+        </div>
+      )}
+
       {error && (
         <div className="card" style={{ marginTop: '0.8rem', borderColor: 'var(--danger)' }}>
           <p style={{ color: 'var(--danger)' }}>{error}</p>
@@ -125,6 +179,24 @@ export default function ImportPanel() {
               </ul>
             </details>
           )}
+        </div>
+      )}
+
+      {Object.keys(surnameOverrides).length > 0 && (
+        <div className="card" style={{ marginTop: '0.8rem' }}>
+          <h3>已指定的特殊姓氏（{Object.keys(surnameOverrides).length}）</h3>
+          <p className="muted" style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>
+            这些是你手动指认过「姓氏」的学者名。可删除某条以恢复自动识别。
+          </p>
+          <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            {Object.entries(surnameOverrides).map(([term, surname]) => (
+              <div key={term} className="row" style={{ alignItems: 'center', gap: '0.6rem' }}>
+                <span style={{ minWidth: '16rem', fontFamily: 'monospace' }}>{term}</span>
+                <span className="badge" style={{ marginRight: 'auto' }}>→ {surname}</span>
+                <button onClick={() => removeSurnameOverride(term)}>删除</button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

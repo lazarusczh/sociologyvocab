@@ -1,12 +1,13 @@
 import {
   createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode,
 } from 'react';
-import type { VocabItem, Progress, ContextPassage, ImportResult, CheckInState, WrongBook, StudentIdentity, PracticeMode } from './types';
+import type { VocabItem, Progress, ContextPassage, ImportResult, CheckInState, WrongBook, StudentIdentity, PracticeMode, SurnameOverrides } from './types';
 import {
   loadVocab, saveVocab, clearVocab,
   loadProgress, saveProgress, recordAnswer, resetMastery, PAPER_ORDER,
   loadContexts, saveContexts, isConfigured, setConfigured,
   loadCheckIn, saveCheckIn, loadWrongBook, saveWrongBook,
+  loadSurnameOverrides, saveSurnameOverrides,
 } from './storage';
 import {
   recordFormalAnswer, addStudySeconds, applyMakeup as applyMakeupCheck,
@@ -36,11 +37,14 @@ interface StoreValue {
   papers: string[];
   checkin: CheckInState;
   wrongBook: WrongBook;
+  surnameOverrides: SurnameOverrides;
   // 词库操作
   importFiles: (files: File[]) => Promise<ImportResult>;
   appendVocab: (items: VocabItem[]) => void;
   replaceVocab: (items: VocabItem[]) => void;
   clearAll: () => void;
+  setSurnameOverride: (term: string, surname: string) => void;
+  removeSurnameOverride: (term: string) => void;
   // 进度操作
   recordItem: (itemId: string, correct: boolean, mode: PracticeMode) => void;
   resetProgress: () => void;
@@ -69,6 +73,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [wrongBook, setWrongBook] = useState<WrongBook>({});
   const [identity, setIdentityState] = useState<StudentIdentity | null>(null);
   const [skipped, setSkipped] = useState(false);
+  const [surnameOverrides, setSurnameOverrides] = useState<SurnameOverrides>({});
   const activeRef = useRef(0);
 
   useEffect(() => {
@@ -77,6 +82,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setCheckin(loadCheckIn());
     setWrongBook(loadWrongBook());
     setIdentityState(loadIdentity());
+    setSurnameOverrides(loadSurnameOverrides());
 
     const local = migrateVocabItems(loadVocab());
     if (local.length > 0) {
@@ -148,6 +154,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setConfigured();
     clearVocab();
     setVocab([]);
+  }, []);
+
+  const setSurnameOverride = useCallback((term: string, surname: string) => {
+    setSurnameOverrides((prev) => {
+      const next = surname.trim()
+        ? { ...prev, [term]: surname.trim() }
+        : (() => { const { [term]: _drop, ...rest } = prev; return rest; })();
+      saveSurnameOverrides(next);
+      return next;
+    });
+  }, []);
+
+  const removeSurnameOverride = useCallback((term: string) => {
+    setSurnameOverrides((prev) => {
+      const { [term]: _drop, ...rest } = prev;
+      saveSurnameOverrides(rest);
+      return rest;
+    });
   }, []);
 
   // 记录一次正式练习结果：同时更新掌握度（按模式权重）、当日打卡题数、错题本
@@ -236,10 +260,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     papers,
     checkin,
     wrongBook,
+    surnameOverrides,
     importFiles,
     appendVocab,
     replaceVocab,
     clearAll,
+    setSurnameOverride,
+    removeSurnameOverride,
     recordItem,
     resetProgress,
     beginStudy,

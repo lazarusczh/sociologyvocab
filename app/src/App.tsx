@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { StoreProvider, useStore } from './lib/store';
+import { IS_ADMIN } from './lib/admin';
 import IdentityGate from './components/IdentityGate';
 import Home from './components/Home';
 import Dictionary from './components/Dictionary';
@@ -83,7 +84,7 @@ function AppBody() {
       <main className="container">
         {view === 'home' && <Home go={setView} />}
         {view === 'dictionary' && <Dictionary />}
-        {view === 'import' && <ImportPanel />}
+        {view === 'import' && IS_ADMIN && <ImportPanel />}
         {view === 'backup' && <BackupPanel />}
         {view === 'flashcards' && <Flashcards />}
         {view === 'choice' && <MultipleChoice />}

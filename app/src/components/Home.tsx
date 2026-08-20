@@ -1,6 +1,7 @@
 import { useStore } from '../lib/store';
 import { masteryLevel } from '../lib/storage';
 import { isInWrongBook } from '../lib/checkin';
+import { IS_ADMIN } from '../lib/admin';
 import StreakCard from './StreakCard';
 import type { View } from '../App';
 
@@ -94,7 +95,7 @@ export default function Home({ go }: Props) {
       </div>
 
       <div className="row" style={{ marginTop: '1rem' }}>
-        <button onClick={() => go('import')}>管理词库</button>
+        {IS_ADMIN && <button onClick={() => go('import')}>管理词库</button>}
         <button onClick={() => go('progress')}>查看进度</button>
       </div>
     </div>

@@ -27,3 +27,9 @@ teacher-private-key.json
 app/package-TABLET-*.json
 app/package-lock-TABLET-*.json
 app/android/app/src/main/assets/
+
+# 教师工具脚本（含飞书 open_id 等个人身份信息，不纳入公开备份）
+app/scripts/send-apk.ps1
+
+# 自动化诊断日志（本地临时产物）
+@AutomationLog.txt

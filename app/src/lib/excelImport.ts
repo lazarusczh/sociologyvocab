@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx';
 import type { VocabItem, ImportResult } from './types';
 import { cleanText, uid } from './shuffle';
+import { isSuspiciousScholarName } from './answers';
 
 // 旧「主题」→ { 考卷 Paper, 次级标签 sub } 的映射（对应 9699A Level 社会学大纲四张考卷）
 // Paper 1 完全合并为一级，sub 为空；Paper 4 含 Globalisation / Media 两个次级标签
@@ -47,9 +48,10 @@ function isNameSheetHeader(row: string[]): boolean {
 function parseNameSheet(
   rows: string[][],
   source: string,
-): { items: VocabItem[]; warnings: string[] } {
+): { items: VocabItem[]; warnings: string[]; suspicious: string[] } {
   const items: VocabItem[] = [];
   const warnings: string[] = [];
+  const suspicious: string[] = [];
   const { paper, sub } = paperInfo(source);
   let headerIdx = -1;
   let theoryCol = 0;
@@ -91,6 +93,8 @@ function parseNameSheet(
     if (theory) lastTheory = theory;
     if (!name) continue; // 没有名字的行跳过
 
+    if (isSuspiciousScholarName(name)) suspicious.push(name);
+
     items.push({
       id: uid('sch'),
       type: 'scholar',
@@ -107,7 +111,7 @@ function parseNameSheet(
   if (items.length === 0) {
     warnings.push(`学者表「${source}」未解析到数据`);
   }
-  return { items, warnings };
+  return { items, warnings, suspicious };
 }
 
 // 解析术语表（多 sheet）
@@ -161,6 +165,7 @@ export async function parseExcelFile(file: File): Promise<ImportResult> {
   const wb = XLSX.read(buf, { type: 'array' });
   const items: VocabItem[] = [];
   const warnings: string[] = [];
+  const suspicious: string[] = [];
   const filename = file.name;
   const isNameFile = /name\s*sheet/i.test(filename);
 
@@ -187,6 +192,7 @@ export async function parseExcelFile(file: File): Promise<ImportResult> {
       const res = parseNameSheet(rows as string[][], category);
       items.push(...res.items);
       warnings.push(...res.warnings);
+      suspicious.push(...res.suspicious);
     } else {
       const res = parseTermSheet(rows as string[][], sheetName);
       items.push(...res.items);
@@ -198,19 +204,22 @@ export async function parseExcelFile(file: File): Promise<ImportResult> {
   const scholarCount = items.filter((i) => i.type === 'scholar').length;
   const papers = [...new Set(items.map((i) => i.paper).filter(Boolean))].sort();
   const categories = [...new Set(items.map((i) => i.category).filter(Boolean))].sort();
+  const suspiciousScholars = [...new Set(suspicious)];
 
-  return { items, termCount, scholarCount, papers, categories, warnings };
+  return { items, termCount, scholarCount, papers, categories, warnings, suspiciousScholars };
 }
 
 // 批量解析多个文件
 export async function parseExcelFiles(files: File[]): Promise<ImportResult> {
   const allItems: VocabItem[] = [];
   const allWarnings: string[] = [];
+  const allSuspicious: string[] = [];
   for (const file of files) {
     try {
       const res = await parseExcelFile(file);
       allItems.push(...res.items);
       allWarnings.push(...res.warnings);
+      allSuspicious.push(...res.suspiciousScholars);
     } catch (e) {
       allWarnings.push(`读取「${file.name}」失败：${(e as Error).message}`);
     }
@@ -219,5 +228,6 @@ export async function parseExcelFiles(files: File[]): Promise<ImportResult> {
   const scholarCount = allItems.filter((i) => i.type === 'scholar').length;
   const papers = [...new Set(allItems.map((i) => i.paper).filter(Boolean))].sort();
   const categories = [...new Set(allItems.map((i) => i.category).filter(Boolean))].sort();
-  return { items: allItems, termCount, scholarCount, papers, categories, warnings: allWarnings };
+  const suspiciousScholars = [...new Set(allSuspicious)];
+  return { items: allItems, termCount, scholarCount, papers, categories, warnings: allWarnings, suspiciousScholars };
 }
