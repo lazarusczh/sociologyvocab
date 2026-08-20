@@ -125,11 +125,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const appendVocab = useCallback((items: VocabItem[]) => {
-    // 追加导入（按 term 去重）
+    // 追加导入（按「类型 + 术语名 + 考卷 + 主题」去重，
+    // 同名学者在不同单元有不同学术贡献时属于不同条目，不应合并）
     setConfigured();
     setVocab((prev) => {
-      const existing = new Set(prev.map((i) => i.term.toLowerCase()));
-      const fresh = items.filter((i) => !existing.has(i.term.toLowerCase()));
+      const key = (i: VocabItem) =>
+        [i.type, i.term.trim().toLowerCase(), i.paper, i.category].join('||');
+      const existing = new Set(prev.map(key));
+      const fresh = items.filter((i) => !existing.has(key(i)));
       const next = [...prev, ...fresh];
       saveVocab(next);
       return next;

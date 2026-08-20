@@ -59,7 +59,6 @@ const TERM_ALIASES: Record<string, string[]> = {
 
 // 学者/机构名（含括号、缩写、来源说明等）的等价写法
 const SCHOLAR_ALIASES: Record<string, string[]> = {
-  '(Gloria Jean Watkins) bell hooks': ['bell hooks', 'hooks'],
   'Ulrich Beck (& Elisabeth Beck-Gernsheim)': ['Ulrich Beck', 'Beck'],
   'Michael (Dunlop) Young': ['Michael Young', 'Young'],
   'America Sociology Association (ASA)': ['America Sociology Association', 'ASA'],
@@ -67,6 +66,13 @@ const SCHOLAR_ALIASES: Record<string, string[]> = {
   'Centre for the Modern Family (quoted by Daily Mail)': ['Centre for the Modern Family'],
   'RIAS (Ageas), a British insurance company': ['RIAS'],
   'Glasgow University Media Group (GUMG)': ['Glasgow University Media Group', 'GUMG'],
+};
+
+// 特殊姓氏映射：学界以完整笔名称呼的作者，其"姓"是整个笔名而非最后一个词。
+// 例：bell hooks 是完整笔名（本名 Gloria Jean Watkins），不能拆成"姓 hooks 名 bell"。
+// 键为词库原文 term，值为应作为"姓氏"的完整写法（默写时只答此写法即算对）。
+const SCHOLAR_SURNAME_OVERRIDES: Record<string, string> = {
+  '(Gloria Jean Watkins) bell hooks': 'bell hooks',
 };
 
 // 机构/来源特征词：命中则视为非人名，不套用"只认姓氏"
@@ -208,6 +214,9 @@ export function getAcceptableKeys(item: VocabItem): string[] {
   } else {
     if (SCHOLAR_ALIASES[item.term]) {
       SCHOLAR_ALIASES[item.term].forEach(push);
+    } else if (SCHOLAR_SURNAME_OVERRIDES[item.term]) {
+      push(item.term); // 完整原文（笔名 + 本名）
+      push(SCHOLAR_SURNAME_OVERRIDES[item.term]); // 特殊姓氏整体（如 "bell hooks"）
     } else if (/et\s+al/i.test(item.term)) {
       push(item.term); // 完整原文
       push(firstSurnameEtAl(item.term)); // 第一作者姓氏 + et al.
@@ -236,7 +245,8 @@ function escapeRegExp(s: string): string {
 }
 
 // 学者姓氏（用于脱敏定义中出现的 "Beck (1992)..." 这类写法）；机构返回空
-function scholarSurnames(term: string): string[] {
+export function scholarSurnames(term: string): string[] {
+  if (SCHOLAR_SURNAME_OVERRIDES[term]) return [SCHOLAR_SURNAME_OVERRIDES[term]];
   const clean = (seg: string) => lastWord(seg.replace(/\([^)]*\)/g, ' ').trim());
   if (/et\s+al/i.test(term)) {
     return [clean(term.split(/et\s+al/i)[0])];
@@ -282,4 +292,26 @@ export function maskAnswer(item: VocabItem, text: string): string {
     out = out.replace(re, (m) => m.replace(/[A-Za-z0-9]/g, '_'));
   }
   return out;
+}
+
+// 词典检索：返回词条所有可检索的原文片段（术语含别名与中文翻译；学者含别名、姓氏与理论流派）
+export function getSearchableForms(item: VocabItem): string[] {
+  const forms = new Set<string>();
+  const add = (s?: string) => {
+    const t = (s || '').trim();
+    if (t) forms.add(t);
+  };
+
+  if (item.type === 'term') {
+    add(item.term);
+    (TERM_ALIASES[item.term] ?? []).forEach(add);
+    add(item.chinese);
+  } else {
+    add(item.term);
+    (SCHOLAR_ALIASES[item.term] ?? []).forEach(add);
+    scholarSurnames(item.term).forEach(add);
+    add(item.theory);
+  }
+
+  return [...forms];
 }

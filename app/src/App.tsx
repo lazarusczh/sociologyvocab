@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { StoreProvider, useStore } from './lib/store';
 import IdentityGate from './components/IdentityGate';
 import Home from './components/Home';
+import Dictionary from './components/Dictionary';
 import ImportPanel from './components/ImportPanel';
 import BackupPanel from './components/BackupPanel';
 import Flashcards from './components/Flashcards';
@@ -15,6 +16,7 @@ import WrongPractice from './components/WrongPractice';
 
 export type View =
   | 'home'
+  | 'dictionary'
   | 'import'
   | 'flashcards'
   | 'choice'
@@ -28,6 +30,7 @@ export type View =
 
 const NAV: { key: View; label: string }[] = [
   { key: 'home', label: '首页' },
+  { key: 'dictionary', label: '词典' },
   { key: 'flashcards', label: '闪卡' },
   { key: 'choice', label: '选择题' },
   { key: 'spelling', label: '拼写' },
@@ -79,6 +82,7 @@ function AppBody() {
       </header>
       <main className="container">
         {view === 'home' && <Home go={setView} />}
+        {view === 'dictionary' && <Dictionary />}
         {view === 'import' && <ImportPanel />}
         {view === 'backup' && <BackupPanel />}
         {view === 'flashcards' && <Flashcards />}

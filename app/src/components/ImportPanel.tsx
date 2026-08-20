@@ -84,7 +84,7 @@ export default function ImportPanel() {
           )}
         </div>
         <p className="muted" style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
-          「追加导入」会按术语去重后添加；「替换全部」会清空原有词库后导入新数据。
+          「追加导入」会按「术语名 + 考卷 + 主题」去重后添加（同一学者在不同单元可保留多条）；「替换全部」会清空原有词库后导入新数据。
         </p>
       </div>
 

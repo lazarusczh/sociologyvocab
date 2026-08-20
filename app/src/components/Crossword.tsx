@@ -151,9 +151,12 @@ export default function Crossword() {
       if (dirs && dirs.size === 1) {
         dir = dirs.values().next().value as 'across' | 'down';
       } else if (dirs && dirs.size >= 2) {
-        const last = lastDeletePos.current;
-        if (last && last.r === r && last.c !== c) dir = 'across';
-        else if (last && last.c === c && last.r !== r) dir = 'down';
+        // 交叉格退格方向判定：
+        // - 当前格有值（连续删除中）→ 沿用「上次删除的格子」判断方向
+        // - 当前格为空（刚输入完想退回改上一个字母）→ 改用「上次输入的格子」判断方向
+        const ref = hasVal ? lastDeletePos.current : lastInputPos.current;
+        if (ref && ref.r === r && ref.c !== c) dir = 'across';
+        else if (ref && ref.c === c && ref.r !== r) dir = 'down';
       }
       // 删除当前格并记录位置
       if (hasVal) {
