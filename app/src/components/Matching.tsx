@@ -1,5 +1,5 @@
-import { useState, useMemo, useCallback } from 'react';
-import { useStore } from '../lib/store';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { useStore, useStudySession } from '../lib/store';
 import { sample, shuffle } from '../lib/shuffle';
 import CategoryFilter from './CategoryFilter';
 import type { VocabItem } from '../lib/types';
@@ -8,14 +8,17 @@ const PAIRS = 6;
 
 export default function Matching() {
   const { vocab, recordItem, categories } = useStore();
+  useStudySession();
   const [cat, setCat] = useState('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'term' | 'scholar'>('all');
   const [left, setLeft] = useState<VocabItem[]>([]);
   const [right, setRight] = useState<VocabItem[]>([]);
   const [selLeft, setSelLeft] = useState<string | null>(null); // selected item id on left
+  const [selRight, setSelRight] = useState<string | null>(null); // selected item id on right
   const [matched, setMatched] = useState<Set<string>>(new Set());
   const [wrongPair, setWrongPair] = useState<[string, string] | null>(null);
   const [mistakes, setMistakes] = useState(0);
+  const timeoutRef = useRef<number | null>(null);
 
   const filtered = useMemo(
     () =>
@@ -32,29 +35,37 @@ export default function Matching() {
     // 右侧用定义展示，打乱顺序
     setRight(shuffle(chosen));
     setSelLeft(null);
+    setSelRight(null);
     setMatched(new Set());
     setWrongPair(null);
     setMistakes(0);
   }, [filtered]);
 
-  const clickRight = (rid: string) => {
-    if (!selLeft) return;
-    if (matched.has(rid)) return;
-    if (selLeft === rid) {
-      // 正确配对
-      const next = new Set(matched);
-      next.add(rid);
-      setMatched(next);
-      setSelLeft(null);
-      recordItem(rid, true);
+  // 无论先点左栏还是右栏，两侧都选中后即判定
+  useEffect(() => {
+    if (!selLeft || !selRight) return;
+    if (selLeft === selRight) {
+      setMatched((prev) => new Set(prev).add(selLeft));
+      recordItem(selLeft, true);
     } else {
-      // 错误
-      setWrongPair([selLeft, rid]);
+      setWrongPair([selLeft, selRight]);
       setMistakes((m) => m + 1);
-      recordItem(rid, false);
-      setTimeout(() => setWrongPair(null), 600);
-      setSelLeft(null);
+      recordItem(selRight, false);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = window.setTimeout(() => setWrongPair(null), 600);
     }
+    setSelLeft(null);
+    setSelRight(null);
+  }, [selLeft, selRight, recordItem]);
+
+  const clickLeft = (lid: string) => {
+    if (matched.has(lid)) return;
+    setSelLeft((prev) => (prev === lid ? null : lid));
+  };
+
+  const clickRight = (rid: string) => {
+    if (matched.has(rid)) return;
+    setSelRight((prev) => (prev === rid ? null : rid));
   };
 
   if (vocab.length === 0) {
@@ -74,7 +85,7 @@ export default function Matching() {
           onTypeChange={setTypeFilter}
         />
         <div className="card">
-          <p>将左侧术语与右侧释义配对。点击左侧术语，再点击右侧对应释义。每轮 {PAIRS} 对。</p>
+          <p>将左侧术语与右侧释义配对，可从任意一侧开始选。每轮 {PAIRS} 对。</p>
           <button className="primary" onClick={start} disabled={filtered.length < 2}>
             开始匹配
           </button>
@@ -115,7 +126,7 @@ export default function Matching() {
                   key={item.id}
                   className="option-btn"
                   disabled={done}
-                  onClick={() => setSelLeft(selected ? null : item.id)}
+                  onClick={() => clickLeft(item.id)}
                   style={{
                     opacity: done ? 0.4 : 1,
                     background: selected ? 'var(--accent-bg)' : wrong ? 'var(--danger-bg)' : undefined,
@@ -133,6 +144,7 @@ export default function Matching() {
           <div className="grid" style={{ gap: '0.4rem' }}>
             {right.map((item) => {
               const done = matched.has(item.id);
+              const selected = selRight === item.id;
               const wrong = wrongPair?.[1] === item.id;
               return (
                 <button
@@ -142,8 +154,8 @@ export default function Matching() {
                   onClick={() => clickRight(item.id)}
                   style={{
                     opacity: done ? 0.4 : 1,
-                    background: wrong ? 'var(--danger-bg)' : undefined,
-                    borderColor: wrong ? 'var(--danger)' : undefined,
+                    background: wrong ? 'var(--danger-bg)' : selected ? 'var(--accent-bg)' : undefined,
+                    borderColor: wrong ? 'var(--danger)' : selected ? 'var(--accent)' : undefined,
                     fontSize: '0.88rem',
                   }}
                 >
@@ -155,7 +167,11 @@ export default function Matching() {
         </div>
       </div>
       <p className="muted" style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
-        {selLeft ? '已选择左侧术语，请点击右侧对应释义' : '点击左侧任一术语开始配对'}
+        {selLeft && !selRight
+          ? '已选择左侧术语，请点击右侧对应释义'
+          : selRight && !selLeft
+          ? '已选择右侧释义，请点击左侧对应术语'
+          : '点击左侧术语或右侧释义任一选项开始配对'}
       </p>
     </div>
   );

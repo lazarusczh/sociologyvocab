@@ -35,7 +35,24 @@ const TERM_ALIASES: Record<string, string[]> = {
   'Single-parent / Lone-parent family': ['Single-parent family', 'Lone-parent family'],
   'Dark web / Dark net': ['Dark web', 'Dark net'],
   'Editorial freedom / independence': ['Editorial freedom', 'Editorial independence'],
-  'News values / newsworthiness': ['News values', 'newsworthiness'],
+  'News values / newsworthiness': ['News values', 'News value', 'newsworthiness'],
+
+  // 单复数放宽：复数名词条目允许单数写法也算对
+  'Borderline cases': ['Borderline cases', 'Borderline case'],
+  'Educational migrants': ['Educational migrants', 'Educational migrant'],
+  'Helicopter parents': ['Helicopter parents', 'Helicopter parent'],
+  'Hidden rules': ['Hidden rules', 'Hidden rule'],
+  'Hopeless cases': ['Hopeless cases', 'Hopeless case'],
+  'Mixed methods': ['Mixed methods', 'Mixed method'],
+  'Moral panics': ['Moral panics', 'Moral panic'],
+  'Prenups': ['Prenups', 'Prenup'],
+  'Joint conjugal roles': ['Joint conjugal roles', 'Joint conjugal role'],
+  'Segregated conjugal roles': ['Segregated conjugal roles', 'Segregated conjugal role'],
+  'Qualitative research methods': ['Qualitative research methods', 'Qualitative research method'],
+  'Quantitative research methods': ['Quantitative research methods', 'Quantitative research method'],
+  'Feral children': ['Feral children', 'Feral child'],
+  'Folk devils': ['Folk devils', 'Folk devil'],
+  'Millenials': ['Millenials', 'Millennial'],
 };
 
 // 学者/机构名（含括号、缩写、来源说明等）的等价写法
@@ -60,6 +77,25 @@ const ORG_KEYWORDS = [
 function lastWord(s: string): string {
   const words = s.trim().split(/\s+/);
   return words[words.length - 1] || '';
+}
+
+// 合著条目：将每位作者替换为姓氏，保留原文分隔符（第一、二作者用逗号，第二、三作者用 &）
+function coAuthorSurnamesKey(term: string): string {
+  return term
+    .split(/([&,])/)
+    .map((seg) => (/^[&,]$/.test(seg) ? seg : lastWord(seg.replace(/\([^)]*\)/g, ' ').trim())))
+    .filter((s) => s.length > 0)
+    .join('')
+    .replace(/\s*,\s*/g, ', ')
+    .replace(/\s*&\s*/g, ' & ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// et al. 条目：第一作者姓氏 + et al.
+function firstSurnameEtAl(term: string): string {
+  const first = term.split(/et\s+al/i)[0].replace(/\([^)]*\)/g, ' ').trim();
+  return `${lastWord(first)} et al`;
 }
 
 // 判断学者条目是否为"单人姓名"（适用于只认姓氏的规则）
@@ -88,11 +124,17 @@ export function getAcceptableKeys(item: VocabItem): string[] {
   } else {
     if (SCHOLAR_ALIASES[item.term]) {
       SCHOLAR_ALIASES[item.term].forEach(push);
+    } else if (/et\s+al/i.test(item.term)) {
+      push(item.term); // 完整原文
+      push(firstSurnameEtAl(item.term)); // 第一作者姓氏 + et al.
+    } else if (item.term.includes('&')) {
+      push(item.term); // 完整原文
+      push(coAuthorSurnamesKey(item.term)); // 姓氏（保留 & 与逗号分隔）
     } else if (isSinglePersonName(item.term)) {
       push(item.term); // 完整姓名
       push(lastWord(item.term)); // 只认姓氏
     } else {
-      push(item.term); // 机构 / 合著 / et al.：完整匹配
+      push(item.term); // 机构：完整匹配
     }
   }
 

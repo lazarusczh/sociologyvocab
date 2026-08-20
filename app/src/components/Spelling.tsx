@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { useStore } from '../lib/store';
+import { useStore, useStudySession } from '../lib/store';
 import { sample, shuffle } from '../lib/shuffle';
 import { isCorrectAnswer } from '../lib/answers';
 import CategoryFilter from './CategoryFilter';
@@ -9,6 +9,7 @@ const ROUND = 10;
 
 export default function Spelling() {
   const { vocab, recordItem, categories } = useStore();
+  useStudySession();
   const [cat, setCat] = useState('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'term' | 'scholar'>('term');
   const [round, setRound] = useState<VocabItem[]>([]);

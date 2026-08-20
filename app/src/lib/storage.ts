@@ -1,9 +1,12 @@
-import type { VocabItem, Progress, ContextPassage } from './types';
+import type { VocabItem, Progress, ContextPassage, CheckInState, WrongBook } from './types';
+import { emptyCheckIn } from './checkin';
 
 const VOCAB_KEY = 'socio_vocab_items';
 const PROGRESS_KEY = 'socio_vocab_progress';
 const CONTEXT_KEY = 'socio_vocab_contexts';
 const CONFIG_KEY = 'socio_vocab_configured';
+const CHECKIN_KEY = 'socio_vocab_checkin';
+const WRONG_KEY = 'socio_vocab_wrong';
 
 // ---- 词库 ----
 export function loadVocab(): VocabItem[] {
@@ -92,4 +95,40 @@ export function loadContexts(): ContextPassage[] {
 
 export function saveContexts(contexts: ContextPassage[]): void {
   localStorage.setItem(CONTEXT_KEY, JSON.stringify(contexts));
+}
+
+// ---- 打卡 ----
+export function loadCheckIn(): CheckInState {
+  try {
+    const raw = localStorage.getItem(CHECKIN_KEY);
+    if (!raw) return emptyCheckIn();
+    const parsed = JSON.parse(raw) as CheckInState;
+    // 兼容旧数据：确保必要字段存在
+    return {
+      study: parsed.study || {},
+      makeup: parsed.makeup || {},
+      earnedMakeupWeeks: parsed.earnedMakeupWeeks || [],
+      bestStreak: parsed.bestStreak || 0,
+    };
+  } catch {
+    return emptyCheckIn();
+  }
+}
+
+export function saveCheckIn(state: CheckInState): void {
+  localStorage.setItem(CHECKIN_KEY, JSON.stringify(state));
+}
+
+// ---- 错题 ----
+export function loadWrongBook(): WrongBook {
+  try {
+    const raw = localStorage.getItem(WRONG_KEY);
+    return raw ? (JSON.parse(raw) as WrongBook) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function saveWrongBook(book: WrongBook): void {
+  localStorage.setItem(WRONG_KEY, JSON.stringify(book));
 }

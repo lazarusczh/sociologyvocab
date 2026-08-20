@@ -9,6 +9,7 @@ import Matching from './components/Matching';
 import Crossword from './components/Crossword';
 import Wordle from './components/Wordle';
 import ProgressView from './components/ProgressView';
+import WrongPractice from './components/WrongPractice';
 
 export type View =
   | 'home'
@@ -19,6 +20,7 @@ export type View =
   | 'matching'
   | 'crossword'
   | 'wordle'
+  | 'wrong'
   | 'progress';
 
 const NAV: { key: View; label: string }[] = [
@@ -29,6 +31,7 @@ const NAV: { key: View; label: string }[] = [
   { key: 'matching', label: '匹配' },
   { key: 'crossword', label: '纵横填字' },
   { key: 'wordle', label: 'Wordle' },
+  { key: 'wrong', label: '错题' },
   { key: 'progress', label: '进度' },
 ];
 
@@ -62,6 +65,7 @@ function App() {
         {view === 'matching' && <Matching />}
         {view === 'crossword' && <Crossword />}
         {view === 'wordle' && <Wordle />}
+        {view === 'wrong' && <WrongPractice />}
         {view === 'progress' && <ProgressView />}
       </main>
     </StoreProvider>

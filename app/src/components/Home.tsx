@@ -1,4 +1,6 @@
 import { useStore } from '../lib/store';
+import { isInWrongBook } from '../lib/checkin';
+import StreakCard from './StreakCard';
 import type { View } from '../App';
 
 interface Props {
@@ -12,13 +14,15 @@ const MODES: { key: View; icon: string; title: string; desc: string }[] = [
   { key: 'matching', icon: '⇄', title: '匹配题', desc: '术语与释义连线配对' },
   { key: 'crossword', icon: '⊞', title: '纵横填字', desc: '随机生成填字游戏' },
   { key: 'wordle', icon: '▤', title: 'Wordle', desc: '猜术语的字母游戏' },
+  { key: 'wrong', icon: '✗', title: '错题练习', desc: '复习做错的题目' },
 ];
 
 export default function Home({ go }: Props) {
-  const { vocab, progress, categories } = useStore();
+  const { vocab, progress, categories, wrongBook } = useStore();
   const learned = Object.values(progress).filter((p) => p.mastery >= 2).length;
   const total = vocab.length;
   const pct = total > 0 ? Math.round((learned / total) * 100) : 0;
+  const wrongCount = Object.keys(wrongBook).filter((id) => isInWrongBook(wrongBook[id])).length;
 
   return (
     <div>
@@ -62,6 +66,8 @@ export default function Home({ go }: Props) {
               </div>
             </div>
           </div>
+
+          <StreakCard />
         </>
       )}
 
@@ -76,7 +82,9 @@ export default function Home({ go }: Props) {
           >
             <span className="icon">{m.icon}</span>
             <strong>{m.title}</strong>
-            <span className="desc">{m.desc}</span>
+            <span className="desc">
+              {m.key === 'wrong' && wrongCount > 0 ? `待复习 ${wrongCount} 题` : m.desc}
+            </span>
           </button>
         ))}
       </div>

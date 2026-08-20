@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { useStore } from '../lib/store';
+import { useStore, useStudySession } from '../lib/store';
 import { shuffle, sample } from '../lib/shuffle';
 import CategoryFilter from './CategoryFilter';
 import type { VocabItem } from '../lib/types';
@@ -52,6 +52,7 @@ function buildQuestion(item: VocabItem, pool: VocabItem[]): Question {
 
 export default function MultipleChoice() {
   const { vocab, recordItem, categories } = useStore();
+  useStudySession();
   const [cat, setCat] = useState('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'term' | 'scholar'>('all');
   const [questions, setQuestions] = useState<Question[]>([]);

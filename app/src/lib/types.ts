@@ -40,3 +40,25 @@ export interface ContextPassage {
   text: string;          // 范文原文，用 {{术语}} 标记填空位置
   category?: string;
 }
+
+// 每日学习统计（用于打卡）
+export interface DayStudy {
+  seconds: number;     // 当日累计学习秒数
+  questions: number;   // 当日累计正式练习题数
+  correct: number;     // 当日累计正式练习答对数
+}
+
+// 打卡状态
+export interface CheckInState {
+  study: Record<string, DayStudy>; // dateKey -> 当日统计
+  makeup: Record<string, true>;    // 已补签的日期
+  earnedMakeupWeeks: string[];     // 已获得补签机会的周（周一 dateKey）
+  bestStreak: number;              // 历史最长连续天数
+}
+
+// 错题条目
+export interface WrongEntry {
+  wrongCount: number;          // 累计答错次数
+  consecutiveCorrect: number;  // 连续答对次数
+}
+export type WrongBook = Record<string, WrongEntry>;

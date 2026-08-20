@@ -2,6 +2,7 @@ import {
   useState,
   useCallback,
   useLayoutEffect,
+  useMemo,
   useRef,
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -43,6 +44,26 @@ export default function Crossword() {
     if (!p) setMsg('当前词库中可用的单词太少，无法生成填字。请换个主题或类型。');
   }, [filtered]);
 
+  // 每个格子所属单词的横/纵方向集合（用于自动推进判断：只属于一个词的格子才能沿该方向推进）
+  const cellDirs = useMemo(() => {
+    const map = new Map<string, Set<'across' | 'down'>>();
+    if (!puzzle) return map;
+    for (const cl of puzzle.clues) {
+      for (let i = 0; i < cl.answer.length; i++) {
+        const r = cl.direction === 'across' ? cl.row : cl.row + i;
+        const c = cl.direction === 'across' ? cl.col + i : cl.col;
+        const key = `${r},${c}`;
+        let s = map.get(key);
+        if (!s) {
+          s = new Set();
+          map.set(key, s);
+        }
+        s.add(cl.direction);
+      }
+    }
+    return map;
+  }, [puzzle]);
+
   // 根据可用宽度自适应格子尺寸，保证小屏也能完整显示
   useLayoutEffect(() => {
     if (!puzzle) return;
@@ -74,6 +95,21 @@ export default function Crossword() {
       nr += dr;
       nc += dc;
     }
+  }
+
+  // 自动推进：格子只属于一个词时，沿该词方向移动一格；属于两个词（交叉格）时不推进
+  function autoAdvance(r: number, c: number) {
+    if (!puzzle) return;
+    const dirs = cellDirs.get(`${r},${c}`);
+    if (!dirs || dirs.size !== 1) return;
+    const dir = dirs.values().next().value as 'across' | 'down';
+    const dr = dir === 'down' ? 1 : 0;
+    const dc = dir === 'across' ? 1 : 0;
+    const nr = r + dr;
+    const nc = c + dc;
+    if (nr < 0 || nr >= puzzle.height || nc < 0 || nc >= puzzle.width) return;
+    const next = puzzle.grid[nr][nc];
+    if (next && !next.blocked) setSelected({ r: nr, c: nc });
   }
 
   const handleKeyDown = (e: ReactKeyboardEvent<HTMLInputElement>) => {
@@ -117,6 +153,7 @@ export default function Crossword() {
     if (!cell || cell.blocked || !ch) return;
     setUser((prev) => ({ ...prev, [`${selected.r},${selected.c}`]: ch.toUpperCase() }));
     setChecked(false);
+    autoAdvance(selected.r, selected.c);
   };
 
   const selectCell = (r: number, c: number) => {
