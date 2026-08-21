@@ -9,8 +9,15 @@ desktop.ini
 .vscode/
 .idea/
 
+# 环境变量（含 Supabase 连接信息与密钥，不纳入公开备份）
+.env
+app/.env
+
 # Excel 词库源文件（教师知识产权，不纳入公开备份）
 *.xlsx
+
+# 语境填空教学范文（含答案版，教师知识产权，不纳入公开备份）
+A1*.docx
 
 # 由 Excel 生成的内置词库数据（同属知识产权，不纳入公开备份）
 app/public/vocab-data.json

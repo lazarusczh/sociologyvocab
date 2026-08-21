@@ -1,7 +1,6 @@
 import { useStore } from '../lib/store';
 import { masteryLevel } from '../lib/storage';
 import { isInWrongBook } from '../lib/checkin';
-import { IS_ADMIN } from '../lib/admin';
 import StreakCard from './StreakCard';
 import type { View } from '../App';
 
@@ -20,7 +19,7 @@ const MODES: { key: View; icon: string; title: string; desc: string }[] = [
 ];
 
 export default function Home({ go }: Props) {
-  const { vocab, progress, papers, wrongBook } = useStore();
+  const { vocab, progress, papers, wrongBook, isTeacher } = useStore();
   const mastered = Object.values(progress).filter((p) => masteryLevel(p.mastery) >= 3).length;
   const total = vocab.length;
   // 整体掌握度：所有词条掌握度（0-100）的平均值，未练习的词条计为 0
@@ -95,7 +94,7 @@ export default function Home({ go }: Props) {
       </div>
 
       <div className="row" style={{ marginTop: '1rem' }}>
-        {IS_ADMIN && <button onClick={() => go('import')}>教师后台</button>}
+        {isTeacher && <button onClick={() => go('import')}>教师后台</button>}
         <button onClick={() => go('progress')}>查看进度</button>
       </div>
     </div>

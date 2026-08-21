@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { useStore, useStudySession } from '../lib/store';
+import { useStore, useStudySession, useCelebrateCheckIn } from '../lib/store';
 import { isInWrongBook } from '../lib/checkin';
 import { maskAnswer } from '../lib/answers';
 import { sample, shuffle } from '../lib/shuffle';
@@ -66,6 +66,8 @@ export default function WrongPractice() {
     setQi((i) => i + 1);
     setPicked(null);
   };
+
+  useCelebrateCheckIn(quiz.length > 0 && !q);
 
   if (vocab.length === 0) {
     return <div className="empty-state"><div className="big">✖</div><p>请先导入词汇表</p></div>;

@@ -80,20 +80,18 @@ export default function Flashcards() {
       {current ? (
         <>
           <div
-            className="flashcard"
-            style={{ borderColor: flipped ? 'var(--accent)' : 'var(--border)' }}
+            className={`flashcard${flipped ? ' flipped' : ''}`}
             onClick={() => setFlipped((f) => !f)}
           >
-            {!flipped ? (
-              <>
+            <div className="flashcard-inner">
+              <div className="flashcard-face flashcard-front">
                 <div className="term">{current.term}</div>
                 {current.type === 'scholar' && current.theory && (
                   <div className="badge" style={{ marginTop: '0.5rem' }}>{current.theory}</div>
                 )}
                 <div className="hint">点击翻转查看释义</div>
-              </>
-            ) : (
-              <>
+              </div>
+              <div className="flashcard-face flashcard-back">
                 <div className="cn">{current.chinese || '（学者）'}</div>
                 {current.chinese && (
                   <div className="term" style={{ fontSize: '1.1rem', marginTop: '0.3rem' }}>{current.term}</div>
@@ -105,8 +103,8 @@ export default function Flashcards() {
                 {current.notes && (
                   <div className="muted" style={{ fontSize: '0.85rem', marginTop: '0.4rem' }}>备注：{current.notes}</div>
                 )}
-              </>
-            )}
+              </div>
+            </div>
           </div>
 
           <div className="row" style={{ marginTop: '0.8rem', justifyContent: 'space-between' }}>

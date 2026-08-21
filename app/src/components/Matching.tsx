@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { useStore, useStudySession } from '../lib/store';
+import { useStore, useStudySession, useCelebrateCheckIn } from '../lib/store';
 import { sample, shuffle } from '../lib/shuffle';
 import { maskAnswer } from '../lib/answers';
 import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
@@ -71,6 +71,8 @@ export default function Matching() {
     if (matched.has(rid)) return;
     setSelRight((prev) => (prev === rid ? null : rid));
   };
+
+  useCelebrateCheckIn(left.length > 0 && matched.size === left.length);
 
   if (vocab.length === 0) {
     return <div className="empty-state"><div className="big">⇄</div><p>请先导入词汇表</p></div>;

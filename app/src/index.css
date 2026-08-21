@@ -122,6 +122,39 @@ input:focus, textarea:focus, select:focus {
 .topbar nav button { padding: 0.35rem 0.7rem; font-size: 0.9rem; }
 .topbar nav button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
+/* 内容区顶部返回首页按钮（仅网页端、非首页时显示） */
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.3rem 0.7rem;
+  margin-bottom: 0.6rem;
+  font-size: 0.9rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.back-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* 顶栏账号标识（显示当前登录者，点击退出） */
+.account-chip {
+  font-size: 0.85rem;
+  padding: 0.3rem 0.7rem;
+  white-space: nowrap;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  cursor: pointer;
+}
+.account-chip:hover { border-color: var(--accent); color: var(--accent); }
+
 /* 汉堡菜单按钮（默认隐藏） */
 .nav-toggle {
   display: none;
@@ -179,9 +212,33 @@ input:focus, textarea:focus, select:focus {
 .grid { display: grid; gap: 0.8rem; }
 .grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
 .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
 @media (max-width: 640px) {
-  .grid.cols-2, .grid.cols-3 { grid-template-columns: 1fr; }
+  .grid.cols-2, .grid.cols-3, .grid.cols-4 { grid-template-columns: 1fr; }
 }
+
+/* 核验数据表 */
+.check-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.check-table th, .check-table td { text-align: left; padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.check-table th { color: var(--text-muted); font-weight: 600; font-size: 0.8rem; background: var(--bg); }
+.check-table tbody tr:hover { background: var(--bg); }
+
+/* 可折叠卡片标题 */
+.collapse-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+.collapse-caret { color: var(--text-muted); font-size: 0.85rem; }
 
 /* 模式选择卡片 */
 .mode-card {
@@ -195,22 +252,41 @@ input:focus, textarea:focus, select:focus {
 .mode-card .icon { font-size: 1.5rem; }
 .mode-card .desc { color: var(--text-muted); font-size: 0.85rem; }
 
-/* 闪卡 */
+/* 闪卡（3D 翻转） */
 .flashcard {
+  background: transparent;
+  border: none;
+  border-radius: var(--radius);
+  min-height: 220px;
+  padding: 0;
+  cursor: pointer;
+  perspective: 1200px;
+}
+.flashcard-inner {
+  display: grid;
+  min-height: 220px;
+  transform-style: preserve-3d;
+  transition: transform 0.4s ease;
+}
+.flashcard-face {
+  grid-area: 1 / 1;
   background: var(--surface);
   border: 2px solid var(--border);
   border-radius: var(--radius);
-  min-height: 220px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  cursor: pointer;
   text-align: center;
-  transition: transform 0.2s;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
-.flashcard.flipped { border-color: var(--accent); }
+.flashcard-back {
+  border-color: var(--accent);
+  transform: rotateY(180deg);
+}
+.flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
 .flashcard .term { font-size: 1.5rem; font-weight: 600; }
 .flashcard .hint { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.8rem; }
 .flashcard .def { font-size: 1.05rem; margin-top: 0.8rem; max-width: 560px; }
@@ -339,6 +415,25 @@ textarea { resize: vertical; min-height: 80px; }
 .gate-card .big { font-size: 2.5rem; }
 .gate-card button { margin-top: 1rem; width: 100%; }
 .gate-error { color: var(--danger); font-size: 0.85rem; margin-top: 0.5rem; }
+.gate-tabs {
+  display: flex;
+  gap: 0.3rem;
+  margin-top: 1rem;
+  padding: 0.25rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+.gate-tabs button {
+  flex: 1;
+  margin-top: 0 !important;
+  padding: 0.4rem;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+}
+.gate-tabs button.active { background: var(--accent); color: #fff; }
 
 /* 词典 */
 .dict-list { display: flex; flex-direction: column; gap: 0.6rem; }
@@ -350,3 +445,67 @@ textarea { resize: vertical; min-height: 80px; }
 .dict-sub { color: var(--text-muted); font-size: 0.85rem; overflow-wrap: anywhere; }
 .dict-caret { color: var(--text-muted); font-size: 0.75rem; flex: none; }
 .dict-detail { margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px dashed var(--border); }
+
+/* 打卡成功弹窗 */
+.celebration-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 1rem;
+}
+.celebration-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  max-width: 360px;
+  width: 100%;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+.celebration-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--success);
+  color: #fff;
+  font-size: 1.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.celebration-title { font-size: 1.25rem; font-weight: 700; color: var(--text); }
+.celebration-desc { color: var(--text-muted); font-size: 0.9rem; }
+
+/* 礼花：从屏幕顶部向下飘落、随机旋转与漂移 */
+.celebration-confetti {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.confetti-piece {
+  position: absolute;
+  top: -20px;
+  opacity: 0;
+  animation: confetti-fall var(--dur, 3s) ease-in var(--delay, 0s) forwards;
+}
+@keyframes confetti-fall {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--dx, 0px), 110vh, 0) rotate(var(--rot, 360deg));
+    opacity: 1;
+  }
+}

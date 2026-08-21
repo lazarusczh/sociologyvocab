@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { useStore, useStudySession } from '../lib/store';
+import { useStore, useStudySession, useCelebrateCheckIn } from '../lib/store';
 import { sample, shuffle } from '../lib/shuffle';
 import { isCorrectAnswer, maskAnswer } from '../lib/answers';
 import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
@@ -45,6 +45,8 @@ export default function Spelling() {
   useEffect(() => {
     if (current && !revealed) inputRef.current?.focus();
   }, [current, revealed, idx]);
+
+  useCelebrateCheckIn(round.length > 0 && !current);
 
   const submit = () => {
     if (revealed) return;
