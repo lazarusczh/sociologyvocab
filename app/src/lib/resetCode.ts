@@ -1,6 +1,6 @@
 // 教师公钥：用于校验「一次性重置码」的 ECDSA P-256 签名。
 // 对应私钥仅保存在教师本地重置码工具中（不入 GitHub），学生无法伪造重置码。
-const PUBLIC_KEY_B64 =
+export const PUBLIC_KEY_B64 =
   'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAERMz_6cU_G1UWaeMF40gIVujKyK2Amb_pz4-kZQ85pgVbxrG2WcBj9VvEISOlV14f3me-ojc9ta5KRzy8e1xicA';
 
 function b64ToBytes(b64: string): Uint8Array<ArrayBuffer> {

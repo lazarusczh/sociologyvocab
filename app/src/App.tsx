@@ -4,7 +4,7 @@ import { IS_ADMIN } from './lib/admin';
 import IdentityGate from './components/IdentityGate';
 import Home from './components/Home';
 import Dictionary from './components/Dictionary';
-import ImportPanel from './components/ImportPanel';
+import AdminPanel from './components/AdminPanel';
 import BackupPanel from './components/BackupPanel';
 import Flashcards from './components/Flashcards';
 import MultipleChoice from './components/MultipleChoice';
@@ -84,7 +84,7 @@ function AppBody() {
       <main className="container">
         {view === 'home' && <Home go={setView} />}
         {view === 'dictionary' && <Dictionary />}
-        {view === 'import' && IS_ADMIN && <ImportPanel />}
+        {view === 'import' && IS_ADMIN && <AdminPanel />}
         {view === 'backup' && <BackupPanel />}
         {view === 'flashcards' && <Flashcards />}
         {view === 'choice' && <MultipleChoice />}

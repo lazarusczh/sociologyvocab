@@ -95,7 +95,7 @@ export default function Home({ go }: Props) {
       </div>
 
       <div className="row" style={{ marginTop: '1rem' }}>
-        {IS_ADMIN && <button onClick={() => go('import')}>管理词库</button>}
+        {IS_ADMIN && <button onClick={() => go('import')}>教师后台</button>}
         <button onClick={() => go('progress')}>查看进度</button>
       </div>
     </div>

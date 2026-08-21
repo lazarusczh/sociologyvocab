@@ -53,7 +53,6 @@ export default function ImportPanel() {
 
   return (
     <div>
-      <h1>管理词库</h1>
       <p className="muted">
         支持 .xlsx 文件。可一次选择多个文件：主词汇表（多 sheet）与学者人名表（*Name sheet）会自动识别。
       </p>
