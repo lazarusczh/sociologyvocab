@@ -7,7 +7,7 @@ import {
   loadProgress, saveProgress, recordAnswer, resetMastery, PAPER_ORDER,
   loadContexts, saveContexts, isConfigured, setConfigured,
   loadCheckIn, saveCheckIn, loadWrongBook, saveWrongBook,
-  loadSurnameOverrides, saveSurnameOverrides,
+  loadSurnameOverrides, saveSurnameOverrides, setDataScope,
 } from './storage';
 import {
   recordFormalAnswer, addStudySeconds, applyMakeup as applyMakeupCheck,
@@ -93,6 +93,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   // 登录 / 恢复会话后：拉取云端数据合并到本地，再把合并结果回传云端
   const establishAuth = useCallback(async (u: AuthUser) => {
+    // 切换到该用户的独立数据命名空间，避免读到其他账号留在本机的学习数据
+    setDataScope(`user:${u.id}`);
     const local: CloudStudentData = {
       name: u.name,
       checkin: loadCheckIn(),
@@ -296,14 +298,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return true;
   }, [checkin]);
 
-  // 完成一组正式练习后调用：若当天已达标且尚未弹过，则触发「打卡成功」弹窗
+  // 完成一组正式练习后调用：若当天已达标且该账号尚未弹过，则触发「打卡成功」弹窗
   const celebrateCheckIn = useCallback(() => {
     const today = todayKey();
     if (!isDayChecked(checkin, today)) return;
-    if (localStorage.getItem(CELEBRATED_KEY) === today) return;
-    localStorage.setItem(CELEBRATED_KEY, today);
+    // 按账号区分「当天已弹」标记：登录用户各自独立，离线游客共用 guest 标记
+    const key = authUser ? `${CELEBRATED_KEY}:user:${authUser.id}` : CELEBRATED_KEY;
+    if (localStorage.getItem(key) === today) return;
+    localStorage.setItem(key, today);
     setCheckinCelebration(true);
-  }, [checkin]);
+  }, [checkin, authUser]);
 
   const dismissCelebration = useCallback(() => setCheckinCelebration(false), []);
 
@@ -346,11 +350,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return '';
   }, [establishAuth]);
 
-  // 登出：清除云端会话，回到登录界面（本地数据保留）
+  // 登出：清除云端会话，回到登录界面（本地数据保留、按用户隔离，不互相污染）
   const signOut = useCallback(async (): Promise<void> => {
     await supabase.auth.signOut();
     setAuthUser(null);
     setIsTeacher(false);
+    setDataScope('guest');
   }, []);
 
   const exportBackup = useCallback(async (): Promise<string | null> => {

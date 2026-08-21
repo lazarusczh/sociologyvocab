@@ -1,5 +1,6 @@
 // 纵横填字生成算法
 import { shuffle } from './shuffle';
+import { getCrosswordAnswerForms, maskAnswer } from './answers';
 import type { VocabItem } from './types';
 
 export interface CrosswordCell {
@@ -17,6 +18,7 @@ export interface Clue {
   direction: 'across' | 'down';
   answer: string;
   term: string;
+  id: string;  // 对应词库条目 id，用于结算掌握度
   zh: string; // 中文提示（术语的中文翻译；学者为空）
   en: string; // 英文提示（英文释义 / 学者理论描述）
 }
@@ -31,6 +33,7 @@ export interface GeneratedCrossword {
 interface Placement {
   word: string;
   term: string;
+  id: string;
   row: number;
   col: number;
   direction: 'across' | 'down';
@@ -38,17 +41,23 @@ interface Placement {
 
 // 从词库提取候选单词。注意：词组中的空格及连字符等非字母字符会被省略，
 // 例如 "social control" -> "SOCIALCONTROL"，作为一个连续字母串参与填字。
-function candidates(items: VocabItem[]): { word: string; term: string; zh: string; en: string }[] {
+// 一个词条若有多个可接受答案（斜杠/括号别名、单复数变体），随机挑一个作为本局答案。
+function candidates(items: VocabItem[]): { word: string; term: string; id: string; zh: string; en: string }[] {
   const seen = new Set<string>();
-  const out: { word: string; term: string; zh: string; en: string }[] = [];
+  const out: { word: string; term: string; id: string; zh: string; en: string }[] = [];
   for (const it of items) {
-    const word = it.term.toUpperCase().replace(/[^A-Z]/g, '');
-    if (word.length < 3 || word.length > 16) continue;
-    if (seen.has(word)) continue;
-    seen.add(word);
+    const forms = getCrosswordAnswerForms(it)
+      .map((form) => ({ form, word: form.toUpperCase().replace(/[^A-Z]/g, '') }))
+      .filter((c) => c.word.length >= 3 && c.word.length <= 16);
+    if (forms.length === 0) continue;
+    const chosen = forms[Math.floor(Math.random() * forms.length)];
+    if (seen.has(chosen.word)) continue;
+    seen.add(chosen.word);
     const zh = it.chinese || '';
-    const en = it.definition?.trim() || it.theory || '';
-    out.push({ word, term: it.term, zh, en });
+    // 英文提示（释义/理论）需 mask 掉答案词本身，避免直接暴露答案
+    const enRaw = it.definition?.trim() || it.theory || '';
+    const en = enRaw ? maskAnswer(it, enRaw).trim() : '';
+    out.push({ word: chosen.word, term: chosen.form, id: it.id, zh, en });
   }
   return out;
 }
@@ -75,7 +84,7 @@ function tryPlace(
 ): Placement | null {
   const { cells } = makeGrid(placements);
   if (placements.length === 0) {
-    return { word, term: '', row: 0, col: 0, direction: 'across' };
+    return { word, term: '', id: '', row: 0, col: 0, direction: 'across' };
   }
 
   // 遍历 word 的每个字符，寻找与已放置字符是相同字母的交叉点
@@ -89,13 +98,13 @@ function tryPlace(
       const startR = r - idx;
       const col = c;
       if (canPlace(word, startR, col, 'down', cells, r, c)) {
-        attempts.push({ word, term: '', row: startR, col, direction: 'down' });
+        attempts.push({ word, term: '', id: '', row: startR, col, direction: 'down' });
       }
       // 尝试水平放置，交叉点在第 idx 字符
       const startC = c - idx;
       const row = r;
       if (canPlace(word, row, startC, 'across', cells, r, c)) {
-        attempts.push({ word, term: '', row, col: startC, direction: 'across' });
+        attempts.push({ word, term: '', id: '', row, col: startC, direction: 'across' });
       }
     }
   }
@@ -145,14 +154,14 @@ export function generateCrossword(items: VocabItem[], maxWords = 8): GeneratedCr
   if (cands.length === 0) return null;
 
   const placements: Placement[] = [
-    { word: cands[0].word, term: cands[0].term, row: 0, col: 0, direction: 'across' },
+    { word: cands[0].word, term: cands[0].term, id: cands[0].id, row: 0, col: 0, direction: 'across' },
   ];
 
   for (let i = 1; i < cands.length && placements.length < maxWords; i++) {
-    const { word, term } = cands[i];
+    const { word, term, id } = cands[i];
     const placed = tryPlace(word, placements);
     if (placed) {
-      placements.push({ ...placed, term });
+      placements.push({ ...placed, term, id });
     }
   }
 
@@ -180,6 +189,7 @@ export function generateCrossword(items: VocabItem[], maxWords = 8): GeneratedCr
       col: p.col - minC,
       direction: p.direction,
       answer: p.word,
+      id: p.id,
       zh: cand?.zh || '',
       en: cand?.en || '',
       term: p.term,

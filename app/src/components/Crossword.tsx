@@ -8,15 +8,16 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type FormEvent as ReactFormEvent,
 } from 'react';
-import { useStore } from '../lib/store';
+import { useStore, useStudySession, useCelebrateCheckIn } from '../lib/store';
 import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
-import { generateCrossword, type GeneratedCrossword } from '../lib/crossword';
+import { generateCrossword, type GeneratedCrossword, type Clue } from '../lib/crossword';
 
 const MIN_CELL = 16;
 const MAX_CELL = 30;
 
 export default function Crossword() {
-  const { vocab, papers, categories } = useStore();
+  const { vocab, recordItem, papers, categories } = useStore();
+  useStudySession();
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'term' | 'scholar'>('term');
@@ -32,6 +33,13 @@ export default function Crossword() {
   // 记录上一次输入/删除字母的格子，用于交叉格方向判断
   const lastInputPos = useRef<{ r: number; c: number } | null>(null);
   const lastDeletePos = useRef<{ r: number; c: number } | null>(null);
+  // 是否已按「显示答案」一次性结算过全部线索（避免重复计数）
+  const settledRef = useRef(false);
+  // 离开本局前的确认弹窗：null 表示不显示，'back'/'regenerate' 表示待执行的离开动作
+  const [confirmLeave, setConfirmLeave] = useState<null | 'back' | 'regenerate'>(null);
+
+  // 显示答案（本局结束）时触发一次「打卡成功」达标检查（达标才弹）
+  useCelebrateCheckIn(revealed);
 
   const onPaperChange = (p: string) => {
     setPaper(p);
@@ -50,6 +58,7 @@ export default function Crossword() {
     setSelected(null);
     lastInputPos.current = null;
     lastDeletePos.current = null;
+    settledRef.current = false;
     const p = generateCrossword(filtered, 8);
     setPuzzle(p);
     if (!p) setMsg('当前词库中可用的单词太少，无法生成填字。请换个主题或类型。');
@@ -70,6 +79,26 @@ export default function Crossword() {
           map.set(key, s);
         }
         s.add(cl.direction);
+      }
+    }
+    return map;
+  }, [puzzle]);
+
+  // 每个格子所属 clue 的详细信息（方向 + 是否该词首字母），用于自动推进的方向判定
+  const cellClues = useMemo(() => {
+    const map = new Map<string, { direction: 'across' | 'down'; isStart: boolean }[]>();
+    if (!puzzle) return map;
+    for (const cl of puzzle.clues) {
+      for (let i = 0; i < cl.answer.length; i++) {
+        const r = cl.direction === 'across' ? cl.row : cl.row + i;
+        const c = cl.direction === 'across' ? cl.col + i : cl.col;
+        const key = `${r},${c}`;
+        let arr = map.get(key);
+        if (!arr) {
+          arr = [];
+          map.set(key, arr);
+        }
+        arr.push({ direction: cl.direction, isStart: i === 0 });
       }
     }
     return map;
@@ -111,18 +140,33 @@ export default function Crossword() {
     }
   }
 
-  // 输入字母后自动推进：格子只属于一个词时沿该词方向移动；
-  // 属于两个词（交叉格）时依据上一个输入格子判断方向，同行→横词往右，同列→纵词往下，否则不推进
+  // 输入字母后自动推进方向判定：
+  // - 只属于一个词：沿该词方向
+  // - 交叉格：先依据「前一输入格」判断（同行→横，同列→纵）
+  // - 前一输入格无法判断时，若该格恰好是其中一个词的首字母则沿该词方向
+  // - 其余情况（同时是两个词的首字母，或两个词都是非首字母且无法判断）→ 停下让用户决定
   function autoAdvance(r: number, c: number) {
     if (!puzzle) return;
-    const dirs = cellDirs.get(`${r},${c}`);
+    const clues = cellClues.get(`${r},${c}`);
     let dir: 'across' | 'down' | null = null;
-    if (dirs && dirs.size === 1) {
-      dir = dirs.values().next().value as 'across' | 'down';
-    } else if (dirs && dirs.size >= 2) {
+    if (!clues || clues.length === 0) return;
+    if (clues.length === 1) {
+      dir = clues[0].direction;
+    } else {
+      // 交叉格：先依据「前一输入格」判断用户正在填哪个词（同行→横，同列→纵）
       const last = lastInputPos.current;
-      if (last && last.r === r && last.c !== c) dir = 'across';
-      else if (last && last.c === c && last.r !== r) dir = 'down';
+      if (last && last.r === r && last.c !== c) {
+        dir = 'across';
+      } else if (last && last.c === c && last.r !== r) {
+        dir = 'down';
+      } else {
+        // 前一输入格无法判断（直接点交叉格开始 / 方向键跳来）→ 用首字母猜测
+        const starts = clues.filter((cl) => cl.isStart);
+        if (starts.length === 1) {
+          dir = starts[0].direction;
+        }
+        // starts.length === 0 或 2 → 保持 dir = null，停下让用户决定
+      }
     }
     lastInputPos.current = { r, c };
     if (!dir) return;
@@ -214,6 +258,17 @@ export default function Crossword() {
     inputRef.current?.focus();
   };
 
+  // 判断某条线索的所有格子是否都已填对
+  const clueIsCorrect = (cl: Clue): boolean => {
+    if (!puzzle) return false;
+    for (let i = 0; i < cl.answer.length; i++) {
+      const r = cl.direction === 'across' ? cl.row : cl.row + i;
+      const c = cl.direction === 'across' ? cl.col + i : cl.col;
+      if ((user[`${r},${c}`] || '') !== cl.answer[i]) return false;
+    }
+    return true;
+  };
+
   const check = () => {
     setChecked(true);
     if (puzzle) {
@@ -230,6 +285,13 @@ export default function Crossword() {
 
   const reveal = () => {
     if (!puzzle) return;
+    // 一次性结算全部线索（在覆盖答案前按学生当前填写判定对错），只结算一次
+    if (!settledRef.current) {
+      settledRef.current = true;
+      for (const cl of puzzle.clues) {
+        if (cl.id) recordItem(cl.id, clueIsCorrect(cl), 'crossword');
+      }
+    }
     const full: Record<string, string> = {};
     for (const row of puzzle.grid)
       for (const cell of row)
@@ -237,6 +299,25 @@ export default function Crossword() {
     setUser(full);
     setRevealed(true);
     setMsg('');
+  };
+
+  // 离开本局（返回选择 / 重新生成）：已结算则直接离开，未结算则弹确认
+  const doLeave = (action: 'back' | 'regenerate') => {
+    setConfirmLeave(null);
+    if (action === 'regenerate') {
+      setPuzzle(null);
+      start();
+    } else {
+      setPuzzle(null);
+    }
+  };
+
+  const leaveOrConfirm = (action: 'back' | 'regenerate') => {
+    if (settledRef.current) {
+      doLeave(action);
+    } else {
+      setConfirmLeave(action);
+    }
   };
 
   if (vocab.length === 0) {
@@ -289,11 +370,11 @@ export default function Crossword() {
       {puzzle && (
         <>
           <div className="row" style={{ marginBottom: '0.5rem' }}>
-            <button className="ghost" onClick={() => { setPuzzle(null); start(); }}>↻ 重新生成</button>
-            <button className="ghost" onClick={() => setPuzzle(null)}>← 返回选择</button>
+            <button className="ghost" onClick={() => leaveOrConfirm('regenerate')}>↻ 重新生成</button>
+            <button className="ghost" onClick={() => leaveOrConfirm('back')}>← 返回选择</button>
             <span className="spacer" />
             <button onClick={check}>检查</button>
-            <button onClick={reveal}>显示答案</button>
+            <button onClick={reveal}>结算</button>
           </div>
 
           {msg && (
@@ -383,6 +464,21 @@ export default function Crossword() {
             </div>
           </div>
         </>
+      )}
+
+      {confirmLeave && (
+        <div className="celebration-overlay" onClick={() => setConfirmLeave(null)}>
+          <div className="celebration-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <div className="celebration-title">尚未结算</div>
+            <div className="celebration-desc">
+              本局填写结果还没有结算，现在离开将不会计入练习和错题本。确定要离开吗？
+            </div>
+            <div className="row" style={{ gap: '0.5rem', justifyContent: 'center', marginTop: '0.8rem' }}>
+              <button className="ghost" onClick={() => setConfirmLeave(null)}>继续做题</button>
+              <button className="primary" onClick={() => doLeave(confirmLeave)}>仍要离开</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -127,6 +127,7 @@ const IRREGULAR_SINGULARS: Record<string, string> = {
   theses: 'thesis',
   indices: 'index',
   matrices: 'matrix',
+  millenials: 'millennial',
 };
 
 // 单数 -> 复数（无法可靠复数化时返回 null）
@@ -165,6 +166,18 @@ function singularPluralVariants(phrase: string): string[] {
   if (pl) out.push(head + pl);
   if (sg) out.push(head + sg);
   return out;
+}
+
+// 短语单数化：仅把最后一个单词转为单数；已单数或无法可靠单数化则保持原样。
+// 供纵横填字生成答案使用，避免随机到复数形式让学生对不上格子数。
+function toSingularForm(phrase: string): string {
+  const trimmed = phrase.trim();
+  if (!trimmed) return trimmed;
+  const idx = trimmed.lastIndexOf(' ');
+  const head = idx === -1 ? '' : trimmed.slice(0, idx + 1);
+  const last = trimmed.slice(idx + 1);
+  const sg = toSingular(last);
+  return sg ? head + sg : trimmed;
 }
 
 function lastWord(s: string): string {
@@ -252,6 +265,23 @@ export function getAcceptableKeys(item: VocabItem): string[] {
   }
 
   return [...keys];
+}
+
+// 纵横填字专用：返回词条可作为「完整答案」填入格子的原始写法列表（统一为单数形式）。
+// 术语含别名（斜杠/括号分隔），但一律转单数，避免随机到复数让学生对不上格子数。
+export function getCrosswordAnswerForms(item: VocabItem): string[] {
+  const forms = new Set<string>();
+  const add = (s: string) => {
+    const t = toSingularForm(s);
+    if (t) forms.add(t);
+  };
+  if (item.type === 'term') {
+    (TERM_ALIASES[item.term] ?? [item.term]).forEach(add);
+  } else {
+    // 学者：用完整原文（合著/缩写等复杂情况暂按原文整体作答）
+    add(item.term);
+  }
+  return [...forms];
 }
 
 // 判断用户输入是否为某词条的正确答案

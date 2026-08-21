@@ -16,9 +16,11 @@ export function masteryLevel(mastery: number): number {
 }
 
 // 不同练习模式的掌握度增减权重（拼写最高、配对居中、选择最低；扣分 > 加分，防止靠蒙虚高）
+// crossword 看提示填空、且知道字母个数，难度介于配对与拼写之间。
 const MASTERY_WEIGHTS: Record<PracticeMode, { gain: number; loss: number }> = {
   choice: { gain: 6, loss: 12 },
   matching: { gain: 8, loss: 16 },
+  crossword: { gain: 10, loss: 20 },
   spelling: { gain: 12, loss: 24 },
 };
 
@@ -36,6 +38,19 @@ const CONFIG_KEY = 'socio_vocab_configured';
 const CHECKIN_KEY = 'socio_vocab_checkin';
 const WRONG_KEY = 'socio_vocab_wrong';
 const SURNAME_OVERRIDES_KEY = 'socio_vocab_surname_overrides';
+
+// 学习数据（进度 / 打卡 / 错题本）按用户隔离存储：
+// 未登录（guest）沿用原始 key，登录后切换为该用户的独立命名空间，
+// 避免不同账号在同一设备上互相污染学习进度。
+let dataScope = 'guest';
+
+export function setDataScope(scope: string): void {
+  dataScope = scope;
+}
+
+function scopedKey(base: string): string {
+  return dataScope === 'guest' ? base : `${base}:${dataScope}`;
+}
 
 // ---- 词库 ----
 export function loadVocab(): VocabItem[] {
@@ -67,7 +82,7 @@ export function setConfigured(): void {
 // ---- 进度 ----
 export function loadProgress(): Progress {
   try {
-    const raw = localStorage.getItem(PROGRESS_KEY);
+    const raw = localStorage.getItem(scopedKey(PROGRESS_KEY));
     return raw ? (JSON.parse(raw) as Progress) : {};
   } catch {
     return {};
@@ -75,7 +90,7 @@ export function loadProgress(): Progress {
 }
 
 export function saveProgress(progress: Progress): void {
-  localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+  localStorage.setItem(scopedKey(PROGRESS_KEY), JSON.stringify(progress));
 }
 
 // 记录一次练习结果（含按模式权重的掌握度动态调整）
@@ -123,7 +138,7 @@ export function saveContexts(contexts: ContextPassage[]): void {
 // ---- 打卡 ----
 export function loadCheckIn(): CheckInState {
   try {
-    const raw = localStorage.getItem(CHECKIN_KEY);
+    const raw = localStorage.getItem(scopedKey(CHECKIN_KEY));
     if (!raw) return emptyCheckIn();
     const parsed = JSON.parse(raw) as CheckInState;
     // 兼容旧数据：确保必要字段存在
@@ -139,13 +154,13 @@ export function loadCheckIn(): CheckInState {
 }
 
 export function saveCheckIn(state: CheckInState): void {
-  localStorage.setItem(CHECKIN_KEY, JSON.stringify(state));
+  localStorage.setItem(scopedKey(CHECKIN_KEY), JSON.stringify(state));
 }
 
 // ---- 错题 ----
 export function loadWrongBook(): WrongBook {
   try {
-    const raw = localStorage.getItem(WRONG_KEY);
+    const raw = localStorage.getItem(scopedKey(WRONG_KEY));
     return raw ? (JSON.parse(raw) as WrongBook) : {};
   } catch {
     return {};
@@ -153,7 +168,7 @@ export function loadWrongBook(): WrongBook {
 }
 
 export function saveWrongBook(book: WrongBook): void {
-  localStorage.setItem(WRONG_KEY, JSON.stringify(book));
+  localStorage.setItem(scopedKey(WRONG_KEY), JSON.stringify(book));
 }
 
 // ---- 特殊姓氏覆盖表（用户人工指定非常规学者名的「姓氏」处理方式）----
