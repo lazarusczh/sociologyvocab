@@ -12,6 +12,7 @@ export default function Matching() {
   useStudySession();
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
+  const [unit, setUnit] = useState('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'term' | 'scholar'>('all');
   const [left, setLeft] = useState<VocabItem[]>([]);
   const [right, setRight] = useState<VocabItem[]>([]);
@@ -25,11 +26,17 @@ export default function Matching() {
   const onPaperChange = (p: string) => {
     setPaper(p);
     setCat('all');
+    setUnit('all');
+  };
+
+  const onCatChange = (c: string) => {
+    setCat(c);
+    setUnit('all');
   };
 
   const filtered = useMemo(
-    () => filterByPaperCat(vocab, paper, cat).filter((i) => typeFilter === 'all' || i.type === typeFilter),
-    [vocab, paper, cat, typeFilter],
+    () => filterByPaperCat(vocab, paper, cat, unit).filter((i) => typeFilter === 'all' || i.type === typeFilter),
+    [vocab, paper, cat, unit, typeFilter],
   );
 
   const start = useCallback(() => {
@@ -89,7 +96,9 @@ export default function Matching() {
           paper={paper}
           onPaperChange={onPaperChange}
           cat={cat}
-          onCatChange={setCat}
+          onCatChange={onCatChange}
+          unit={unit}
+          onUnitChange={setUnit}
           typeFilter={typeFilter}
           onTypeChange={setTypeFilter}
         />

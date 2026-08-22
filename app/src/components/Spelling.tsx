@@ -12,6 +12,7 @@ export default function Spelling() {
   useStudySession();
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
+  const [unit, setUnit] = useState('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'term' | 'scholar'>('term');
   const [round, setRound] = useState<VocabItem[]>([]);
   const [idx, setIdx] = useState(0);
@@ -24,11 +25,17 @@ export default function Spelling() {
   const onPaperChange = (p: string) => {
     setPaper(p);
     setCat('all');
+    setUnit('all');
+  };
+
+  const onCatChange = (c: string) => {
+    setCat(c);
+    setUnit('all');
   };
 
   const filtered = useMemo(
-    () => filterByPaperCat(vocab, paper, cat).filter((i) => typeFilter === 'all' || i.type === typeFilter),
-    [vocab, paper, cat, typeFilter],
+    () => filterByPaperCat(vocab, paper, cat, unit).filter((i) => typeFilter === 'all' || i.type === typeFilter),
+    [vocab, paper, cat, unit, typeFilter],
   );
 
   const start = useCallback(() => {
@@ -79,7 +86,9 @@ export default function Spelling() {
           paper={paper}
           onPaperChange={onPaperChange}
           cat={cat}
-          onCatChange={setCat}
+          onCatChange={onCatChange}
+          unit={unit}
+          onUnitChange={setUnit}
           typeFilter={typeFilter}
           onTypeChange={setTypeFilter}
         />

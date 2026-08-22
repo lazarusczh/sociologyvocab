@@ -2,6 +2,7 @@ import * as XLSX from 'xlsx';
 import type { VocabItem, ImportResult } from './types';
 import { cleanText, uid } from './shuffle';
 import { isSuspiciousScholarName } from './answers';
+import { unitsForRaw, attachUnits } from './unitMapping';
 
 // 旧「主题」→ { 考卷 Paper, 次级标签 sub } 的映射（对应 9699A Level 社会学大纲四张考卷）
 // Paper 1 完全合并为一级，sub 为空；Paper 4 含 Globalisation / Media 两个次级标签
@@ -21,13 +22,17 @@ export function paperInfo(category: string): { paper: string; sub: string } {
   return CATEGORY_TO_PAPER[category] ?? { paper: 'Paper 1', sub: category };
 }
 
-// 迁移旧词库数据：补齐 paper 字段，并把三级主题收敛为次级标签
+// 迁移旧词库数据：补齐 paper 字段，并把三级主题收敛为次级标签，同时补上 unit
 export function migrateVocabItems(items: VocabItem[]): VocabItem[] {
-  return items.map((i) => {
+  const migrated = items.map((i) => {
     if (i.paper) return i;
+    // 旧格式：原始 category 尚在，用它精确查 unit（避免 Paper 1 的 Cultural deprivation 冲突）
     const { paper, sub } = paperInfo(i.category);
-    return { ...i, paper, category: sub };
+    const units = unitsForRaw(i.category, i.type, i.term);
+    return { ...i, paper, category: sub, ...(units.length ? { unit: units } : {}) };
   });
+  // 已迁移但缺 unit 的旧数据（本地 localStorage）按 paper+sub 兜底补
+  return attachUnits(migrated);
 }
 
 // 从文件名推断学者表的主题
@@ -103,6 +108,7 @@ function parseNameSheet(
       definition: desc || notes || lastTheory,
       paper,
       category: sub,
+      unit: unitsForRaw(source, 'scholar', name),
       theory: lastTheory,
       notes: notes || undefined,
     });
@@ -150,6 +156,7 @@ function parseTermSheet(
       definition,
       paper,
       category: sub,
+      unit: unitsForRaw(source, 'term', english),
     });
   }
 

@@ -1,9 +1,13 @@
 import type { VocabItem } from '../lib/types';
+import { unitListFor } from '../lib/unitMapping';
 
-// 依据考卷与次级标签筛选（都是 'all' 时不过滤对应层级）
-export function filterByPaperCat(items: VocabItem[], paper: string, cat: string): VocabItem[] {
+// 依据考卷 + 次级标签 + 单元筛选（'all' 时不过滤对应层级）
+export function filterByPaperCat(items: VocabItem[], paper: string, cat: string, unit = 'all'): VocabItem[] {
   return items.filter(
-    (i) => (paper === 'all' || i.paper === paper) && (cat === 'all' || i.category === cat),
+    (i) =>
+      (paper === 'all' || i.paper === paper) &&
+      (cat === 'all' || i.category === cat) &&
+      (unit === 'all' || (i.unit ?? []).includes(unit)),
   );
 }
 
@@ -15,6 +19,8 @@ interface Props {
   onPaperChange: (p: string) => void;
   cat: string;              // 选中次级标签：'all' 或次级标签名
   onCatChange: (c: string) => void;
+  unit?: string;            // 选中单元：'all' 或单元名
+  onUnitChange?: (u: string) => void;
   typeFilter?: 'all' | 'term' | 'scholar';
   onTypeChange?: (t: 'all' | 'term' | 'scholar') => void;
 }
@@ -27,6 +33,8 @@ export default function CategoryFilter({
   onPaperChange,
   cat,
   onCatChange,
+  unit = 'all',
+  onUnitChange,
   typeFilter = 'all',
   onTypeChange,
 }: Props) {
@@ -40,6 +48,12 @@ export default function CategoryFilter({
     paper === 'all'
       ? []
       : categories.filter((c) => items.some((i) => i.paper === paper && i.category === c));
+
+  const units = unitListFor(items, paper, cat);
+  const unitCount = (u: string) =>
+    items.filter(
+      (i) => i.paper === paper && (cat === 'all' || i.category === cat) && (i.unit ?? []).includes(u) && typeOk(i),
+    ).length;
 
   const shown = paperCount(paper);
 
@@ -80,6 +94,18 @@ export default function CategoryFilter({
           {subLabels.map((c) => (
             <button key={c} className={cat === c ? 'active' : ''} onClick={() => onCatChange(c)}>
               {c} ({items.filter((i) => i.paper === paper && i.category === c && typeOk(i)).length})
+            </button>
+          ))}
+        </div>
+      )}
+      {units.length > 0 && onUnitChange && (
+        <div className="tag-filter" style={{ marginTop: '0.4rem' }}>
+          <button className={unit === 'all' ? 'active' : ''} onClick={() => onUnitChange('all')}>
+            全部单元
+          </button>
+          {units.map((u) => (
+            <button key={u} className={unit === u ? 'active' : ''} onClick={() => onUnitChange(u)}>
+              {u} ({unitCount(u)})
             </button>
           ))}
         </div>

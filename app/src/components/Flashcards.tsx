@@ -9,19 +9,26 @@ export default function Flashcards() {
   const { vocab, papers, categories } = useStore();
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
+  const [unit, setUnit] = useState('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'term' | 'scholar'>('all');
   const [order, setOrder] = useState<VocabItem[]>([]);
   const [idx, setIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
 
   const filtered = useMemo(
-    () => filterByPaperCat(vocab, paper, cat).filter((i) => typeFilter === 'all' || i.type === typeFilter),
-    [vocab, paper, cat, typeFilter],
+    () => filterByPaperCat(vocab, paper, cat, unit).filter((i) => typeFilter === 'all' || i.type === typeFilter),
+    [vocab, paper, cat, unit, typeFilter],
   );
 
   const onPaperChange = (p: string) => {
     setPaper(p);
     setCat('all');
+    setUnit('all');
+  };
+
+  const onCatChange = (c: string) => {
+    setCat(c);
+    setUnit('all');
   };
 
   const start = useCallback(() => {
@@ -56,7 +63,9 @@ export default function Flashcards() {
           paper={paper}
           onPaperChange={onPaperChange}
           cat={cat}
-          onCatChange={setCat}
+          onCatChange={onCatChange}
+          unit={unit}
+          onUnitChange={setUnit}
           typeFilter={typeFilter}
           onTypeChange={setTypeFilter}
         />

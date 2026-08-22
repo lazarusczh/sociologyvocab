@@ -1,8 +1,14 @@
 // 一次性脚本：将 Excel 词库转换为内置词库 JSON
 import XLSX from 'xlsx';
-import { writeFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 
 const XLSXlib = XLSX;
+
+// 单元映射：原始主题 → 类型 → 术语 → 单元名数组（unit-mapping.json 是唯一 source of truth，直接维护）
+const UNIT_MAPPING = JSON.parse(readFileSync('./src/lib/unit-mapping.json', 'utf8'));
+function unitsFor(category, type, term) {
+  return UNIT_MAPPING[category]?.[type]?.[term] ?? [];
+}
 
 const FILES = [
   '../Sociology Vocabulary (A-Z order with definitions).xlsx', // 术语表（多 sheet）
@@ -116,6 +122,7 @@ for (const file of FILES) {
           definition: desc || notes || lastTheory,
           paper,
           category: sub,
+          unit: unitsFor(category, 'scholar', name),
           theory: lastTheory,
           notes: notes || undefined,
         });
@@ -144,6 +151,7 @@ for (const file of FILES) {
           definition,
           paper,
           category: sub,
+          unit: unitsFor(category, 'term', english),
         });
       }
     }

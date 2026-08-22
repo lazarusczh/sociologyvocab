@@ -57,6 +57,7 @@ export default function MultipleChoice() {
   useStudySession();
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
+  const [unit, setUnit] = useState('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'term' | 'scholar'>('all');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [qi, setQi] = useState(0);
@@ -66,11 +67,17 @@ export default function MultipleChoice() {
   const onPaperChange = (p: string) => {
     setPaper(p);
     setCat('all');
+    setUnit('all');
+  };
+
+  const onCatChange = (c: string) => {
+    setCat(c);
+    setUnit('all');
   };
 
   const filtered = useMemo(
-    () => filterByPaperCat(vocab, paper, cat).filter((i) => typeFilter === 'all' || i.type === typeFilter),
-    [vocab, paper, cat, typeFilter],
+    () => filterByPaperCat(vocab, paper, cat, unit).filter((i) => typeFilter === 'all' || i.type === typeFilter),
+    [vocab, paper, cat, unit, typeFilter],
   );
 
   const start = useCallback(() => {
@@ -115,7 +122,9 @@ export default function MultipleChoice() {
           paper={paper}
           onPaperChange={onPaperChange}
           cat={cat}
-          onCatChange={setCat}
+          onCatChange={onCatChange}
+          unit={unit}
+          onUnitChange={setUnit}
           typeFilter={typeFilter}
           onTypeChange={setTypeFilter}
         />

@@ -110,7 +110,7 @@ function ResultRow({
 }) {
   const isScholar = item.type === 'scholar';
   const surnames = isScholar ? [...new Set(scholarSurnames(item.term))] : [];
-  const meta = [item.paper, item.category].filter(Boolean).join(' · ');
+  const units = item.unit ?? [];
 
   return (
     <div className="card dict-row" onClick={onToggle}>
@@ -146,7 +146,13 @@ function ResultRow({
               备注：{item.notes}
             </div>
           )}
-          {meta && <div className="muted" style={{ fontSize: '0.78rem', marginTop: '0.4rem' }}>{meta}</div>}
+          {(item.paper || item.category || units.length > 0) && (
+            <div className="row" style={{ flexWrap: 'wrap', gap: '0.3rem', marginTop: '0.5rem' }}>
+              {item.paper && <span className="badge">{item.paper}</span>}
+              {item.category && <span className="badge">{item.category}</span>}
+              {units.map((u) => <span key={u} className="badge">{u}</span>)}
+            </div>
+          )}
         </div>
       )}
     </div>

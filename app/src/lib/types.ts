@@ -7,6 +7,7 @@ export interface VocabItem {
   definition: string; // 英文释义 或 学者理论描述
   paper: string;       // 考卷大类：'Paper 1' | 'Paper 2' | 'Paper 3' | 'Paper 4'
   category: string;    // 次级标签（Paper 4 为 Globalisation/Media；Paper 1 合并为空）
+  unit?: string[];     // 所属单元（按教学大纲细分；跨单元词条可多个）
   theory?: string;     // 学者所属理论流派（仅学者）
   notes?: string;      // 备注（仅学者）
 }
