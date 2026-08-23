@@ -17,6 +17,7 @@ import ProgressView from './components/ProgressView';
 import WrongPractice from './components/WrongPractice';
 import CheckInCelebration from './components/CheckInCelebration';
 import ProfilePanel from './components/ProfilePanel';
+import DevPanel from './components/DevPanel';
 
 export type View =
   | 'home'
@@ -31,7 +32,8 @@ export type View =
   | 'wrong'
   | 'progress'
   | 'backup'
-  | 'profile';
+  | 'profile'
+  | 'dev';
 
 const NAV: { key: View; label: string }[] = [
   { key: 'home', label: '首页' },
@@ -49,7 +51,7 @@ const NAV: { key: View; label: string }[] = [
 function AppBody() {
   const [view, setView] = useState<View>('home');
   const [menuOpen, setMenuOpen] = useState(false);
-  const { authUser, isTeacher, skipped } = useStore();
+  const { authUser, isTeacher, isDeveloper, skipped } = useStore();
   const viewRef = useRef(view);
   const navRef = useRef<HTMLElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -122,6 +124,14 @@ function AppBody() {
               备份
             </button>
           )}
+          {isDeveloper && (
+            <button
+              className={view === 'dev' ? 'active' : ''}
+              onClick={() => goto('dev')}
+            >
+              开发
+            </button>
+          )}
         </nav>
         <span className="spacer" />
         {authUser && (
@@ -164,6 +174,7 @@ function AppBody() {
         {view === 'wrong' && <WrongPractice />}
         {view === 'progress' && <ProgressView />}
         {view === 'profile' && authUser && <ProfilePanel />}
+        {view === 'dev' && isDeveloper && <DevPanel />}
       </main>
       <CheckInCelebration />
     </>

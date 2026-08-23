@@ -1,5 +1,6 @@
 import type { VocabItem, Progress, ContextPassage, CheckInState, WrongBook, PracticeMode, SurnameOverrides } from './types';
 import { emptyCheckIn } from './checkin';
+import { stableId } from './shuffle';
 
 // 掌握度四档标签（界面展示用）
 export const MASTERY_LABELS = ['未学', '不熟', '熟悉', '掌握'] as const;
@@ -32,6 +33,7 @@ export function adjustMastery(mastery: number, correct: boolean, mode: PracticeM
 }
 
 const VOCAB_KEY = 'socio_vocab_items';
+const VOCAB_VERSION_KEY = 'socio_vocab_version';
 const PROGRESS_KEY = 'socio_vocab_progress';
 const CONTEXT_KEY = 'socio_vocab_contexts';
 const CONFIG_KEY = 'socio_vocab_configured';
@@ -68,6 +70,52 @@ export function saveVocab(items: VocabItem[]): void {
 
 export function clearVocab(): void {
   localStorage.removeItem(VOCAB_KEY);
+}
+
+// ---- 词库版本号（用于「检查更新」对比）----
+export function loadVocabVersion(): number {
+  return Number(localStorage.getItem(VOCAB_VERSION_KEY) ?? 0) || 0;
+}
+
+export function saveVocabVersion(v: number): void {
+  localStorage.setItem(VOCAB_VERSION_KEY, String(v));
+}
+
+// ---- 稳定 id 迁移 ----
+// 把词条旧 id（随机/递增）换成稳定 id，返回新词库 + 旧→新 id 映射
+export function migrateVocabStableIds(vocab: VocabItem[]): { vocab: VocabItem[]; idMap: Record<string, string> } {
+  const idMap: Record<string, string> = {};
+  const next = vocab.map((i) => {
+    const newId = stableId(i.type, i.term, i.paper, i.category, i.unit);
+    if (newId !== i.id) idMap[i.id] = newId;
+    return { ...i, id: newId };
+  });
+  return { vocab: next, idMap };
+}
+
+// 通用：把对象的旧 id key 换成新 id
+function remapKeys<T>(obj: Record<string, T>, idMap: Record<string, string>): Record<string, T> {
+  const out: Record<string, T> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    out[idMap[k] ?? k] = v;
+  }
+  return out;
+}
+
+// 遍历 localStorage，迁移所有进度/错题本 scope 的旧 id key（一次性）
+export function migrateAllProgressKeys(idMap: Record<string, string>): void {
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (!key) continue;
+    if (key.startsWith(PROGRESS_KEY) || key.startsWith(WRONG_KEY)) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (raw) localStorage.setItem(key, JSON.stringify(remapKeys(JSON.parse(raw), idMap)));
+      } catch {
+        // 忽略解析错误
+      }
+    }
+  }
 }
 
 // 是否已由用户配置过词库（导入或清空过），避免每次刷新都重新加载内置词库覆盖

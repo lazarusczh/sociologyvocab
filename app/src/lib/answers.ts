@@ -179,6 +179,17 @@ export function isSuspiciousScholarName(term: string): boolean {
   return false;
 }
 
+// 获取术语的「可接受写法列表」：永远包含 term 本身，再追加内嵌 aliases（教师可编辑）或静态 answer-aliases.json
+function termAliasList(item: VocabItem): string[] {
+  const bases = new Set<string>([item.term]);
+  if (item.aliases && item.aliases.length) {
+    item.aliases.forEach((a) => bases.add(a));
+  } else {
+    (TERM_ALIASES[item.term] ?? []).forEach((a) => bases.add(a));
+  }
+  return [...bases];
+}
+
 // 获取某词条所有可接受写法的归一化键集合
 export function getAcceptableKeys(item: VocabItem): string[] {
   const keys = new Set<string>();
@@ -188,8 +199,7 @@ export function getAcceptableKeys(item: VocabItem): string[] {
   };
 
   if (item.type === 'term') {
-    const list = TERM_ALIASES[item.term] ?? [item.term];
-    list.forEach((base) => {
+    termAliasList(item).forEach((base) => {
       push(base);
       singularPluralVariants(base).forEach(push);
     });
@@ -225,7 +235,7 @@ export function getCrosswordAnswerForms(item: VocabItem): string[] {
     if (t) forms.add(t);
   };
   if (item.type === 'term') {
-    (TERM_ALIASES[item.term] ?? [item.term]).forEach(add);
+    termAliasList(item).forEach(add);
   } else {
     // 学者：用完整原文（合著/缩写等复杂情况暂按原文整体作答）
     add(item.term);
@@ -268,8 +278,7 @@ function collectMaskForms(item: VocabItem): string[] {
   };
 
   if (item.type === 'term') {
-    const list = TERM_ALIASES[item.term] ?? [item.term];
-    list.forEach((base) => {
+    termAliasList(item).forEach((base) => {
       add(base);
       singularPluralVariants(base).forEach(add);
     });
@@ -303,7 +312,7 @@ export function getSearchableForms(item: VocabItem): string[] {
 
   if (item.type === 'term') {
     add(item.term);
-    (TERM_ALIASES[item.term] ?? []).forEach(add);
+    termAliasList(item).forEach(add);
     add(item.chinese);
   } else {
     add(item.term);
@@ -313,4 +322,19 @@ export function getSearchableForms(item: VocabItem): string[] {
   }
 
   return [...forms];
+}
+
+// 给词条附加「可接受答案别名」：从静态 answer-aliases.json 读取（迁移用；词条已有 aliases 则不覆盖）
+export function attachAliases(items: VocabItem[]): VocabItem[] {
+  return items.map((i) => {
+    if (i.aliases && i.aliases.length) return i;
+    const list = i.type === 'term' ? TERM_ALIASES[i.term] : SCHOLAR_ALIASES[i.term];
+    return list && list.length ? { ...i, aliases: list } : i;
+  });
+}
+
+// 获取词条的原始可接受写法（term + 额外别名/静态别名，不含单复数变体），用于开发后台展示
+export function getAcceptableForms(item: VocabItem): string[] {
+  if (item.type === 'term') return termAliasList(item);
+  return [item.term, ...(item.aliases ?? [])];
 }

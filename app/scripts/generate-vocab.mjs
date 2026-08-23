@@ -10,6 +10,13 @@ function unitsFor(category, type, term) {
   return UNIT_MAPPING[category]?.[type]?.[term] ?? [];
 }
 
+// 可接受答案别名（answer-aliases.json 是 source of truth，直接烘焙进词条）
+const ALIASES = JSON.parse(readFileSync('./src/lib/answer-aliases.json', 'utf8'));
+function aliasesFor(type, term) {
+  const table = type === 'term' ? ALIASES.termAliases : ALIASES.scholarAliases;
+  return table?.[term] ?? null;
+}
+
 const FILES = [
   '../Sociology Vocabulary (A-Z order with definitions).xlsx', // 术语表（多 sheet）
   '../A1 Family Name sheet.xlsx',
@@ -26,6 +33,20 @@ function clean(s) {
     .replace(/\n/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+// 确定性 id：与 app/src/lib/shuffle.ts 的 stableId 保持一致
+function stableId(type, term, paper, category, units) {
+  const unitKey = units && units.length ? units.slice().sort().join(',') : '';
+  const key = [type, term.trim().toLowerCase(), paper, category, unitKey].join('||');
+  let h1 = 5381;
+  let h2 = 52711;
+  for (let i = 0; i < key.length; i++) {
+    const c = key.charCodeAt(i);
+    h1 = (Math.imul(h1, 33) + c) >>> 0;
+    h2 = (Math.imul(h2, 31) + c) >>> 0;
+  }
+  return `${type === 'scholar' ? 'sch' : 'term'}_${h1.toString(36)}${h2.toString(36)}`;
 }
 
 function isNameHeader(row) {
@@ -115,7 +136,7 @@ for (const file of FILES) {
         if (theory) lastTheory = theory;
         if (!name) continue;
         items.push({
-          id: `sch_${schCount++}`,
+          id: stableId('scholar', name, paper, sub, unitsFor(category, 'scholar', name)),
           type: 'scholar',
           term: name,
           chinese: '',
@@ -123,9 +144,11 @@ for (const file of FILES) {
           paper,
           category: sub,
           unit: unitsFor(category, 'scholar', name),
+          aliases: aliasesFor('scholar', name) || undefined,
           theory: lastTheory,
           notes: notes || undefined,
         });
+        schCount++;
       }
     } else {
       // 术语表
@@ -144,7 +167,7 @@ for (const file of FILES) {
         if (!english) continue;
         if (/^(english|term|word)$/i.test(english)) continue;
         items.push({
-          id: `term_${termCount++}`,
+          id: stableId('term', english, paper, sub, unitsFor(category, 'term', english)),
           type: 'term',
           term: english,
           chinese,
@@ -152,7 +175,9 @@ for (const file of FILES) {
           paper,
           category: sub,
           unit: unitsFor(category, 'term', english),
+          aliases: aliasesFor('term', english) || undefined,
         });
+        termCount++;
       }
     }
   }

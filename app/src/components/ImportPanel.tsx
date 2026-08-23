@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useStore } from '../lib/store';
+import { publishVocab } from '../lib/cloud';
 import type { ImportResult } from '../lib/types';
 
 export default function ImportPanel() {
@@ -11,6 +12,22 @@ export default function ImportPanel() {
   const [pending, setPending] = useState<string[]>([]);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const inputRef = useRef<HTMLInputElement>(null);
+  const [publishing, setPublishing] = useState(false);
+  const [publishMsg, setPublishMsg] = useState('');
+
+  const handlePublish = async () => {
+    if (vocab.length === 0) return;
+    setPublishing(true);
+    setPublishMsg('');
+    try {
+      const v = await publishVocab(vocab);
+      setPublishMsg(`已发布 v${v}（${vocab.length} 条词条）`);
+    } catch (e) {
+      setPublishMsg(`发布失败：${(e as Error).message}`);
+    } finally {
+      setPublishing(false);
+    }
+  };
 
   const finalizeConfirm = () => {
     pending.forEach((name) => {
@@ -71,8 +88,21 @@ export default function ImportPanel() {
         </div>
       </div>
 
+      <div className="card" style={{ marginBottom: '0.8rem' }}>
+        <h3>发布词库</h3>
+        <p className="muted" style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>
+          把当前词库（{vocab.length} 条）发布到云端，学生端启动/回首页时自动同步到最新版本。
+        </p>
+        <div className="row" style={{ marginTop: '0.6rem' }}>
+          <button className="primary" disabled={publishing || vocab.length === 0} onClick={handlePublish}>
+            {publishing ? '发布中…' : '发布新版本'}
+          </button>
+        </div>
+        {publishMsg && <p className="muted" style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}>{publishMsg}</p>}
+      </div>
+
       <div className="card">
-        <h3>导入文件</h3>
+        <h3>批量导入</h3>
         <input
           ref={inputRef}
           type="file"

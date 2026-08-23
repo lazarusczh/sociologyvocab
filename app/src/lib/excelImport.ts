@@ -1,7 +1,7 @@
 import * as XLSX from 'xlsx';
 import type { VocabItem, ImportResult } from './types';
-import { cleanText, uid } from './shuffle';
-import { isSuspiciousScholarName } from './answers';
+import { cleanText, stableId } from './shuffle';
+import { isSuspiciousScholarName, attachAliases } from './answers';
 import { unitsForRaw, attachUnits } from './unitMapping';
 
 // 旧「主题」→ { 考卷 Paper, 次级标签 sub } 的映射（对应 9699A Level 社会学大纲四张考卷）
@@ -32,7 +32,7 @@ export function migrateVocabItems(items: VocabItem[]): VocabItem[] {
     return { ...i, paper, category: sub, ...(units.length ? { unit: units } : {}) };
   });
   // 已迁移但缺 unit 的旧数据（本地 localStorage）按 paper+sub 兜底补
-  return attachUnits(migrated);
+  return attachAliases(attachUnits(migrated));
 }
 
 // 从文件名推断学者表的主题
@@ -101,7 +101,7 @@ function parseNameSheet(
     if (isSuspiciousScholarName(name)) suspicious.push(name);
 
     items.push({
-      id: uid('sch'),
+      id: stableId('scholar', name, paper, sub, unitsForRaw(source, 'scholar', name)),
       type: 'scholar',
       term: name,
       chinese: '',
@@ -149,7 +149,7 @@ function parseTermSheet(
     if (/^(english|term|word)$/i.test(english)) continue;
 
     items.push({
-      id: uid('term'),
+      id: stableId('term', english, paper, sub, unitsForRaw(source, 'term', english)),
       type: 'term',
       term: english,
       chinese,

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useStore } from '../lib/store';
 import { masteryLevel } from '../lib/storage';
 import { isInWrongBook } from '../lib/checkin';
@@ -19,7 +20,12 @@ const MODES: { key: View; icon: string; title: string; desc: string }[] = [
 ];
 
 export default function Home({ go }: Props) {
-  const { vocab, progress, papers, wrongBook, isTeacher } = useStore();
+  const { vocab, progress, papers, wrongBook, isTeacher, vocabUpdateBanner, syncVocabFromCloud, dismissVocabBanner } = useStore();
+
+  // 回首页时检查词库更新
+  useEffect(() => {
+    syncVocabFromCloud();
+  }, [syncVocabFromCloud]);
   const mastered = Object.values(progress).filter((p) => masteryLevel(p.mastery) >= 3).length;
   const total = vocab.length;
   // 整体掌握度：所有词条掌握度（0-100）的平均值，未练习的词条计为 0
@@ -30,6 +36,15 @@ export default function Home({ go }: Props) {
 
   return (
     <div>
+      {vocabUpdateBanner && (
+        <div className="card" style={{ marginBottom: '0.8rem', borderColor: 'var(--accent)' }}>
+          <div className="row" style={{ alignItems: 'center' }}>
+            <span>{vocabUpdateBanner}</span>
+            <span className="spacer" />
+            <button className="ghost" onClick={dismissVocabBanner}>关闭</button>
+          </div>
+        </div>
+      )}
       {total === 0 ? (
         <div className="card">
           <div className="empty-state">

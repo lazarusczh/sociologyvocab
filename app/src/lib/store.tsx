@@ -8,6 +8,8 @@ import {
   loadContexts, saveContexts, isConfigured, setConfigured,
   loadCheckIn, saveCheckIn, loadWrongBook, saveWrongBook,
   loadSurnameOverrides, saveSurnameOverrides, setDataScope,
+  migrateVocabStableIds, migrateAllProgressKeys,
+  loadVocabVersion, saveVocabVersion,
 } from './storage';
 import {
   recordFormalAnswer, addStudySeconds, applyMakeup as applyMakeupCheck,
@@ -16,7 +18,7 @@ import {
 import { parseExcelFiles, migrateVocabItems } from './excelImport';
 import { exportBackupJson, performImport } from './backup';
 import { supabase } from './supabase';
-import { pullCloudData, pushCloudData, mergeStudentData, type CloudStudentData } from './cloud';
+import { pullCloudData, pushCloudData, mergeStudentData, type CloudStudentData, getLatestVocabVersion, pullLatestVocab } from './cloud';
 
 const STUDY_TICK_SECONDS = 10;
 
@@ -70,6 +72,10 @@ interface StoreValue {
   // 云端登录与同步
   authUser: AuthUser | null;
   isTeacher: boolean;
+  isDeveloper: boolean;
+  vocabUpdateBanner: string;
+  syncVocabFromCloud: () => void;
+  dismissVocabBanner: () => void;
   signIn: (email: string, password: string) => Promise<string>;
   signUp: (email: string, password: string, name: string) => Promise<string>;
   signOut: () => Promise<void>;
@@ -87,6 +93,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [skipped, setSkipped] = useState(false);
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [isTeacher, setIsTeacher] = useState(false);
+  const [isDeveloper, setIsDeveloper] = useState(false);
+  const [vocabUpdateBanner, setVocabUpdateBanner] = useState('');
   const [surnameOverrides, setSurnameOverrides] = useState<SurnameOverrides>({});
   const [checkinCelebration, setCheckinCelebration] = useState(false);
   const activeRef = useRef(0);
@@ -124,8 +132,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           .eq('user_id', u.id);
         const roles = ((data ?? []) as { role: string }[]).map((r) => r.role);
         setIsTeacher(roles.includes('teacher'));
+        setIsDeveloper(roles.includes('developer'));
       } catch {
         setIsTeacher(false);
+        setIsDeveloper(false);
       }
     })();
     // 回传合并结果，保证云端与本地一致
@@ -133,23 +143,30 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    setProgress(migrateProgressOnce());
     setContexts(loadContexts());
     setCheckin(loadCheckIn());
-    setWrongBook(loadWrongBook());
     setSurnameOverrides(loadSurnameOverrides());
 
+    // 稳定 id 迁移：先把本地词库换成稳定 id，并迁移进度/错题本的旧 id key
     const local = migrateVocabItems(loadVocab());
-    if (local.length > 0) {
-      setVocab(local);
-      saveVocab(local); // 旧词库可能缺少 paper 字段，迁移后回写
+    const { vocab: stableVocab, idMap } = migrateVocabStableIds(local);
+    if (Object.keys(idMap).length > 0) {
+      saveVocab(stableVocab);
+      migrateAllProgressKeys(idMap);
+    }
+    setProgress(migrateProgressOnce());
+    setWrongBook(loadWrongBook());
+
+    if (stableVocab.length > 0) {
+      setVocab(stableVocab);
+      saveVocab(stableVocab); // 旧词库可能缺少 paper 字段，迁移后回写
     } else if (!isConfigured()) {
       // 首次使用：加载内置词库（public/vocab-data.json）
       fetch(`${import.meta.env.BASE_URL}vocab-data.json`)
         .then((r) => r.json())
         .then((data: VocabItem[]) => {
           if (data && data.length > 0) {
-            const migrated = migrateVocabItems(data);
+            const migrated = migrateVocabStableIds(migrateVocabItems(data)).vocab;
             setVocab(migrated);
             saveVocab(migrated);
             setConfigured();
@@ -208,6 +225,34 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     saveVocab(items);
     setVocab(items);
   }, []);
+
+  // 从云端同步词库：登录后启动时 + 回首页时调用，检查最新版本并静默拉取
+  const syncVocabFromCloud = useCallback(async () => {
+    if (!authUser) return;
+    try {
+      const latestVersion = await getLatestVocabVersion();
+      if (latestVersion > loadVocabVersion()) {
+        const pulled = await pullLatestVocab();
+        if (pulled && pulled.data.length > 0) {
+          const migrated = migrateVocabStableIds(migrateVocabItems(pulled.data)).vocab;
+          persistVocab(migrated);
+          saveVocabVersion(pulled.version);
+          setVocabUpdateBanner(`词库已更新到 v${pulled.version}（${migrated.length} 条）`);
+        }
+      }
+    } catch {
+      // 离线/失败：用本地缓存，不提示
+    }
+  }, [authUser, persistVocab]);
+
+  const dismissVocabBanner = useCallback(() => {
+    setVocabUpdateBanner('');
+  }, []);
+
+  // 登录后同步词库（启动/登录时 + authUser 变化时）
+  useEffect(() => {
+    if (authUser) syncVocabFromCloud();
+  }, [authUser, syncVocabFromCloud]);
 
   const importFiles = useCallback(async (files: File[]): Promise<ImportResult> => {
     const result = await parseExcelFiles(files);
@@ -411,6 +456,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     importBackup,
     authUser,
     isTeacher,
+    isDeveloper,
+    vocabUpdateBanner,
+    syncVocabFromCloud,
+    dismissVocabBanner,
     signIn,
     signUp,
     signOut,

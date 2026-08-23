@@ -1,6 +1,6 @@
 // 云同步层：登录后与 Supabase 的 student_data 表读写，及本地/云端数据合并
 import { supabase } from './supabase';
-import type { CheckInState, Progress, WrongBook } from './types';
+import type { CheckInState, Progress, WrongBook, VocabItem } from './types';
 
 // 云端 student_data.data 里存储的 JSON 结构（checkin/progress/wrongBook 三块 + 姓名）
 export interface CloudStudentData {
@@ -106,4 +106,43 @@ export async function pushCloudData(
     data: payload,
   });
   if (error) throw error;
+}
+
+// ---- 词库发布 / 拉取 ----
+
+// 查最新词库版本号（轻量，用于「检查更新」；无版本返回 0）
+export async function getLatestVocabVersion(): Promise<number> {
+  const { data } = await supabase
+    .from('vocab_releases')
+    .select('version')
+    .order('version', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return ((data as { version: number } | null)?.version ?? 0);
+}
+
+// 拉取最新词库（含整份词条 + 版本号；无版本返回 null）
+export async function pullLatestVocab(): Promise<{ version: number; data: VocabItem[] } | null> {
+  const { data, error } = await supabase
+    .from('vocab_releases')
+    .select('version, data')
+    .order('version', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  const row = data as { version: number; data: VocabItem[] };
+  return { version: row.version, data: row.data ?? [] };
+}
+
+// 教师发布词库：插入新版本（version 自增），返回新版本号
+export async function publishVocab(items: VocabItem[], note?: string): Promise<number> {
+  const nextVersion = (await getLatestVocabVersion()) + 1;
+  const { error } = await supabase.from('vocab_releases').insert({
+    version: nextVersion,
+    data: items,
+    note: note ?? '',
+  });
+  if (error) throw error;
+  return nextVersion;
 }

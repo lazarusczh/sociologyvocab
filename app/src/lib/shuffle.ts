@@ -27,3 +27,20 @@ export function cleanText(s: string): string {
 export function uid(prefix = 'id'): string {
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
+
+// 确定性 id：根据 类型 + 术语名 + 考卷 + 主题 生成稳定 id
+// （同一词条永远同一 id，保证教师改词/重发布后学生进度仍对得上）
+export function stableId(type: 'term' | 'scholar', term: string, paper: string, category: string, units?: string[]): string {
+  // unit 加入 key：Paper 1 存在同名 "Cultural deprivation"（deviance 版 vs identity 版），
+  // 其 term/paper/category 相同、仅 unit 不同，需靠 unit 区分
+  const unitKey = units && units.length ? units.slice().sort().join(',') : '';
+  const key = [type, term.trim().toLowerCase(), paper, category, unitKey].join('||');
+  let h1 = 5381;
+  let h2 = 52711;
+  for (let i = 0; i < key.length; i++) {
+    const c = key.charCodeAt(i);
+    h1 = (Math.imul(h1, 33) + c) >>> 0;
+    h2 = (Math.imul(h2, 31) + c) >>> 0;
+  }
+  return `${type === 'scholar' ? 'sch' : 'term'}_${h1.toString(36)}${h2.toString(36)}`;
+}

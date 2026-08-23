@@ -71,3 +71,12 @@ export function unitListFor(items: VocabItem[], paper: string, cat: string): str
   const effCat = cats.length <= 1 ? (cats[0] ?? '') : cat;
   return unitOrderFor(paper, effCat);
 }
+
+// 某 paper 下的所有单元（Paper 4 合并 Globalisation/Media）
+export function unitsForPaper(paper: string): string[] {
+  const units = new Set<string>();
+  for (const [key, list] of Object.entries(UNIT_ORDER)) {
+    if (key.startsWith(`${paper}|`)) list.forEach((u) => units.add(u));
+  }
+  return [...units];
+}
