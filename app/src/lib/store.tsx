@@ -115,15 +115,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setProgress(merged.progress);
     setWrongBook(merged.wrongBook);
     setAuthUser(u);
-    // 判断当前用户是否在老师名单里（用于显示教师后台 / 打卡核验）
+    // 判断当前用户角色（用于显示教师后台 / 打卡核验）
     (async () => {
       try {
         const { data } = await supabase
-          .from('teacher_roles')
-          .select('user_id')
-          .eq('user_id', u.id)
-          .maybeSingle();
-        setIsTeacher(!!data);
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', u.id);
+        const roles = ((data ?? []) as { role: string }[]).map((r) => r.role);
+        setIsTeacher(roles.includes('teacher'));
       } catch {
         setIsTeacher(false);
       }

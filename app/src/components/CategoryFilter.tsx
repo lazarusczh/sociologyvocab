@@ -77,6 +77,7 @@ export default function CategoryFilter({
         </div>
       )}
       <div className="tag-filter">
+        <span className="muted" style={{ fontSize: '0.85rem', alignSelf: 'center' }}>试卷：</span>
         <button className={paper === 'all' ? 'active' : ''} onClick={() => onPaperChange('all')}>
           全部考卷
         </button>
@@ -88,6 +89,7 @@ export default function CategoryFilter({
       </div>
       {subLabels.length > 1 && (
         <div className="tag-filter" style={{ marginTop: '0.4rem' }}>
+          <span className="muted" style={{ fontSize: '0.85rem', alignSelf: 'center' }}>主题：</span>
           <button className={cat === 'all' ? 'active' : ''} onClick={() => onCatChange('all')}>
             全部主题
           </button>
@@ -100,6 +102,7 @@ export default function CategoryFilter({
       )}
       {units.length > 0 && onUnitChange && (
         <div className="tag-filter" style={{ marginTop: '0.4rem' }}>
+          <span className="muted" style={{ fontSize: '0.85rem', alignSelf: 'center' }}>单元：</span>
           <button className={unit === 'all' ? 'active' : ''} onClick={() => onUnitChange('all')}>
             全部单元
           </button>

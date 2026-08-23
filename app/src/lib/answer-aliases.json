@@ -1,0 +1,51 @@
+{
+  "termAliases": {
+    "Hawthorne effect (observer effect)": ["Hawthorne effect", "observer effect"],
+    "Primary (first-hand) research": ["primary research", "first-hand research"],
+    "Aristocrat (landed aristocrat)": ["Aristocrat", "landed aristocrat"],
+    "Multiculturalism (= Cultural diversity)": ["Multiculturalism", "Cultural diversity"],
+    "Marxist (socialist) feminism": ["Marxist feminism", "socialist feminism"],
+    "Deferred (delayed) gratification": ["Deferred gratification", "delayed gratification"],
+    "Intelligence Quotient (IQ)": ["Intelligence Quotient", "IQ"],
+    "Anti-Globalisation Movement (AGM)": ["Anti-Globalisation Movement", "AGM"],
+    "Preferred (dominant) reading": ["Preferred reading", "dominant reading"],
+    "Conversion (of capitals)": ["Conversion", "Conversion of capitals"],
+    "Cultural factor (deprivation)": ["Cultural factor", "cultural deprivation"],
+    "Deferred / Delayed gratification": ["Deferred gratification", "Delayed gratification"],
+    "Commune / shared households / Friends as family": ["Commune", "shared households", "Friends as family"],
+    "Ethnic / Cultural diversity": ["Ethnic diversity", "Cultural diversity"],
+    "Life course / cycle diversity": ["Life course diversity", "Life cycle diversity"],
+    "‘New Man’ / ‘New Father’": ["New Man", "New Father"],
+    "Single-parent / Lone-parent family": ["Single-parent family", "Lone-parent family"],
+    "Dark web / Dark net": ["Dark web", "Dark net"],
+    "Editorial freedom / independence": ["Editorial freedom", "Editorial independence"],
+    "News values / newsworthiness": ["News values", "News value", "newsworthiness"],
+    "Borderline cases": ["Borderline cases", "Borderline case"],
+    "Educational migrants": ["Educational migrants", "Educational migrant"],
+    "Helicopter parents": ["Helicopter parents", "Helicopter parent"],
+    "Hidden rules": ["Hidden rules", "Hidden rule"],
+    "Hopeless cases": ["Hopeless cases", "Hopeless case"],
+    "Mixed methods": ["Mixed methods", "Mixed method"],
+    "Moral panics": ["Moral panics", "Moral panic"],
+    "Prenups": ["Prenups", "Prenup"],
+    "Joint conjugal roles": ["Joint conjugal roles", "Joint conjugal role"],
+    "Segregated conjugal roles": ["Segregated conjugal roles", "Segregated conjugal role"],
+    "Qualitative research methods": ["Qualitative research methods", "Qualitative research method"],
+    "Quantitative research methods": ["Quantitative research methods", "Quantitative research method"],
+    "Feral children": ["Feral children", "Feral child"],
+    "Folk devils": ["Folk devils", "Folk devil"],
+    "Millenials": ["Millenials", "Millennial"]
+  },
+  "scholarAliases": {
+    "Ulrich Beck (& Elisabeth Beck-Gernsheim)": ["Ulrich Beck", "Beck"],
+    "Michael (Dunlop) Young": ["Michael Young", "Young"],
+    "America Sociology Association (ASA)": ["America Sociology Association", "ASA"],
+    "America Psychology Association (APA)": ["America Psychology Association", "APA"],
+    "Centre for the Modern Family (quoted by Daily Mail)": ["Centre for the Modern Family"],
+    "RIAS (Ageas), a British insurance company": ["RIAS"],
+    "Glasgow University Media Group (GUMG)": ["Glasgow University Media Group", "GUMG"]
+  },
+  "surnameOverrides": {
+    "(Gloria Jean Watkins) bell hooks": "bell hooks"
+  }
+}

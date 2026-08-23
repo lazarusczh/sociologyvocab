@@ -1,6 +1,7 @@
 // 答案判定与容错逻辑
 import type { VocabItem } from './types';
 import { loadSurnameOverrides } from './storage';
+import aliasData from './answer-aliases.json';
 
 // 归一化：忽略大小写、空格、连字符、标点、重音等，只保留小写字母与数字
 export function normalizeKey(s: string): string {
@@ -13,68 +14,16 @@ export function normalizeKey(s: string): string {
     .replace(/[^a-z0-9]/g, '');
 }
 
-// 术语的"多种同义/等价写法"映射：键为词库原文，值为所有可接受写法
-const TERM_ALIASES: Record<string, string[]> = {
-  'Hawthorne effect (observer effect)': ['Hawthorne effect', 'observer effect'],
-  'Primary (first-hand) research': ['primary research', 'first-hand research'],
-  'Aristocrat (landed aristocrat)': ['Aristocrat', 'landed aristocrat'],
-  'Multiculturalism (= Cultural diversity)': ['Multiculturalism', 'Cultural diversity'],
-  'Marxist (socialist) feminism': ['Marxist feminism', 'socialist feminism'],
-  'Deferred (delayed) gratification': ['Deferred gratification', 'delayed gratification'],
-  'Intelligence Quotient (IQ)': ['Intelligence Quotient', 'IQ'],
-  'Anti-Globalisation Movement (AGM)': ['Anti-Globalisation Movement', 'AGM'],
-  'Preferred (dominant) reading': ['Preferred reading', 'dominant reading'],
-  'Conversion (of capitals)': ['Conversion', 'Conversion of capitals'],
-  'Cultural factor (deprivation)': ['Cultural factor', 'cultural deprivation'],
-  'Deferred / Delayed gratification': ['Deferred gratification', 'Delayed gratification'],
-  'Commune / shared households / Friends as family': [
-    'Commune',
-    'shared households',
-    'Friends as family',
-  ],
-  'Ethnic / Cultural diversity': ['Ethnic diversity', 'Cultural diversity'],
-  'Life course / cycle diversity': ['Life course diversity', 'Life cycle diversity'],
-  '‘New Man’ / ‘New Father’': ['New Man', 'New Father'],
-  'Single-parent / Lone-parent family': ['Single-parent family', 'Lone-parent family'],
-  'Dark web / Dark net': ['Dark web', 'Dark net'],
-  'Editorial freedom / independence': ['Editorial freedom', 'Editorial independence'],
-  'News values / newsworthiness': ['News values', 'News value', 'newsworthiness'],
+// 术语的"多种同义/等价写法"映射：键为词库原文，值为所有可接受写法（数据见 answer-aliases.json）
+const TERM_ALIASES: Record<string, string[]> = aliasData.termAliases;
 
-  // 单复数放宽：复数名词条目允许单数写法也算对
-  'Borderline cases': ['Borderline cases', 'Borderline case'],
-  'Educational migrants': ['Educational migrants', 'Educational migrant'],
-  'Helicopter parents': ['Helicopter parents', 'Helicopter parent'],
-  'Hidden rules': ['Hidden rules', 'Hidden rule'],
-  'Hopeless cases': ['Hopeless cases', 'Hopeless case'],
-  'Mixed methods': ['Mixed methods', 'Mixed method'],
-  'Moral panics': ['Moral panics', 'Moral panic'],
-  'Prenups': ['Prenups', 'Prenup'],
-  'Joint conjugal roles': ['Joint conjugal roles', 'Joint conjugal role'],
-  'Segregated conjugal roles': ['Segregated conjugal roles', 'Segregated conjugal role'],
-  'Qualitative research methods': ['Qualitative research methods', 'Qualitative research method'],
-  'Quantitative research methods': ['Quantitative research methods', 'Quantitative research method'],
-  'Feral children': ['Feral children', 'Feral child'],
-  'Folk devils': ['Folk devils', 'Folk devil'],
-  'Millenials': ['Millenials', 'Millennial'],
-};
-
-// 学者/机构名（含括号、缩写、来源说明等）的等价写法
-const SCHOLAR_ALIASES: Record<string, string[]> = {
-  'Ulrich Beck (& Elisabeth Beck-Gernsheim)': ['Ulrich Beck', 'Beck'],
-  'Michael (Dunlop) Young': ['Michael Young', 'Young'],
-  'America Sociology Association (ASA)': ['America Sociology Association', 'ASA'],
-  'America Psychology Association (APA)': ['America Psychology Association', 'APA'],
-  'Centre for the Modern Family (quoted by Daily Mail)': ['Centre for the Modern Family'],
-  'RIAS (Ageas), a British insurance company': ['RIAS'],
-  'Glasgow University Media Group (GUMG)': ['Glasgow University Media Group', 'GUMG'],
-};
+// 学者/机构名（含括号、缩写、来源说明等）的等价写法（数据见 answer-aliases.json）
+const SCHOLAR_ALIASES: Record<string, string[]> = aliasData.scholarAliases;
 
 // 特殊姓氏映射：学界以完整笔名称呼的作者，其"姓"是整个笔名而非最后一个词。
 // 例：bell hooks 是完整笔名（本名 Gloria Jean Watkins），不能拆成"姓 hooks 名 bell"。
 // 键为词库原文 term，值为应作为"姓氏"的完整写法（默写时只答此写法即算对）。
-const BUILTIN_SURNAME_OVERRIDES: Record<string, string> = {
-  '(Gloria Jean Watkins) bell hooks': 'bell hooks',
-};
+const BUILTIN_SURNAME_OVERRIDES: Record<string, string> = aliasData.surnameOverrides;
 
 // 合并内置默认 + 用户手动指定的姓氏覆盖（用户覆盖优先）
 function surnameOverrides(): Record<string, string> {
