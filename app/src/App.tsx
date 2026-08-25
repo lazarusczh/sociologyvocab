@@ -116,6 +116,14 @@ function AppBody() {
               {n.label}
             </button>
           ))}
+          {isTeacher && (
+            <button
+              className={view === 'import' ? 'active' : ''}
+              onClick={() => goto('import')}
+            >
+              教师后台
+            </button>
+          )}
           {skipped && (
             <button
               className={view === 'backup' ? 'active' : ''}

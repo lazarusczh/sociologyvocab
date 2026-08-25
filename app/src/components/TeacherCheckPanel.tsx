@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { isDayChecked, isInWrongBook } from '../lib/checkin';
+import { useStore } from '../lib/store';
 import type { CloudStudentData } from '../lib/cloud';
 import type { CheckInState, WrongBook } from '../lib/types';
 
@@ -35,7 +36,7 @@ interface StudentStat {
 }
 
 // 统计单个学生（className 由外部传入）
-function summarize(row: StudentRow, className: string): StudentStat {
+function summarize(row: StudentRow, className: string, validIds: Set<string>): StudentStat {
   const d = row.data ?? ({} as CloudStudentData);
   const checkin: CheckInState = d.checkin ?? { study: {}, makeup: {}, earnedMakeupWeeks: [], bestStreak: 0 };
   const wrongBook: WrongBook = d.wrongBook ?? {};
@@ -53,7 +54,7 @@ function summarize(row: StudentRow, className: string): StudentStat {
     totalCorrect += s.correct;
   }
   const accuracy = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
-  const wrongCount = Object.values(wrongBook).filter((e) => isInWrongBook(e)).length;
+  const wrongCount = Object.entries(wrongBook).filter(([id, e]) => validIds.has(id) && isInWrongBook(e)).length;
 
   return {
     user_id: row.user_id,
@@ -71,6 +72,8 @@ function summarize(row: StudentRow, className: string): StudentStat {
 }
 
 export default function TeacherCheckPanel() {
+  const { vocab } = useStore();
+  const validIds = useMemo(() => new Set(vocab.map((v) => v.id)), [vocab]);
   const [rows, setRows] = useState<StudentStat[]>([]);
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [classFilter, setClassFilter] = useState<string>('all');
@@ -98,10 +101,10 @@ export default function TeacherCheckPanel() {
       setRows([]);
     } else {
       const filtered = ((data ?? []) as StudentRow[]).filter((r) => !devIds.has(r.user_id));
-      setRows(filtered.map((r) => summarize(r, r.class_id ? (classMap.get(r.class_id) ?? '') : '')));
+      setRows(filtered.map((r) => summarize(r, r.class_id ? (classMap.get(r.class_id) ?? '') : '', validIds)));
     }
     setLoading(false);
-  }, []);
+  }, [validIds]);
 
   useEffect(() => {
     load();

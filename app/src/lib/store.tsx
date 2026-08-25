@@ -226,9 +226,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setVocab(items);
   }, []);
 
-  // 从云端同步词库：登录后启动时 + 回首页时调用，检查最新版本并静默拉取
+  // 从云端同步词库：启动/回首页时调用（登录用户和离线游客都同步），检查最新版本并静默拉取
   const syncVocabFromCloud = useCallback(async () => {
-    if (!authUser) return;
     try {
       const latestVersion = await getLatestVocabVersion();
       if (latestVersion > loadVocabVersion()) {
@@ -243,7 +242,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     } catch {
       // 离线/失败：用本地缓存，不提示
     }
-  }, [authUser, persistVocab]);
+  }, [persistVocab]);
 
   const dismissVocabBanner = useCallback(() => {
     setVocabUpdateBanner('');
@@ -400,6 +399,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     setAuthUser(null);
     setIsTeacher(false);
+    setIsDeveloper(false);
     setDataScope('guest');
   }, []);
 

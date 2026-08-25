@@ -20,7 +20,7 @@ create policy "vocab_releases_write" on public.vocab_releases
   for insert
   with check (exists (select 1 from public.user_roles r where r.user_id = auth.uid() and r.role = 'teacher'));
 
--- 登录用户可 select（拉最新）
+-- 所有人可 select（拉最新，含匿名/离线游客）
 drop policy if exists "vocab_releases_read" on public.vocab_releases;
 create policy "vocab_releases_read" on public.vocab_releases
-  for select using (auth.role() = 'authenticated');
+  for select using (true);

@@ -20,19 +20,20 @@ const MODES: { key: View; icon: string; title: string; desc: string }[] = [
 ];
 
 export default function Home({ go }: Props) {
-  const { vocab, progress, papers, wrongBook, isTeacher, vocabUpdateBanner, syncVocabFromCloud, dismissVocabBanner } = useStore();
+  const { vocab, progress, papers, wrongBook, vocabUpdateBanner, syncVocabFromCloud, dismissVocabBanner } = useStore();
 
   // 回首页时检查词库更新
   useEffect(() => {
     syncVocabFromCloud();
   }, [syncVocabFromCloud]);
-  const mastered = Object.values(progress).filter((p) => masteryLevel(p.mastery) >= 3).length;
+  const validIds = new Set(vocab.map((v) => v.id));
+  const mastered = Object.entries(progress).filter(([id, p]) => validIds.has(id) && masteryLevel(p.mastery) >= 3).length;
   const total = vocab.length;
   // 整体掌握度：所有词条掌握度（0-100）的平均值，未练习的词条计为 0
   const avgMastery = total > 0
     ? Math.round(vocab.reduce((s, it) => s + (progress[it.id]?.mastery ?? 0), 0) / total)
     : 0;
-  const wrongCount = Object.keys(wrongBook).filter((id) => isInWrongBook(wrongBook[id])).length;
+  const wrongCount = Object.keys(wrongBook).filter((id) => validIds.has(id) && isInWrongBook(wrongBook[id])).length;
 
   return (
     <div>
@@ -109,7 +110,6 @@ export default function Home({ go }: Props) {
       </div>
 
       <div className="row" style={{ marginTop: '1rem' }}>
-        {isTeacher && <button onClick={() => go('import')}>教师后台</button>}
         <button onClick={() => go('progress')}>查看进度</button>
       </div>
     </div>

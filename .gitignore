@@ -26,6 +26,14 @@ app/public/vocab-data.json
 reset-tool/
 teacher-private-key.json
 
+# 教师课件与素材（PPT 打印版 PDF、提取文本等，属教师知识产权，不纳入公开备份）
+A1 Paper*.pdf
+A2 Paper*.pdf
+pdf-text/
+ppt-text/
+pdf-libs/
+unit-tags-backup/
+
 # 打包生成的安装包（内含内置词库数据，属于教师知识产权，不纳入公开备份）
 *.apk
 
