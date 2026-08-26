@@ -52,11 +52,29 @@ export default function StreakCard() {
         <div className="stat"><span className="num">{mins}</span><span className="label">今日已学（分钟）</span></div>
       </div>
 
+      {/* 今日打卡进度 */}
+      <div style={{ marginTop: '0.8rem' }}>
+        <div className="row" style={{ marginBottom: '0.3rem' }}>
+          <span className="muted" style={{ fontSize: '0.85rem' }}>学习时长</span>
+          <span className="spacer" />
+          <span className="muted" style={{ fontSize: '0.85rem' }}>{mins}/{GOAL_MINUTES} 分钟</span>
+        </div>
+        <div className="progress-bar">
+          <div style={{ width: `${Math.min(100, Math.round((dayStats.seconds / CHECKIN_DAY_GOAL_SECONDS) * 100))}%` }} />
+        </div>
+        <div className="row" style={{ marginBottom: '0.3rem', marginTop: '0.6rem' }}>
+          <span className="muted" style={{ fontSize: '0.85rem' }}>练习题数</span>
+          <span className="spacer" />
+          <span className="muted" style={{ fontSize: '0.85rem' }}>{dayStats.questions}/{CHECKIN_DAY_GOAL_QUESTIONS} 题</span>
+        </div>
+        <div className="progress-bar">
+          <div style={{ width: `${Math.min(100, Math.round((dayStats.questions / CHECKIN_DAY_GOAL_QUESTIONS) * 100))}%` }} />
+        </div>
+      </div>
+
       <div className="row" style={{ marginTop: '0.6rem' }}>
         <span className="muted" style={{ fontSize: '0.85rem' }}>
-          今日已答 {dayStats.questions} 题
-          {!checked && `（还差 ${needMins} 分钟、${needQ} 题完成打卡）`}
-          {checked && '，完成今日打卡'}
+          {checked ? '已完成今日打卡' : `还差 ${needMins} 分钟、${needQ} 题完成打卡`}
         </span>
         <span className="spacer" />
         <span className="muted" style={{ fontSize: '0.85rem' }}>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { maskEmail } from '../lib/shuffle';
 
 // 班级
 interface ClassRow {
@@ -221,34 +222,37 @@ export default function ClassManager() {
         )}
 
         {students.length > 0 && (
-          <table className="check-table" style={{ marginTop: '0.6rem' }}>
-            <thead>
-              <tr>
-                <th>姓名</th>
-                <th>邮箱</th>
-                <th>班级</th>
-              </tr>
-            </thead>
-            <tbody>
-              {students.map((s) => (
-                <tr key={s.user_id}>
-                  <td>{s.name || '—'}</td>
-                  <td className="muted">{s.email}</td>
-                  <td>
-                    <select
-                      value={s.class_id ?? ''}
-                      onChange={(e) => assignClass(s.user_id, e.target.value || null)}
-                    >
-                      <option value="">未分班</option>
-                      {sortedClasses.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
-                    </select>
-                  </td>
+          <div style={{ overflowX: 'auto' }}>
+            <table className="check-table" style={{ marginTop: '0.6rem' }}>
+              <thead>
+                <tr>
+                  <th>姓名</th>
+                  <th>邮箱</th>
+                  <th>班级</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {students.map((s) => (
+                  <tr key={s.user_id}>
+                    <td>{s.name || '—'}</td>
+                    <td className="muted">{maskEmail(s.email)}</td>
+                    <td>
+                      <select
+                        value={s.class_id ?? ''}
+                        onChange={(e) => assignClass(s.user_id, e.target.value || null)}
+                        style={{ maxWidth: '100%' }}
+                      >
+                        <option value="">未分班</option>
+                        {sortedClasses.map((c) => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                      </select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
 
         {/* 按班级分组预览 */}
@@ -265,7 +269,7 @@ export default function ClassManager() {
                     {g.name}（{g.list.length} 人）：
                   </span>
                   <span style={{ fontSize: '0.85rem' }}>
-                    {g.list.map((s) => s.name || s.email).join('、')}
+                    {g.list.map((s) => s.name || maskEmail(s.email)).join('、')}
                   </span>
                 </div>
               ))}

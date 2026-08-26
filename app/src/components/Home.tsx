@@ -10,6 +10,7 @@ interface Props {
 }
 
 const MODES: { key: View; icon: string; title: string; desc: string }[] = [
+  { key: 'quiz', icon: '🔒', title: '随堂测验 / 作业', desc: '输入老师给的密码进入限时测验' },
   { key: 'flashcards', icon: '🂠', title: '闪卡记忆', desc: '翻卡看释义，纯自学浏览' },
   { key: 'choice', icon: '☑', title: '选择题测验', desc: '四选一，术语与释义配对' },
   { key: 'spelling', icon: '✎', title: '拼写默写', desc: '看中文释义拼写英文术语' },
@@ -20,7 +21,7 @@ const MODES: { key: View; icon: string; title: string; desc: string }[] = [
 ];
 
 export default function Home({ go }: Props) {
-  const { vocab, progress, papers, wrongBook, vocabUpdateBanner, syncVocabFromCloud, dismissVocabBanner } = useStore();
+  const { vocab, progress, wrongBook, vocabUpdateBanner, syncVocabFromCloud, dismissVocabBanner } = useStore();
 
   // 回首页时检查词库更新
   useEffect(() => {
@@ -61,14 +62,10 @@ export default function Home({ go }: Props) {
         <>
           <div className="card" style={{ marginBottom: '0.8rem' }}>
             <h2>学习概览</h2>
-            <div className="grid cols-3" style={{ marginTop: '0.5rem' }}>
+            <div className="grid cols-2" style={{ marginTop: '0.5rem' }}>
               <div className="stat">
                 <span className="num">{total}</span>
                 <span className="label">词汇总数</span>
-              </div>
-              <div className="stat">
-                <span className="num">{papers.length}</span>
-                <span className="label">考卷分类</span>
               </div>
               <div className="stat">
                 <span className="num">{mastered}</span>

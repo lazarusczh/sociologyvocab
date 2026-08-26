@@ -66,7 +66,7 @@ export default function IdentityGate() {
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="填写真实姓名（便于老师核验）"
+              placeholder="填写英文名+姓氏拼音（便于老师核验）"
             />
           </label>
         )}

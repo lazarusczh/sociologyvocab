@@ -23,6 +23,17 @@ export function cleanText(s: string): string {
     .trim();
 }
 
+// 邮箱脱敏：用户名只保留首尾字母，中间用 * 隐去；域名（含 @）完整保留
+export function maskEmail(email: string): string {
+  if (!email) return email;
+  const at = email.indexOf('@');
+  if (at <= 0) return email; // 无 @ 或异常格式，原样返回
+  const user = email.slice(0, at);
+  const domain = email.slice(at); // 含 @
+  if (user.length <= 2) return email; // 用户名过短无需脱敏
+  return user[0] + '*'.repeat(user.length - 2) + user[user.length - 1] + domain;
+}
+
 // 生成简单唯一 id
 export function uid(prefix = 'id'): string {
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;

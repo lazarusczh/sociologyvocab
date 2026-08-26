@@ -18,11 +18,13 @@ import WrongPractice from './components/WrongPractice';
 import CheckInCelebration from './components/CheckInCelebration';
 import ProfilePanel from './components/ProfilePanel';
 import DevPanel from './components/DevPanel';
+import QuizTaker from './components/QuizTaker';
 
 export type View =
   | 'home'
   | 'dictionary'
   | 'import'
+  | 'quiz'
   | 'flashcards'
   | 'choice'
   | 'spelling'
@@ -51,12 +53,18 @@ const NAV: { key: View; label: string }[] = [
 function AppBody() {
   const [view, setView] = useState<View>('home');
   const [menuOpen, setMenuOpen] = useState(false);
-  const { authUser, isTeacher, isDeveloper, skipped } = useStore();
+  const { authUser, isTeacher, isDeveloper, skipped, inQuiz } = useStore();
   const viewRef = useRef(view);
   const navRef = useRef<HTMLElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
+  const inQuizRef = useRef(inQuiz);
+
+  useEffect(() => {
+    inQuizRef.current = inQuiz;
+  }, [inQuiz]);
 
   const goto = (next: View) => {
+    if (inQuizRef.current && next !== 'quiz') return; // 考试中锁导航
     setView(next);
     setMenuOpen(false);
   };
@@ -85,6 +93,7 @@ function AppBody() {
     let cancelled = false;
     CapacitorApp.addListener('backButton', () => {
       if (cancelled) return;
+      if (inQuizRef.current) return; // 考试中拦截返回键
       if (viewRef.current !== 'home') {
         setView('home');
         setMenuOpen(false);
@@ -112,14 +121,23 @@ function AppBody() {
               key={n.key}
               className={view === n.key ? 'active' : ''}
               onClick={() => goto(n.key)}
+              disabled={inQuiz}
             >
               {n.label}
             </button>
           ))}
+          <button
+            className={view === 'quiz' ? 'active' : ''}
+            onClick={() => goto('quiz')}
+            disabled={inQuiz}
+          >
+            随堂测验
+          </button>
           {isTeacher && (
             <button
               className={view === 'import' ? 'active' : ''}
               onClick={() => goto('import')}
+              disabled={inQuiz}
             >
               教师后台
             </button>
@@ -128,6 +146,7 @@ function AppBody() {
             <button
               className={view === 'backup' ? 'active' : ''}
               onClick={() => goto('backup')}
+              disabled={inQuiz}
             >
               备份
             </button>
@@ -136,6 +155,7 @@ function AppBody() {
             <button
               className={view === 'dev' ? 'active' : ''}
               onClick={() => goto('dev')}
+              disabled={inQuiz}
             >
               开发
             </button>
@@ -147,6 +167,7 @@ function AppBody() {
             className="account-chip"
             title={`${authUser.email}（进入个人账号）`}
             onClick={() => goto('profile')}
+            disabled={inQuiz}
           >
             {authUser.name || authUser.email}
           </button>
@@ -164,7 +185,7 @@ function AppBody() {
         </button>
       </header>
       <main className="container">
-        {view !== 'home' && !Capacitor.isNativePlatform() && (
+        {view !== 'home' && !Capacitor.isNativePlatform() && !inQuiz && (
           <button className="back-btn" onClick={() => goto('home')}>
             ‹ 返回首页
           </button>
@@ -172,6 +193,7 @@ function AppBody() {
         {view === 'home' && <Home go={setView} />}
         {view === 'dictionary' && <Dictionary />}
         {view === 'import' && isTeacher && <AdminPanel />}
+        {view === 'quiz' && <QuizTaker />}
         {view === 'backup' && skipped && <BackupPanel />}
         {view === 'flashcards' && <Flashcards />}
         {view === 'choice' && <MultipleChoice />}

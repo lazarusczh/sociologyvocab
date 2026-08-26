@@ -306,6 +306,8 @@ input:focus, textarea:focus, select:focus {
 .option-btn.wrong { background: var(--danger-bg); border-color: var(--danger); }
 .option-btn .mark.correct { color: var(--success); }
 .option-btn .mark.wrong { color: var(--danger); }
+.option-btn.selected { background: var(--accent-bg); border-color: var(--accent); }
+.option-btn.selected .mark { color: var(--accent); }
 
 /* 跨词游戏单元格 */
 .cw-layout {

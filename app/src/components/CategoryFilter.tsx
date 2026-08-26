@@ -1,5 +1,6 @@
 import type { VocabItem } from '../lib/types';
 import { unitListFor } from '../lib/unitMapping';
+import { useStore } from '../lib/store';
 
 // 依据考卷 + 次级标签 + 单元筛选（'all' 时不过滤对应层级）
 export function filterByPaperCat(items: VocabItem[], paper: string, cat: string, unit = 'all'): VocabItem[] {
@@ -38,6 +39,7 @@ export default function CategoryFilter({
   typeFilter = 'all',
   onTypeChange,
 }: Props) {
+  const { unitOrder } = useStore();
   const typeOk = (i: VocabItem) => typeFilter === 'all' || i.type === typeFilter;
 
   const paperCount = (p: string) =>
@@ -49,7 +51,7 @@ export default function CategoryFilter({
       ? []
       : categories.filter((c) => items.some((i) => i.paper === paper && i.category === c));
 
-  const units = unitListFor(items, paper, cat);
+  const units = unitListFor(items, paper, cat, unitOrder);
   const unitCount = (u: string) =>
     items.filter(
       (i) => i.paper === paper && (cat === 'all' || i.category === cat) && (i.unit ?? []).includes(u) && typeOk(i),

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { isDayChecked, isInWrongBook } from '../lib/checkin';
 import { useStore } from '../lib/store';
+import { maskEmail } from '../lib/shuffle';
 import type { CloudStudentData } from '../lib/cloud';
 import type { CheckInState, WrongBook } from '../lib/types';
 
@@ -191,7 +192,7 @@ export default function TeacherCheckPanel() {
                 <tr key={r.user_id}>
                   <td>{r.name || '—'}</td>
                   <td>{r.className || '—'}</td>
-                  <td className="muted">{r.email}</td>
+                  <td className="muted">{maskEmail(r.email)}</td>
                   <td>{r.checkinDays}</td>
                   <td>{r.bestStreak}</td>
                   <td>{r.totalQuestions}</td>

@@ -24,8 +24,18 @@ export function paperInfo(category: string): { paper: string; sub: string } {
 
 // 迁移旧词库数据：补齐 paper 字段，并把三级主题收敛为次级标签，同时补上 unit
 export function migrateVocabItems(items: VocabItem[]): VocabItem[] {
+  // Paper 2/3 各自只有一个次级标签，历史脏数据中可能出现 category 为空的情况，按 paper 补正
+  const PAPER_DEFAULT_CAT: Record<string, string> = {
+    'Paper 2': 'Family',
+    'Paper 3': 'Education',
+  };
   const migrated = items.map((i) => {
-    if (i.paper) return i;
+    if (i.paper) {
+      if (!i.category && PAPER_DEFAULT_CAT[i.paper]) {
+        return { ...i, category: PAPER_DEFAULT_CAT[i.paper] };
+      }
+      return i;
+    }
     // 旧格式：原始 category 尚在，用它精确查 unit（避免 Paper 1 的 Cultural deprivation 冲突）
     const { paper, sub } = paperInfo(i.category);
     const units = unitsForRaw(i.category, i.type, i.term);

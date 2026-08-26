@@ -4,7 +4,7 @@ import { publishVocab } from '../lib/cloud';
 import type { ImportResult } from '../lib/types';
 
 export default function ImportPanel() {
-  const { vocab, importFiles, appendVocab, replaceVocab, clearAll, surnameOverrides, setSurnameOverride, removeSurnameOverride } = useStore();
+  const { vocab, importFiles, appendVocab, replaceVocab, clearAll, surnameOverrides, setSurnameOverride, removeSurnameOverride, unitOrder } = useStore();
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [error, setError] = useState('');
@@ -20,7 +20,7 @@ export default function ImportPanel() {
     setPublishing(true);
     setPublishMsg('');
     try {
-      const v = await publishVocab(vocab);
+      const v = await publishVocab(vocab, undefined, unitOrder);
       setPublishMsg(`已发布 v${v}（${vocab.length} 条词条）`);
     } catch (e) {
       setPublishMsg(`发布失败：${(e as Error).message}`);

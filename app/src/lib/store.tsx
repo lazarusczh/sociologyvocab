@@ -16,6 +16,7 @@ import {
   applyWrongAnswer, emptyCheckIn, todayKey, isDayChecked,
 } from './checkin';
 import { parseExcelFiles, migrateVocabItems } from './excelImport';
+import { loadUnitOrder, saveUnitOrder } from './unitMapping';
 import { exportBackupJson, performImport } from './backup';
 import { supabase } from './supabase';
 import { pullCloudData, pushCloudData, mergeStudentData, type CloudStudentData, getLatestVocabVersion, pullLatestVocab } from './cloud';
@@ -52,6 +53,12 @@ interface StoreValue {
   clearAll: () => void;
   setSurnameOverride: (term: string, surname: string) => void;
   removeSurnameOverride: (term: string) => void;
+  // 单元分类
+  unitOrder: Record<string, string[]>;
+  addUnit: (paper: string, sub: string, name: string) => void;
+  removeUnit: (paper: string, sub: string, name: string) => void;
+  moveUnit: (paper: string, sub: string, name: string, dir: -1 | 1) => void;
+  renameUnit: (paper: string, sub: string, oldName: string, newName: string) => void;
   // 进度操作
   recordItem: (itemId: string, correct: boolean, mode: PracticeMode) => void;
   resetProgress: () => void;
@@ -80,6 +87,9 @@ interface StoreValue {
   signUp: (email: string, password: string, name: string) => Promise<string>;
   signOut: () => Promise<void>;
   changePassword: (newPassword: string) => Promise<string>;
+  // 随堂测验/作业：考试进行中标志（用于锁导航）
+  inQuiz: boolean;
+  setInQuiz: (v: boolean) => void;
 }
 
 const StoreContext = createContext<StoreValue | null>(null);
@@ -97,6 +107,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [vocabUpdateBanner, setVocabUpdateBanner] = useState('');
   const [surnameOverrides, setSurnameOverrides] = useState<SurnameOverrides>({});
   const [checkinCelebration, setCheckinCelebration] = useState(false);
+  const [inQuiz, setInQuiz] = useState(false);
+  const [unitOrder, setUnitOrder] = useState<Record<string, string[]>>(() => loadUnitOrder());
   const activeRef = useRef(0);
 
   // 登录 / 恢复会话后：拉取云端数据合并到本地，再把合并结果回传云端
@@ -232,11 +244,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const latestVersion = await getLatestVocabVersion();
       if (latestVersion > loadVocabVersion()) {
         const pulled = await pullLatestVocab();
-        if (pulled && pulled.data.length > 0) {
-          const migrated = migrateVocabStableIds(migrateVocabItems(pulled.data)).vocab;
-          persistVocab(migrated);
+        if (pulled) {
+          if (pulled.data.length > 0) {
+            const migrated = migrateVocabStableIds(migrateVocabItems(pulled.data)).vocab;
+            persistVocab(migrated);
+            setVocabUpdateBanner(`词库已更新到 v${pulled.version}（${migrated.length} 条）`);
+          }
+          // 同步单元分类列表
+          if (pulled.unitOrder) {
+            setUnitOrder((prev) => {
+              const next = { ...prev, ...pulled.unitOrder };
+              saveUnitOrder(next);
+              return next;
+            });
+          }
           saveVocabVersion(pulled.version);
-          setVocabUpdateBanner(`词库已更新到 v${pulled.version}（${migrated.length} 条）`);
         }
       }
     } catch {
@@ -277,6 +299,66 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setConfigured();
     persistVocab(items);
   }, [persistVocab]);
+
+  // 单元分类管理（增删排序；变更存本地，随「发布词库」同步云端）
+  const addUnit = useCallback((paper: string, sub: string, name: string) => {
+    const key = `${paper}|${sub}`;
+    setUnitOrder((prev) => {
+      const list = prev[key] ?? [];
+      if (list.includes(name)) return prev;
+      const next = { ...prev, [key]: [...list, name] };
+      saveUnitOrder(next);
+      return next;
+    });
+  }, []);
+
+  const removeUnit = useCallback((paper: string, sub: string, name: string) => {
+    const key = `${paper}|${sub}`;
+    setUnitOrder((prev) => {
+      const next = { ...prev, [key]: (prev[key] ?? []).filter((u) => u !== name) };
+      saveUnitOrder(next);
+      return next;
+    });
+    // 删除单元时，同步从所有词条上移除该单元
+    setVocab((prev) => {
+      const next = prev.map((i) => (i.unit?.includes(name) ? { ...i, unit: i.unit.filter((u) => u !== name) } : i));
+      saveVocab(next);
+      return next;
+    });
+  }, []);
+
+  const moveUnit = useCallback((paper: string, sub: string, name: string, dir: -1 | 1) => {
+    const key = `${paper}|${sub}`;
+    setUnitOrder((prev) => {
+      const list = [...(prev[key] ?? [])];
+      const idx = list.indexOf(name);
+      if (idx < 0) return prev;
+      const target = idx + dir;
+      if (target < 0 || target >= list.length) return prev;
+      [list[idx], list[target]] = [list[target], list[idx]];
+      const next = { ...prev, [key]: list };
+      saveUnitOrder(next);
+      return next;
+    });
+  }, []);
+
+  // 重命名单元：更新单元列表中的名字，并同步更新所有词条的 unit 引用
+  const renameUnit = useCallback((paper: string, sub: string, oldName: string, newName: string) => {
+    const key = `${paper}|${sub}`;
+    setUnitOrder((prev) => {
+      const list = (prev[key] ?? []).map((u) => (u === oldName ? newName : u));
+      const next = { ...prev, [key]: list };
+      saveUnitOrder(next);
+      return next;
+    });
+    setVocab((prev) => {
+      const next = prev.map((i) =>
+        i.unit?.includes(oldName) ? { ...i, unit: i.unit.map((u) => (u === oldName ? newName : u)) } : i,
+      );
+      saveVocab(next);
+      return next;
+    });
+  }, []);
 
   const clearAll = useCallback(() => {
     setConfigured();
@@ -441,6 +523,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     clearAll,
     setSurnameOverride,
     removeSurnameOverride,
+    unitOrder,
+    addUnit,
+    removeUnit,
+    moveUnit,
+    renameUnit,
     recordItem,
     resetProgress,
     beginStudy,
@@ -464,6 +551,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     signUp,
     signOut,
     changePassword,
+    inQuiz,
+    setInQuiz,
   };
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

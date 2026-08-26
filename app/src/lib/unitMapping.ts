@@ -25,6 +25,35 @@ export const UNIT_ORDER: Record<string, string[]> = {
   'Paper 4|Media': ['媒体所有权与控制', '媒体再现与效果'],
 };
 
+const UNIT_ORDER_KEY = 'socio_vocab_unit_order';
+
+// 读取本地自定义的单元列表（合并默认 + localStorage 覆盖；无则返回默认副本）
+export function loadUnitOrder(): Record<string, string[]> {
+  try {
+    const raw = localStorage.getItem(UNIT_ORDER_KEY);
+    if (raw) {
+      const saved = JSON.parse(raw) as Record<string, string[]>;
+      return { ...UNIT_ORDER, ...saved };
+    }
+  } catch {
+    // 解析失败时回退默认
+  }
+  return { ...UNIT_ORDER };
+}
+
+// 保存自定义单元列表到本地
+export function saveUnitOrder(order: Record<string, string[]>): void {
+  localStorage.setItem(UNIT_ORDER_KEY, JSON.stringify(order));
+}
+
+// 某 paper 下的次级标签列表（Paper 1 为 ['']，Paper 4 为 ['Globalisation','Media']）
+export function subsForPaper(paper: string, order?: Record<string, string[]>): string[] {
+  const src = order ?? UNIT_ORDER;
+  return Object.keys(src)
+    .filter((k) => k.startsWith(`${paper}|`))
+    .map((k) => k.slice(paper.length + 1));
+}
+
 type RawMapping = Record<string, Record<string, Record<string, string[]>>>;
 const M = rawMapping as RawMapping;
 
@@ -49,33 +78,36 @@ for (const [cat, byType] of Object.entries(M)) {
   }
 }
 
-// 用最新 unit-mapping 重算每个词条的 unit（覆盖旧的，保证分类变更后本地缓存也能刷新）
+// 给缺 unit 的词条补上 unit-mapping 映射；已有 unit 的（用户手动设置/导入已带）不覆盖。
+// 注意：不要覆盖已存在的 unit，否则用户手动改选/重命名的单元会在刷新后被 unit-mapping.json 重算回旧值。
 export function attachUnits(items: VocabItem[]): VocabItem[] {
   return items.map((i) => {
+    if (i.unit && i.unit.length > 0) return i; // 已有单元，保留
     const units = paperSubIndex[`${i.paper}|${i.category}`]?.[i.type]?.[i.term];
     return units && units.length ? { ...i, unit: units } : i;
   });
 }
 
-// 某 paper+category 下的单元（按大纲顺序）
-export function unitOrderFor(paper: string, category: string): string[] {
-  return UNIT_ORDER[`${paper}|${category}`] ?? [];
+// 某 paper+category 下的单元（按大纲顺序；order 为自定义单元列表，缺省用默认）
+export function unitOrderFor(paper: string, category: string, order?: Record<string, string[]>): string[] {
+  return (order ?? UNIT_ORDER)[`${paper}|${category}`] ?? [];
 }
 
 // 某 paper+category 当前应展示的单元列表：
 // - Paper 1/2/3 各自只有一个（或零个）次级标签，直接取该标签下的单元
 // - Paper 4 有两个次级标签（Globalisation/Media），需先选主题，否则不展示单元
-export function unitListFor(items: VocabItem[], paper: string, cat: string): string[] {
+export function unitListFor(items: VocabItem[], paper: string, cat: string, order?: Record<string, string[]>): string[] {
   if (paper === 'all') return [];
-  const cats = [...new Set(items.filter((i) => i.paper === paper).map((i) => i.category))];
+  const cats = [...new Set(items.filter((i) => i.paper === paper).map((i) => i.category).filter(Boolean))];
   const effCat = cats.length <= 1 ? (cats[0] ?? '') : cat;
-  return unitOrderFor(paper, effCat);
+  return unitOrderFor(paper, effCat, order);
 }
 
-// 某 paper 下的所有单元（Paper 4 合并 Globalisation/Media）
-export function unitsForPaper(paper: string): string[] {
+// 某 paper 下的所有单元（Paper 4 合并 Globalisation/Media；order 缺省用默认）
+export function unitsForPaper(paper: string, order?: Record<string, string[]>): string[] {
+  const src = order ?? UNIT_ORDER;
   const units = new Set<string>();
-  for (const [key, list] of Object.entries(UNIT_ORDER)) {
+  for (const [key, list] of Object.entries(src)) {
     if (key.startsWith(`${paper}|`)) list.forEach((u) => units.add(u));
   }
   return [...units];

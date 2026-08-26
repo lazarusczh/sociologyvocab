@@ -99,3 +99,77 @@ export interface BackupFile {
   progress: Progress;
   wrongBook: WrongBook;
 }
+
+// ===== 随堂测验 / 作业 =====
+
+// 测验类型：随堂测验（严格限时）/ 作业（放宽时限，可保存退出）
+export type QuizKind = 'quiz' | 'homework';
+
+// 选题模式：随机抽题 / 手动指定词条
+export type QuizSelectionMode = 'random' | 'manual';
+
+// 测验题型（复用现有练习：拼写 / 选择 / 匹配；语境填空为未来扩展）
+export type QuizQuestionType = 'spelling' | 'choice' | 'matching';
+
+// 匹配块中的一对（术语 ↔ 释义）
+export interface QuizPair {
+  itemId: string;   // 词条稳定 id（术语与释义属同一词条，配对正确 = 两侧 itemId 相同）
+  term: string;     // 术语
+  definition: string; // 脱敏释义
+}
+
+// 单道测验题（生成时固定的快照，保证所有学生同一份题）
+export interface QuizQuestion {
+  id: string;          // 题目内唯一 id（快照内自增）
+  type: QuizQuestionType;
+  itemId: string;      // 对应词条稳定 id（判分按此对答案；匹配块为主对 id）
+  itemType: 'term' | 'scholar'; // 词条类型（拼写/匹配判分用）
+  term: string;        // 标准答案文本（用于判分/展示）
+  aliases?: string[];  // 词条可接受答案别名（拼写判分用）
+  chinese: string;
+  definition: string;  // 已脱敏的释义（maskAnswer 后）
+  prompt: string;      // 题干
+  promptLabel: string; // 题干标签（术语/释义/中文）
+  options?: string[];  // 选择题选项（含正确答案，生成时定序，学生端再乱序）
+  answerIndex?: number; // 选择题正确选项在 options 中的下标（学生端乱序前）
+  pairs?: QuizPair[];  // 匹配块：一组术语↔释义配对（仅 matching 题型）
+}
+
+// 试卷主表记录
+export interface Quiz {
+  id: string;
+  code: string;
+  title: string;
+  kind: QuizKind;
+  selection_mode: QuizSelectionMode;
+  papers: string[];
+  category: string | null;
+  units: string[];
+  type_filter: 'all' | 'term' | 'scholar';
+  question_count: number;
+  duration_minutes: number;
+  question_types: QuizQuestionType[];
+  questions: QuizQuestion[];
+  open_at: string | null;
+  due_at: string | null;
+  allow_resume: boolean;
+  created_by: string | null;
+  created_at: string;
+}
+
+// 交卷记录
+export interface QuizSubmission {
+  id: string;
+  quiz_id: string;
+  user_id: string;
+  email: string | null;
+  name: string | null;
+  answers: Record<string, string | number>; // itemId -> 答案（拼写为文本，选择为下标）
+  score: number;
+  status: 'in_progress' | 'submitted';
+  started_at: string;
+  submitted_at: string | null;
+  leave_count: number;
+  leave_seconds: number;
+  order_seed: number;
+}
