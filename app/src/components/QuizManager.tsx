@@ -5,7 +5,7 @@ import { buildQuizQuestions, sampleItems, TYPE_LABELS, KIND_LABELS, formatDurati
 import { PAPER_ORDER } from '../lib/storage';
 import { unitListFor } from '../lib/unitMapping';
 import { maskEmail } from '../lib/shuffle';
-import { createQuiz, updateQuiz, listQuizzes, listQuizSubmissions, deleteQuiz } from '../lib/cloud';
+import { createQuiz, updateQuiz, listQuizzes, listQuizSubmissions, deleteQuiz, listDeveloperIds, deleteSubmission } from '../lib/cloud';
 
 // 创建表单草稿
 interface Draft {
@@ -25,6 +25,14 @@ interface Draft {
 }
 
 const ALL_TYPES: QuizQuestionType[] = ['spelling', 'choice', 'matching'];
+
+// 暂存草稿（localStorage）：保存教师未完成填写的表单，可稍后恢复继续编辑
+const DRAFT_KEY = 'socio_vocab_quiz_draft';
+interface SavedDraft {
+  draft: Draft;
+  editingId: string | null;
+  savedAt: number;
+}
 
 // 把已有 Quiz 转成编辑草稿（编辑时预填）
 function toDraft(q: Quiz): Draft {
@@ -64,7 +72,9 @@ export default function QuizManager() {
   const [viewing, setViewing] = useState<Quiz | null>(null); // 正在查看成绩的试卷
   const [subs, setSubs] = useState<QuizSubmission[]>([]);
   const [detailUser, setDetailUser] = useState<string | null>(null); // 正在查看答卷详情的学生 user_id
+  const [devIds, setDevIds] = useState<Set<string>>(new Set()); // developer 账户 user_id（识别测试记录）
   const [manualSearch, setManualSearch] = useState(''); // 手动勾选词条的检索词
+  const [pendingDraft, setPendingDraft] = useState<SavedDraft | null>(null); // 启动时检测到的暂存草稿
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -80,6 +90,39 @@ export default function QuizManager() {
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  // 启动时检测是否有暂存草稿
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (raw) setPendingDraft(JSON.parse(raw) as SavedDraft);
+    } catch {
+      // 草稿损坏则忽略
+    }
+  }, []);
+
+  // 暂存草稿
+  const saveDraft = () => {
+    if (!draft) return;
+    const saved: SavedDraft = { draft, editingId, savedAt: Date.now() };
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(saved));
+    setMsg('已暂存草稿，可稍后继续编辑');
+  };
+
+  // 清除草稿
+  const clearDraft = () => {
+    localStorage.removeItem(DRAFT_KEY);
+    setPendingDraft(null);
+  };
+
+  // 恢复草稿
+  const restoreDraft = () => {
+    if (!pendingDraft) return;
+    setDraft(pendingDraft.draft);
+    setEditingId(pendingDraft.editingId);
+    clearDraft();
+    setMsg('已恢复暂存的草稿');
+  };
 
   const startCreate = () => {
     setDraft({
@@ -213,6 +256,7 @@ export default function QuizManager() {
       }
       setDraft(null);
       setEditingId(null);
+      clearDraft();
       refresh();
     } catch (e) {
       setError((e as Error).message);
@@ -224,6 +268,20 @@ export default function QuizManager() {
     setError('');
     try {
       setSubs(await listQuizSubmissions(q.id));
+      setDevIds(new Set(await listDeveloperIds()));
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  };
+
+  // 删除某条答题记录（RLS 限制：仅 developer 账户的记录可删）
+  const removeSubmission = async (id: string) => {
+    if (!window.confirm('确认删除这条答题记录？')) return;
+    setError('');
+    try {
+      await deleteSubmission(id);
+      setSubs((prev) => prev.filter((s) => s.id !== id));
+      setDetailUser(null);
     } catch (e) {
       setError((e as Error).message);
     }
@@ -284,6 +342,11 @@ export default function QuizManager() {
                       <button onClick={() => setDetailUser(detailUser === s.user_id ? null : s.user_id)}>
                         {detailUser === s.user_id ? '收起' : '查看'}
                       </button>
+                      {devIds.has(s.user_id) && (
+                        <button className="danger" onClick={() => removeSubmission(s.id)} style={{ marginLeft: '0.4rem' }}>
+                          删除
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -395,6 +458,16 @@ export default function QuizManager() {
         </p>
         {error && <div className="card" style={{ marginTop: '0.6rem', background: 'var(--warn-bg)', borderColor: 'var(--warn)' }}>{error}</div>}
         {msg && <div className="card" style={{ marginTop: '0.6rem', background: 'var(--ok-bg)', borderColor: 'var(--ok)' }}>{msg}</div>}
+        {pendingDraft && !draft && (
+          <div className="card" style={{ marginTop: '0.6rem', background: 'var(--accent-bg)', borderColor: 'var(--accent)' }}>
+            <div className="row" style={{ alignItems: 'center' }}>
+              <span>有暂存的测验草稿（保存于 {new Date(pendingDraft.savedAt).toLocaleString()}）</span>
+              <span className="spacer" />
+              <button className="primary" onClick={restoreDraft}>恢复草稿</button>
+              <button onClick={clearDraft}>放弃</button>
+            </div>
+          </div>
+        )}
       </div>
 
       {draft && (
@@ -525,6 +598,7 @@ export default function QuizManager() {
 
           <div className="row" style={{ marginTop: '0.8rem' }}>
             <button className="primary" onClick={submit}>{editingId ? '保存' : '生成'}</button>
+            <button onClick={saveDraft}>暂存草稿</button>
             <button onClick={() => { setDraft(null); setEditingId(null); setError(''); }}>取消</button>
           </div>
         </div>

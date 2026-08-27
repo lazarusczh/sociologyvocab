@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from '../lib/store';
 import type { Quiz, QuizQuestion, QuizSubmission } from '../lib/types';
-import { getQuizByCode, getMySubmission, upsertSubmission, listMySubmissions } from '../lib/cloud';
+import { getQuizByCode, getMySubmission, upsertSubmission, submitQuizSubmission, listMySubmissions } from '../lib/cloud';
 import { gradeQuiz, shuffleQuestionsBySeed, randomOrderSeed, formatDuration, TYPE_LABELS, KIND_LABELS, isAnswerCorrect, answerText, correctAnswerText, matchingCorrectCount } from '../lib/quiz';
 import { shuffle } from '../lib/shuffle';
 
@@ -37,6 +37,7 @@ export default function QuizTaker() {
   const leaveSecondsRef = useRef(0);
   const leftAtRef = useRef<number | null>(null);
   const submittedRef = useRef(false);
+  const startTimeRef = useRef(0); // 首次开始答题时间（毫秒），保存/交卷时保持不再被覆盖
 
   // 退出考试时清理锁导航
   useEffect(() => {
@@ -115,14 +116,13 @@ export default function QuizTaker() {
         leaveSecondsRef.current = existing.leave_seconds ?? 0;
         setResumed(true);
       }
-      // 截止时间：随堂测验 = 开始 + 限时；作业 = 已开始时间 + 限时（或 due_at 取早）
+      // 锁定首次开始时间；剩余答题秒数：首次 = 时长，恢复 = 冻结值（独立计时字段）
       const startTime = existing ? new Date(existing.started_at).getTime() : Date.now();
-      let dl = startTime + quiz.duration_minutes * 60 * 1000;
-      if (quiz.due_at) {
-        const due = new Date(quiz.due_at).getTime();
-        if (due < dl) dl = due;
-      }
-      setDeadline(dl);
+      startTimeRef.current = startTime;
+      const remainingSec = existing?.remaining_seconds != null
+        ? existing.remaining_seconds
+        : quiz.duration_minutes * 60;
+      setDeadline(Date.now() + remainingSec * 1000);
       setInQuiz(true);
       setPhase('taking');
     } catch (e) {
@@ -139,6 +139,10 @@ export default function QuizTaker() {
   }, [phase, deadline]);
 
   const remaining = deadline ? Math.max(0, Math.floor((deadline - now) / 1000)) : 0;
+
+  // 作业提交截止是否已过（服务器交卷时仍会硬拦截，这里仅前端软提示/禁用）
+  const dueAtMs = quiz?.due_at ? new Date(quiz.due_at).getTime() : null;
+  const pastDue = quiz?.kind === 'homework' && dueAtMs != null && now >= dueAtMs;
 
   // 超时自动交卷
   useEffect(() => {
@@ -198,16 +202,14 @@ export default function QuizTaker() {
     const finalScore = gradeQuiz(questions, answers);
     setScore(finalScore);
     try {
-      await upsertSubmission({
+      await submitQuizSubmission({
         quiz_id: quiz.id,
         user_id: authUser.id,
         email: authUser.email,
         name: authUser.name,
         answers,
         score: finalScore,
-        status: 'submitted',
-        started_at: new Date().toISOString(),
-        submitted_at: new Date().toISOString(),
+        started_at: new Date(startTimeRef.current).toISOString(),
         leave_count: leaveCountRef.current,
         leave_seconds: leaveSecondsRef.current,
         order_seed: seed,
@@ -230,6 +232,8 @@ export default function QuizTaker() {
     setBusy(true);
     setError('');
     try {
+      // 冻结当前剩余答题秒数
+      const remainingSec = Math.max(0, Math.floor(((deadline ?? Date.now()) - Date.now()) / 1000));
       await upsertSubmission({
         quiz_id: quiz.id,
         user_id: authUser.id,
@@ -238,11 +242,12 @@ export default function QuizTaker() {
         answers,
         score: 0,
         status: 'in_progress',
-        started_at: new Date().toISOString(),
+        started_at: new Date(startTimeRef.current).toISOString(),
         submitted_at: null,
         leave_count: leaveCountRef.current,
         leave_seconds: leaveSecondsRef.current,
         order_seed: seed,
+        remaining_seconds: remainingSec,
       });
       setInQuiz(false);
       setPhase('enter');
@@ -405,13 +410,25 @@ export default function QuizTaker() {
         <span className="muted">第 {qi + 1} / {questions.length} 题</span>
         <span className="spacer" />
         {leaveCount > 0 && <span className="badge danger" title="切屏/失焦次数">离开 {leaveCount}</span>}
-        <span className={`badge ${remaining < 60 ? 'danger' : 'success'}`}>
+        <span className={`badge ${remaining < 60 || pastDue ? 'danger' : 'success'}`}>
           {String(mm).padStart(2, '0')}:{String(ss).padStart(2, '0')}
         </span>
       </div>
 
+      {pastDue && (
+        <div className="card" style={{ marginBottom: '0.5rem', background: 'var(--warn-bg)', borderColor: 'var(--warn)' }}>
+          已过提交截止时间，无法交卷。本次作答不会计入成绩。
+        </div>
+      )}
+
       <div className="card">
-        <div className="muted" style={{ fontSize: '0.8rem' }}>{TYPE_LABELS[q.type]} · 根据{q.promptLabel}作答</div>
+        <div className="muted" style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+          <span>{TYPE_LABELS[q.type]}</span>
+          {q.type !== 'matching' && (
+            <span className={`badge ${q.itemType === 'term' ? 'success' : 'warn'}`}>{q.itemType === 'term' ? '术语' : '学者'}</span>
+          )}
+          <span>根据{q.promptLabel}作答</span>
+        </div>
         <h2 style={{ margin: '0.5rem 0 1rem' }}>{q.prompt}</h2>
 
         {q.type === 'spelling' && (
@@ -427,7 +444,8 @@ export default function QuizTaker() {
             key={q.id}
             q={q}
             answers={answers}
-            onPair={(termId) => setAnswers((prev) => ({ ...prev, [termId]: termId }))}
+            onPair={(termId, defId) => setAnswers((prev) => ({ ...prev, [termId]: defId }))}
+            onUnpair={(termId) => setAnswers((prev) => { const next = { ...prev }; delete next[termId]; return next; })}
             onNext={() => setQi((i) => i + 1)}
             isLast={qi === questions.length - 1}
             onSubmit={() => doSubmit()}
@@ -446,7 +464,7 @@ export default function QuizTaker() {
           {quiz?.allow_resume && (
             <button className="ghost" onClick={saveAndExit} disabled={busy}>保存并退出</button>
           )}
-          <button className="primary" onClick={() => doSubmit()} disabled={submitted || busy}>{busy ? '交卷中…' : '交卷'}</button>
+          <button className="primary" onClick={() => doSubmit()} disabled={submitted || busy || pastDue}>{busy ? '交卷中…' : '交卷'}</button>
         </div>
       </div>
     </div>
@@ -519,47 +537,68 @@ function ChoiceAnswer({ q, value, onChange, onNext, isLast, onSubmit }: {
   );
 }
 
-function MatchingAnswer({ q, answers, onPair, onNext, isLast, onSubmit }: {
+function MatchingAnswer({ q, answers, onPair, onUnpair, onNext, isLast, onSubmit }: {
   q: QuizQuestion;
   answers: Record<string, string | number>;
-  onPair: (termId: string) => void;
+  onPair: (termId: string, defId: string) => void;
+  onUnpair: (termId: string) => void;
   onNext: () => void; isLast: boolean; onSubmit: () => void;
 }) {
   const pairs = q.pairs ?? [];
   const [rightOrder] = useState<number[]>(() => shuffle(pairs.map((_, i) => i)));
   const [selLeft, setSelLeft] = useState<string | null>(null);
   const [selRight, setSelRight] = useState<string | null>(null);
-  const [wrongFlash, setWrongFlash] = useState<[string, string] | null>(null);
-  const timeoutRef = useRef<number | null>(null);
   const onPairRef = useRef(onPair);
   useEffect(() => { onPairRef.current = onPair; }, [onPair]);
 
-  const matchedIds = new Set(pairs.filter((p) => answers[p.itemId] === p.itemId).map((p) => p.itemId));
+  // 已配对的术语（answers 里有记录的 key）
+  const pairedTermIds = new Set(pairs.filter((p) => answers[p.itemId] !== undefined && answers[p.itemId] !== '').map((p) => p.itemId));
+  // 已被配对到的释义（answers 的 value 里出现的 itemId）
+  const answerValues = new Set(Object.values(answers).map(String));
+  const pairedDefIds = new Set(pairs.filter((p) => answerValues.has(p.itemId)).map((p) => p.itemId));
 
-  // 两侧都选中后判定配对
+  // 配对编号：术语与其配对的释义显示相同序号（体现配对关系，而非对错判定）
+  const CIRCLED = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩'];
+  const numberByTermId = new Map<string, number>();
+  const numberByDefId = new Map<string, number>();
+  {
+    let n = 0;
+    for (const p of pairs) {
+      const defId = answers[p.itemId];
+      if (defId !== undefined && defId !== '') {
+        numberByTermId.set(p.itemId, n);
+        numberByDefId.set(String(defId), n);
+        n++;
+      }
+    }
+  }
+
+  // 两侧都选中后配对（无论对错都记录，允许提交错误答案）
   useEffect(() => {
     if (!selLeft || !selRight) return;
-    if (selLeft === selRight) {
-      onPairRef.current(selLeft);
-    } else {
-      setWrongFlash([selLeft, selRight]);
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      timeoutRef.current = window.setTimeout(() => setWrongFlash(null), 600);
-    }
+    onPairRef.current(selLeft, selRight);
     setSelLeft(null);
     setSelRight(null);
   }, [selLeft, selRight]);
 
+  // 点击已配对的项 = 取消配对重新选；未配对的 = 选中待配
   const clickLeft = (termId: string) => {
-    if (matchedIds.has(termId)) return;
+    if (pairedTermIds.has(termId)) {
+      onUnpair(termId);
+      return;
+    }
     setSelLeft((prev) => (prev === termId ? null : termId));
   };
   const clickRight = (defId: string) => {
-    if (matchedIds.has(defId)) return;
+    if (pairedDefIds.has(defId)) {
+      const termId = pairs.find((p) => answers[p.itemId] === defId)?.itemId;
+      if (termId) onUnpair(termId);
+      return;
+    }
     setSelRight((prev) => (prev === defId ? null : defId));
   };
 
-  const allMatched = matchedIds.size === pairs.length;
+  const allPaired = pairedTermIds.size === pairs.length;
 
   return (
     <div>
@@ -568,22 +607,21 @@ function MatchingAnswer({ q, answers, onPair, onNext, isLast, onSubmit }: {
           <h3 className="muted" style={{ fontSize: '0.85rem', margin: '0 0 0.4rem' }}>术语</h3>
           <div className="grid" style={{ gap: '0.4rem' }}>
             {pairs.map((p) => {
-              const done = matchedIds.has(p.itemId);
+              const done = pairedTermIds.has(p.itemId);
               const selected = selLeft === p.itemId;
-              const wrong = wrongFlash?.[0] === p.itemId;
+              const num = numberByTermId.get(p.itemId);
               return (
                 <button
                   key={p.itemId}
                   className="option-btn"
-                  disabled={done}
                   onClick={() => clickLeft(p.itemId)}
                   style={{
-                    opacity: done ? 0.4 : 1,
-                    background: selected ? 'var(--accent-bg)' : wrong ? 'var(--danger-bg)' : undefined,
-                    borderColor: selected ? 'var(--accent)' : wrong ? 'var(--danger)' : undefined,
+                    background: selected ? 'var(--accent-bg)' : undefined,
+                    borderColor: done ? 'var(--accent)' : selected ? 'var(--accent)' : undefined,
                   }}
                 >
                   <span>{p.term}</span>
+                  {done && num !== undefined && <span style={{ marginLeft: '0.4rem', color: 'var(--accent)' }}>{CIRCLED[num]}</span>}
                 </button>
               );
             })}
@@ -594,23 +632,22 @@ function MatchingAnswer({ q, answers, onPair, onNext, isLast, onSubmit }: {
           <div className="grid" style={{ gap: '0.4rem' }}>
             {rightOrder.map((i) => {
               const p = pairs[i];
-              const done = matchedIds.has(p.itemId);
+              const done = pairedDefIds.has(p.itemId);
               const selected = selRight === p.itemId;
-              const wrong = wrongFlash?.[1] === p.itemId;
+              const num = numberByDefId.get(p.itemId);
               return (
                 <button
                   key={p.itemId}
                   className="option-btn"
-                  disabled={done}
                   onClick={() => clickRight(p.itemId)}
                   style={{
-                    opacity: done ? 0.4 : 1,
-                    background: wrong ? 'var(--danger-bg)' : selected ? 'var(--accent-bg)' : undefined,
-                    borderColor: wrong ? 'var(--danger)' : selected ? 'var(--accent)' : undefined,
+                    background: selected ? 'var(--accent-bg)' : undefined,
+                    borderColor: done ? 'var(--accent)' : selected ? 'var(--accent)' : undefined,
                     fontSize: '0.88rem',
                   }}
                 >
                   <span>{p.definition}</span>
+                  {done && num !== undefined && <span style={{ marginLeft: '0.4rem', color: 'var(--accent)' }}>{CIRCLED[num]}</span>}
                 </button>
               );
             })}
@@ -622,11 +659,11 @@ function MatchingAnswer({ q, answers, onPair, onNext, isLast, onSubmit }: {
           ? '已选择左侧术语，请点击右侧对应释义'
           : selRight && !selLeft
           ? '已选择右侧释义，请点击左侧对应术语'
-          : '点击左侧术语或右侧释义任一选项开始配对'}
+          : '点击术语与释义配对（相同序号即为一对），全部配完即可继续；点击已配对的项可取消重配'}
       </p>
       <div className="row" style={{ marginTop: '0.8rem', justifyContent: 'flex-end' }}>
-        <button className="primary" onClick={() => { if (isLast) onSubmit(); else onNext(); }} disabled={!allMatched}>
-          {allMatched ? (isLast ? '交卷' : '下一题 →') : `已配对 ${matchedIds.size}/${pairs.length}`}
+        <button className="primary" onClick={() => { if (isLast) onSubmit(); else onNext(); }} disabled={!allPaired}>
+          {allPaired ? (isLast ? '交卷' : '下一题 →') : `已配对 ${pairedTermIds.size}/${pairs.length}`}
         </button>
       </div>
     </div>

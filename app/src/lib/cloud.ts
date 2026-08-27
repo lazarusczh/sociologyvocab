@@ -235,8 +235,26 @@ export async function upsertSubmission(input: {
   leave_count: number;
   leave_seconds: number;
   order_seed: number;
+  remaining_seconds?: number | null; // 作业保存退出时冻结的剩余秒数
 }): Promise<void> {
   const { error } = await supabase.from('quiz_submissions').upsert(input, { onConflict: 'quiz_id,user_id' });
+  if (error) throw error;
+}
+
+// 学生交卷：走 RPC（security definer），服务器时间判断作业提交截止，硬拦截迟交
+export async function submitQuizSubmission(input: {
+  quiz_id: string;
+  user_id: string;
+  email: string | null;
+  name: string | null;
+  answers: Record<string, string | number>;
+  score: number;
+  started_at: string;
+  leave_count: number;
+  leave_seconds: number;
+  order_seed: number;
+}): Promise<void> {
+  const { error } = await supabase.rpc('submit_quiz_submission', input);
   if (error) throw error;
 }
 
@@ -264,6 +282,18 @@ export async function listQuizzes(): Promise<Quiz[]> {
 // 教师删除试卷（连带级联删除交卷记录）
 export async function deleteQuiz(quizId: string): Promise<void> {
   const { error } = await supabase.from('quizzes').delete().eq('id', quizId);
+  if (error) throw error;
+}
+
+// 查询所有 developer 账户的 user_id（教师端识别测试记录用）
+export async function listDeveloperIds(): Promise<string[]> {
+  const { data } = await supabase.from('user_roles').select('user_id').eq('role', 'developer');
+  return ((data ?? []) as { user_id: string }[]).map((d) => d.user_id);
+}
+
+// 教师删除某条答题记录（RLS 限制：仅 developer 账户的记录可删）
+export async function deleteSubmission(submissionId: string): Promise<void> {
+  const { error } = await supabase.from('quiz_submissions').delete().eq('id', submissionId);
   if (error) throw error;
 }
 

@@ -1,36 +1,92 @@
-# 项目备忘（Project Memory）
+## Hard Constraints
+- Application must run on web and Android (APK), no iOS support
+- Data is now stored in cloud (Aliyun Supabase compatible service) with local synchronization; student data is isolated via RLS
+- Spelling dictation mode must accept multiple synonymous answers separated by parentheses, slashes, or equal signs
+- Spelling dictation mode must automatically recognize singular and plural forms of terms as valid answers (applies to the last word of multi-word phrases)
+- Spelling dictation mode must allow -ise suffix and its derivative -isation suffix to match -ize and -ization respectively
+- All question types must mask answer terms (full name, singular/plural variants, aliases) in hints with equal-length underscores (preserving spaces and punctuation); flashcards and Wordle excluded (crossword's English hints also mask answer terms; Chinese hints are pure Chinese and need no masking)
+- Crossword: Auto-advance after typing a letter is ENABLED with optimized logic — if a grid cell belongs to only one word, auto-advance in that word's direction (right for horizontal, down for vertical); if shared by two words (cross cell), first follow last input position (same row → horizontal, same column → vertical), else if the cell is exactly one word's first letter then follow that word's direction, else (both first letters, or both non-first letters with no directional cue) stop. Backspace auto-deletes and moves left/up based on last delete position (same row → left, same column → up; neither → stop). Do not skip filled cross cells during input. Navigation also via direction keys (desktop) / grid tapping (mobile).
+- Public GitHub repository must exclude teacher IP: *.xlsx (Excel vocabulary source files), app/public/vocab-data.json (generated built-in vocabulary), reset-tool/, teacher-private-key.json, *.apk (Android installation packages), A1/A2 Paper*.pdf (PPT 打印版 PDF), pdf-text/, ppt-text/ (PPT/PDF 提取文本), pdf-libs/ (vendored pypdf 库), unit-tags-backup/ (旧分类文档备份)；这些文件留在本地，由 .gitignore 忽略，其中词库数据可经 app/scripts/generate-vocab.mjs 重新生成
+- Web deployment requires local build (npm run build) then manual upload of dist folder; do NOT use CI/CD auto-build (Netlify/Vercel/GitHub Pages) as they would lack vocabulary data
+- Dictionary feature must be excluded from check-in detection and mastery level calculation (pure lookup tool, no data writing)
+- Teacher-only features (including vocabulary management page and ImportPanel) must be hidden from student version; controlled by cloud-based teacher role (isTeacher) instead of local IS_ADMIN flag
+- Backup page is only visible to offline users (those who skipped login); login users (students and teachers) cannot access it
+- Android hardware/gesture back button behavior: Navigates to homepage on non-home screens; exits app only on homepage
+- Narrow screen (≤720px) hamburger menu auto-collapses when clicking or dragging outside the menu
+- Profile page layout: Logout card positioned above password change card; password change card is collapsed by default and expands on click
+- Web version back button is displayed in content area top (independent row), only visible on non-home pages, and does not affect title bar layout
+- VersionName updated to 1.3.3, versionCode 9
+- 学生信息安全（2026-08-25 讨论定稿）：学生端 RLS 完全隔离（只能读写自己的 student_data / quiz_submissions）；姓名权威源 = auth.users.user_metadata.name，student_data.data.name 是冗余（学生每次登录上传自动覆盖同步），quiz_submissions.name 是交卷快照（不追溯）。改名方案（仅 9~20 名学生规模，采用途径 2 老师代改）：在阿里云 Supabase 控制台 Authentication→Users 编辑该用户 Raw User Metadata 的 name（界面不支持则 SQL：update auth.users set raw_user_meta_data = raw_user_meta_data || '{"name":...}'::jsonb where email=...），无需动 student_data（等学生重新登录上传自动同步）；历史答卷姓名不追溯。注册改英文名（2026-08-26 已改 placeholder）：IdentityGate.tsx 注册页姓名 placeholder 已改为「填写英文名+姓氏拼音（便于老师核验）」，label 仍为「姓名」（可选再加 /^[A-Za-z][A-Za-z .'-]*$/ 校验）。邮箱脱敏（2026-08-26 已实施）：maskEmail() 实现在 app/src/lib/shuffle.ts，规则=用户名保留首尾字符、域名完整保留（如 z******n@dtd-edu.cn），已替换 TeacherCheckPanel.tsx / ClassManager.tsx（表格邮箱列+分组预览兜底）/ QuizManager.tsx（成绩邮箱列+答卷标题兜底）；数据库与排序逻辑不变。
+- 词库上云后，词条内容（term/释义/paper/category/unit/答案容错等）的增删改统一走云端（教师账号在 VocabManager 在线改 + 发布到 vocab_releases）；本机数据源（unit-mapping.json / answer-aliases.json / *.xlsx）只用于代码/结构改动（改完也需重新发布到云端）。若用户指令超出「代码/结构」范围、可能造成本机数据源与云端词库不一致（两边分叉），暂缓执行并提示用户去云端改，而不是直接在本机改数据源。
 
-> 记录尚未实现的功能设想与实现要点，做的时候直接引用即可。
+## Engineering Conventions
+- Term entries with parentheses, slashes, or equal signs are treated as multiple valid answers
+- Scholar names are judged by last name;合著者 and institutions require full name or accepted abbreviation
+- Normalization applied: ignore case, spaces, hyphens, punctuation, and diacritics for answer comparison; -isation normalized to -ization; -ise normalized to -ize
+- Per-item answer aliases (同义/等价写法、单复数放宽、特殊姓氏) live in app/src/lib/answer-aliases.json (termAliases / scholarAliases / surnameOverrides)，由 answers.ts import；改单个词条答案容错直接编辑此 JSON 后 rebuild
+- For three co-authors: first and second author last names separated by English comma, second and third separated by &
+- Crossword grid uses CSS Grid layout with responsive sizing (adapts to screen width, minimum 16px cell size)
+- Crossword on mobile uses hidden input to trigger soft keyboard for character entry
+- Git repository is at project root (...\Vocabulary Project), not nested in app folder
+- git 未配置全局代理（保持现状，不要改动 git config）；每次 `git push`（及 fetch/pull 连 GitHub）都临时加代理参数 + openssl 后端（schannel 过 HTTP 代理会 SSL 握手失败）：`git -c http.proxy=http://127.0.0.1:7897 -c https.proxy=http://127.0.0.1:7897 -c http.sslBackend=openssl push`
+- Navigation bar: On screens ≤720px (mobile portrait), tabs are collapsed into a hamburger menu; on larger screens, tabs remain visible
+- Crossword hints are randomly displayed in Chinese or English (uses non-empty language if one is missing) and remain consistent during puzzle session
+- Crossword layout: .cw-layout uses single column with crossword grid above hint column, regardless of screen size (removed大屏 ≥860px two-column并排规则)
+- Crossword counts as formal practice: records study time, mastery (weight +10/−20, between matching and spelling), check-in question count, and wrong book; settlement happens once when clicking the "结算" (formerly "显示答案") button, judging all clues at once by the student's current fills (empty/partial cells count as wrong)
+- Crossword "返回选择"/"重新生成" prompt a confirmation dialog if the puzzle hasn't been settled yet
+- Crossword answers use singular forms only; slash/parenthesis-separated aliases are still randomly chosen among alternatives (grid length hints at the answer), but singular/plural variants collapse to the singular form
+- Dictionary feature supports Chinese-English mixed search, covering term original text, aliases, Chinese translations, scholar names, aliases, last names, and theoretical schools; scholar entries highlight last names (large bold + accent color)
+- Dictionary entries display Paper tags (e.g., Paper 1, Paper 2) instead of "学者" or "术语" labels
+- Dictionary uses single-expand mode: only one entry detail is expanded at a time; clicking a new entry auto-collapses the previous one
+- Dictionary search is separated into "术语" and "学者" tabs (no "全部" option), defaulting to "术语"
+- Scholar entry for bell hooks is formatted with "bell hooks" as the main name and her real name displayed as the full name in other single-author entries
+- When importing Excel files with scholar names, the system detects "suspicious" names (those with parenthetical real names or all-lowercase pen names) and prompts the user to specify the surname for spelling dictation judgment
+- Teacher backend is a comprehensive admin page with two tabs: "词库导入" (ImportPanel) and "打卡核验"
+- Student data is stored in public.student_data table with user_id (Supabase auth uid), email, data (JSONB containing check-in, progress, wrongBook), and updated_at fields
+- Local learning data (progress/checkin/wrongBook) is namespaced per user account: login calls setDataScope('user:<id>') to switch the localStorage key namespace; logout switches back to 'guest'. Offline (skipped-login) users use the original guest keys. Vocabulary/contexts/surname-overrides remain global (shared across accounts)
+- Check-in celebration "already shown today" flag is per-account: logged-in users use 'socio_vocab_celebrated:user:<id>', offline guests use the original 'socio_vocab_celebrated' key
+- Row Level Security (RLS) applied to student_data: students can only read/write their own rows; teachers (in public.teacher_roles table) can read all student rows
+- 角色状态随登出一并复位：signOut 中除 setAuthUser(null) 外，必须同时 setIsTeacher(false) 与 setIsDeveloper(false)（曾因缺 setIsDeveloper(false) 导致开发者退出后、刷新前其他账户在 AppBody 残留 isDeveloper=true 仍可进 DevPanel，bug 已修复）
+- Teacher roles are stored in public.teacher_roles table (read-only to all, no write access via REST API); teacher accounts are manually added via SQL
+- Forgot password handling: Students contact teacher, who manually resets password via Aliyun Supabase Authentication console; students can change password to custom one after logging in with temporary password
+- 密码重置方案已定稿（2026-08-27 确认）：维持「控制台手动重置」不变，**暂不引入 Edge Function**。原因：前端只有 anon key 无法调用 admin API（改密码必须 service_role/admin 权限，密钥绝不能进前端）；若走教师后台重置需部署 Edge Function（持 service_role + 函数内按 user_roles 校验 teacher 防滥用），当前全学生约 20 人、重置为低频零星操作，性价比低。待学生规模变大、重置频繁时再评估 Edge Function 方案（备选：supabase.auth.resetPasswordForEmail 需邮件服务，当前未配置故不可用）
+- Offline backup is simplified to pure data export/import without device fingerprint verification or identity checks
+- Profile page includes login information display, logout function, and password change function (collapsible)
+- Login page displays "Forgot password? Contact teacher to reset to temporary password, then change in 'My Account' after login"
+- Vocabulary items have a `unit?: string[]` field for topic-level classification (array to allow multi-belonging), following official Cambridge 9699 syllabus structure: Paper 1 = 11 units (社会理论, 社会化和社会控制, 社会认同基础, 阶级认同, 性别认同, 族裔认同, 年龄认同, 研究方法, 研究设计, 方法论取向, 研究议题); Paper 2 = 5 units (家庭功能, 家庭多样性, 社会政策与家庭变迁, 性别平等, 年龄角色); Paper 3 = 7 units (教育功能, 课程影响, 智力与学业成就, 社会阶层与学业成就, 族群与学业成就, 教育与不平等, 性别与学业成就); Paper 4 Globalisation = 4 units (理论视角与核心概念, 全球犯罪与不平等, 全球化移民, 人权发展与全球治理); Paper 4 Media = 2 units (媒体所有权与控制, 媒体再现与效果). Terms may belong to multiple units.
+- Unit mapping 唯一 source of truth 是 app/src/lib/unit-mapping.json (keyed by 原始主题 category → type → term → unit[]，直接人工维护；改标签直接编辑此文件后跑 app/scripts/generate-vocab.mjs 重新烘焙)。已删除 app/scripts/build-unit-mapping.mjs 与 paper1_classification.md / paper234_classification.md（旧分类文档，收敛前备份在项目根 unit-tags-backup/）。unit order & paper/sub lookup 在 app/src/lib/unitMapping.ts (UNIT_ORDER, CATEGORY_TO_PAPER, unitsForRaw, attachUnits, unitListFor)。
+- Frontend filter is three-tier 考卷→主题→单元: filterByPaperCat(items, paper, cat, unit) in CategoryFilter.tsx, wired into all 7 practice components (MultipleChoice/Spelling/Matching/Flashcards/Wordle/Crossword/ProgressView). Paper 4 only shows 单元 after selecting 主题 (Globalisation/Media).
+- The Family scholar entry "Resource unknown" (placeholder/statistics dump, no real name) is intentionally left without a unit.
+- Paper 1 的「社会理论」单元（24 条：18 术语 + 6 学者）放在 Paper 1 最前，是从「社会化和社会控制」兼出的（保留原归属，多归属），包含宏大理论视角/流派及其标志概念（Marxism/Functionalism/Interactionism/Structuralism/Conflict theory + 相关核心概念）；学者为 Talcott Parsons/Louis Althusser/Paul Willis/George Herbert Mead/Charles Cooley/Robert Merton。C 类（Social Exchange Theory、Social Learning Theory、Free will、Nature、Nurture）留在「社会化和社会控制」不动。
+- Paper 1 原「社会认同」单元（146 条）已拆成 5 个单元：「社会认同基础」(22，含 Achieved/Ascribed status、Discrimination/Prejudice/Stereotype/Intersectionality、Globalisation、Life expectancy/Longevity/Literacy rate 等通用概念)、「阶级认同」(60)、「性别认同」(35)、「族裔认同」(24)、「年龄认同」(8)。多归属：Accent/Dialect/Cultural deprivation(identity 版) 兼阶级+族裔；Heidi Safia Mirza 兼性别+族裔；Manipulation/Verbal appellation 兼社会化+性别；Collectivism/Individualism 归阶级；Slavery/Inter-generational 只归阶级。
+- 后现代：Postmodernism/Meta-narrative/Lyotard 兼入「社会理论」+「社会化和社会控制」（保留原单元，形成三单元「兼」）；Lyotard 保留「方法论取向」不移出（Paper 4 的 Lyotard/Baudrillard 不动）；Popular culture 移到「阶级认同」（对应 high culture，是阶级身份元素）；Blurring/Consumerism/"Pick and Mix" 留在「社会认同基础」。「兼」=多单元概念，不限于双单元。
+- Supabase RPC 函数约定：函数参数名 = 前端 `supabase.rpc` 传的 JSON 键名（无前缀，PostgREST 按参数名匹配）；函数体引用参数用 `v_` 局部变量或 `$n` 位置参数，避免与目标表列名同名（报 `column reference ... is ambiguous`）；`ON CONFLICT` 用 `ON CONFLICT ON CONSTRAINT <约束名>` 而非裸列名；改参数名须先 `DROP FUNCTION`（`CREATE OR REPLACE` 不能改参数名，报 42P13），DROP 后需重新 GRANT。
 
-## 通知 / 打卡提醒（未实现）
+## Lessons Learned
+- 阿里云 Supabase 兼容版（AnalyticDB/Greenplum 内核）控制台 Authentication→Users 只能查看 Raw User Metadata JSON、**不能编辑**；改 auth.users 的 user_metadata 只能走 SQL Editor
+- 阿里云 ADB 的 SQL Editor **不支持**标准 Postgres 的 `UPDATE ... FROM (VALUES ...) AS v(...)` 语法（报 42601）；批量改名用「临时表 + insert values + UPDATE...FROM 临时表 JOIN」写法（2026-08-25 已实测可行）
+- 阿里云 AnalyticDB PostgreSQL 版 Supabase 免费版虽标"禁生产"，但对本地数据为主的应用风险可控（数据不丢失，仅需迁移）
+- 腾讯云 CloudBase 个人版（19.9元/月）比阿里云 Supabase 付费版（44.2元/月）更符合自费教育项目预算
+- 创建阿里云 Supabase 项目需先配置专有网络（VPC）和交换机，二者免费但需与项目同地域及可用区
+- 阿里云 Supabase 兼容版默认 enables email auto-verification (no need for email confirmation); Auth and REST API are fully functional
+- koa-connect wrapper caused ctx leaks when migrating Express middleware to Koa; native Koa rewrite is required
+- Cloudflare Pages automatic deployment fails due to missing vocab-data.json (excluded from Git); manual dist upload is necessary
+- 阿里云 Supabase 兼容版 supports Edge Functions (functions/v1 endpoint exists), enabling potential server-side logic in future
+- Database memory usage (around 80%) is normal due to PostgreSQL's cache mechanism; student login load is minimal and within free tier capacity
+- "Instance access to public network" is not required for current Auth functionality (email auto-verified, password reset via console); only needed for email/SMS services
+- Elastic Network Interface (ENI) is an infrastructure detail and does not require manual configuration
+- PostgREST RPC 参数名三连坑（2026-08-27 交卷函数 submit_quiz_submission 实测）：① 参数名带 p_ 前缀 → 前端 supabase.rpc 传无前缀键名报 "Could not find the function ... in the schema cache"（PostgREST 按参数名匹配前端键名）；② 去前缀后参数名与表列名同名 → INSERT 报 "column reference ... is ambiguous"（VALUES 与 ON CONFLICT 裸列名均会歧义）；③ CREATE OR REPLACE 改参数名 → 42P13。最终写法：参数名=前端键名（无前缀）+ 函数体用 $1..$n 位置参数 + ON CONFLICT ON CONSTRAINT。
 
-**目标**：每日提醒用户完成打卡（学习 10 分钟 + 20 题），避免漏签。
-
-**技术方案**
-- **APK 端（推荐）**：`@capacitor/local-notifications` 本地通知，可精确调度（Android 底层 `AlarmManager`），App 被划掉/后台也能触发，**无需服务器**。
-- **网页端（降级）**：Web `Notification` API，仅页面打开时可靠；页面关闭后无法可靠定时（Service Worker + Push 需要后端，且移动端 Safari 支持差）。
-
-**实现要点**
-- 新增「提醒设置」入口：开关 + 提醒时间，存 localStorage + 云端。
-- 到点触发时检查当天是否达标：复用 `checkin.ts` 的 `isDayChecked` / `todayKey`，未达标则弹「今日尚未完成打卡」。
-- 权限：APK Android 13+ 需 `POST_NOTIFICATIONS` 运行时权限；网页需 `Notification.requestPermission()`。
-
-**优先级**：先做 APK 本地通知 + 每日提醒时间设置，网页端作为降级可后补。
-
-## 教师公告推送 FCM（未实现，较复杂，建议第二阶段）
-
-**目标**：教师发布公告，学生 APK 收到系统级推送通知。
-
-**技术链路**：教师发公告 → 写入 Supabase `announcements` 表 → Supabase Edge Function 监听 insert → 调用 FCM API → 学生设备收到通知。
-
-**成本**：FCM 消息本身免费；Supabase Edge Function 有免费额度。
-
-**实现要点**
-- 创建 Firebase 项目，拿 `google-services.json` 配进 Capacitor（Android）。
-- 学生 App 用 `@capacitor/push-notifications` 注册，拿到设备 token，存 Supabase（关联 user_id）。
-- 新增 `announcements` 表 + 教师端发布公告 UI。
-- Edge Function 监听 `announcements` insert，用 FCM HTTP v1 API 向学生 token 广播。
-- token 生命周期：注销/换设备时清理失效 token。
-
-**与「打卡提醒」的关系**：打卡提醒是纯客户端本地通知（先做）；公告推送是服务器发起的远程推送（后做），二者互补。
-
+## Planned / Backlog (NOT yet implemented)
+- 排行榜功能（暂缓，仅探讨未实现）：技术上可行——用「视图（view）」只暴露姓名+连续打卡天数等少数列，给视图单独设 RLS「所有已登录用户可读」，原 student_data 表仍保持学生只能读自己，隔离不破坏。但核心难点是防作弊：当前"学生本地计算后整坨 JSON 上传"的架构下无法真正防作弊，排行榜会把该弱点放大，故定位为"激励工具"而非"严谨排名"
+- 防作弊三档方案（探讨结论，未实现）：①数据库触发器做「合理性约束」（连续天数单次增不超过1、日期不能是未来、单日题数设上限）——性价比最高，能挡住"直接改数据"类粗暴作弊，但前置条件是先把关键字段（如 bestStreak）从 data JSON 拆成独立列才能加约束；②服务端权威计数（学生只上报"做了一道题"事件，连续天数由服务端累计，学生无"改汇总值"入口）——更彻底但改动大，仍防不住"脚本每天自动刷"；③服务器时间戳（用数据库 now() 作唯一权威时间，不接受客户端传来的日期）——防"回填过去补签"。结论：若做排行榜，先上第一档即可
+- 词库上云与同步方案（已定稿，P0-P3 已实现，见项目根 `词库上云与同步方案.md`）：教师发布词库到 `vocab_releases` 表 + 学生启动/回首页查版本静默拉取 + 首页 banner + 稳定 id（type+term+paper+category+unit 双哈希，unit 参与区分同名 Cultural deprivation）+ 词条管理 CRUD（VocabManager）+ aliases 答案容错（VocabItem.aliases，判定优先读内嵌 aliases）。P4（自动拆别名）暂缓。Syllabus 层级（科目/动态 Category/Unit）长期规划、暂缓。
+- 用户分类管理方案（已定稿，P0/P1 已实现，见项目根 `用户分类管理方案.md`）：账号从「教师/学生」二分类演进为四分类（developer/teacher/student/guest 注册游客）+ 多归属（user_roles 表一行一角色替代 teacher_roles，isTeacher → roles.includes('teacher')）；班级功能（classes 表 + student_data.class_id）；统计默认排除 developer 角色。背景：教师这学年教两个年级（A1 学 Paper1-2、A2 学 Paper3-4）。P0（developer 角色 + 统计排除）与 P1（classes 表 + class_id + 教师后台按班级筛选）已实现并验证；P2（四分类角色完整迁移 + guest 注册游客）、P3（多教师多科目关联）待做。已排除账号：chenzh@dtd-edu.cn=teacher+developer、abc@example.com=student+developer、test.student@example.com=developer。
+- 班级管理界面（已实现，2026-08-23 由用户在其他 agent 完成）：前端 app/src/components/ClassManager.tsx（教师后台 AdminPanel 新增「班级管理」tab，四个 tab：打卡核验/班级管理/词条管理/批量导入），支持建班/重命名/删除班级（删除前自动清空该班学生 class_id，配 confirm）、给每个学生下拉指定班级（含置空=未分班/撤销分班）、按班级分组预览，学生列表排除 developer 测试账号。后端 RLS 在项目根 db-migration-class-assign.sql：classes 已登录可读 + 教师 for all 可写；student_data 新增 "student_data_assign_class" 策略允许教师 for update 更新 class_id（含置空）。「打卡核验」已支持按班级筛选。
+- 随堂测验/作业功能（已实现，2026-08-25，方案见项目根 `随堂测验和作业功能.md`）：教师创建「随堂测验（quiz，严格限时）」或「作业（homework，放宽时限、可保存退出继续）」→ 生成 4 位密码写入 quizzes 表；学生首页输密码（校验 open_at 统一开考 / due_at 截止与结果公布）→ 锁导航 + 限时 + 乱序 → 交卷 → 教师后台看成绩与答卷。核心：新增 quizzes / quiz_submissions 两张 Supabase 云表，题目快照固定存 quizzes.questions（所有学生同一份题）；题库稳定 id（itemId）判分，选择/匹配按 answerIndex 下标比对，拼写复用 isCorrectAnswer（含 aliases/归一化容错）。题目按勾选题型「均匀随机分配」（轮转序列 + 洗牌），干扰项优先同 paper，再补其他 paper，且术语/学者类型筛选（type_filter，经 db-migration-quiz-edit.sql 增加）保证干扰项不混类。防作弊：「硬拦截」= 统一开考 / 限时自动交卷 / 每人一份 unique(quiz_id,user_id) / 学生端按 order_seed 确定性乱序题目 / 应用内锁导航（App.tsx inQuiz 拦截 goto 与 Android 返回键）；「记录」= 切屏失焦 leave_count/leave_seconds（visibilitychange/blur/focus，教师可见）。作业模式 saveAndExit 存 in_progress 草稿（含 order_seed 与 answers），回来凭密码恢复同一乱序继续。判分在前端 gradeQuiz 后连同 answers 整包 upsert 上传（onConflict quiz_id,user_id）。学生端可看「历史结果」（due_at 未到则显示「结果尚未公布」）。新增文件：app/src/lib/quiz.ts、components/QuizManager.tsx（教师，AdminPanel 新增「随堂测验/作业」tab，现共五 tab：打卡核验/班级管理/随堂测验/词条管理/批量导入）、components/QuizTaker.tsx（学生，Home 入口）；cloud.ts 增 createQuiz/updateQuiz/deleteQuiz/listQuizzes/getQuizByCode/upsertSubmission/getMySubmission/listMySubmissions/listQuizSubmissions。SQL：db-migration-quiz.sql（主表+RLS）、db-migration-quiz-edit.sql（type_filter 增量）、db-migration-quiz-rls-fix.sql（修复：原 submissions 只教师可读，导致学生/开发者 upsert 报 "new row violates RLS"，改为学生可读自己的 + 教师读全部）。语境填空（P3）等 ContextPassage 练习组件完成后再接入。
+- 开发者指定/撤销教师（待做，开学前做）：给 developer 角色开「写 user_roles」的 RLS 策略（现在 user_roles 只有读策略，角色全靠 SQL 手动 insert）。开发者后台加「指定教师」功能：从「已登录过的账号列表」里选一个设为 teacher（前端拿不到 Supabase uid，靠按邮箱查需要管理员权限，故从已登录账号列表选，同事必先注册登录一次才会出现）。同时支持撤销：指定教师=加一行 teacher 角色、撤销=删该行。写操作配确认弹窗防误点。
+- 单元分类编辑（已实现，2026-08-26）：unitOrder 从硬编码 UNIT_ORDER 升级为「可编辑 + 云端同步」。unitMapping.ts 增 loadUnitOrder/saveUnitOrder（localStorage，默认 fallback UNIT_ORDER）+ subsForPaper，unitsForPaper/unitOrderFor/unitListFor 加可选 order 参数；store.tsx 增 unitOrder 状态 + addUnit/removeUnit/moveUnit/renameUnit（删除/重命名时同步清理/改名词条 unit）；VocabManager 增「单元管理」折叠卡片（选 paper，Paper 4 选主题 → 增删/上移下移/重命名）；随「发布词库」同步（vocab_releases.unit_order 字段，db-migration-unit-order.sql）。attachUnits 改为「只补缺不覆盖」，修复用户手动改选/重命名单元在刷新后被 unit-mapping.json 重算回旧值的 bug。CategoryFilter/QuizManager 单元下拉改用动态 unitOrder。
+- 批量迁移单元（已实现，2026-08-26）：VocabManager 增「批量迁移单元」多选模式（勾选/全选词条 → 下拉选目标单元 → 整体替换 unit），多选模式下禁用编辑/删除单个词条。
+- 匹配题改为「配对块」（已实现，2026-08-25）：随堂测验/作业的 matching 从「单题 4 选 1 释义」改为真正的配对——一道题含 6 对术语↔释义（QuizQuestion.pairs），左侧术语列+右侧打乱释义列点选配对；判分按正确配对数计分（每对 1 分），question_count 语义改为「总评分点数」（拼写/选择每题 1 分、匹配块每对 1 分）。quiz.ts 增 buildMatchingBlock / PAIRS_PER_BLOCK=6 / totalPoints / matchingCorrectCount，buildQuizQuestions 每 6 个 matching 词条组一块（尾部不足 2 个转 choice）。
+- 通知/打卡提醒（未实现）：APK 用 @capacitor/local-notifications 本地通知精确调度（无需服务器，App 关闭也能触发）；网页 Notification API 降级（仅页面打开可靠）。需新增提醒设置入口（开关+时间，存本地+云端），到点复用 isDayChecked/todayKey 检查未达标则弹提醒。
+- 教师公告推送 FCM（未实现，较复杂，第二阶段）：FCM 消息免费；教师发公告 → Supabase announcements 表 → Edge Function 监听 insert → FCM HTTP v1 API 推送学生设备。需 Firebase 项目 + @capacitor/push-notifications token 注册 + token 生命周期管理。

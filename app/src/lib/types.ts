@@ -172,4 +172,5 @@ export interface QuizSubmission {
   leave_count: number;
   leave_seconds: number;
   order_seed: number;
+  remaining_seconds: number | null; // 作业剩余答题秒数（in_progress 时冻结；交卷后为 null）
 }
