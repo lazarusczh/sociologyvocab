@@ -5,7 +5,7 @@ import { buildQuizQuestions, sampleItems, TYPE_LABELS, KIND_LABELS, formatDurati
 import { PAPER_ORDER } from '../lib/storage';
 import { unitListFor } from '../lib/unitMapping';
 import { maskEmail } from '../lib/shuffle';
-import { createQuiz, updateQuiz, listQuizzes, listQuizSubmissions, deleteQuiz, listDeveloperIds, deleteSubmission } from '../lib/cloud';
+import { createQuiz, updateQuiz, listQuizzes, listQuizSubmissions, deleteQuiz, listDeveloperIds, deleteSubmission, countSubmittedByQuizzes } from '../lib/cloud';
 
 // 创建表单草稿
 interface Draft {
@@ -71,6 +71,7 @@ export default function QuizManager() {
   const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
   const [viewing, setViewing] = useState<Quiz | null>(null); // 正在查看成绩的试卷
   const [subs, setSubs] = useState<QuizSubmission[]>([]);
+  const [submissionCounts, setSubmissionCounts] = useState<Record<string, number>>({});
   const [detailUser, setDetailUser] = useState<string | null>(null); // 正在查看答卷详情的学生 user_id
   const [devIds, setDevIds] = useState<Set<string>>(new Set()); // developer 账户 user_id（识别测试记录）
   const [manualSearch, setManualSearch] = useState(''); // 手动勾选词条的检索词
@@ -80,7 +81,13 @@ export default function QuizManager() {
     setLoading(true);
     setError('');
     try {
-      setQuizzes(await listQuizzes());
+      const qs = await listQuizzes();
+      setQuizzes(qs);
+      if (qs.length > 0) {
+        setSubmissionCounts(await countSubmittedByQuizzes(qs.map((q) => q.id)));
+      } else {
+        setSubmissionCounts({});
+      }
     } catch (e) {
       setError((e as Error).message);
     }
@@ -614,6 +621,7 @@ export default function QuizManager() {
                 <th>标题</th>
                 <th>类型</th>
                 <th>密码</th>
+                <th>已提交</th>
                 <th>题数</th>
                 <th>题型</th>
                 <th>限时</th>
@@ -628,6 +636,7 @@ export default function QuizManager() {
                   <td>{q.title}</td>
                   <td>{KIND_LABELS[q.kind]}</td>
                   <td className="term" style={{ fontWeight: 600 }}>{q.code}</td>
+                  <td>{submissionCounts[q.id] ?? 0}</td>
                   <td>{q.question_count}</td>
                   <td className="muted" style={{ fontSize: '0.8rem' }}>{q.question_types.map((t) => TYPE_LABELS[t as QuizQuestionType]).join('、')}</td>
                   <td>{formatDuration(q.duration_minutes)}</td>

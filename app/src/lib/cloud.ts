@@ -269,6 +269,22 @@ export async function listQuizSubmissions(quizId: string): Promise<QuizSubmissio
   return (data ?? []) as QuizSubmission[];
 }
 
+// 教师查看多份试卷各自的「已提交人数」（仅统计 status = submitted 的记录）
+export async function countSubmittedByQuizzes(quizIds: string[]): Promise<Record<string, number>> {
+  if (quizIds.length === 0) return {};
+  const { data, error } = await supabase
+    .from('quiz_submissions')
+    .select('quiz_id')
+    .in('quiz_id', quizIds)
+    .eq('status', 'submitted');
+  if (error) throw error;
+  const counts: Record<string, number> = {};
+  for (const row of (data ?? []) as { quiz_id: string }[]) {
+    counts[row.quiz_id] = (counts[row.quiz_id] ?? 0) + 1;
+  }
+  return counts;
+}
+
 // 教师查看自己创建的全部试卷（按创建时间倒序）
 export async function listQuizzes(): Promise<Quiz[]> {
   const { data, error } = await supabase
