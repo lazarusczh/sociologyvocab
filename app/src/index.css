@@ -542,12 +542,31 @@ input:focus, textarea:focus, select:focus {
   transition: width var(--dur-slow) var(--ease);
 }
 .goal-card__msg { font-size: 13px; opacity: .95; }
-/* 今日目标双指标（题数 / 学习时长）：宽屏横排，窄屏堆叠 */
-.goal-card__metrics {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
+/* 今日目标：单指标动态轮播（题数 / 学习时长），每 3.5s 自动切换 */
+.goal-card__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.goal-card__dots {
+  display: inline-flex;
+  gap: 5px;
+  margin-left: 0.5rem;
+}
+.goal-card__dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .4);
+  transition: transform var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.goal-card__dots i.on {
+  background: #fff;
+  transform: scale(1.3);
+}
+.goal-card__metric {
   margin: 0.7rem 0 0.3rem;
+  animation: goalMetricIn .5s var(--ease) both;
 }
 .goal-metric__head {
   display: flex;
@@ -558,8 +577,9 @@ input:focus, textarea:focus, select:focus {
   margin-bottom: 0.3rem;
 }
 .goal-metric .goal-card__bar { height: 6px; }
-@media (max-width: 520px) {
-  .goal-card__metrics { grid-template-columns: 1fr; gap: 0.6rem; }
+@keyframes goalMetricIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 /* 反白主 CTA（压在蓝色 goal-card 上）：白底蓝字
    注意：必须写成 button.goal-card__cta（特异性 0,1,1）。若只写 .goal-card__cta（0,1,0），

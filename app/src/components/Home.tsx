@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useStore } from '../lib/store';
 import { masteryLevel } from '../lib/storage';
 import { isInWrongBook } from '../lib/checkin';
@@ -56,6 +56,16 @@ export default function Home({ go }: Props) {
   const todaySecPct = Math.min(100, Math.round((todayStudy.seconds / CHECKIN_DAY_GOAL_SECONDS) * 100));
   const dayDone = todayStudy.seconds >= CHECKIN_DAY_GOAL_SECONDS && todayDone >= CHECKIN_DAY_GOAL_QUESTIONS;
   const needMins = Math.max(0, GOAL_MINUTES - todayMins);
+
+  // 今日目标卡片：题数 / 学习时长 每 3.5s 自动轮播切换
+  const [goalMetric, setGoalMetric] = useState<'questions' | 'time'>('questions');
+  useEffect(() => {
+    const id = setInterval(
+      () => setGoalMetric((m) => (m === 'questions' ? 'time' : 'questions')),
+      3500,
+    );
+    return () => clearInterval(id);
+  }, []);
 
   // 4 项累计统计
   const totalCheckedDays = useMemo(
@@ -134,26 +144,35 @@ export default function Home({ go }: Props) {
             </div>
             <div className="dashboard-hero__right">
               <div className="goal-card">
-                <div className="goal-card__title">今日目标</div>
-                <div className="goal-card__metrics">
-                  <div className="goal-metric">
-                    <div className="goal-metric__head">
-                      <span>练习题数</span>
-                      <span>{todayDone}/{CHECKIN_DAY_GOAL_QUESTIONS}</span>
-                    </div>
-                    <div className="goal-card__bar">
-                      <div className="goal-card__bar-fill" style={{ width: `${Math.round((todayDone / CHECKIN_DAY_GOAL_QUESTIONS) * 100)}%` }} />
-                    </div>
-                  </div>
-                  <div className="goal-metric">
-                    <div className="goal-metric__head">
-                      <span>学习时长</span>
-                      <span>{todayMins}/{GOAL_MINUTES} 分钟</span>
-                    </div>
-                    <div className="goal-card__bar">
-                      <div className="goal-card__bar-fill" style={{ width: `${todaySecPct}%` }} />
-                    </div>
-                  </div>
+                <div className="goal-card__title">
+                  <span>今日目标</span>
+                  <span className="goal-card__dots" aria-hidden>
+                    <i className={goalMetric === 'questions' ? 'on' : ''} />
+                    <i className={goalMetric === 'time' ? 'on' : ''} />
+                  </span>
+                </div>
+                <div className="goal-card__metric" key={goalMetric}>
+                  {goalMetric === 'questions' ? (
+                    <>
+                      <div className="goal-metric__head">
+                        <span>练习题数</span>
+                        <span>{todayDone}/{CHECKIN_DAY_GOAL_QUESTIONS}</span>
+                      </div>
+                      <div className="goal-card__bar">
+                        <div className="goal-card__bar-fill" style={{ width: `${Math.round((todayDone / CHECKIN_DAY_GOAL_QUESTIONS) * 100)}%` }} />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="goal-metric__head">
+                        <span>学习时长</span>
+                        <span>{todayMins}/{GOAL_MINUTES} 分钟</span>
+                      </div>
+                      <div className="goal-card__bar">
+                        <div className="goal-card__bar-fill" style={{ width: `${todaySecPct}%` }} />
+                      </div>
+                    </>
+                  )}
                 </div>
                 <div className="goal-card__msg">
                   {dayDone ? '今日已达成，继续保持！' : `还差 ${needMins} 分钟、${todayLeft} 题完成打卡`}
