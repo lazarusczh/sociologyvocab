@@ -78,6 +78,7 @@ interface StoreValue {
   // 离线备份
   skipped: boolean; // 本次会话是否跳过了登录（不持久化，刷新后重新弹登录）
   skipIdentity: () => void;
+  exitSkip: () => void; // 退出离线游客模式，回到登录/注册界面（供顶栏用户菜单「注册/登录」使用）
   exportBackup: () => Promise<string | null>;
   importBackup: (text: string) => Promise<string>;
   // 云端登录与同步
@@ -459,6 +460,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setSkipped(true);
   }, []);
 
+  // 退出离线游客模式：skipped 置回 false 后 Shell 会渲染 IdentityGate（登录/注册界面）
+  const exitSkip = useCallback(() => {
+    setSkipped(false);
+  }, []);
+
   // 邮箱 + 密码登录；成功返回空串，失败返回错误信息
   const signIn = useCallback(async (email: string, password: string): Promise<string> => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -555,6 +561,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     saveContextList,
     skipped,
     skipIdentity,
+    exitSkip,
     exportBackup,
     importBackup,
     authUser,

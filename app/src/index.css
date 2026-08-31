@@ -249,16 +249,25 @@ input:focus, textarea:focus, select:focus {
   align-items: center;
   gap: 0.8rem;
 }
-.topbar .brand { font-weight: 600; font-size: 1.05rem; white-space: nowrap; }
+.topbar .brand { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600; font-size: 1.05rem; white-space: nowrap; }
+.topbar .brand-mark { font-size: 1.3rem; line-height: 1; }
 .topbar nav { display: flex; gap: 0.2rem; flex-wrap: wrap; align-items: center; }
-.topbar nav button { padding: 0.35rem 0.7rem; font-size: 0.9rem; }
-.topbar nav button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.topbar nav button {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.9rem;
+  border-radius: 999px;
+  color: var(--c-charcoal);
+  background: transparent;
+  border-color: transparent;
+}
+.topbar nav button:hover { background: var(--c-surface-soft); color: var(--c-ink); }
+.topbar nav button.active { background: var(--c-primary-bg); border-color: var(--c-primary-bg); color: var(--c-primary); font-weight: 600; }
 
 /* 两级导航：分组（手风琴） */
 .nav-group { position: relative; display: inline-block; }
 .nav-group-head { display: inline-flex; align-items: center; gap: 0.2rem; }
 .nav-caret { font-size: 1.05rem; opacity: 0.85; line-height: 1; }
-.nav-group-head.has-active { background: var(--accent-bg); border-color: var(--accent); color: var(--text); }
+.nav-group-head.has-active { background: var(--c-primary-bg); border-color: var(--c-primary-bg); color: var(--c-primary); }
 .nav-group-items {
   position: absolute;
   top: 100%;
@@ -296,7 +305,7 @@ input:focus, textarea:focus, select:focus {
 /* 顶栏账号标识（显示当前登录者，点击退出） */
 .account-chip {
   font-size: 0.85rem;
-  padding: 0.3rem 0.7rem;
+  padding: 0.45rem 0.9rem;
   white-space: nowrap;
   max-width: 200px;
   overflow: hidden;
@@ -305,10 +314,10 @@ input:focus, textarea:focus, select:focus {
   background: transparent;
   border: 1px solid var(--border);
   border-radius: 999px;
-  color: var(--text);
+  color: var(--c-ink);
   cursor: pointer;
 }
-.account-chip:hover { border-color: var(--accent); color: var(--accent); }
+.account-chip:hover { border-color: var(--c-primary); color: var(--c-primary); }
 
 /* 汉堡菜单按钮（默认隐藏） */
 .nav-toggle {

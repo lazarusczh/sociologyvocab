@@ -42,43 +42,45 @@ export type View =
   | 'profile'
   | 'dev';
 
-// 导航：分组结构（练习/趣味/后台为可展开分组，其余为单入口）
+// 导航：一级 pill + 二级下拉。单入口 pill 直跳，多入口 pill 展开二级菜单
+// 2026-08-31 UI 改版：后台合并进右上角用户菜单、错题并入「练习」、
+// 进度改由首页底部入口进入（首页卡片已含进度信息，导航不再单列）
 interface NavItem { key: View; label: string; }
-interface NavGroup { group: string; items: NavItem[]; }
+interface NavPill { group: string; items: NavItem[]; }
 
-const NAV_TOP: NavItem[] = [
-  { key: 'home', label: '首页' },
-  { key: 'dictionary', label: '词典' },
-  { key: 'flashcards', label: '闪卡' },
-];
-
-const NAV_GROUPS: NavGroup[] = [
+const NAV_PILLS: NavPill[] = [
+  { group: '今日学习', items: [
+    { key: 'home', label: '今日学习' },
+  ]},
   { group: '练习', items: [
+    { key: 'quiz', label: '随堂测验 / 作业' },
     { key: 'choice', label: '选择题' },
     { key: 'cloze', label: '语境' },
     { key: 'spelling', label: '拼写' },
     { key: 'matching', label: '匹配' },
-  ]},
-  { group: '趣味', items: [
+    { key: 'wrong', label: '错题' },
     { key: 'crossword', label: '纵横填字' },
     { key: 'wordle', label: 'Wordle' },
   ]},
-];
-
-const NAV_BOTTOM: NavItem[] = [
-  { key: 'wrong', label: '错题' },
-  { key: 'progress', label: '进度' },
-  { key: 'data', label: '社会数据' },
+  { group: '词库', items: [
+    { key: 'dictionary', label: '词典' },
+    { key: 'flashcards', label: '闪卡' },
+  ]},
+  { group: '统计', items: [
+    { key: 'data', label: '社会数据' },
+  ]},
 ];
 
 function AppBody() {
   const [view, setView] = useState<View>('home');
   const [menuOpen, setMenuOpen] = useState(false);
-  const [expandedGroup, setExpandedGroup] = useState<string | null>(null); // 手风琴：当前展开的分组
-  const { authUser, isTeacher, isDeveloper, skipped, inQuiz } = useStore();
+  // 手风琴：当前展开的分组；'account' 表示右上角用户菜单（与导航分组互斥）
+  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
+  const { authUser, isTeacher, isDeveloper, skipped, inQuiz, exitSkip } = useStore();
   const viewRef = useRef(view);
   const navRef = useRef<HTMLElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
+  const accountRef = useRef<HTMLDivElement>(null);
   const inQuizRef = useRef(inQuiz);
 
   useEffect(() => {
@@ -101,7 +103,7 @@ function AppBody() {
     if (!menuOpen && !expandedGroup) return;
     const onDocPointerDown = (e: PointerEvent) => {
       const t = e.target as Node;
-      if (navRef.current?.contains(t) || toggleRef.current?.contains(t)) return;
+      if (navRef.current?.contains(t) || toggleRef.current?.contains(t) || accountRef.current?.contains(t)) return;
       setMenuOpen(false);
       setExpandedGroup(null);
     };
@@ -135,39 +137,51 @@ function AppBody() {
   return (
     <>
       <header className="topbar">
+        {/* 品牌：书本形 mark + 名称（点击回首页） */}
         <span className="brand" onClick={() => goto('home')} style={{ cursor: 'pointer' }}>
-          社会学词汇练习
+          <span className="brand-mark" aria-hidden>📖</span>
+          <span className="brand-text">社会学词汇练习</span>
         </span>
-        <nav ref={navRef} className={menuOpen ? 'open' : ''}>
-          {/* 顶部单入口：首页/词典/闪卡 */}
-          {NAV_TOP.map((n) => (
-            <button
-              key={n.key}
-              className={view === n.key ? 'active' : ''}
-              onClick={() => goto(n.key)}
-              disabled={inQuiz}
-            >
-              {n.label}
-            </button>
-          ))}
 
-          {/* 分组：练习 / 趣味（手风琴展开）；语境题仅对开发者（且非离线游客）可见 */}
-          {(isDeveloper && !skipped ? NAV_GROUPS : NAV_GROUPS.map((g) => ({ ...g, items: g.items.filter((i) => i.key !== 'cloze') }))).map((g) => {
-            const expanded = expandedGroup === g.group;
-            const groupActive = g.items.some((i) => view === i.key);
-            return (
-              <div key={g.group} className="nav-group">
+        <nav ref={navRef} className={menuOpen ? 'open' : ''}>
+          {/* 一级 pill：单入口直跳，多入口展开二级下拉；语境题仅开发者（且非离线游客）可见 */}
+          {NAV_PILLS.map((pill) => {
+            const items = (isDeveloper && !skipped)
+              ? pill.items
+              : pill.items.filter((i) => i.key !== 'cloze');
+            if (items.length === 0) return null;
+            const groupActive = items.some((i) => view === i.key);
+            const expanded = expandedGroup === pill.group;
+
+            // 单入口：直接跳转
+            if (items.length === 1) {
+              const only = items[0];
+              return (
                 <button
-                  className={`nav-group-head${expanded ? ' expanded' : ''}${groupActive ? ' has-active' : ''}`}
-                  onClick={() => setExpandedGroup(expanded ? null : g.group)}
+                  key={pill.group}
+                  className={`nav-pill${view === only.key ? ' active' : ''}`}
+                  onClick={() => goto(only.key)}
                   disabled={inQuiz}
                 >
-                  {g.group}
+                  {only.label}
+                </button>
+              );
+            }
+
+            // 多入口：展开二级菜单
+            return (
+              <div key={pill.group} className={`nav-group${groupActive ? ' has-active' : ''}`}>
+                <button
+                  className={`nav-group-head nav-pill${expanded ? ' expanded' : ''}${groupActive ? ' active' : ''}`}
+                  onClick={() => setExpandedGroup(expanded ? null : pill.group)}
+                  disabled={inQuiz}
+                >
+                  {pill.group}
                   <span className="nav-caret">{expanded ? '▾' : '▸'}</span>
                 </button>
                 {expanded && (
                   <div className="nav-group-items">
-                    {g.items.map((item) => (
+                    {items.map((item) => (
                       <button
                         key={item.key}
                         className={view === item.key ? 'active' : ''}
@@ -182,86 +196,73 @@ function AppBody() {
               </div>
             );
           })}
-
-          {/* 底部单入口：错题/进度/社会数据 */}
-          {NAV_BOTTOM.map((n) => (
-            <button
-              key={n.key}
-              className={view === n.key ? 'active' : ''}
-              onClick={() => goto(n.key)}
-              disabled={inQuiz}
-            >
-              {n.label}
-            </button>
-          ))}
-
-          {/* 随堂测验 */}
-          <button
-            className={view === 'quiz' ? 'active' : ''}
-            onClick={() => goto('quiz')}
-            disabled={inQuiz}
-          >
-            随堂测验
-          </button>
-
-          {/* 后台分组（仅教师/开发可见） */}
-          {(isTeacher || isDeveloper) && (
-            <div key="admin" className="nav-group">
-              <button
-                className={`nav-group-head${expandedGroup === '后台' ? ' expanded' : ''}${view === 'import' || view === 'dev' ? ' has-active' : ''}`}
-                onClick={() => setExpandedGroup(expandedGroup === '后台' ? null : '后台')}
-                disabled={inQuiz}
-              >
-                后台
-                <span className="nav-caret">{expandedGroup === '后台' ? '▾' : '▸'}</span>
-              </button>
-              {expandedGroup === '后台' && (
-                <div className="nav-group-items">
-                  {isTeacher && (
-                    <button
-                      className={view === 'import' ? 'active' : ''}
-                      onClick={() => goto('import')}
-                      disabled={inQuiz}
-                    >
-                      教师后台
-                    </button>
-                  )}
-                  {isDeveloper && (
-                    <button
-                      className={view === 'dev' ? 'active' : ''}
-                      onClick={() => goto('dev')}
-                      disabled={inQuiz}
-                    >
-                      开发
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* 备份（仅离线游客） */}
-          {skipped && (
-            <button
-              className={view === 'backup' ? 'active' : ''}
-              onClick={() => goto('backup')}
-              disabled={inQuiz}
-            >
-              备份
-            </button>
-          )}
         </nav>
+
         <span className="spacer" />
-        {authUser && (
-          <button
-            className="account-chip"
-            title={`${authUser.email}（进入个人账号）`}
-            onClick={() => goto('profile')}
-            disabled={inQuiz}
-          >
-            {authUser.name || authUser.email}
-          </button>
+
+        {/* 右上角用户区：已登录 → 个人中心/教师后台/开发后台；离线游客 → 本地备份/注册登录 */}
+        {(authUser || skipped) && (
+          <div className="nav-group account-menu" ref={accountRef}>
+            <button
+              className={`account-chip nav-pill${expandedGroup === 'account' ? ' expanded' : ''}`}
+              onClick={() => setExpandedGroup(expandedGroup === 'account' ? null : 'account')}
+              disabled={inQuiz}
+              title={authUser ? `${authUser.email}（账号菜单）` : '离线游客（未登录）'}
+            >
+              {authUser ? (authUser.name || authUser.email) : '离线游客'}
+              <span className="nav-caret">{expandedGroup === 'account' ? '▾' : '▸'}</span>
+            </button>
+            {expandedGroup === 'account' && (
+              <div className="nav-group-items align-right">
+                {authUser && (
+                  <button
+                    className={view === 'profile' ? 'active' : ''}
+                    onClick={() => goto('profile')}
+                    disabled={inQuiz}
+                  >
+                    个人中心
+                  </button>
+                )}
+                {authUser && isTeacher && (
+                  <button
+                    className={view === 'import' ? 'active' : ''}
+                    onClick={() => goto('import')}
+                    disabled={inQuiz}
+                  >
+                    教师后台
+                  </button>
+                )}
+                {authUser && isDeveloper && (
+                  <button
+                    className={view === 'dev' ? 'active' : ''}
+                    onClick={() => goto('dev')}
+                    disabled={inQuiz}
+                  >
+                    开发后台
+                  </button>
+                )}
+                {!authUser && skipped && (
+                  <>
+                    <button
+                      className={view === 'backup' ? 'active' : ''}
+                      onClick={() => goto('backup')}
+                      disabled={inQuiz}
+                    >
+                      本地备份
+                    </button>
+                    <button
+                      onClick={() => { setExpandedGroup(null); exitSkip(); }}
+                      disabled={inQuiz}
+                    >
+                      注册 / 登录
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         )}
+
         <button
           ref={toggleRef}
           className="nav-toggle"
