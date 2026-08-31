@@ -1,24 +1,120 @@
+/* =============================================================
+   设计令牌 v1（2026-08-31，来源：ui-refs/tokens.css 与 README）
+   现状：双轨过渡期——新 token 是"真身"，老变量名作为别名映射到新值，
+         保持现网 ~600 行组件 CSS 不破；后续 Step 2/3 渐进把
+         var(--accent) 等替换为 var(--c-primary) 等，删掉别名。
+   ============================================================= */
 :root {
-  --bg: #f7f7f5;
-  --surface: #ffffff;
-  --text: #2a2a2a;
-  --text-muted: #6b6b6b;
-  --border: #e0ddd6;
-  --accent: #5b6e8c;
-  --accent-bg: #eef2f7;
-  --accent-hover: #4a5d78;
-  --success: #4a7a4a;
-  --success-bg: #eaf3ea;
-  --danger: #b0524a;
-  --danger-bg: #f7eceb;
-  --warn: #a07a3a;
-  --warn-bg: #f6f0e4;
-  --radius: 10px;
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
-    'Microsoft YaHei', Roboto, sans-serif;
-  --mono: ui-monospace, 'Cascadia Code', Consolas, monospace;
-  font: 16px/1.6 var(--sans);
+  /* ===== 主色 Primary（钴蓝）===== */
+  --c-primary:        #0064E0;
+  --c-primary-deep:   #0457CB;
+  --c-primary-soft:   #0091FF;
+  --c-primary-bg:     #EAF2FE;
+
+  /* ===== 语义色 Semantic ===== */
+  --c-success:        #31A24C;
+  --c-success-bg:     #E9F6EC;
+  --c-success-ink:    #237A38;
+  --c-warning:        #F7B928;
+  --c-warning-bg:     #FFF7E4;
+  --c-warning-ink:    #A6741B;
+  --c-critical:       #E41E3F;
+  --c-critical-bg:    #FDEDF0;
+  --c-critical-ink:   #C01834;
+
+  /* ===== 中性 Neutral ===== */
+  --c-canvas:         #FFFFFF;
+  --c-page:           #F5F7FA;
+  --c-surface-soft:   #F1F4F7;
+  --c-ink-deep:       #0A1317;
+  --c-ink:            #1C1E21;
+  --c-charcoal:       #444950;
+  --c-steel:          #5D6C7B;
+  --c-stone:          #8595A4;
+  --c-hairline:       #CED0D4;
+  --c-hairline-soft:  #DEE3E9;
+  --c-track:          #E8EDF3;
+  --c-disabled:       #DEE3E9;
+  --c-disabled-ink:   #8595A4;
+
+  /* ===== 间距 Spacing（4px 基准）===== */
+  --sp-1:   4px;
+  --sp-2:   8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-5:  20px;
+  --sp-6:  24px;
+  --sp-8:  32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+
+  /* ===== 圆角 Radius ===== */
+  --r-pill: 999px;
+  --r-lg:    24px;
+  --r-md:    16px;
+  --r-sm:    12px;
+  --r-ctrl:  10px;
+  --r-xs:     6px;
+
+  /* ===== 阴影 Elevation ===== */
+  --e1: 0 1px 2px  rgba(16, 24, 40, .06);
+  --e2: 0 8px 24px rgba(16, 24, 40, .10);
+  --e3: 0 16px 48px rgba(16, 24, 40, .16);
+
+  /* ===== 字体 Font ===== */
+  --font-sans: "Inter", "Noto Sans SC", -apple-system, BlinkMacSystemFont,
+               "PingFang SC", "Microsoft YaHei", sans-serif;
+
+  /* ===== 布局 Layout ===== */
+  --layout-max:      1160px;
+  --layout-gutter:    140px;
+  --layout-gutter-m:   16px;
+  --grid-cols:          12;
+  --grid-gap:          24px;
+
+  /* ===== 控件尺寸 ===== */
+  --h-topbar:        64px;
+  --h-topbar-m:      52px;
+  --h-btn-sm:        40px;
+  --h-btn:           44px;
+  --h-btn-lg:        48px;
+  --h-input:         44px;
+  --h-chip:          28px;
+  --h-nav-pill:      36px;
+  --h-option:        64px;
+  --h-option-m:      52px;
+  --h-tabbar:        64px;
+  --touch-min:       44px;
+
+  /* ===== 过渡 ===== */
+  --dur-fast:  120ms;
+  --dur:       180ms;
+  --dur-slow:  320ms;
+  --ease: cubic-bezier(.2, 0, .2, 1);
+
+  /* ===== 老变量名 → 新 token 别名（保持现网代码兼容，逐步替换后删除本块）===== */
+  --bg:            var(--c-page);
+  --surface:       var(--c-canvas);
+  --text:          var(--c-ink);
+  --text-muted:    var(--c-steel);
+  --border:        var(--c-hairline-soft);
+  --accent:        var(--c-primary);
+  --accent-bg:     var(--c-primary-bg);
+  --accent-hover:  var(--c-primary-deep);
+  --success:       var(--c-success);
+  --success-bg:    var(--c-success-bg);
+  --danger:        var(--c-critical);
+  --danger-bg:     var(--c-critical-bg);
+  --warn:          var(--c-warning);
+  --warn-bg:       var(--c-warning-bg);
+  --radius:        var(--r-ctrl);
+  --shadow:        var(--e1);
+  --sans:          var(--font-sans);
+  --mono:          ui-monospace, 'Cascadia Code', Consolas, monospace;
+
+  /* 顶级排版/底色（保留原 :root 顶部声明） */
+  font: 16px/1.6 var(--font-sans);
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
