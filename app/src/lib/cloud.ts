@@ -166,6 +166,8 @@ export async function createQuiz(input: {
   open_at: string | null;
   due_at: string | null;
   allow_resume: boolean;
+  allow_late: boolean;
+  grading_rules: unknown;
   created_by: string | null;
 }): Promise<string> {
   const code = String(Math.floor(1000 + Math.random() * 9000));
@@ -192,6 +194,8 @@ export async function updateQuiz(
     open_at: string | null;
     due_at: string | null;
     allow_resume: boolean;
+    allow_late: boolean;
+    grading_rules: unknown;
   },
 ): Promise<void> {
   const { error } = await supabase.from('quizzes').update(input).eq('id', quizId);
@@ -253,6 +257,7 @@ export async function submitQuizSubmission(input: {
   leave_count: number;
   leave_seconds: number;
   order_seed: number;
+  total_points: number; // 满分（用于迟交罚分计算）
 }): Promise<void> {
   const { error } = await supabase.rpc('submit_quiz_submission', input);
   if (error) throw error;

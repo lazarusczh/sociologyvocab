@@ -8,6 +8,8 @@ desktop.ini
 # Editor / IDE
 .vscode/
 .idea/
+.codebuddy/
+.freebuff/
 
 # 环境变量（含 Supabase 连接信息与密钥，不纳入公开备份）
 .env
@@ -21,6 +23,9 @@ A1*.docx
 
 # 由 Excel 生成的内置词库数据（同属知识产权，不纳入公开备份）
 app/public/vocab-data.json
+
+# 预抓取的社会数据（结婚率/离婚率等，教师 IP，由 scripts/fetch-social-data.mjs 生成）
+app/public/social-data.json
 
 # 教师本地重置码工具与私钥（绝不纳入公开备份）
 reset-tool/
@@ -51,3 +56,13 @@ app/scripts/send-apk.ps1
 
 # 数据库备份文件（含业务数据，不纳入版本控制；已存于本地/OneDrive）
 backups/
+
+# 词库诊断/归并报告（含业务数据与归并建议，不纳入公开备份）
+theory-diagnostic-report.md
+theory-cleanup-list.md
+
+# 流派/理论关系设计决策文件（教师教学设计与知识产权，不纳入公开备份）
+流派设计决策.md
+
+# UI 设计综合文件（教师产品设计想法与知识产权，不纳入公开备份）
+UI设计.md

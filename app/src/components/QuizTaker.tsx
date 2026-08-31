@@ -1,14 +1,24 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '../lib/store';
 import type { Quiz, QuizQuestion, QuizSubmission } from '../lib/types';
 import { getQuizByCode, getMySubmission, upsertSubmission, submitQuizSubmission, listMySubmissions } from '../lib/cloud';
-import { gradeQuiz, shuffleQuestionsBySeed, randomOrderSeed, formatDuration, TYPE_LABELS, KIND_LABELS, isAnswerCorrect, answerText, correctAnswerText, matchingCorrectCount } from '../lib/quiz';
+import { gradeQuiz, shuffleQuestionsBySeed, randomOrderSeed, formatDuration, TYPE_LABELS, KIND_LABELS, isAnswerCorrect, answerText, correctAnswerText, matchingCorrectCount, totalPoints } from '../lib/quiz';
 import { shuffle } from '../lib/shuffle';
 
 type Phase = 'enter' | 'confirm' | 'taking' | 'done';
 
+// 把毫秒时长格式化成「X 天 X 小时」的可读文本
+function formatLateDuration(ms: number): string {
+  const days = Math.floor(ms / 86400000);
+  const hours = Math.floor((ms % 86400000) / 3600000);
+  if (days > 0) return `${days} 天 ${hours} 小时`;
+  if (hours > 0) return `${hours} 小时`;
+  const mins = Math.floor((ms % 3600000) / 60000);
+  return `${Math.max(1, mins)} 分钟`;
+}
+
 export default function QuizTaker() {
-  const { authUser, setInQuiz } = useStore();
+  const { authUser, setInQuiz, recordItem } = useStore();
   const [phase, setPhase] = useState<Phase>('enter');
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
@@ -20,6 +30,7 @@ export default function QuizTaker() {
   const [qi, setQi] = useState(0);
   const [score, setScore] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [grading, setGrading] = useState<QuizSubmission['grading']>(null); // 交卷后回读的评分结算（迟交罚分等）
 
   const [seed, setSeed] = useState(0);
   const [deadline, setDeadline] = useState<number | null>(null); // 截止时间戳（毫秒）
@@ -80,8 +91,8 @@ export default function QuizTaker() {
         setBusy(false);
         return;
       }
-      // 作业截止时间校验
-      if (q.due_at && new Date(q.due_at).getTime() < Date.now()) {
+      // 作业截止时间校验：allow_late=false 的作业过了截止仍拦截；allow_late=true 放行进入（交卷时按罚分规则结算）
+      if (q.kind === 'homework' && q.due_at && new Date(q.due_at).getTime() < Date.now() && !q.allow_late) {
         setError('该作业已过截止时间');
         setBusy(false);
         return;
@@ -141,8 +152,28 @@ export default function QuizTaker() {
   const remaining = deadline ? Math.max(0, Math.floor((deadline - now) / 1000)) : 0;
 
   // 作业提交截止是否已过（服务器交卷时仍会硬拦截，这里仅前端软提示/禁用）
+  // 若教师勾选 allow_late，则截止后仍可交卷（服务器按迟交天数罚分），不拦截
   const dueAtMs = quiz?.due_at ? new Date(quiz.due_at).getTime() : null;
-  const pastDue = quiz?.kind === 'homework' && dueAtMs != null && now >= dueAtMs;
+  const overdue = quiz?.kind === 'homework' && dueAtMs != null && now >= dueAtMs;
+  const pastDue = overdue && !quiz?.allow_late;
+  const isLate = overdue && !!quiz?.allow_late;
+
+  // 预估迟交罚分（与服务器 RPC 算法一致）：返回 { lateDays, penaltyPercent, estimatedPenalty } 或 null
+  const lateEstimate = useMemo(() => {
+    if (!quiz || !isLate || dueAtMs == null) return null;
+    const percents = quiz.grading_rules?.late_penalty?.daily_percents
+      ? [...quiz.grading_rules.late_penalty.daily_percents]
+      : [10, 20, 30, 40];
+    const lateDays = Math.max(1, Math.ceil((now - dueAtMs) / 86400000));
+    let pct = 0;
+    for (let i = 0; i < lateDays; i++) {
+      pct += percents[Math.min(i, percents.length - 1)] ?? 0;
+    }
+    pct = Math.min(pct, 100);
+    const total = totalPoints(quiz.questions);
+    const penalty = Math.round((total * pct) / 100);
+    return { lateDays, penaltyPercent: pct, estimatedPenalty: penalty };
+  }, [quiz, isLate, dueAtMs, now]);
 
   // 超时自动交卷
   useEffect(() => {
@@ -192,6 +223,21 @@ export default function QuizTaker() {
     };
   }, [phase]);
 
+  // 交卷成功后：把每道题结果写入本地错题本/掌握度/打卡（方案 B）
+  const recordQuizResults = useCallback(() => {
+    if (!quiz) return;
+    for (const q of questions) {
+      if (q.type === 'matching' && q.pairs) {
+        // 匹配块：逐对记录（对错按该对 itemId 是否配对正确）
+        for (const p of q.pairs) {
+          recordItem(p.itemId, answers[p.itemId] === p.itemId, 'matching');
+        }
+      } else {
+        recordItem(q.itemId, isAnswerCorrect(q, answers[q.itemId]), q.type);
+      }
+    }
+  }, [questions, answers, recordItem]);
+
   // 交卷
   const doSubmit = useCallback(async () => {
     if (!quiz || !authUser || submittedRef.current) return;
@@ -213,8 +259,17 @@ export default function QuizTaker() {
         leave_count: leaveCountRef.current,
         leave_seconds: leaveSecondsRef.current,
         order_seed: seed,
+        total_points: totalPoints(questions),
       });
+      recordQuizResults();
       setInQuiz(false);
+      // 回读评分结算（迟交罚分），用于交卷后界面展示
+      try {
+        const mine = await getMySubmission(quiz.id, authUser.id);
+        setGrading(mine?.grading ?? null);
+      } catch {
+        setGrading(null);
+      }
       setPhase('done');
     } catch (e) {
       // 交卷失败：解除锁定，允许重试并显示错误
@@ -224,7 +279,7 @@ export default function QuizTaker() {
     } finally {
       setBusy(false);
     }
-  }, [quiz, authUser, questions, answers, seed, setInQuiz]);
+  }, [quiz, authUser, questions, answers, seed, setInQuiz, recordQuizResults]);
 
   // 作业模式：保存并退出（不判分，记录草稿）
   const saveAndExit = async () => {
@@ -370,6 +425,16 @@ export default function QuizTaker() {
             </p>
           )}
           {resumed && <p className="muted" style={{ fontSize: '0.85rem', marginTop: '0.3rem' }}>检测到上次未完成的作答，已为你恢复进度。</p>}
+          {isLate && lateEstimate && (
+            <div className="card" style={{ marginTop: '0.6rem', background: 'var(--warn-bg)', borderColor: 'var(--warn)' }}>
+              <p style={{ fontSize: '0.9rem', margin: 0 }}>
+                您已错过截止时间（超期 {formatLateDuration(now - dueAtMs!)}）。
+              </p>
+              <p style={{ fontSize: '0.9rem', margin: '0.3rem 0 0' }}>
+                现在交卷将按规则罚分：约 <strong>{lateEstimate.estimatedPenalty} 分</strong>（罚 {lateEstimate.penaltyPercent}%）。最终以交卷时实际结算为准。
+              </p>
+            </div>
+          )}
           {error && <p className="gate-error" style={{ marginTop: '0.6rem' }}>{error}</p>}
           {!authUser ? (
             <p className="gate-error" style={{ marginTop: '0.8rem' }}>请先登录后再参加随堂测验/作业（离线游客无法作答）。</p>
@@ -389,8 +454,16 @@ export default function QuizTaker() {
         <h2>交卷成功</h2>
         <p className="muted">{quiz.title}</p>
         <p className="big" style={{ fontSize: '2rem' }}>{score} / {quiz.question_count}</p>
-        <p className="muted">老师可在后台查看你的成绩。</p>
-        <button className="primary" onClick={() => { setPhase('enter'); setQuiz(null); setCode(''); setAnswers({}); setQi(0); setSubmitted(false); setScore(null); }}>
+        {grading?.penalty != null && grading.penalty > 0 && (
+          <div className="card" style={{ marginTop: '0.5rem', background: 'var(--warn-bg)', borderColor: 'var(--warn)' }}>
+            <p style={{ fontSize: '0.9rem' }}>
+              迟交 {grading.late_days} 天，罚分 {grading.penalty} 分（罚 {grading.penalty_percent}%）
+              {grading.final_score != null && <>，最终得分 <strong>{grading.final_score}</strong></>}
+            </p>
+          </div>
+        )}
+        <p className="muted" style={{ marginTop: '0.6rem' }}>老师可在后台查看你的成绩。</p>
+        <button className="primary" onClick={() => { setPhase('enter'); setQuiz(null); setCode(''); setAnswers({}); setQi(0); setSubmitted(false); setScore(null); setGrading(null); }}>
           返回
         </button>
       </div>
@@ -418,6 +491,11 @@ export default function QuizTaker() {
       {pastDue && (
         <div className="card" style={{ marginBottom: '0.5rem', background: 'var(--warn-bg)', borderColor: 'var(--warn)' }}>
           已过提交截止时间，无法交卷。本次作答不会计入成绩。
+        </div>
+      )}
+      {isLate && (
+        <div className="card" style={{ marginBottom: '0.5rem', background: 'var(--warn-bg)', borderColor: 'var(--warn)' }}>
+          已过提交截止时间。本作业允许迟交，但会按迟交天数累积百分比罚分（每迟一天追加 10%，第 4 天起扣至 100%）。
         </div>
       )}
 
@@ -683,6 +761,14 @@ function HistoryDetail({ detail, onBack }: {
         <span className="spacer" />
         <span className="muted" style={{ fontSize: '0.85rem' }}>{sub.score} / {quiz.question_count} 分</span>
       </div>
+      {sub.grading?.penalty != null && sub.grading.penalty > 0 && (
+        <div className="card" style={{ marginBottom: '0.6rem', padding: '0.5rem 0.7rem', background: 'var(--warn-bg)', borderColor: 'var(--warn)' }}>
+          <span style={{ fontSize: '0.9rem' }}>
+            迟交 {sub.grading.late_days ?? 1} 天，罚分 {sub.grading.penalty} 分
+            {sub.grading.final_score != null && <>，最终得分 <strong>{sub.grading.final_score}</strong> / {quiz.question_count}</>}
+          </span>
+        </div>
+      )}
       <h3 style={{ margin: '0 0 0.6rem' }}>{quiz.title}</h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {quiz.questions.map((q, idx) => {

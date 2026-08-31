@@ -15,7 +15,9 @@ import Crossword from './components/Crossword';
 import Wordle from './components/Wordle';
 import ProgressView from './components/ProgressView';
 import WrongPractice from './components/WrongPractice';
+import DataBoard from './components/DataBoard';
 import CheckInCelebration from './components/CheckInCelebration';
+import VersionCheck from './components/VersionCheck';
 import ProfilePanel from './components/ProfilePanel';
 import DevPanel from './components/DevPanel';
 import QuizTaker from './components/QuizTaker';
@@ -33,26 +35,43 @@ export type View =
   | 'wordle'
   | 'wrong'
   | 'progress'
+  | 'data'
   | 'backup'
   | 'profile'
   | 'dev';
 
-const NAV: { key: View; label: string }[] = [
+// 导航：分组结构（练习/趣味/后台为可展开分组，其余为单入口）
+interface NavItem { key: View; label: string; }
+interface NavGroup { group: string; items: NavItem[]; }
+
+const NAV_TOP: NavItem[] = [
   { key: 'home', label: '首页' },
   { key: 'dictionary', label: '词典' },
   { key: 'flashcards', label: '闪卡' },
-  { key: 'choice', label: '选择题' },
-  { key: 'spelling', label: '拼写' },
-  { key: 'matching', label: '匹配' },
-  { key: 'crossword', label: '纵横填字' },
-  { key: 'wordle', label: 'Wordle' },
+];
+
+const NAV_GROUPS: NavGroup[] = [
+  { group: '练习', items: [
+    { key: 'choice', label: '选择题' },
+    { key: 'spelling', label: '拼写' },
+    { key: 'matching', label: '匹配' },
+  ]},
+  { group: '趣味', items: [
+    { key: 'crossword', label: '纵横填字' },
+    { key: 'wordle', label: 'Wordle' },
+  ]},
+];
+
+const NAV_BOTTOM: NavItem[] = [
   { key: 'wrong', label: '错题' },
   { key: 'progress', label: '进度' },
+  { key: 'data', label: '社会数据' },
 ];
 
 function AppBody() {
   const [view, setView] = useState<View>('home');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [expandedGroup, setExpandedGroup] = useState<string | null>(null); // 手风琴：当前展开的分组
   const { authUser, isTeacher, isDeveloper, skipped, inQuiz } = useStore();
   const viewRef = useRef(view);
   const navRef = useRef<HTMLElement>(null);
@@ -116,7 +135,8 @@ function AppBody() {
           社会学词汇练习
         </span>
         <nav ref={navRef} className={menuOpen ? 'open' : ''}>
-          {NAV.map((n) => (
+          {/* 顶部单入口：首页/词典/闪卡 */}
+          {NAV_TOP.map((n) => (
             <button
               key={n.key}
               className={view === n.key ? 'active' : ''}
@@ -126,6 +146,52 @@ function AppBody() {
               {n.label}
             </button>
           ))}
+
+          {/* 分组：练习 / 趣味（手风琴展开） */}
+          {NAV_GROUPS.map((g) => {
+            const expanded = expandedGroup === g.group;
+            const groupActive = g.items.some((i) => view === i.key);
+            return (
+              <div key={g.group} className="nav-group">
+                <button
+                  className={`nav-group-head${expanded ? ' expanded' : ''}${groupActive ? ' has-active' : ''}`}
+                  onClick={() => setExpandedGroup(expanded ? null : g.group)}
+                  disabled={inQuiz}
+                >
+                  {g.group}
+                  <span className="nav-caret">{expanded ? '▾' : '▸'}</span>
+                </button>
+                {expanded && (
+                  <div className="nav-group-items">
+                    {g.items.map((item) => (
+                      <button
+                        key={item.key}
+                        className={view === item.key ? 'active' : ''}
+                        onClick={() => goto(item.key)}
+                        disabled={inQuiz}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {/* 底部单入口：错题/进度/社会数据 */}
+          {NAV_BOTTOM.map((n) => (
+            <button
+              key={n.key}
+              className={view === n.key ? 'active' : ''}
+              onClick={() => goto(n.key)}
+              disabled={inQuiz}
+            >
+              {n.label}
+            </button>
+          ))}
+
+          {/* 随堂测验 */}
           <button
             className={view === 'quiz' ? 'active' : ''}
             onClick={() => goto('quiz')}
@@ -133,15 +199,44 @@ function AppBody() {
           >
             随堂测验
           </button>
-          {isTeacher && (
-            <button
-              className={view === 'import' ? 'active' : ''}
-              onClick={() => goto('import')}
-              disabled={inQuiz}
-            >
-              教师后台
-            </button>
+
+          {/* 后台分组（仅教师/开发可见） */}
+          {(isTeacher || isDeveloper) && (
+            <div key="admin" className="nav-group">
+              <button
+                className={`nav-group-head${expandedGroup === '后台' ? ' expanded' : ''}${view === 'import' || view === 'dev' ? ' has-active' : ''}`}
+                onClick={() => setExpandedGroup(expandedGroup === '后台' ? null : '后台')}
+                disabled={inQuiz}
+              >
+                后台
+                <span className="nav-caret">{expandedGroup === '后台' ? '▾' : '▸'}</span>
+              </button>
+              {expandedGroup === '后台' && (
+                <div className="nav-group-items">
+                  {isTeacher && (
+                    <button
+                      className={view === 'import' ? 'active' : ''}
+                      onClick={() => goto('import')}
+                      disabled={inQuiz}
+                    >
+                      教师后台
+                    </button>
+                  )}
+                  {isDeveloper && (
+                    <button
+                      className={view === 'dev' ? 'active' : ''}
+                      onClick={() => goto('dev')}
+                      disabled={inQuiz}
+                    >
+                      开发
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           )}
+
+          {/* 备份（仅离线游客） */}
           {skipped && (
             <button
               className={view === 'backup' ? 'active' : ''}
@@ -149,15 +244,6 @@ function AppBody() {
               disabled={inQuiz}
             >
               备份
-            </button>
-          )}
-          {isDeveloper && (
-            <button
-              className={view === 'dev' ? 'active' : ''}
-              onClick={() => goto('dev')}
-              disabled={inQuiz}
-            >
-              开发
             </button>
           )}
         </nav>
@@ -203,10 +289,12 @@ function AppBody() {
         {view === 'wordle' && <Wordle />}
         {view === 'wrong' && <WrongPractice />}
         {view === 'progress' && <ProgressView />}
+        {view === 'data' && <DataBoard />}
         {view === 'profile' && authUser && <ProfilePanel />}
         {view === 'dev' && isDeveloper && <DevPanel />}
       </main>
       <CheckInCelebration />
+      <VersionCheck />
     </>
   );
 }

@@ -9,7 +9,8 @@ export interface VocabItem {
   category: string;    // 次级标签（Paper 4 为 Globalisation/Media；Paper 1 合并为空）
   unit?: string[];     // 所属单元（按教学大纲细分；跨单元词条可多个）
   aliases?: string[];  // 可接受答案（手动别名，答案容错；含标准写法与同义/缩写写法）
-  theory?: string;     // 学者所属理论流派（仅学者）
+  theory?: string;     // 理论流派（单值，兼容旧显示逻辑；仅学者使用，术语一律走 theories）
+  theories?: string[]; // 理论流派（多选标签，教师后台逐个编辑；学者与术语均可使用）
   notes?: string;      // 备注（仅学者）
 }
 
@@ -153,6 +154,13 @@ export interface Quiz {
   open_at: string | null;
   due_at: string | null;
   allow_resume: boolean;
+  allow_late: boolean;
+  grading_rules?: {
+    late_penalty?: {
+      enabled?: boolean;
+      daily_percents?: number[];
+    };
+  } | null; // 评分规则快照（创建作业时固定；测验为 null）
   created_by: string | null;
   created_at: string;
 }
@@ -173,4 +181,11 @@ export interface QuizSubmission {
   leave_seconds: number;
   order_seed: number;
   remaining_seconds: number | null; // 作业剩余答题秒数（in_progress 时冻结；交卷后为 null）
+  grading?: {
+    late_days?: number;
+    penalty_percent?: number;
+    penalty?: number;
+    bonus?: number;
+    final_score?: number;
+  } | null; // 评分结算（迟交罚分等；测验/无罚分时为空）
 }

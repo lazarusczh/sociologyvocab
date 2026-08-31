@@ -53,6 +53,10 @@ interface StoreValue {
   clearAll: () => void;
   setSurnameOverride: (term: string, surname: string) => void;
   removeSurnameOverride: (term: string) => void;
+  // 词库「有未发布修改」标记：本地编辑后为 true，发布成功后清除
+  vocabDirty: boolean;
+  markVocabDirty: () => void;
+  clearVocabDirty: () => void;
   // 单元分类
   unitOrder: Record<string, string[]>;
   addUnit: (paper: string, sub: string, name: string) => void;
@@ -109,6 +113,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [checkinCelebration, setCheckinCelebration] = useState(false);
   const [inQuiz, setInQuiz] = useState(false);
   const [unitOrder, setUnitOrder] = useState<Record<string, string[]>>(() => loadUnitOrder());
+  const [vocabDirty, setVocabDirty] = useState(false);
   const activeRef = useRef(0);
 
   // 登录 / 恢复会话后：拉取云端数据合并到本地，再把合并结果回传云端
@@ -284,6 +289,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     // 追加导入（按「类型 + 术语名 + 考卷 + 主题」去重，
     // 同名学者在不同单元有不同学术贡献时属于不同条目，不应合并）
     setConfigured();
+    setVocabDirty(true);
     setVocab((prev) => {
       const key = (i: VocabItem) =>
         [i.type, i.term.trim().toLowerCase(), i.paper, i.category].join('||');
@@ -297,8 +303,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const replaceVocab = useCallback((items: VocabItem[]) => {
     setConfigured();
+    setVocabDirty(true);
     persistVocab(items);
   }, [persistVocab]);
+
+  const markVocabDirty = useCallback(() => setVocabDirty(true), []);
+  const clearVocabDirty = useCallback(() => setVocabDirty(false), []);
 
   // 单元分类管理（增删排序；变更存本地，随「发布词库」同步云端）
   const addUnit = useCallback((paper: string, sub: string, name: string) => {
@@ -320,6 +330,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return next;
     });
     // 删除单元时，同步从所有词条上移除该单元
+    setVocabDirty(true);
     setVocab((prev) => {
       const next = prev.map((i) => (i.unit?.includes(name) ? { ...i, unit: i.unit.filter((u) => u !== name) } : i));
       saveVocab(next);
@@ -351,6 +362,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       saveUnitOrder(next);
       return next;
     });
+    setVocabDirty(true);
     setVocab((prev) => {
       const next = prev.map((i) =>
         i.unit?.includes(oldName) ? { ...i, unit: i.unit.map((u) => (u === oldName ? newName : u)) } : i,
@@ -362,6 +374,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const clearAll = useCallback(() => {
     setConfigured();
+    setVocabDirty(true);
     clearVocab();
     setVocab([]);
   }, []);
@@ -523,6 +536,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     clearAll,
     setSurnameOverride,
     removeSurnameOverride,
+    vocabDirty,
+    markVocabDirty,
+    clearVocabDirty,
     unitOrder,
     addUnit,
     removeUnit,

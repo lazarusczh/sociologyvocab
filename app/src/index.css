@@ -118,9 +118,32 @@ input:focus, textarea:focus, select:focus {
   gap: 0.8rem;
 }
 .topbar .brand { font-weight: 600; font-size: 1.05rem; white-space: nowrap; }
-.topbar nav { display: flex; gap: 0.2rem; flex-wrap: wrap; }
+.topbar nav { display: flex; gap: 0.2rem; flex-wrap: wrap; align-items: center; }
 .topbar nav button { padding: 0.35rem 0.7rem; font-size: 0.9rem; }
 .topbar nav button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* 两级导航：分组（手风琴） */
+.nav-group { position: relative; display: inline-block; }
+.nav-group-head { display: inline-flex; align-items: center; gap: 0.2rem; }
+.nav-caret { font-size: 0.7rem; opacity: 0.7; }
+.nav-group-head.has-active { background: var(--accent-bg); border-color: var(--accent); color: var(--text); }
+.nav-group-items {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 0.35rem;
+  min-width: 8rem;
+  white-space: nowrap;
+}
+.nav-group-items button { width: 100%; text-align: left; }
 
 /* 内容区顶部返回首页按钮（仅网页端、非首页时显示） */
 .back-btn {
@@ -199,6 +222,21 @@ input:focus, textarea:focus, select:focus {
     width: 100%;
     text-align: left;
     padding: 0.6rem 0.8rem;
+  }
+  /* 窄屏：分组改为纵向展开（不浮出），子项缩进 */
+  .nav-group { display: block; width: 100%; }
+  .nav-group-head { width: 100%; }
+  .nav-group-items {
+    position: static;
+    box-shadow: none;
+    border: none;
+    padding: 0 0 0 1rem;
+    min-width: 0;
+  }
+  .nav-group-items button {
+    width: 100%;
+    padding: 0.5rem 0.7rem;
+    font-size: 0.85rem;
   }
 }
 
@@ -511,3 +549,24 @@ textarea { resize: vertical; min-height: 80px; }
     opacity: 1;
   }
 }
+
+/* 检测到新版本的提示横幅（非考试中显示） */
+.version-banner {
+  position: fixed;
+  bottom: 0.8rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 0.5rem 0.7rem;
+  font-size: 0.85rem;
+  max-width: calc(100vw - 1.6rem);
+}
+.version-banner span { flex: 1; }
+.version-banner button { white-space: nowrap; }

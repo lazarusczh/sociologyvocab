@@ -16,10 +16,14 @@ interface Draft {
   units: string[];
   aliases: string; // 逗号分隔的可接受答案
   theory: string;
+  theories: string[]; // 理论流派（多选标签）
   notes: string;
 }
 
 function toDraft(item: VocabItem): Draft {
+  // 多选流派初始值 = 已有的 theories 多选 + 旧 theory 单值（去重），保证编辑时旧值可见可选
+  const theories = item.theories ? [...item.theories] : [];
+  if (item.theory && !theories.includes(item.theory)) theories.push(item.theory);
   return {
     type: item.type,
     term: item.term,
@@ -30,6 +34,7 @@ function toDraft(item: VocabItem): Draft {
     units: item.unit ?? [],
     aliases: (item.aliases ?? []).join(', '),
     theory: item.theory ?? '',
+    theories,
     notes: item.notes ?? '',
   };
 }
@@ -46,15 +51,18 @@ function fromDraft(d: Draft, oldId?: string): VocabItem {
     category: d.category,
     unit: d.units.length ? d.units : undefined,
     aliases: aliases.length ? aliases : undefined,
-    theory: d.theory.trim() || undefined,
-    notes: d.notes.trim() || undefined,
+    // 单值 theory 仅供学者（术语的流派信息一律走多选 theories，避免触发旧显示逻辑）
+    theory: d.type === 'scholar' ? (d.theory.trim() || undefined) : undefined,
+    theories: d.theories.length ? d.theories : undefined,
+    notes: d.type === 'scholar' ? (d.notes.trim() || undefined) : undefined,
   };
 }
 
 export default function VocabManager() {
-  const { vocab, replaceVocab, unitOrder, addUnit, removeUnit, moveUnit, renameUnit } = useStore();
+  const { vocab, replaceVocab, unitOrder, addUnit, removeUnit, moveUnit, renameUnit, vocabDirty } = useStore();
   const [paperFilter, setPaperFilter] = useState('all');
   const [unitFilter, setUnitFilter] = useState('all');
+  const [theoryFilter, setTheoryFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [draft, setDraft] = useState<Draft | null>(null); // 非 null 表示正在新增/编辑
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -71,6 +79,16 @@ export default function VocabManager() {
   const [batchMode, setBatchMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [targetUnit, setTargetUnit] = useState('');
+  // 批量编辑流派
+  const [targetTheory, setTargetTheory] = useState('');
+  const [theoryBatchAction, setTheoryBatchAction] = useState<'add' | 'remove'>('add');
+  // 流派管理
+  const [theoryMgmtOpen, setTheoryMgmtOpen] = useState(false);
+  const [theoryRenameFrom, setTheoryRenameFrom] = useState<string | null>(null);
+  const [theoryRenameValue, setTheoryRenameValue] = useState('');
+  const [theoryMsg, setTheoryMsg] = useState('');
+  // 理论流派（多选标签）
+  const [newTheory, setNewTheory] = useState('');
 
   const units = useMemo(() => unitsForPaper(paperFilter, unitOrder), [paperFilter, unitOrder]);
   const unitMgmtSubs = useMemo(() => subsForPaper(unitMgmtPaper, unitOrder), [unitMgmtPaper, unitOrder]);
@@ -81,6 +99,26 @@ export default function VocabManager() {
     for (const list of Object.values(unitOrder)) list.forEach((u) => set.add(u));
     return [...set];
   }, [unitOrder]);
+
+  // 理论流派候选：从词库所有词条的 theory（单值）与 theories（多选）汇总去重
+  const theoryCandidates = useMemo(() => {
+    const set = new Set<string>();
+    for (const i of vocab) {
+      if (i.theory) set.add(i.theory);
+      (i.theories ?? []).forEach((t) => t && set.add(t));
+    }
+    return [...set].sort();
+  }, [vocab]);
+
+  // 各流派的使用次数（单值 theory + 多选 theories 均计数；供流派管理展示/判断残留）
+  const theoryUsage = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const i of vocab) {
+      if (i.theory) m.set(i.theory, (m.get(i.theory) ?? 0) + 1);
+      for (const t of i.theories ?? []) if (t) m.set(t, (m.get(t) ?? 0) + 1);
+    }
+    return m;
+  }, [vocab]);
 
   // 打开编辑/新增表单时，自动滚动到表单位置（仅「关闭 → 打开」边沿触发）
   const formRef = useRef<HTMLDivElement>(null);
@@ -98,10 +136,11 @@ export default function VocabManager() {
     return vocab.filter((i) => {
       if (paperFilter !== 'all' && i.paper !== paperFilter) return false;
       if (unitFilter !== 'all' && !(i.unit ?? []).includes(unitFilter)) return false;
+      if (theoryFilter !== 'all' && !(i.theory === theoryFilter || (i.theories ?? []).includes(theoryFilter))) return false;
       if (q && !(i.term.toLowerCase().includes(q) || i.chinese.toLowerCase().includes(q))) return false;
       return true;
     });
-  }, [vocab, paperFilter, unitFilter, search]);
+  }, [vocab, paperFilter, unitFilter, theoryFilter, search]);
 
   const startCreate = () => {
     setDraft({
@@ -114,6 +153,7 @@ export default function VocabManager() {
       units: [],
       aliases: '',
       theory: '',
+      theories: [],
       notes: '',
     });
     setEditingId(null);
@@ -132,6 +172,31 @@ export default function VocabManager() {
       const has = d.units.includes(u);
       return { ...d, units: has ? d.units.filter((x) => x !== u) : [...d.units, u] };
     });
+  };
+
+  // 理论流派多选：点选切换；仅学者同步更新单值 theory 字段（取多选首项，保证旧显示逻辑一致）
+  const toggleTheory = (t: string) => {
+    setDraft((d) => {
+      if (!d) return d;
+      const has = d.theories.includes(t);
+      const theories = has ? d.theories.filter((x) => x !== t) : [...d.theories, t];
+      // 术语：只写多选 theories；学者：额外同步单值 theory（供 Spelling/crossword 等旧显示逻辑）
+      return d.type === 'scholar' ? { ...d, theories, theory: theories[0] ?? '' } : { ...d, theories };
+    });
+  };
+
+  // 新建理论流派：输入框回车/点添加，加入当前草稿的多选（若已存在则忽略）
+  const addNewTheory = () => {
+    const t = newTheory.trim();
+    if (!t || !draft) return;
+    setDraft((d) =>
+      d && !d.theories.includes(t)
+        ? d.type === 'scholar'
+          ? { ...d, theories: [...d.theories, t], theory: d.theory || t }
+          : { ...d, theories: [...d.theories, t] }
+        : d
+    );
+    setNewTheory('');
   };
 
   const save = () => {
@@ -182,6 +247,54 @@ export default function VocabManager() {
     setTargetUnit('');
   };
 
+  // 应用批量编辑流派：对选中词条批量「追加」或「移除」某流派（只改多选 theories，不触碰单值 theory）
+  const applyBatchTheory = () => {
+    if (!targetTheory || selectedIds.size === 0) return;
+    replaceVocab(vocab.map((i) => {
+      if (!selectedIds.has(i.id)) return i;
+      const cur = i.theories ?? [];
+      const next = theoryBatchAction === 'add'
+        ? (cur.includes(targetTheory) ? cur : [...cur, targetTheory])
+        : cur.filter((t) => t !== targetTheory);
+      return { ...i, theories: next.length ? next : undefined };
+    }));
+    setSelectedIds(new Set());
+    setBatchMode(false);
+    setTargetTheory('');
+  };
+
+  // 流派管理：开始重命名
+  const startTheoryRename = (t: string) => {
+    setTheoryRenameFrom(t);
+    setTheoryRenameValue(t);
+  };
+
+  // 流派管理：确认重命名（把词库中所有该流派引用替换为新名，含单值 theory 与多选 theories）
+  const confirmTheoryRename = () => {
+    const newName = theoryRenameValue.trim();
+    if (!theoryRenameFrom || !newName || newName === theoryRenameFrom) { setTheoryRenameFrom(null); return; }
+    if (theoryUsage.has(newName)) { setTheoryMsg(`已存在同名流派「${newName}」`); return; }
+    const from = theoryRenameFrom;
+    replaceVocab(vocab.map((i) => {
+      const th = i.theory === from ? newName : i.theory;
+      const ths = i.theories?.map((t) => (t === from ? newName : t));
+      return { ...i, theory: th, theories: ths && ths.length ? ths : undefined };
+    }));
+    setTheoryRenameFrom(null);
+    setTheoryMsg(`已重命名「${from}」→「${newName}」`);
+  };
+
+  // 流派管理：删除流派（从所有词条移除该流派引用，含单值 theory 与多选 theories）
+  const removeTheory = (t: string) => {
+    if (!confirm(`确定删除流派「${t}」？\n\n将从所有词条中移除该流派（${theoryUsage.get(t) ?? 0} 处引用）。`)) return;
+    replaceVocab(vocab.map((i) => {
+      const th = i.theory === t ? undefined : i.theory;
+      const ths = i.theories?.filter((x) => x !== t);
+      return { ...i, theory: th, theories: ths && ths.length ? ths : undefined };
+    }));
+    setTheoryMsg(`已删除流派「${t}」`);
+  };
+
   // 单元重命名
   const startRename = (u: string) => {
     setRenamingUnit(u);
@@ -206,6 +319,11 @@ export default function VocabManager() {
           <span className="spacer" />
           <button className="primary" onClick={startCreate}>+ 单加一个词</button>
         </div>
+        {vocabDirty && (
+          <p style={{ fontSize: '0.85rem', marginTop: '0.3rem', color: 'var(--warn, #d97706)' }}>
+            ⚠ 有未发布到云端的本地修改（含理论流派归类等）。到「批量导入」页点「发布新版本」才会同步给学生。
+          </p>
+        )}
         <p className="muted" style={{ marginTop: '0.4rem', fontSize: '0.85rem' }}>
           浏览、新增、编辑、删除词条；修改后到「批量导入」页点「发布」同步给学生。
         </p>
@@ -257,17 +375,38 @@ export default function VocabManager() {
             <span className="muted" style={{ fontSize: '0.8rem' }}>释义</span>
             <input value={draft.definition} onChange={(e) => setDraft({ ...draft, definition: e.target.value })} />
           </label>
-          {draft.type === 'scholar' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem', marginTop: '0.6rem' }}>
-              <label>
-                <span className="muted" style={{ fontSize: '0.8rem' }}>理论流派</span>
-                <input value={draft.theory} onChange={(e) => setDraft({ ...draft, theory: e.target.value })} />
-              </label>
-              <label>
-                <span className="muted" style={{ fontSize: '0.8rem' }}>备注</span>
-                <input value={draft.notes} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
-              </label>
+          <div style={{ marginTop: '0.6rem' }}>
+            <span className="muted" style={{ fontSize: '0.8rem' }}>理论流派（可多选，从候选点选或输入新建）</span>
+            <div className="tag-filter" style={{ marginTop: '0.3rem' }}>
+              {theoryCandidates.map((t) => (
+                <button
+                  key={t}
+                  className={draft.theories.includes(t) ? 'active' : ''}
+                  onClick={() => toggleTheory(t)}
+                  title={t}
+                  style={{ maxWidth: '16rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                >{t}</button>
+              ))}
+              {theoryCandidates.length === 0 && <span className="muted" style={{ fontSize: '0.8rem' }}>暂无流派，可在下方输入新建</span>}
             </div>
+            <div className="row" style={{ marginTop: '0.3rem', gap: '0.4rem', alignItems: 'center' }}>
+              <input
+                type="text"
+                placeholder="新建流派名（如 Neo-Marxism）"
+                value={newTheory}
+                onChange={(e) => setNewTheory(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addNewTheory(); } }}
+                style={{ flex: 1, maxWidth: '18rem' }}
+              />
+              <button className="primary" disabled={!newTheory.trim()} onClick={addNewTheory}>+ 添加</button>
+              {draft.theories.length > 0 && <span className="muted" style={{ fontSize: '0.8rem' }}>已选 {draft.theories.length} 个</span>}
+            </div>
+          </div>
+          {draft.type === 'scholar' && (
+            <label style={{ display: 'block', marginTop: '0.6rem' }}>
+              <span className="muted" style={{ fontSize: '0.8rem' }}>备注</span>
+              <input value={draft.notes} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
+            </label>
           )}
           <div style={{ marginTop: '0.6rem' }}>
             <span className="muted" style={{ fontSize: '0.8rem' }}>单元（可多选）</span>
@@ -377,6 +516,75 @@ export default function VocabManager() {
         )}
       </div>
 
+      {/* 流派管理 */}
+      <div className="card" style={{ marginBottom: '0.8rem' }}>
+        <button
+          className="collapse-head"
+          onClick={() => setTheoryMgmtOpen(!theoryMgmtOpen)}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left', width: '100%' }}
+        >
+          <span style={{ fontWeight: 600 }}>流派管理</span>
+          <span className="muted" style={{ marginLeft: '0.4rem' }}>{theoryMgmtOpen ? '▾ 收起' : '▸ 展开'}</span>
+        </button>
+        {theoryMgmtOpen && (
+          <div style={{ marginTop: '0.6rem' }}>
+            <p className="muted" style={{ fontSize: '0.85rem' }}>
+              按流派筛选词条：点选流派后下方表格只显示属于该流派的词条，可配合「批量编辑」迁移/合并。重命名、删除理论流派（学者单值 theory 与多选 theories 一并生效）；编辑词条后残留的旧流派会从下方自动消失。修改后到「批量导入」页点「发布」同步给学生。
+            </p>
+            {theoryCandidates.length > 0 && (
+              <div className="tag-filter" style={{ marginTop: '0.4rem' }}>
+                <button className={theoryFilter === 'all' ? 'active' : ''} onClick={() => setTheoryFilter('all')}>全部流派</button>
+                {theoryCandidates.map((t) => (
+                  <button
+                    key={t}
+                    className={theoryFilter === t ? 'active' : ''}
+                    onClick={() => setTheoryFilter(t)}
+                    title={t}
+                    style={{ maxWidth: '14rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            )}
+            {theoryMsg && (
+              <div className="card" style={{ marginTop: '0.5rem', padding: '0.5rem 0.7rem', background: 'var(--accent-bg)', borderColor: 'var(--accent)' }}>
+                {theoryMsg}
+              </div>
+            )}
+            <div style={{ marginTop: '0.6rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+              {theoryCandidates.map((t) => (
+                theoryRenameFrom === t ? (
+                  <div key={t} className="row" style={{ alignItems: 'center', gap: '0.4rem' }}>
+                    <input
+                      type="text"
+                      value={theoryRenameValue}
+                      onChange={(e) => setTheoryRenameValue(e.target.value)}
+                      style={{ flex: 1, maxWidth: '18rem' }}
+                      autoFocus
+                    />
+                    <button className="primary" onClick={confirmTheoryRename}>保存</button>
+                    <button onClick={() => setTheoryRenameFrom(null)}>取消</button>
+                  </div>
+                ) : (
+                  <div key={t} className="row" style={{ alignItems: 'center', gap: '0.4rem' }}>
+                    <span className="badge" style={{ maxWidth: '26rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={t}>{t}</span>
+                    <span className="muted" style={{ fontSize: '0.8rem' }}>×{theoryUsage.get(t) ?? 0}</span>
+                    <span className="spacer" />
+                    <button onClick={() => startTheoryRename(t)}>重命名</button>
+                    <button className="danger" onClick={() => removeTheory(t)}>删除</button>
+                  </div>
+                )
+              ))}
+              {theoryCandidates.length === 0 && <p className="muted" style={{ fontSize: '0.85rem' }}>暂无流派</p>}
+            </div>
+            <p className="muted" style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>
+              提示：新流派在编辑单个词条时的「理论流派」输入框里创建并关联到词条后，才会出现在此列表。
+            </p>
+          </div>
+        )}
+      </div>
+
       <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
         <div style={{ padding: '0.6rem 0.8rem', display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
           <input
@@ -390,22 +598,40 @@ export default function VocabManager() {
           {batchMode ? (
             <button onClick={() => { setBatchMode(false); setSelectedIds(new Set()); }}>退出多选</button>
           ) : (
-            <button onClick={() => setBatchMode(true)}>批量迁移单元</button>
+            <button onClick={() => setBatchMode(true)}>批量编辑单元/流派</button>
           )}
         </div>
         {batchMode && (
           <div style={{ padding: '0.6rem 0.8rem', borderTop: '1px solid var(--border)', background: 'var(--accent-bg)' }}>
             <div className="row" style={{ alignItems: 'center', gap: '0.6rem' }}>
               <span style={{ fontWeight: 600 }}>已选 {selectedIds.size} 条</span>
+            </div>
+            <div className="row" style={{ alignItems: 'center', gap: '0.6rem', marginTop: '0.4rem' }}>
+              <span className="muted" style={{ fontSize: '0.85rem', width: '3.5rem' }}>迁移单元</span>
               <select value={targetUnit} onChange={(e) => setTargetUnit(e.target.value)} style={{ maxWidth: '16rem' }}>
                 <option value="">迁移到单元…</option>
                 {allUnits.map((u) => <option key={u} value={u}>{u}</option>)}
               </select>
-              <button className="primary" disabled={selectedIds.size === 0 || !targetUnit} onClick={applyBatchMove}>应用到所选</button>
-              <button onClick={() => { setBatchMode(false); setSelectedIds(new Set()); }}>取消</button>
+              <button className="primary" disabled={selectedIds.size === 0 || !targetUnit} onClick={applyBatchMove}>应用</button>
+            </div>
+            <div className="row" style={{ alignItems: 'center', gap: '0.6rem', marginTop: '0.4rem' }}>
+              <span className="muted" style={{ fontSize: '0.85rem', width: '3.5rem' }}>编辑流派</span>
+              <select
+                value={theoryBatchAction}
+                onChange={(e) => setTheoryBatchAction(e.target.value as 'add' | 'remove')}
+                style={{ maxWidth: '7rem' }}
+              >
+                <option value="add">追加</option>
+                <option value="remove">移除</option>
+              </select>
+              <select value={targetTheory} onChange={(e) => setTargetTheory(e.target.value)} style={{ maxWidth: '16rem' }}>
+                <option value="">选择流派…</option>
+                {theoryCandidates.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <button className="primary" disabled={selectedIds.size === 0 || !targetTheory} onClick={applyBatchTheory}>应用</button>
             </div>
             <p className="muted" style={{ fontSize: '0.8rem', marginTop: '0.3rem' }}>
-              迁移会把所选词条的单元整体替换为目标单元（多选模式下暂不支持编辑/删除单个词条）。
+              迁移单元会把所选词条单元替换为目标单元；编辑流派可对所选词条批量「追加」或「移除」某流派（多选模式下暂不支持编辑/删除单个词条）。
             </p>
           </div>
         )}
@@ -429,6 +655,7 @@ export default function VocabManager() {
                 <th>中文</th>
                 <th>考卷</th>
                 <th>单元</th>
+                <th>理论流派</th>
                 <th>可接受答案</th>
                 <th>操作</th>
               </tr>
@@ -450,6 +677,16 @@ export default function VocabManager() {
                   <td className="muted">{i.chinese || '—'}</td>
                   <td>{i.paper}</td>
                   <td className="muted" style={{ fontSize: '0.8rem' }}>{(i.unit ?? []).join('、') || '—'}</td>
+                  <td className="muted" style={{ fontSize: '0.8rem' }}>
+                    <span
+                      title={(i.theories && i.theories.length > 0 ? i.theories.join('、') : i.theory) || '待归类'}
+                      style={{ display: 'inline-block', maxWidth: '14rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'bottom' }}
+                    >
+                      {(i.theories && i.theories.length > 0 ? i.theories.join('、') : i.theory) || (
+                        <span style={{ color: 'var(--warn, #d97706)' }}>待归类</span>
+                      )}
+                    </span>
+                  </td>
                   <td className="muted" style={{ fontSize: '0.8rem' }}>{i.aliases ? i.aliases.filter((a) => a !== i.term).join('、') || '—' : '—'}</td>
                   <td>
                     {batchMode ? (

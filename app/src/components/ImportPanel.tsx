@@ -4,7 +4,7 @@ import { publishVocab } from '../lib/cloud';
 import type { ImportResult } from '../lib/types';
 
 export default function ImportPanel() {
-  const { vocab, importFiles, appendVocab, replaceVocab, clearAll, surnameOverrides, setSurnameOverride, removeSurnameOverride, unitOrder } = useStore();
+  const { vocab, importFiles, appendVocab, replaceVocab, clearAll, surnameOverrides, setSurnameOverride, removeSurnameOverride, unitOrder, vocabDirty, clearVocabDirty } = useStore();
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [error, setError] = useState('');
@@ -17,11 +17,15 @@ export default function ImportPanel() {
 
   const handlePublish = async () => {
     if (vocab.length === 0) return;
+    // 防误点：发布会把当前词库（含未完成编辑）整包上云，学生端立即同步，先确认
+    const dirtyNote = vocabDirty ? '\n\n（检测到本地有尚未发布过的修改，发布后学生端将同步到这些内容）' : '';
+    if (!confirm(`确定发布词库到云端？\n\n将把当前 ${vocab.length} 条词条发布为新版本，学生端启动/回首页时会自动同步到该版本。${dirtyNote}\n\n发布后如发现需要调整，可再次编辑并发布新版本。`)) return;
     setPublishing(true);
     setPublishMsg('');
     try {
       const v = await publishVocab(vocab, undefined, unitOrder);
       setPublishMsg(`已发布 v${v}（${vocab.length} 条词条）`);
+      clearVocabDirty();
     } catch (e) {
       setPublishMsg(`发布失败：${(e as Error).message}`);
     } finally {
@@ -93,6 +97,11 @@ export default function ImportPanel() {
         <p className="muted" style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>
           把当前词库（{vocab.length} 条）发布到云端，学生端启动/回首页时自动同步到最新版本。
         </p>
+        {vocabDirty && (
+          <p style={{ fontSize: '0.85rem', marginTop: '0.3rem', color: 'var(--warn, #d97706)' }}>
+            ⚠ 检测到本地有尚未发布过的修改（如理论流派归类等）。这些修改仅保存在本机，学生端暂未同步；发布后才会生效。
+          </p>
+        )}
         <div className="row" style={{ marginTop: '0.6rem' }}>
           <button className="primary" disabled={publishing || vocab.length === 0} onClick={handlePublish}>
             {publishing ? '发布中…' : '发布新版本'}

@@ -22,9 +22,45 @@ interface Draft {
   manualIds: string[];    // 手动勾选的词条 id
   openAt: string;         // 统一开考时间（'' = 随时可进）
   dueAt: string;          // 作业截止时间
+  allowLate: boolean;     // 作业：允许迟交（迟交按罚分规则扣分）
+  lateEnabled: boolean;   // 迟交罚分是否启用
+  latePercents: string;   // 每迟一天追加的百分比（逗号分隔，如 "10,20,30,40"）
 }
 
 const ALL_TYPES: QuizQuestionType[] = ['spelling', 'choice', 'matching'];
+
+// 教师默认评分规则（localStorage）：创建作业时快照进 quizzes.grading_rules
+const GRADING_RULES_KEY = 'socio_vocab_grading_rules';
+const DEFAULT_LATE_PERCENTS = '10,20,30,40';
+
+// 解析逗号分隔的百分比字符串 → 数字数组（非法值过滤；空则返回空数组）
+function parsePercents(s: string): number[] {
+  return s
+    .split(/[,，]/)
+    .map((x) => parseInt(x.trim(), 10))
+    .filter((n) => Number.isFinite(n) && n >= 0);
+}
+
+// 构建 grading_rules 对象（供创建/更新时快照）
+function buildGradingRules(lateEnabled: boolean, percentsStr: string) {
+  return {
+    late_penalty: {
+      enabled: lateEnabled,
+      daily_percents: parsePercents(percentsStr),
+    },
+  };
+}
+
+function loadDefaultPercents(): string {
+  try {
+    return localStorage.getItem(GRADING_RULES_KEY) ?? DEFAULT_LATE_PERCENTS;
+  } catch {
+    return DEFAULT_LATE_PERCENTS;
+  }
+}
+function saveDefaultPercents(s: string): void {
+  try { localStorage.setItem(GRADING_RULES_KEY, s); } catch { /* ignore */ }
+}
 
 // 暂存草稿（localStorage）：保存教师未完成填写的表单，可稍后恢复继续编辑
 const DRAFT_KEY = 'socio_vocab_quiz_draft';
@@ -50,6 +86,9 @@ function toDraft(q: Quiz): Draft {
     manualIds: q.selection_mode === 'manual' ? [...new Set(q.questions.map((x) => x.itemId))] : [],
     openAt: q.open_at ? toLocalInput(q.open_at) : '',
     dueAt: q.due_at ? toLocalInput(q.due_at) : '',
+    allowLate: q.allow_late ?? false,
+    lateEnabled: (q.grading_rules as { late_penalty?: { enabled?: boolean } } | null)?.late_penalty?.enabled ?? true,
+    latePercents: ((q.grading_rules as { late_penalty?: { daily_percents?: number[] } } | null)?.late_penalty?.daily_percents ?? [10, 20, 30, 40]).join(','),
   };
 }
 
@@ -146,6 +185,9 @@ export default function QuizManager() {
       manualIds: [],
       openAt: '',
       dueAt: '',
+      allowLate: false,
+      lateEnabled: true,
+      latePercents: loadDefaultPercents(),
     });
     setEditingId(null);
     setMsg('');
@@ -252,7 +294,11 @@ export default function QuizManager() {
       open_at: draft.openAt ? new Date(draft.openAt).toISOString() : null,
       due_at: draft.dueAt ? new Date(draft.dueAt).toISOString() : null,
       allow_resume: draft.kind === 'homework',
+      allow_late: draft.kind === 'homework' && draft.allowLate,
+      // 评分规则快照：仅作业携带（测验无罚分）；创建时同时记忆教师默认规则
+      grading_rules: draft.kind === 'homework' ? buildGradingRules(draft.lateEnabled, draft.latePercents) : null,
     };
+    if (draft.kind === 'homework') saveDefaultPercents(draft.latePercents);
     try {
       if (editingId) {
         await updateQuiz(editingId, payload);
@@ -340,7 +386,14 @@ export default function QuizManager() {
                   <tr key={s.id}>
                     <td>{s.name || '—'}</td>
                     <td className="muted">{s.email ? maskEmail(s.email) : '—'}</td>
-                    <td>{s.score} / {viewing.question_count}</td>
+                    <td>
+                      {s.score} / {viewing.question_count}
+                      {s.grading?.penalty != null && s.grading.penalty > 0 && (
+                        <span className="muted" style={{ fontSize: '0.75rem', marginLeft: '0.3rem' }} title={`迟交 ${s.grading.late_days ?? 1} 天罚 ${s.grading.penalty} 分`}>
+                          → {s.grading.final_score}
+                        </span>
+                      )}
+                    </td>
                     <td>{s.status === 'submitted' ? '已交卷' : '进行中'}</td>
                     <td>{s.leave_count}</td>
                     <td>{s.leave_seconds}s</td>
@@ -369,6 +422,11 @@ export default function QuizManager() {
               <span className="spacer" />
               <span className="muted" style={{ fontSize: '0.85rem' }}>
                 {detailSubmission.score} / {viewing.question_count} 分
+                {detailSubmission.grading?.penalty != null && detailSubmission.grading.penalty > 0 && (
+                  <span style={{ color: 'var(--warn, #a07a3a)' }}>
+                    {' '}（迟交 {detailSubmission.grading.late_days ?? 1} 天罚 {detailSubmission.grading.penalty} 分，最终 {detailSubmission.grading.final_score}）
+                  </span>
+                )}
               </span>
             </div>
             <div style={{ marginTop: '0.6rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -514,6 +572,56 @@ export default function QuizManager() {
               <input type="datetime-local" value={draft.dueAt} onChange={(e) => setDraft({ ...draft, dueAt: e.target.value })} />
             </label>
           </div>
+
+          {draft.kind === 'homework' && (
+            <div className="card" style={{ marginTop: '0.6rem', padding: '0.6rem 0.8rem' }}>
+              <span className="muted" style={{ fontSize: '0.8rem' }}>迟交与评分规则（仅作业）</span>
+              <div style={{ marginTop: '0.4rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                <label className="row" style={{ alignItems: 'center', gap: '0.4rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={draft.allowLate}
+                    onChange={(e) => setDraft({ ...draft, allowLate: e.target.checked })}
+                    style={{ margin: 0, width: '1rem', height: '1rem' }}
+                  />
+                  <span style={{ fontSize: '0.85rem' }}>
+                    允许迟交（过了截止仍可交卷，按迟交天数累积百分比罚分；测验不支持）
+                  </span>
+                </label>
+                <label className="row" style={{ alignItems: 'center', gap: '0.4rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={draft.lateEnabled}
+                    onChange={(e) => setDraft({ ...draft, lateEnabled: e.target.checked })}
+                    style={{ margin: 0, width: '1rem', height: '1rem' }}
+                  />
+                  <span style={{ fontSize: '0.85rem' }}>启用迟交罚分</span>
+                </label>
+                <div className="row" style={{ alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <span className="muted" style={{ fontSize: '0.8rem' }}>
+                    每迟一天追加的百分比
+                  </span>
+                  <input
+                    type="text"
+                    value={draft.latePercents}
+                    onChange={(e) => setDraft({ ...draft, latePercents: e.target.value })}
+                    placeholder={DEFAULT_LATE_PERCENTS}
+                    style={{ maxWidth: '14rem' }}
+                  />
+                  <button
+                    type="button"
+                    className="ghost"
+                    onClick={() => setDraft({ ...draft, latePercents: DEFAULT_LATE_PERCENTS })}
+                  >
+                    恢复默认
+                  </button>
+                </div>
+                <p className="muted" style={{ fontSize: '0.75rem' }}>
+                  逗号分隔：第 1 天追加第 1 个数、第 2 天追加第 2 个……依此类推；超出部分沿用最后一个数；累积封顶 100%。
+                </p>
+              </div>
+            </div>
+          )}
 
           <div style={{ marginTop: '0.6rem' }}>
             <span className="muted" style={{ fontSize: '0.8rem' }}>题型（均匀随机分配）</span>
