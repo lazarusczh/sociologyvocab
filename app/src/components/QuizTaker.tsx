@@ -186,6 +186,18 @@ export default function QuizTaker() {
   // 切屏/失焦记录
   useEffect(() => {
     if (phase !== 'taking') return;
+    // 结算一次离开：不足 1 秒的瞬时失焦（如移动端软键盘收起触发的 window.blur）视为误报，撤销本次计数
+    const settleLeave = () => {
+      if (leftAtRef.current === null) return;
+      const dur = Math.floor((Date.now() - leftAtRef.current) / 1000);
+      leftAtRef.current = null;
+      if (dur <= 0) {
+        leaveCountRef.current = Math.max(0, leaveCountRef.current - 1);
+        setLeaveCount(leaveCountRef.current);
+      } else {
+        leaveSecondsRef.current += dur;
+      }
+    };
     const onHide = () => {
       if (document.hidden || !document.hasFocus()) {
         if (leftAtRef.current === null) {
@@ -193,10 +205,8 @@ export default function QuizTaker() {
           leaveCountRef.current += 1;
           setLeaveCount(leaveCountRef.current);
         }
-      } else if (leftAtRef.current !== null) {
-        const dur = Math.floor((Date.now() - leftAtRef.current) / 1000);
-        leftAtRef.current = null;
-        if (dur > 0) leaveSecondsRef.current += dur;
+      } else {
+        settleLeave();
       }
     };
     const onBlur = () => {
@@ -207,11 +217,7 @@ export default function QuizTaker() {
       }
     };
     const onFocus = () => {
-      if (leftAtRef.current !== null) {
-        const dur = Math.floor((Date.now() - leftAtRef.current) / 1000);
-        leftAtRef.current = null;
-        if (dur > 0) leaveSecondsRef.current += dur;
-      }
+      settleLeave();
     };
     document.addEventListener('visibilitychange', onHide);
     window.addEventListener('blur', onBlur);
@@ -503,7 +509,11 @@ export default function QuizTaker() {
         <div className="muted" style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
           <span>{TYPE_LABELS[q.type]}</span>
           {q.type !== 'matching' && (
-            <span className={`badge ${q.itemType === 'term' ? 'success' : 'warn'}`}>{q.itemType === 'term' ? '术语' : '学者'}</span>
+            <span className={`badge ${q.itemType === 'term' ? 'success' : 'warn'}`} style={{ fontSize: '0.85rem', height: '1.6rem', lineHeight: '1.6rem', padding: '0 0.7rem' }}>
+              {q.type === 'spelling'
+                ? (q.itemType === 'term' ? '请填写：术语' : '请填写：学者')
+                : (q.itemType === 'term' ? '术语' : '学者')}
+            </span>
           )}
           <span>根据{q.promptLabel}作答</span>
         </div>
@@ -566,19 +576,27 @@ function SpellingAnswer({ q, value, onChange, onNext, isLast, onSubmit }: {
   const commit = () => {
     if (isLast) onSubmit(); else onNext();
   };
+  const isTerm = q.itemType === 'term';
   return (
     <div>
       {q.chinese && <p className="muted" style={{ fontSize: '0.9rem' }}>中文：{q.chinese}</p>}
       <p className="muted" style={{ fontSize: '0.9rem' }}>释义提示：{q.definition}</p>
-      <div className="row" style={{ marginTop: '0.8rem', gap: '0.5rem' }}>
+      {/* 常驻类型标签：placeholder 会被输入内容覆盖，此标签不消失；颜色与题面 badge 同通道 */}
+      <div className="row tight" style={{ marginTop: '0.7rem', gap: '0.4rem', alignItems: 'center' }}>
+        <span className={`badge ${isTerm ? 'success' : 'warn'}`} style={{ height: '1.5rem', lineHeight: '1.5rem' }}>
+          {isTerm ? '术语' : '学者'}
+        </span>
+        <span className="muted" style={{ fontSize: '0.8rem' }}>请填写{isTerm ? '英文术语' : '学者姓名'}</span>
+      </div>
+      <div className="row" style={{ marginTop: '0.5rem', gap: '0.5rem' }}>
         <input
           ref={inputRef}
           value={input}
           onChange={(e) => handleChange(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') commit(); }}
-          placeholder="输入英文术语…"
+          placeholder={isTerm ? '输入英文术语…' : '输入学者姓名…'}
           autoComplete="off"
-          style={{ flex: 1 }}
+          style={{ flex: 1, borderColor: isTerm ? 'var(--c-success)' : 'var(--c-warning)' }}
         />
         <button className="primary" onClick={commit}>{isLast ? '交卷' : '下一题 →'}</button>
       </div>

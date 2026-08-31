@@ -5,6 +5,10 @@
          var(--accent) 等替换为 var(--c-primary) 等，删掉别名。
    ============================================================= */
 :root {
+  /* 声明同时支持浅/深色：浏览器（含小米 Chromium 内核）不再强制反色，
+     系统深色时改用下方自研深色 token（见文件末尾深色模式块） */
+  color-scheme: light dark;
+
   /* ===== 主色 Primary（钴蓝）===== */
   --c-primary:        #0064E0;
   --c-primary-deep:   #0457CB;
@@ -1072,4 +1076,70 @@ textarea { resize: vertical; min-height: 80px; }
 @media (max-width: 400px) {
   .week-strip__dot { width: 26px; height: 26px; font-size: 12px; }
   .week-strip { gap: 2px; }
+}
+
+/* =============================================================
+   深色模式（跟随系统，2026-08-31 试行版）
+   配合顶部 :root 的 color-scheme: light dark 声明，浏览器（小米
+   Chromium 等）在系统深色时不再强制反色，改用本套自研深色 token。
+   老变量别名（--bg/--surface/--text/--accent…）引用新 token，
+   全部组件自动生效，无需逐个改组件。
+   ============================================================= */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* 主色 Primary（提亮，深底可读） */
+    --c-primary:        #3D8BFD;
+    --c-primary-deep:   #2E77E8;
+    --c-primary-soft:   #5FA3FF;
+    --c-primary-bg:     #16325B;
+
+    /* 语义色 Semantic */
+    --c-success:        #3FBF6B;
+    --c-success-bg:     #0F2E1B;
+    --c-success-ink:    #6FDF9A;
+    --c-warning:        #F5BE3C;
+    --c-warning-bg:     #36290E;
+    --c-warning-ink:    #FFD466;
+    --c-critical:       #F1556F;
+    --c-critical-bg:    #3A121C;
+    --c-critical-ink:   #FF8295;
+
+    /* 中性 Neutral */
+    --c-canvas:         #161C24;
+    --c-page:           #0F141B;
+    --c-surface-soft:   #1E2630;
+    --c-ink-deep:       #F2F5F9;
+    --c-ink:            #E3E8EF;
+    --c-charcoal:       #C2CBD6;
+    --c-steel:          #8B98A8;
+    --c-stone:          #6B7786;
+    --c-hairline:       #39424E;
+    --c-hairline-soft:  #2A323D;
+    --c-track:          #232B35;
+    --c-disabled:       #232B35;
+    --c-disabled-ink:   #6B7786;
+
+    /* 阴影：深色下黑色阴影更暗更柔（浅色的浅灰阴影在深底上几乎不可见） */
+    --e1: 0 1px 2px  rgba(0, 0, 0, .35);
+    --e2: 0 8px 24px rgba(0, 0, 0, .45);
+    --e3: 0 16px 48px rgba(0, 0, 0, .55);
+  }
+
+  /* ---- 硬编码色值适配（组件里没走 token 的部分） ---- */
+
+  /* Wordle 灰格：原 #555 深灰在深底下看不出格子边界，改用中性弱色 */
+  .wordle-cell.absent { background: var(--c-stone); border-color: var(--c-stone); }
+
+  /* 语境题对错底色：原 rgba(绿/红, .08) 在深底下过暗，改用语义色底 */
+  .cloze-opt.correct { background: var(--c-success-bg); }
+  .cloze-opt.wrong   { background: var(--c-critical-bg); }
+
+  /* 周历「今日」圆点：亮黄底上的文字应保持深色（浅色下已是深棕文字） */
+  .week-strip__cell.is-today .week-strip__dot { color: var(--c-warning-bg); }
+
+  /* 表单自动填充：浏览器默认黄底在深色下刺眼，改为卡片底色 */
+  input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px var(--c-canvas) inset;
+    -webkit-text-fill-color: var(--c-ink);
+  }
 }
