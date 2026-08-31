@@ -113,7 +113,7 @@
   --warn:          var(--c-warning);
   --warn-bg:       var(--c-warning-bg);
   --radius:        var(--r-ctrl);
-  --shadow:        var(--e1);
+  --shadow:        0 6px 14px rgba(16, 24, 40, 0.14), 0 3px 6px rgba(16, 24, 40, 0.10);
   --sans:          var(--font-sans);
   --mono:          ui-monospace, 'Cascadia Code', Consolas, monospace;
 
@@ -210,7 +210,8 @@ input:focus, textarea:focus, select:focus {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1.2rem;
-  box-shadow: var(--shadow);
+  /* 悬浮感：向下位移进一步加大，卡片更明显浮于背景 */
+  box-shadow: 0 6px 14px rgba(16, 24, 40, 0.14), 0 3px 6px rgba(16, 24, 40, 0.10);
 }
 
 .muted { color: var(--text-muted); }
@@ -248,6 +249,8 @@ input:focus, textarea:focus, select:focus {
   z-index: 10;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
+  /* 宽屏顶栏轻阴影：内容滚到下方时浮现一点层次，比卡片更克制 */
+  box-shadow: 0 2px 8px rgba(16, 24, 40, 0.08);
   padding: 0.6rem 1rem;
   display: flex;
   align-items: center;
@@ -281,14 +284,22 @@ input:focus, textarea:focus, select:focus {
   flex-direction: column;
   gap: 0.2rem;
   background: var(--surface);
-  border: 1px solid var(--border);
   border-radius: var(--radius);
+  /* 去掉细外边框，靠增强阴影界定浮层边界（普通与用户名下拉统一） */
   box-shadow: var(--shadow);
   padding: 0.35rem;
   min-width: 8rem;
   white-space: nowrap;
 }
-.nav-group-items button { width: 100%; text-align: left; }
+.nav-group-items button {
+  width: 100%;
+  text-align: left;
+  /* 清掉浏览器默认边框/底色，使下拉项之间无界限（与"练习"菜单一致） */
+  background: transparent;
+  border: none;
+  color: var(--c-ink);
+}
+.nav-group-items button:hover { background: var(--c-surface-soft); color: var(--c-ink); }
 
 /* 内容区顶部返回首页按钮（仅网页端、非首页时显示） */
 .back-btn {
@@ -315,13 +326,14 @@ input:focus, textarea:focus, select:focus {
   overflow: hidden;
   text-overflow: ellipsis;
   flex-shrink: 0;
-  background: transparent;
-  border: 1px solid var(--border);
+  /* 去边框，保留同形状底色；中性灰区别于蓝色导航选项卡 */
+  background: var(--c-primary-bg);
+  border: none;
   border-radius: var(--r-ctrl);
-  color: var(--c-ink);
+  color: var(--c-primary);
   cursor: pointer;
 }
-.account-chip:hover { border-color: var(--c-primary); color: var(--c-primary); }
+.account-chip:hover { background: var(--c-primary); color: #FFFFFF; }
 
 /* 汉堡菜单按钮（默认隐藏） */
 .nav-toggle {
@@ -474,7 +486,8 @@ input:focus, textarea:focus, select:focus {
   background: var(--c-canvas);
   border: 1px solid var(--c-hairline-soft);
   border-radius: var(--r-lg);
-  box-shadow: var(--e1);
+  /* 与 .card 一致的悬浮阴影（右侧外层随后被清空，由内部 .goal-card 提供） */
+  box-shadow: 0 6px 14px rgba(16, 24, 40, 0.14), 0 3px 6px rgba(16, 24, 40, 0.10);
   padding: var(--sp-6);
 }
 .dashboard-hero__right { padding: 0; border: none; box-shadow: none; background: transparent; }
@@ -535,6 +548,8 @@ input:focus, textarea:focus, select:focus {
   color: #FFFFFF;
   border-radius: var(--r-lg);
   padding: var(--sp-6);
+  /* 与 .card 一致的悬浮阴影，让蓝卡也浮于背景 */
+  box-shadow: 0 6px 14px rgba(16, 24, 40, 0.14), 0 3px 6px rgba(16, 24, 40, 0.10);
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
@@ -617,7 +632,8 @@ button.goal-card__cta:active {
   background: var(--c-canvas);
   border: 1px solid var(--c-hairline-soft);
   border-radius: var(--r-md);
-  box-shadow: var(--e1);
+  /* 与 .card 一致的悬浮阴影 */
+  box-shadow: 0 6px 14px rgba(16, 24, 40, 0.14), 0 3px 6px rgba(16, 24, 40, 0.10);
   padding: var(--sp-4) var(--sp-5);
 }
 .stats-row__num {
@@ -1123,7 +1139,16 @@ textarea { resize: vertical; min-height: 80px; }
     --e1: 0 1px 2px  rgba(0, 0, 0, .35);
     --e2: 0 8px 24px rgba(0, 0, 0, .45);
     --e3: 0 16px 48px rgba(0, 0, 0, .55);
+    --shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
   }
+
+  /* 卡片悬浮感：深色下黑阴影略增强，强化浮于背景的层次（与浅色强度对等） */
+  .card { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5); }
+  .goal-card { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5); }
+  .dashboard-hero__left { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5); }
+  .stats-row__cell { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5); }
+  .topbar { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); }
+
 
   /* ---- 硬编码色值适配（组件里没走 token 的部分） ---- */
 

@@ -56,15 +56,14 @@ export default function Home({ go }: Props) {
   const dayDone = todayStudy.seconds >= CHECKIN_DAY_GOAL_SECONDS && todayDone >= CHECKIN_DAY_GOAL_QUESTIONS;
   const needMins = Math.max(0, GOAL_MINUTES - todayMins);
 
-  // 今日目标卡片：题数 / 学习时长 每 5s 自动轮播切换
+  // 今日目标卡片：题数 / 学习时长 轮播，每 10s 自动切换；
+  // 把 goalMetric 作为依赖，使「手动点击切换」后也重新计时，避免刚切完又被自动翻回
   const [goalMetric, setGoalMetric] = useState<'questions' | 'time'>('questions');
+  const toggleGoalMetric = () => setGoalMetric((m) => (m === 'questions' ? 'time' : 'questions'));
   useEffect(() => {
-    const id = setInterval(
-      () => setGoalMetric((m) => (m === 'questions' ? 'time' : 'questions')),
-      5000,
-    );
+    const id = setInterval(toggleGoalMetric, 10000);
     return () => clearInterval(id);
-  }, []);
+  }, [goalMetric]);
 
   // 4 项累计统计
   const totalCheckedDays = useMemo(
@@ -148,7 +147,12 @@ export default function Home({ go }: Props) {
               </div>
             </div>
             <div className="dashboard-hero__right">
-              <div className="goal-card">
+              <div
+                className="goal-card"
+                onClick={toggleGoalMetric}
+                title="点击切换 题数 / 时长"
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="goal-card__title">
                   <span>今日目标</span>
                   <span className="goal-card__dots" aria-hidden>
@@ -172,7 +176,10 @@ export default function Home({ go }: Props) {
                 <div className="goal-card__msg">
                   {dayDone ? '今日已达成，继续保持！' : `还差 ${needMins} 分钟、${todayLeft} 题完成打卡`}
                 </div>
-                <button className="primary goal-card__cta" onClick={() => go('choice')}>
+                <button
+                  className="primary goal-card__cta"
+                  onClick={(e) => { e.stopPropagation(); go('choice'); }}
+                >
                   继续今日练习
                 </button>
               </div>

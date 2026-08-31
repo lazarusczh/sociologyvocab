@@ -28,7 +28,6 @@ function makeQuestion(item: VocabItem, pool: VocabItem[]): WQuestion {
 
 export default function WrongPractice() {
   const { vocab, wrongBook, recordItem } = useStore();
-  useStudySession();
 
   // 错题本列表：累计答错≥2 且尚未连续答对满 3 次；按错题次数降序
   const wrongItems = useMemo(() => {
@@ -43,6 +42,8 @@ export default function WrongPractice() {
   const [qi, setQi] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
   const [score, setScore] = useState(0);
+  // 开始做题后才计时（筛选/准备阶段不计）
+  useStudySession(quiz.length > 0);
 
   const start = useCallback(() => {
     const chosen = sample(wrongItems, Math.min(ROUND, wrongItems.length));

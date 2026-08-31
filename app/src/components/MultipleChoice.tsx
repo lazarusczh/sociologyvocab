@@ -54,7 +54,6 @@ function buildQuestion(item: VocabItem, pool: VocabItem[]): Question {
 
 export default function MultipleChoice() {
   const { vocab, recordItem, papers, categories } = useStore();
-  useStudySession();
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
   const [unit, setUnit] = useState('all');
@@ -63,6 +62,8 @@ export default function MultipleChoice() {
   const [qi, setQi] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
   const [score, setScore] = useState(0);
+  // 开始做题后才计时（筛选/准备阶段不计）
+  useStudySession(questions.length > 0);
 
   const onPaperChange = (p: string) => {
     setPaper(p);

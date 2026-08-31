@@ -587,13 +587,15 @@ export function useStore(): StoreValue {
   return ctx;
 }
 
-// 用于正式练习组件的学习计时：挂载开始计时，卸载停止
-export function useStudySession(): void {
+// 用于正式练习组件的学习计时：开始做题（active=true）计时，停止/卸载结束。
+// 练习组件在「筛选/准备」阶段（active=false）不计数，进入题目后才开始。
+export function useStudySession(active = true): void {
   const { beginStudy, endStudy } = useStore();
   useEffect(() => {
+    if (!active) return;
     beginStudy();
     return () => endStudy();
-  }, [beginStudy, endStudy]);
+  }, [active, beginStudy, endStudy]);
 }
 
 // 练习组件在「完成一组」时调用：finished 由 false→true 的边沿触发一次打卡庆祝检查

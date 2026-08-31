@@ -17,7 +17,6 @@ const MAX_CELL = 30;
 
 export default function Crossword() {
   const { vocab, recordItem, papers, categories } = useStore();
-  useStudySession();
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
   const [unit, setUnit] = useState('all');
@@ -38,6 +37,8 @@ export default function Crossword() {
   const settledRef = useRef(false);
   // 离开本局前的确认弹窗：null 表示不显示，'back'/'regenerate' 表示待执行的离开动作
   const [confirmLeave, setConfirmLeave] = useState<null | 'back' | 'regenerate'>(null);
+  // 开始做题后才计时（筛选/准备阶段不计）
+  useStudySession(puzzle != null);
 
   // 显示答案（本局结束）时触发一次「打卡成功」达标检查（达标才弹）
   useCelebrateCheckIn(revealed);

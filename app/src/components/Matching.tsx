@@ -9,7 +9,6 @@ const PAIRS = 6;
 
 export default function Matching() {
   const { vocab, recordItem, papers, categories } = useStore();
-  useStudySession();
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
   const [unit, setUnit] = useState('all');
@@ -22,6 +21,8 @@ export default function Matching() {
   const [wrongPair, setWrongPair] = useState<[string, string] | null>(null);
   const [mistakes, setMistakes] = useState(0);
   const timeoutRef = useRef<number | null>(null);
+  // 开始做题后才计时（筛选/准备阶段不计）
+  useStudySession(left.length > 0);
 
   const onPaperChange = (p: string) => {
     setPaper(p);

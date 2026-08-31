@@ -104,7 +104,6 @@ function buildOptions(blank: Blank, category: string, vocab: VocabItem[]): strin
 
 export default function Cloze() {
   const { vocab, recordItem } = useStore();
-  useStudySession();
   const [passages, setPassages] = useState<ClozePassage[]>([]);
   const [paper, setPaper] = useState('all');
   const [mode, setMode] = useState<Mode>('spelling');
@@ -112,6 +111,8 @@ export default function Cloze() {
   const [qi, setQi] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [score, setScore] = useState(0);
+  // 开始做题后才计时（筛选/准备阶段不计）
+  useStudySession(round.length > 0);
 
   // 加载内置语境题库
   useEffect(() => {

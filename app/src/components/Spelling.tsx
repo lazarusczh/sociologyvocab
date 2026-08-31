@@ -9,7 +9,6 @@ const ROUND = 10;
 
 export default function Spelling() {
   const { vocab, recordItem, papers, categories } = useStore();
-  useStudySession();
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
   const [unit, setUnit] = useState('all');
@@ -21,6 +20,8 @@ export default function Spelling() {
   const [correct, setCorrect] = useState<boolean | null>(null);
   const [score, setScore] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  // 开始做题后才计时（筛选/准备阶段不计）
+  useStudySession(round.length > 0);
 
   const onPaperChange = (p: string) => {
     setPaper(p);
