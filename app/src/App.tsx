@@ -148,6 +148,58 @@ function AppBody() {
         </span>
 
         <nav ref={navRef} className={menuOpen ? 'open' : ''}>
+          {/* 窄屏：用户菜单并入汉堡顶部（桌面隐藏，改用右上角 account-chip） */}
+          {(authUser || skipped) && (
+            <div className="nav-account-mobile">
+              <div className="nav-account-mobile__name">
+                {authUser ? (authUser.name || authUser.email) : '离线游客'}
+              </div>
+              {authUser && (
+                <button
+                  className={view === 'profile' ? 'active' : ''}
+                  onClick={() => goto('profile')}
+                  disabled={inQuiz}
+                >
+                  个人中心
+                </button>
+              )}
+              {authUser && isTeacher && (
+                <button
+                  className={view === 'import' ? 'active' : ''}
+                  onClick={() => goto('import')}
+                  disabled={inQuiz}
+                >
+                  教师后台
+                </button>
+              )}
+              {authUser && isDeveloper && (
+                <button
+                  className={view === 'dev' ? 'active' : ''}
+                  onClick={() => goto('dev')}
+                  disabled={inQuiz}
+                >
+                  开发后台
+                </button>
+              )}
+              {!authUser && skipped && (
+                <>
+                  <button
+                    className={view === 'backup' ? 'active' : ''}
+                    onClick={() => goto('backup')}
+                    disabled={inQuiz}
+                  >
+                    本地备份
+                  </button>
+                  <button
+                    onClick={() => { setMenuOpen(false); exitSkip(); }}
+                    disabled={inQuiz}
+                  >
+                    注册 / 登录
+                  </button>
+                </>
+              )}
+            </div>
+          )}
           {/* 一级 pill：单入口直跳，多入口展开二级下拉；语境题仅开发者（且非离线游客）可见 */}
           {NAV_PILLS.map((pill) => {
             const items = (isDeveloper && !skipped)
