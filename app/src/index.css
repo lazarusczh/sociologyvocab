@@ -383,8 +383,16 @@ input:focus, textarea:focus, select:focus {
 .grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
 .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
 .grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+/* 平板 / 窄屏：主仪表盘转单列，统计转 2×2 */
+@media (max-width: 720px) {
+  .dashboard-hero { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+}
+
 @media (max-width: 640px) {
-  .grid.cols-2, .grid.cols-3, .grid.cols-4 { grid-template-columns: 1fr; }
+  .grid.cols-2, .grid.cols-4 { grid-template-columns: 1fr; }
+  /* 练习模式卡：移动端保持 2 列（设计图 2×2 布局），不降为单列 */
+  .grid.cols-3 { grid-template-columns: repeat(2, 1fr); }
   /* 选项行：桌面 64px → 移动 52px，保证单手持握可点（见 ui-refs/10） */
   .option-btn { min-height: var(--h-option-m); padding: var(--sp-3) var(--sp-4); }
 }
@@ -419,10 +427,150 @@ input:focus, textarea:focus, select:focus {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
+  min-height: 116px;
+  padding: var(--sp-5);
 }
-.mode-card:hover { background: var(--accent-bg); border-color: var(--accent); }
+.mode-card:hover { background: var(--c-surface-soft); border-color: var(--c-hairline); }
 .mode-card .icon { font-size: 1.5rem; }
-.mode-card .desc { color: var(--text-muted); font-size: 0.85rem; }
+.mode-card .desc { color: var(--c-steel); font-size: 0.85rem; }
+/* 模式卡元信息（上次成绩 / 待复习数）——Step 5 接入持久化数据 */
+.mode-card__meta { margin-top: auto; font-size: 12px; color: var(--c-stone); }
+
+/* =============================================================
+   首页仪表盘（Step 3，见 ui-refs/07 桌面、09 移动）
+   ============================================================= */
+
+/* 主仪表盘：左「连续学习 + 周历」/ 右「今日目标蓝卡」 */
+.dashboard-hero {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-4);
+}
+.dashboard-hero__left,
+.dashboard-hero__right {
+  background: var(--c-canvas);
+  border: 1px solid var(--c-hairline-soft);
+  border-radius: var(--r-lg);
+  box-shadow: var(--e1);
+  padding: var(--sp-6);
+}
+.dashboard-hero__right { padding: 0; border: none; box-shadow: none; background: transparent; }
+
+/* 连续学习大数字主视觉 */
+.dashboard-streak { display: flex; align-items: baseline; gap: var(--sp-2); }
+.dashboard-streak__num {
+  font-family: var(--font-sans);
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--c-ink-deep);
+  font-variant-numeric: tabular-nums;
+}
+.dashboard-streak__unit { font-size: 20px; font-weight: 600; color: var(--c-charcoal); }
+.dashboard-streak__fire { font-size: 26px; }
+.dashboard-streak__sub { margin-top: var(--sp-1); font-size: 13px; color: var(--c-steel); }
+
+/* 本周打卡周历（新增：现网无此可视化） */
+.week-strip {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--sp-1);
+  margin-top: var(--sp-6);
+}
+.week-strip__cell { display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); }
+.week-strip__dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--c-hairline);
+  background: var(--c-canvas);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-surface-soft);
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.week-strip__cell.is-checked .week-strip__dot {
+  background: var(--c-primary);
+  border-color: var(--c-primary);
+  color: #FFFFFF;
+}
+/* 今日：无论是否已打卡都高亮（设计图用警示色标今日） */
+.week-strip__cell.is-today .week-strip__dot {
+  background: var(--c-warning);
+  border-color: var(--c-warning);
+  color: var(--c-warning-ink);
+}
+.week-strip__label { font-size: 12px; color: var(--c-steel); }
+
+/* 今日目标蓝卡（高对比激励层） */
+.goal-card {
+  height: 100%;
+  background: var(--c-primary);
+  color: #FFFFFF;
+  border-radius: var(--r-lg);
+  padding: var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.goal-card__title { font-size: 13px; opacity: .9; }
+.goal-card__num {
+  font-family: var(--font-sans);
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.goal-card__sep { font-size: 20px; opacity: .75; }
+.goal-card__bar {
+  height: 8px;
+  background: rgba(255, 255, 255, .3);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+}
+.goal-card__bar-fill {
+  height: 100%;
+  background: #FFFFFF;
+  border-radius: var(--r-pill);
+  transition: width var(--dur-slow) var(--ease);
+}
+.goal-card__msg { font-size: 13px; opacity: .95; }
+.goal-card__cta {
+  margin-top: auto;
+  background: #FFFFFF;
+  border-color: #FFFFFF;
+  color: var(--c-primary);
+}
+.goal-card__cta:hover { background: var(--c-surface-soft); border-color: var(--c-surface-soft); color: var(--c-primary-deep); }
+
+/* 4 项累计统计 */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+}
+.stats-row__cell {
+  background: var(--c-canvas);
+  border: 1px solid var(--c-hairline-soft);
+  border-radius: var(--r-md);
+  box-shadow: var(--e1);
+  padding: var(--sp-4) var(--sp-5);
+}
+.stats-row__num {
+  font-family: var(--font-sans);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--c-ink-deep);
+  font-variant-numeric: tabular-nums;
+}
+.stats-row__unit { font-size: 14px; font-weight: 600; color: var(--c-stone); }
+.stats-row__label { margin-top: var(--sp-1); font-size: 12px; color: var(--c-steel); }
 
 /* 闪卡（3D 翻转） */
 .flashcard {
