@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useStore } from '../lib/store';
 import {
   isDayChecked, weeklyStats, canEarnMakeup, missedDaysInWeek, parseKey,
-  weekStartKey, addDays, dateKeyOf, MAKEUP_WEEK_QUESTIONS,
+  weekStartKey, addDays, dateKeyOf, MAKEUP_WEEK_QUESTIONS, MAKEUP_WEEK_ACCURACY,
 } from '../lib/checkin';
 
 const WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
@@ -63,10 +63,10 @@ export default function StreakCard() {
         ) : (
           <p className="muted" style={{ fontSize: '0.85rem', margin: 0 }}>
             {missed.length > 0
-              ? `补签标准：满 ${MAKEUP_WEEK_QUESTIONS} 题 · 正确率 ≥80%（当前 ${weekly.questions} 题 · ${Math.round(accuracy * 100)}%）`
+              ? `补签标准：满 ${MAKEUP_WEEK_QUESTIONS} 题 · 正确率 ≥${Math.round(MAKEUP_WEEK_ACCURACY * 100)}%（当前 ${weekly.questions} 题 · ${Math.round(accuracy * 100)}%）`
               : canMakeup
                 ? '本周已达标，但无漏签日可补签。'
-                : `补签机会：本周满 ${MAKEUP_WEEK_QUESTIONS} 题 · 正确率 ≥80% 即获得（每周 1 次）。`}
+                : `补签机会：本周满 ${MAKEUP_WEEK_QUESTIONS} 题 · 正确率 ≥${Math.round(MAKEUP_WEEK_ACCURACY * 100)}% 即获得（每周 1 次）。`}
           </p>
         )}
         {msg && <p style={{ marginTop: '0.4rem', fontSize: '0.85rem', color: 'var(--accent)' }}>{msg}</p>}
