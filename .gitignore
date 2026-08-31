@@ -31,7 +31,11 @@ app/public/social-data.json
 reset-tool/
 teacher-private-key.json
 
-# 教师课件与素材（PPT 打印版 PDF、提取文本等，属教师知识产权，不纳入公开备份）
+# 教师参考资料（2026-08-31 起集中存放于 Materials/，含 PPT 打印版、9699 范文、作业 docx、
+# Name sheet / 词汇表 xlsx 等全部教学素材与知识产权，不纳入公开备份）
+Materials/
+
+# 教师课件与素材（旧散落路径与提取文本目录，仍属教师知识产权，不纳入公开备份）
 A1 Paper*.pdf
 A2 Paper*.pdf
 pdf-text/
@@ -70,3 +74,13 @@ UI设计.md
 # 语境填空题目池与提取文本（含全部答案，教师教学 IP，不纳入公开备份）
 语境填空题目池.md
 cloze-extract.txt
+
+# 语境题语料（高分答卷/范文整理，教师教学 IP，不纳入公开备份）
+语境语料.md
+
+# 语境题内置题库（由题目池生成，含答案，教师教学 IP，不纳入公开备份）
+app/public/cloze-data.json
+
+# 语境题中间源数据与试验草稿（答卷源数据/挖空试验记录，教师教学 IP，不纳入公开备份）
+cloze-p4.json
+挖空试验.md

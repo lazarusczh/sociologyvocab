@@ -15,7 +15,7 @@ export interface VocabItem {
 }
 
 // 正式练习模式（用于区分掌握度增减权重）
-export type PracticeMode = 'choice' | 'spelling' | 'matching' | 'crossword';
+export type PracticeMode = 'choice' | 'spelling' | 'matching' | 'crossword' | 'cloze';
 
 // 导入结果
 export interface ImportResult {

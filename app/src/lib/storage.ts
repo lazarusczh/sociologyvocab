@@ -23,6 +23,7 @@ const MASTERY_WEIGHTS: Record<PracticeMode, { gain: number; loss: number }> = {
   matching: { gain: 8, loss: 16 },
   crossword: { gain: 10, loss: 20 },
   spelling: { gain: 12, loss: 24 },
+  cloze: { gain: 10, loss: 20 }, // 语境题有语境线索，难度介于拼写与配对之间
 };
 
 // 依据答对/答错动态调整掌握度（0-100 区间）

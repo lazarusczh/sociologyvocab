@@ -21,12 +21,14 @@ import VersionCheck from './components/VersionCheck';
 import ProfilePanel from './components/ProfilePanel';
 import DevPanel from './components/DevPanel';
 import QuizTaker from './components/QuizTaker';
+import Cloze from './components/Cloze';
 
 export type View =
   | 'home'
   | 'dictionary'
   | 'import'
   | 'quiz'
+  | 'cloze'
   | 'flashcards'
   | 'choice'
   | 'spelling'
@@ -53,6 +55,7 @@ const NAV_TOP: NavItem[] = [
 const NAV_GROUPS: NavGroup[] = [
   { group: '练习', items: [
     { key: 'choice', label: '选择题' },
+    { key: 'cloze', label: '语境' },
     { key: 'spelling', label: '拼写' },
     { key: 'matching', label: '匹配' },
   ]},
@@ -148,8 +151,8 @@ function AppBody() {
             </button>
           ))}
 
-          {/* 分组：练习 / 趣味（手风琴展开） */}
-          {NAV_GROUPS.map((g) => {
+          {/* 分组：练习 / 趣味（手风琴展开）；语境题仅对开发者（且非离线游客）可见 */}
+          {(isDeveloper && !skipped ? NAV_GROUPS : NAV_GROUPS.map((g) => ({ ...g, items: g.items.filter((i) => i.key !== 'cloze') }))).map((g) => {
             const expanded = expandedGroup === g.group;
             const groupActive = g.items.some((i) => view === i.key);
             return (
@@ -284,6 +287,7 @@ function AppBody() {
         {view === 'backup' && skipped && <BackupPanel />}
         {view === 'flashcards' && <Flashcards />}
         {view === 'choice' && <MultipleChoice />}
+        {view === 'cloze' && isDeveloper && !skipped && <Cloze />}
         {view === 'spelling' && <Spelling />}
         {view === 'matching' && <Matching />}
         {view === 'crossword' && <Crossword />}

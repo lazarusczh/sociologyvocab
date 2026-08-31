@@ -330,6 +330,35 @@ input:focus, textarea:focus, select:focus {
 .flashcard .def { font-size: 1.05rem; margin-top: 0.8rem; max-width: 560px; }
 .flashcard .cn { font-size: 1.2rem; color: var(--accent); margin-top: 0.4rem; }
 
+/* 语境题选词填空：题干挖空框（实心只读框）+ 紧凑选项 */
+.cloze-gap {
+  display: inline-block;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius);
+  min-width: 90px;
+  padding: 0.25rem 0.5rem;
+  text-align: center;
+  margin: 0 0.2rem;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 1rem;
+}
+.cloze-opt {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: var(--radius);
+  padding: 0.4rem 0.8rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.cloze-opt:hover:not(:disabled) { border-color: var(--accent); }
+.cloze-opt.correct { border-color: var(--success, #2f8f2f); color: var(--success, #2f8f2f); background: rgba(47, 143, 47, 0.08); }
+.cloze-opt.wrong { border-color: var(--danger, #c0392b); color: var(--danger, #c0392b); background: rgba(192, 57, 43, 0.08); }
+.cloze-opt:disabled { cursor: default; }
+
 /* 选项按钮 */
 .option-btn {
   width: 100%;
