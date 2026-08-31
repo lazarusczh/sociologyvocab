@@ -51,26 +51,22 @@ export default function StreakCard() {
       </div>
 
       <div style={{ marginTop: '0.7rem', borderTop: '1px solid var(--border)', paddingTop: '0.6rem' }}>
-        {missed.length > 0 ? (
-          canMakeup ? (
-            <div className="row">
-              <span className="muted" style={{ fontSize: '0.85rem' }}>本周达标，可用 1 次补签：</span>
-              <select value={selDay} onChange={(e) => setSelDay(e.target.value)} style={{ maxWidth: 220 }}>
-                <option value="">选择漏签日期</option>
-                {missed.map((k) => <option key={k} value={k}>{fmtDay(k)}</option>)}
-              </select>
-              <button className="primary" onClick={doApply} disabled={!selDay}>补签</button>
-            </div>
-          ) : (
-            <p className="muted" style={{ fontSize: '0.85rem', margin: 0 }}>
-              补签条件：本周练习满 {MAKEUP_WEEK_QUESTIONS} 题且正确率 ≥80%（当前 {weekly.questions} 题 / {Math.round(accuracy * 100)}%）。
-            </p>
-          )
+        {missed.length > 0 && canMakeup ? (
+          <div className="row">
+            <span className="muted" style={{ fontSize: '0.85rem' }}>本周已达标，可补签 1 天：</span>
+            <select value={selDay} onChange={(e) => setSelDay(e.target.value)} style={{ maxWidth: 220 }}>
+              <option value="">选择漏签日期</option>
+              {missed.map((k) => <option key={k} value={k}>{fmtDay(k)}</option>)}
+            </select>
+            <button className="primary" onClick={doApply} disabled={!selDay}>补签</button>
+          </div>
         ) : (
           <p className="muted" style={{ fontSize: '0.85rem', margin: 0 }}>
-            {canMakeup
-              ? '本周无漏签日，暂无需补签。'
-              : '坚持每天练习即可累积连续天数；本周达标后可获得补签机会。'}
+            {missed.length > 0
+              ? `补签标准：满 ${MAKEUP_WEEK_QUESTIONS} 题 · 正确率 ≥80%（当前 ${weekly.questions} 题 · ${Math.round(accuracy * 100)}%）`
+              : canMakeup
+                ? '本周已达标，但无漏签日可补签。'
+                : `补签机会：本周满 ${MAKEUP_WEEK_QUESTIONS} 题 · 正确率 ≥80% 即获得（每周 1 次）。`}
           </p>
         )}
         {msg && <p style={{ marginTop: '0.4rem', fontSize: '0.85rem', color: 'var(--accent)' }}>{msg}</p>}
