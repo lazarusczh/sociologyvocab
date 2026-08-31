@@ -542,6 +542,25 @@ input:focus, textarea:focus, select:focus {
   transition: width var(--dur-slow) var(--ease);
 }
 .goal-card__msg { font-size: 13px; opacity: .95; }
+/* 今日目标双指标（题数 / 学习时长）：宽屏横排，窄屏堆叠 */
+.goal-card__metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin: 0.7rem 0 0.3rem;
+}
+.goal-metric__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13px;
+  opacity: 0.95;
+  margin-bottom: 0.3rem;
+}
+.goal-metric .goal-card__bar { height: 6px; }
+@media (max-width: 520px) {
+  .goal-card__metrics { grid-template-columns: 1fr; gap: 0.6rem; }
+}
 /* 反白主 CTA（压在蓝色 goal-card 上）：白底蓝字
    注意：必须写成 button.goal-card__cta（特异性 0,1,1）。若只写 .goal-card__cta（0,1,0），
    会被更靠前的 button.primary 的「蓝底白字」覆盖 —— 按钮与蓝卡同色、边界消失，

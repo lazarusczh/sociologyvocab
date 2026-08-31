@@ -1,12 +1,11 @@
 import { useMemo, useState } from 'react';
 import { useStore } from '../lib/store';
 import {
-  todayKey, isDayChecked, computeStreak, weeklyStats, canEarnMakeup, missedDaysInWeek, parseKey,
-  CHECKIN_DAY_GOAL_SECONDS, CHECKIN_DAY_GOAL_QUESTIONS, MAKEUP_WEEK_QUESTIONS,
+  isDayChecked, weeklyStats, canEarnMakeup, missedDaysInWeek, parseKey,
+  weekStartKey, addDays, dateKeyOf, MAKEUP_WEEK_QUESTIONS,
 } from '../lib/checkin';
 
 const WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-const GOAL_MINUTES = Math.round(CHECKIN_DAY_GOAL_SECONDS / 60);
 
 function fmtDay(key: string): string {
   const d = parseKey(key);
@@ -18,18 +17,17 @@ export default function StreakCard() {
   const [selDay, setSelDay] = useState('');
   const [msg, setMsg] = useState('');
 
-  const streak = useMemo(() => computeStreak(checkin), [checkin]);
-  const today = todayKey();
-  const dayStats = checkin.study[today] || { seconds: 0, questions: 0, correct: 0 };
-  const checked = isDayChecked(checkin, today);
-  const mins = Math.floor(dayStats.seconds / 60);
   const weekly = useMemo(() => weeklyStats(checkin), [checkin]);
   const accuracy = weekly.questions > 0 ? weekly.correct / weekly.questions : 0;
   const canMakeup = useMemo(() => canEarnMakeup(checkin), [checkin]);
   const missed = useMemo(() => missedDaysInWeek(checkin), [checkin]);
 
-  const needMins = Math.max(0, GOAL_MINUTES - mins);
-  const needQ = Math.max(0, CHECKIN_DAY_GOAL_QUESTIONS - dayStats.questions);
+  const weekKeys = useMemo(() => {
+    const start = parseKey(weekStartKey(new Date()));
+    return Array.from({ length: 7 }, (_, i) => dateKeyOf(addDays(start, i)));
+  }, []);
+  const weeklyCheckedDays = weekKeys.filter((k) => isDayChecked(checkin, k)).length;
+  const weeklyMins = Math.floor(weekKeys.reduce((s, k) => s + (checkin.study[k]?.seconds || 0), 0) / 60);
 
   const doApply = () => {
     if (!selDay) return;
@@ -41,48 +39,18 @@ export default function StreakCard() {
   return (
     <div className="card" style={{ marginBottom: '0.8rem' }}>
       <div className="row" style={{ marginBottom: '0.5rem' }}>
-        <h2 style={{ margin: 0 }}>学习打卡</h2>
+        <h2 style={{ margin: 0 }}>本周目标</h2>
         <span className="spacer" />
-        {checked && <span className="badge success">今日已打卡</span>}
+        <span className="muted" style={{ fontSize: '0.85rem' }}>{weeklyCheckedDays}/7 天打卡</span>
       </div>
 
       <div className="grid cols-3">
-        <div className="stat"><span className="num">🔥 {streak}</span><span className="label">连续天数</span></div>
-        <div className="stat"><span className="num">{checkin.bestStreak}</span><span className="label">最长纪录（天）</span></div>
-        <div className="stat"><span className="num">{mins}</span><span className="label">今日已学（分钟）</span></div>
+        <div className="stat"><span className="num">{weeklyMins}</span><span className="label">本周学习（分钟）</span></div>
+        <div className="stat"><span className="num">{weekly.questions}</span><span className="label">本周题数</span></div>
+        <div className="stat"><span className="num">{Math.round(accuracy * 100)}%</span><span className="label">本周正确率</span></div>
       </div>
 
-      {/* 今日打卡进度 */}
-      <div style={{ marginTop: '0.8rem' }}>
-        <div className="row" style={{ marginBottom: '0.3rem' }}>
-          <span className="muted" style={{ fontSize: '0.85rem' }}>学习时长</span>
-          <span className="spacer" />
-          <span className="muted" style={{ fontSize: '0.85rem' }}>{mins}/{GOAL_MINUTES} 分钟</span>
-        </div>
-        <div className="progress-bar">
-          <div style={{ width: `${Math.min(100, Math.round((dayStats.seconds / CHECKIN_DAY_GOAL_SECONDS) * 100))}%` }} />
-        </div>
-        <div className="row" style={{ marginBottom: '0.3rem', marginTop: '0.6rem' }}>
-          <span className="muted" style={{ fontSize: '0.85rem' }}>练习题数</span>
-          <span className="spacer" />
-          <span className="muted" style={{ fontSize: '0.85rem' }}>{dayStats.questions}/{CHECKIN_DAY_GOAL_QUESTIONS} 题</span>
-        </div>
-        <div className="progress-bar">
-          <div style={{ width: `${Math.min(100, Math.round((dayStats.questions / CHECKIN_DAY_GOAL_QUESTIONS) * 100))}%` }} />
-        </div>
-      </div>
-
-      <div className="row" style={{ marginTop: '0.6rem' }}>
-        <span className="muted" style={{ fontSize: '0.85rem' }}>
-          {checked ? '已完成今日打卡' : `还差 ${needMins} 分钟、${needQ} 题完成打卡`}
-        </span>
-        <span className="spacer" />
-        <span className="muted" style={{ fontSize: '0.85rem' }}>
-          本周 {weekly.questions}/{MAKEUP_WEEK_QUESTIONS} 题 · 正确率 {Math.round(accuracy * 100)}%
-        </span>
-      </div>
-
-      <div style={{ marginTop: '0.6rem', borderTop: '1px solid var(--border)', paddingTop: '0.6rem' }}>
+      <div style={{ marginTop: '0.7rem', borderTop: '1px solid var(--border)', paddingTop: '0.6rem' }}>
         {missed.length > 0 ? (
           canMakeup ? (
             <div className="row">
@@ -95,8 +63,7 @@ export default function StreakCard() {
             </div>
           ) : (
             <p className="muted" style={{ fontSize: '0.85rem', margin: 0 }}>
-              本周有 {missed.length} 个漏签日。补签条件：本周练习满 {MAKEUP_WEEK_QUESTIONS} 题且正确率 ≥80%
-              （当前 {weekly.questions} 题 / {Math.round(accuracy * 100)}%）。
+              补签条件：本周练习满 {MAKEUP_WEEK_QUESTIONS} 题且正确率 ≥80%（当前 {weekly.questions} 题 / {Math.round(accuracy * 100)}%）。
             </p>
           )
         ) : (
