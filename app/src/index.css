@@ -520,33 +520,13 @@ input:focus, textarea:focus, select:focus {
   flex-direction: column;
   gap: var(--sp-3);
 }
-.goal-card__title { font-size: 13px; opacity: .9; }
-.goal-card__num {
-  font-family: var(--font-sans);
-  font-size: 36px;
-  font-weight: 700;
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
-}
-.goal-card__sep { font-size: 20px; opacity: .75; }
-.goal-card__bar {
-  height: 8px;
-  background: rgba(255, 255, 255, .3);
-  border-radius: var(--r-pill);
-  overflow: hidden;
-}
-.goal-card__bar-fill {
-  height: 100%;
-  background: #FFFFFF;
-  border-radius: var(--r-pill);
-  transition: width var(--dur-slow) var(--ease);
-}
-.goal-card__msg { font-size: 13px; opacity: .95; }
-/* 今日目标：单指标动态轮播（题数 / 学习时长），每 3.5s 自动切换 */
+/* 今日目标：大数字指标动态轮播（题数 / 学习时长），每 5s 自动切换 */
 .goal-card__title {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  font-size: 13px;
+  opacity: .9;
 }
 .goal-card__dots {
   display: inline-flex;
@@ -565,18 +545,23 @@ input:focus, textarea:focus, select:focus {
   transform: scale(1.3);
 }
 .goal-card__metric {
-  margin: 0.7rem 0 0.3rem;
   animation: goalMetricIn .5s var(--ease) both;
 }
-.goal-metric__head {
+.goal-card__target {
   display: flex;
-  justify-content: space-between;
   align-items: baseline;
-  font-size: 13px;
-  opacity: 0.95;
-  margin-bottom: 0.3rem;
+  gap: .4rem;
+  margin: .35rem 0 .1rem;
 }
-.goal-metric .goal-card__bar { height: 6px; }
+.goal-card__num {
+  font-family: var(--font-sans);
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.goal-card__sub { font-size: 15px; opacity: .9; }
+.goal-card__msg { font-size: 13px; opacity: .95; }
 @keyframes goalMetricIn {
   from { opacity: 0; transform: translateY(10px) scale(0.98); }
   to   { opacity: 1; transform: translateY(0) scale(1); }

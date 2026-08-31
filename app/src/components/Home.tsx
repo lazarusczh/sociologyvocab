@@ -53,16 +53,15 @@ export default function Home({ go }: Props) {
   const todayLeft = Math.max(0, CHECKIN_DAY_GOAL_QUESTIONS - todayDone);
   const GOAL_MINUTES = Math.round(CHECKIN_DAY_GOAL_SECONDS / 60);
   const todayMins = Math.floor(todayStudy.seconds / 60);
-  const todaySecPct = Math.min(100, Math.round((todayStudy.seconds / CHECKIN_DAY_GOAL_SECONDS) * 100));
   const dayDone = todayStudy.seconds >= CHECKIN_DAY_GOAL_SECONDS && todayDone >= CHECKIN_DAY_GOAL_QUESTIONS;
   const needMins = Math.max(0, GOAL_MINUTES - todayMins);
 
-  // 今日目标卡片：题数 / 学习时长 每 3.5s 自动轮播切换
+  // 今日目标卡片：题数 / 学习时长 每 5s 自动轮播切换
   const [goalMetric, setGoalMetric] = useState<'questions' | 'time'>('questions');
   useEffect(() => {
     const id = setInterval(
       () => setGoalMetric((m) => (m === 'questions' ? 'time' : 'questions')),
-      3500,
+      5000,
     );
     return () => clearInterval(id);
   }, []);
@@ -153,25 +152,15 @@ export default function Home({ go }: Props) {
                 </div>
                 <div className="goal-card__metric" key={goalMetric}>
                   {goalMetric === 'questions' ? (
-                    <>
-                      <div className="goal-metric__head">
-                        <span>练习题数</span>
-                        <span>{todayDone}/{CHECKIN_DAY_GOAL_QUESTIONS}</span>
-                      </div>
-                      <div className="goal-card__bar">
-                        <div className="goal-card__bar-fill" style={{ width: `${Math.round((todayDone / CHECKIN_DAY_GOAL_QUESTIONS) * 100)}%` }} />
-                      </div>
-                    </>
+                    <div className="goal-card__target">
+                      <span className="goal-card__num">{todayDone}</span>
+                      <span className="goal-card__sub">/{CHECKIN_DAY_GOAL_QUESTIONS} 题</span>
+                    </div>
                   ) : (
-                    <>
-                      <div className="goal-metric__head">
-                        <span>学习时长</span>
-                        <span>{todayMins}/{GOAL_MINUTES} 分钟</span>
-                      </div>
-                      <div className="goal-card__bar">
-                        <div className="goal-card__bar-fill" style={{ width: `${todaySecPct}%` }} />
-                      </div>
-                    </>
+                    <div className="goal-card__target">
+                      <span className="goal-card__num">{todayMins}</span>
+                      <span className="goal-card__sub">/{GOAL_MINUTES} 分钟</span>
+                    </div>
                   )}
                 </div>
                 <div className="goal-card__msg">
