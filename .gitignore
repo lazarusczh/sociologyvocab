@@ -58,6 +58,9 @@ app/scripts/send-apk.ps1
 # 自动化诊断日志（本地临时产物）
 @AutomationLog.txt
 
+# 本地开发服务器日志（Vite dev server 输出，本地临时产物）
+dev-server.log
+
 # 数据库备份文件（含业务数据，不纳入版本控制；已存于本地/OneDrive）
 backups/
 
