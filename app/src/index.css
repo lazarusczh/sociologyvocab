@@ -701,6 +701,63 @@ button.goal-card__cta:active {
 .option-btn.correct::after { content: '✓'; color: var(--c-success); }
 .option-btn.wrong::after   { content: '✕'; color: var(--c-critical); }
 
+/* 选择题·专注模式：顶栏细进度条 + 大字号题干 + 答案解析面板 */
+.mc-topbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.mc-back {
+  background: transparent;
+  border: none;
+  color: var(--c-charcoal);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0.2rem 0.1rem;
+  white-space: nowrap;
+}
+.mc-back:hover { color: var(--c-primary); }
+.mc-progress {
+  flex: 1;
+  height: 6px;
+  background: var(--c-track);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.mc-progress-fill {
+  display: block;
+  height: 100%;
+  background: var(--c-primary);
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+.mc-meta { color: var(--text-muted); font-size: 0.85rem; white-space: nowrap; }
+
+.mc-prompt { text-align: center; }
+.mc-term {
+  margin: 0.5rem 0 1rem;
+  font-size: 2.1rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--c-ink);
+  overflow-wrap: anywhere;
+}
+
+.mc-explain {
+  margin-top: 1rem;
+  background: var(--c-surface-soft);
+  border: 1px solid var(--c-hairline-soft);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+}
+.mc-verdict { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.6rem; }
+.mc-verdict.ok { color: var(--c-success-ink); }
+.mc-verdict.no { color: var(--c-critical-ink); }
+.mc-explain-term { font-size: 1.05rem; margin-bottom: 0.3rem; }
+.mc-explain-cn { color: var(--c-steel); margin-left: 0.2rem; }
+.mc-explain-def { color: var(--c-charcoal); line-height: 1.55; }
+
 /* 跨词游戏单元格 */
 .cw-layout {
   display: grid;

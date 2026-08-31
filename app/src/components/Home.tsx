@@ -93,7 +93,7 @@ export default function Home({ go }: Props) {
         <div className="card">
           <div className="empty-state">
             <div className="big">📚</div>
-            <h2>欢迎使用社会学词汇练习</h2>
+            <h2>欢迎使用社会学词汇</h2>
             <p className="muted">词库还是空的，请先导入 Excel 词汇表开始使用。</p>
             <button className="primary" onClick={() => go('import')} style={{ marginTop: '1rem' }}>
               导入词汇表

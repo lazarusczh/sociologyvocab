@@ -49,8 +49,8 @@ interface NavItem { key: View; label: string; }
 interface NavPill { group: string; items: NavItem[]; }
 
 const NAV_PILLS: NavPill[] = [
-  { group: '今日学习', items: [
-    { key: 'home', label: '今日学习' },
+  { group: '主页', items: [
+    { key: 'home', label: '主页' },
   ]},
   { group: '练习', items: [
     { key: 'quiz', label: '随堂测验 / 作业' },
@@ -62,8 +62,10 @@ const NAV_PILLS: NavPill[] = [
     { key: 'crossword', label: '纵横填字' },
     { key: 'wordle', label: 'Wordle' },
   ]},
-  { group: '词库', items: [
+  { group: '词典', items: [
     { key: 'dictionary', label: '词典' },
+  ]},
+  { group: '闪卡', items: [
     { key: 'flashcards', label: '闪卡' },
   ]},
   { group: '统计', items: [
@@ -140,7 +142,7 @@ function AppBody() {
         {/* 品牌：书本形 mark + 名称（点击回首页） */}
         <span className="brand" onClick={() => goto('home')} style={{ cursor: 'pointer' }}>
           <span className="brand-mark" aria-hidden>📖</span>
-          <span className="brand-text">社会学词汇练习</span>
+          <span className="brand-text">社会学词汇</span>
         </span>
 
         <nav ref={navRef} className={menuOpen ? 'open' : ''}>

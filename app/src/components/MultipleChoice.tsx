@@ -153,16 +153,17 @@ export default function MultipleChoice() {
 
   return (
     <div>
-      <div className="row" style={{ marginBottom: '0.5rem' }}>
-        <button className="ghost" onClick={() => setQuestions([])}>← 返回</button>
-        <span className="spacer" />
-        <span className="muted">第 {qi + 1} / {questions.length} 题</span>
-        <span className="badge success">得分 {score}</span>
+      <div className="mc-topbar">
+        <button className="mc-back" onClick={() => setQuestions([])}>← 返回</button>
+        <span className="mc-progress" aria-hidden>
+          <span className="mc-progress-fill" style={{ width: `${(qi / questions.length) * 100}%` }} />
+        </span>
+        <span className="mc-meta">第 {qi + 1} / {questions.length} 题 · 答对 {score}</span>
       </div>
 
-      <div className="card">
+      <div className="mc-prompt card">
         <div className="muted" style={{ fontSize: '0.85rem' }}>根据{q.promptLabel}选择正确答案</div>
-        <h2 style={{ margin: '0.5rem 0 1rem' }}>{q.prompt}</h2>
+        <h1 className="mc-term">{q.prompt}</h1>
         <div className="grid" style={{ gap: '0.5rem' }}>
           {q.options.map((opt) => {
             const isCorrect = opt === q.answer;
@@ -184,13 +185,26 @@ export default function MultipleChoice() {
         </div>
       </div>
 
-      {picked && (
-        <div className="row" style={{ marginTop: '0.8rem', justifyContent: 'flex-end' }}>
-          <button className="primary" onClick={next}>
-            {qi >= questions.length - 1 ? '查看结果' : '下一题 →'}
-          </button>
-        </div>
-      )}
+      {picked && (() => {
+        const correct = picked === q.answer;
+        return (
+          <div className="mc-explain">
+            <div className={`mc-verdict ${correct ? 'ok' : 'no'}`}>
+              {correct ? '✓ 答对了' : '✗ 答错了'}
+            </div>
+            <div className="mc-explain-term">
+              <strong>{q.item.term}</strong>
+              {q.item.chinese && <span className="mc-explain-cn"> · {q.item.chinese}</span>}
+            </div>
+            <div className="mc-explain-def">{q.item.definition}</div>
+            <div className="row" style={{ marginTop: '0.9rem', justifyContent: 'flex-end' }}>
+              <button className="primary" onClick={next}>
+                {qi >= questions.length - 1 ? '查看结果' : '下一题 →'}
+              </button>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
