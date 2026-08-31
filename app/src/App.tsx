@@ -52,8 +52,10 @@ const NAV_PILLS: NavPill[] = [
   { group: '主页', items: [
     { key: 'home', label: '主页' },
   ]},
+  { group: '测验/作业', items: [
+    { key: 'quiz', label: '测验/作业' },
+  ]},
   { group: '练习', items: [
-    { key: 'quiz', label: '随堂测验 / 作业' },
     { key: 'choice', label: '选择题' },
     { key: 'cloze', label: '语境' },
     { key: 'spelling', label: '拼写' },

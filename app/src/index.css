@@ -142,7 +142,7 @@ button {
   border: 1px solid var(--c-hairline-soft);
   background: var(--c-canvas);
   color: var(--c-charcoal);
-  border-radius: var(--r-pill);
+  border-radius: var(--r-ctrl);
   cursor: pointer;
   transition: background var(--dur) var(--ease),
               border-color var(--dur) var(--ease);
@@ -255,7 +255,7 @@ input:focus, textarea:focus, select:focus {
 .topbar nav button {
   padding: 0.45rem 0.9rem;
   font-size: 0.9rem;
-  border-radius: 999px;
+  border-radius: var(--r-ctrl);
   color: var(--c-charcoal);
   background: transparent;
   border-color: transparent;
@@ -296,7 +296,7 @@ input:focus, textarea:focus, select:focus {
   font-size: 0.9rem;
   background: transparent;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: var(--r-ctrl);
   color: var(--text-muted);
   cursor: pointer;
 }
@@ -313,7 +313,7 @@ input:focus, textarea:focus, select:focus {
   flex-shrink: 0;
   background: transparent;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: var(--r-ctrl);
   color: var(--c-ink);
   cursor: pointer;
 }
