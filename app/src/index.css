@@ -383,12 +383,6 @@ input:focus, textarea:focus, select:focus {
 .grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
 .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
 .grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
-/* 平板 / 窄屏：主仪表盘转单列，统计转 2×2 */
-@media (max-width: 720px) {
-  .dashboard-hero { grid-template-columns: 1fr; }
-  .stats-row { grid-template-columns: repeat(2, 1fr); }
-}
-
 @media (max-width: 640px) {
   .grid.cols-2, .grid.cols-4 { grid-template-columns: 1fr; }
   /* 练习模式卡：移动端保持 2 列（设计图 2×2 布局），不降为单列 */
@@ -936,4 +930,28 @@ textarea { resize: vertical; min-height: 80px; }
   }
   .version-banner span { white-space: normal; }
   .banner-actions { justify-content: flex-end; }
+}
+
+/* =============================================================
+   首页仪表盘 · 响应式
+   注意：本节必须排在 .dashboard-hero / .stats-row 基础规则【之后】。
+   CSS 同特异性下「后出现者覆盖先出现者」——若把媒体查询写在基础规则之前，
+   断点会被后面的基础规则反向覆盖而失效（表现为窄屏仍是两列、今日目标被挤窄）。
+   ============================================================= */
+
+/* 主仪表盘：窄屏转单列（1.35fr / 1fr 在 <900px 时右栏已被压得过窄） */
+@media (max-width: 900px) {
+  .dashboard-hero { grid-template-columns: 1fr; }
+  .goal-card { height: auto; }
+}
+
+/* 4 项统计：4 列 → 2×2 */
+@media (max-width: 720px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* 周历：7 列固定圆点，极窄屏（≈320px）会横向溢出，这里缩小直径 */
+@media (max-width: 400px) {
+  .week-strip__dot { width: 26px; height: 26px; font-size: 12px; }
+  .week-strip { gap: 2px; }
 }
