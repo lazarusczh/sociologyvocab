@@ -1,0 +1,301 @@
+/* =============================================================
+   社科词汇练习 · 设计令牌 v1
+   来源：Ardot 设计文件 720790396037874《社科词汇练习 · 设计提升方案》
+   配套图：docs/design/ui-refs/*.png（README.md 为索引）
+   用法：整体替换现网 index.css 顶部的 :root 区块
+   ============================================================= */
+
+:root {
+  /* ===== 主色 Primary（钴蓝）===== */
+  --c-primary:        #0064E0;  /* 主行动按钮 / 打卡 / 进度填充 */
+  --c-primary-deep:   #0457CB;  /* 按下态 */
+  --c-primary-soft:   #0091FF;  /* 图形强调，少用 */
+  --c-primary-bg:     #EAF2FE;  /* 导航激活底、选项选中底、解析面板底 */
+
+  /* ===== 语义色 Semantic ===== */
+  --c-success:        #31A24C;  /* 答对、已掌握 */
+  --c-success-bg:     #E9F6EC;
+  --c-success-ink:    #237A38;  /* 绿底上的文字色 */
+  --c-warning:        #F7B928;  /* 待复习、连续天数火焰 */
+  --c-warning-bg:     #FFF7E4;
+  --c-warning-ink:    #A6741B;  /* 黄底上的文字色 */
+  --c-critical:       #E41E3F;  /* 答错、危险操作 */
+  --c-critical-bg:    #FDEDF0;
+  --c-critical-ink:   #C01834;  /* 红底上的文字色 */
+
+  /* ===== 中性 Neutral ===== */
+  --c-canvas:         #FFFFFF;  /* 卡片面、顶栏 */
+  --c-page:           #F5F7FA;  /* 页面底色 */
+  --c-surface-soft:   #F1F4F7;  /* 次级面、面板内嵌底、退出按钮底 */
+  --c-ink-deep:       #0A1317;  /* 数据大数、强调标题 */
+  --c-ink:            #1C1E21;  /* 正文主色 */
+  --c-charcoal:       #444950;  /* 次级正文 */
+  --c-steel:          #5D6C7B;  /* 辅助文字、说明文案 */
+  --c-stone:          #8595A4;  /* 弱文字、星期、占位 */
+  --c-hairline:       #CED0D4;  /* 强描边 */
+  --c-hairline-soft:  #DEE3E9;  /* 默认描边（卡片、输入框、chip） */
+  --c-track:          #E8EDF3;  /* 进度条轨道（浅底场景） */
+  --c-disabled:       #DEE3E9;  /* 禁用按钮底 */
+  --c-disabled-ink:   #8595A4;  /* 禁用按钮文字 */
+
+  /* ===== 间距 Spacing（4px 基准）===== */
+  --sp-1:   4px;
+  --sp-2:   8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-5:  20px;
+  --sp-6:  24px;
+  --sp-8:  32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+
+  /* ===== 圆角 Radius ===== */
+  --r-pill: 999px;  /* 按钮、chip、徽章、导航 pill */
+  --r-lg:    24px;  /* 主卡片 */
+  --r-md:    16px;  /* 次级卡片 */
+  --r-sm:    12px;  /* 小卡片、图标底、选项 */
+  --r-ctrl:  10px;  /* 输入框、表单控件 */
+  --r-xs:     6px;  /* 进度条轨道 */
+
+  /* ===== 阴影 Elevation ===== */
+  --e1: 0 1px 2px  rgba(16, 24, 40, .06);   /* 卡片默认 */
+  --e2: 0 8px 24px rgba(16, 24, 40, .10);   /* 悬浮、下拉 */
+  --e3: 0 16px 48px rgba(16, 24, 40, .16);  /* 弹窗、打卡庆祝 */
+
+  /* ===== 字体 Font ===== */
+  --font-sans: "Inter", "Noto Sans SC", -apple-system, BlinkMacSystemFont,
+               "PingFang SC", "Microsoft YaHei", sans-serif;
+
+  /* ===== 布局 Layout ===== */
+  --layout-max:      1160px;  /* 现网 920px 过窄，数据看板放不下 */
+  --layout-gutter:    140px;  /* 桌面左右安全边距 @1440 */
+  --layout-gutter-m:   16px;  /* 移动端左右边距 */
+  --grid-cols:          12;
+  --grid-gap:          24px;
+
+  /* ===== 控件尺寸 ===== */
+  --h-topbar:        64px;
+  --h-topbar-m:      52px;
+  --h-btn-sm:        40px;
+  --h-btn:           44px;
+  --h-btn-lg:        48px;
+  --h-input:         44px;
+  --h-chip:          28px;
+  --h-nav-pill:      36px;
+  --h-option:        64px;
+  --h-option-m:      52px;
+  --h-tabbar:        64px;
+  --touch-min:       44px;
+
+  /* ===== 过渡 ===== */
+  --dur-fast:  120ms;
+  --dur:       180ms;
+  --dur-slow:  320ms;
+  --ease: cubic-bezier(.2, 0, .2, 1);
+}
+
+/* =============================================================
+   迁移映射（供逐项替换现网变量时对照，替换完可删掉本注释块）
+   --accent        #5b6e8c -> --c-primary        #0064E0
+   --accent-hover  #4a5d78 -> --c-primary-deep   #0457CB
+   --accent-bg     #eef2f7 -> --c-primary-bg     #EAF2FE
+   --success       #4a7a4a -> --c-success        #31A24C
+   --success-bg    #eaf3ea -> --c-success-bg     #E9F6EC
+   --danger        #b0524a -> --c-critical       #E41E3F
+   --danger-bg     #f7eceb -> --c-critical-bg    #FDEDF0
+   --warn          #a07a3a -> --c-warning        #F7B928
+   --warn-bg       #f6f0e4 -> --c-warning-bg     #FFF7E4
+   --text          #2a2a2a -> --c-ink            #1C1E21
+   --text-muted    #6b6b6b -> --c-steel          #5D6C7B
+   --border        #e0ddd6 -> --c-hairline-soft  #DEE3E9
+   --bg            #f7f7f5 -> --c-page           #F5F7FA
+   --surface       #ffffff -> --c-canvas         #FFFFFF
+   --radius        10px    -> --r-ctrl / --r-sm / --r-md / --r-lg（按层级取）
+   ============================================================= */
+
+/* =============================================================
+   基础排版（替换现网 h1/h2/h3/p 与 body 的 font 声明）
+   ============================================================= */
+
+body {
+  font: 400 14px/1.6 var(--font-sans);
+  color: var(--c-ink);
+  background: var(--c-page);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1 { font-size: 28px; font-weight: 700; line-height: 1.30; color: var(--c-ink); margin: 0 0 var(--sp-2); }
+h2 { font-size: 20px; font-weight: 600; line-height: 1.35; color: var(--c-ink); margin: 0 0 var(--sp-2); }
+h3 { font-size: 16px; font-weight: 600; line-height: 1.50; color: var(--c-ink); margin: 0 0 var(--sp-2); }
+p  { font-size: 14px; font-weight: 400; line-height: 1.60; color: var(--c-charcoal); margin: 0 0 var(--sp-3); }
+
+/* 数字与英文术语：优先命中 Inter */
+.num, .term, .stat-num, .timer {
+  font-family: "Inter", var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+
+/* =============================================================
+   核心组件
+   ============================================================= */
+
+/* ---- 按钮：全部 pill 圆角，不做方角 ---- */
+button {
+  height: var(--h-btn);
+  padding: 0 var(--sp-6);
+  border-radius: var(--r-pill);
+  border: 1px solid var(--c-hairline-soft);
+  background: var(--c-canvas);
+  color: var(--c-charcoal);
+  font: 600 14px/1 var(--font-sans);
+  cursor: pointer;
+  transition: background var(--dur) var(--ease),
+              border-color var(--dur) var(--ease);
+}
+button:hover        { background: var(--c-surface-soft); border-color: var(--c-hairline); }
+button:active       { background: var(--c-hairline-soft); }
+button:disabled,
+button.disabled     { background: var(--c-disabled); color: var(--c-disabled-ink); cursor: not-allowed; }
+
+button.primary {
+  height: var(--h-btn-lg);
+  background: var(--c-primary);
+  border-color: var(--c-primary);
+  color: #FFFFFF;
+}
+button.primary:hover  { background: var(--c-primary-deep); border-color: var(--c-primary-deep); }
+button.primary:active { background: var(--c-primary-deep); }
+
+button.secondary {
+  border: 2px solid var(--c-ink-deep);
+  color: var(--c-ink-deep);
+  background: transparent;
+}
+button.secondary:hover { background: var(--c-surface-soft); }
+
+button.ghost { background: var(--c-canvas); border-color: var(--c-hairline-soft); }
+button.ghost:hover { background: var(--c-surface-soft); }
+
+/* ---- 卡片 ---- */
+.card {
+  background: var(--c-canvas);
+  border: 1px solid var(--c-hairline-soft);
+  border-radius: var(--r-md);
+  box-shadow: var(--e1);
+  padding: var(--sp-5);
+}
+.card-lg { border-radius: var(--r-lg); padding: var(--sp-8); }
+
+/* ---- 选项（选择题 / 匹配题）---- */
+.option-btn {
+  min-height: var(--h-option);
+  padding: var(--sp-4) var(--sp-5);
+  border: 1px solid var(--c-hairline-soft);
+  border-radius: var(--r-sm);
+  background: var(--c-canvas);
+  text-align: left;
+}
+.option-btn.selected { background: var(--c-primary-bg); border: 2px solid var(--c-primary); }
+.option-btn.correct  { background: var(--c-success-bg); border: 2px solid var(--c-success); }
+.option-btn.wrong    { background: var(--c-critical-bg); border: 2px solid var(--c-critical); }
+
+/* ---- 掌握度徽章 ---- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  height: var(--h-chip);
+  padding: 0 var(--sp-3);
+  border-radius: var(--r-pill);
+  font-size: 12px;
+  font-weight: 600;
+}
+.badge.todo    { background: var(--c-surface-soft); color: var(--c-steel); }        /* 未学 */
+.badge.review  { background: var(--c-warning-bg);   color: var(--c-warning-ink); }  /* 待复习 */
+.badge.mastered{ background: var(--c-success-bg);   color: var(--c-success-ink); }  /* 已掌握 */
+
+/* ---- 导航 pill ---- */
+.nav-pill {
+  height: var(--h-nav-pill);
+  padding: 0 var(--sp-4);
+  border-radius: var(--r-pill);
+  color: var(--c-charcoal);
+  font-weight: 400;
+}
+.nav-pill.active {
+  background: var(--c-primary-bg);
+  color: var(--c-primary);
+  font-weight: 600;
+}
+
+/* ---- 进度条 ---- */
+.progress-bar {
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: var(--c-track);
+  overflow: hidden;
+}
+.progress-bar > div {
+  height: 100%;
+  border-radius: var(--r-pill);
+  background: var(--c-primary);
+  transition: width var(--dur-slow) var(--ease);
+}
+
+/* ---- 输入框 ---- */
+input, textarea, select {
+  height: var(--h-input);
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--c-hairline-soft);
+  border-radius: var(--r-ctrl);
+  background: var(--c-canvas);
+  color: var(--c-ink);
+  font: 400 14px/1.6 var(--font-sans);
+}
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border: 2px solid var(--c-primary);
+}
+
+/* ---- 顶栏 ---- */
+.topbar {
+  height: var(--h-topbar);
+  background: var(--c-canvas);
+  border-bottom: 1px solid var(--c-hairline-soft);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-6);
+  padding: 0 var(--layout-gutter);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* ---- 容器 ---- */
+.container {
+  max-width: var(--layout-max);
+  margin: 0 auto;
+  padding: var(--sp-10) var(--layout-gutter-m) var(--sp-16);
+}
+
+/* ---- 网格 ---- */
+.grid { display: grid; gap: var(--sp-6); }
+.grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+@media (width <= 1024px) {
+  :root { --layout-gutter: var(--sp-6); }
+  .topbar { padding: 0 var(--sp-6); }
+  .grid.cols-3, .grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (width <= 640px) {
+  .topbar { height: var(--h-topbar-m); padding: 0 var(--layout-gutter-m); }
+  .grid.cols-2, .grid.cols-3, .grid.cols-4 { grid-template-columns: 1fr; }
+  .option-btn { min-height: var(--h-option-m); }
+}
+
+/* ---- 动效：现网仅打卡弹层有 confetti，这里补齐通用过渡 ---- */
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

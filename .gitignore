@@ -58,6 +58,9 @@ app/scripts/send-apk.ps1
 # 自动化诊断日志（本地临时产物）
 @AutomationLog.txt
 
+# 本地开发服务器日志（Vite dev server 输出，本地临时产物）
+dev-server.log
+
 # 数据库备份文件（含业务数据，不纳入版本控制；已存于本地/OneDrive）
 backups/
 
@@ -84,3 +87,7 @@ app/public/cloze-data.json
 # 语境题中间源数据与试验草稿（答卷源数据/挖空试验记录，教师教学 IP，不纳入公开备份）
 cloze-p4.json
 挖空试验.md
+
+# UI 设计参考图（Ardot 画布导出 PNG，教师产品设计想法与知识产权，不纳入公开备份；
+# 同目录的 README.md 索引与 tokens.css 设计规范入库，便于开发对照）
+ui-refs/*.png
