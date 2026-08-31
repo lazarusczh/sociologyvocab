@@ -29,7 +29,7 @@ const MODES: { key: View; icon: string; title: string; desc: string }[] = [
 const WEEK_LABELS = ['一', '二', '三', '四', '五', '六', '日'];
 
 export default function Home({ go }: Props) {
-  const { vocab, progress, wrongBook, checkin, vocabUpdateBanner, syncVocabFromCloud, dismissVocabBanner } = useStore();
+  const { vocab, progress, wrongBook, checkin, isTeacher, vocabUpdateBanner, syncVocabFromCloud, dismissVocabBanner } = useStore();
 
   useEffect(() => { syncVocabFromCloud(); }, [syncVocabFromCloud]);
 
@@ -108,10 +108,16 @@ export default function Home({ go }: Props) {
           <div className="empty-state">
             <div className="big">📚</div>
             <h2>欢迎使用社会学词汇</h2>
-            <p className="muted">词库还是空的，请先导入 Excel 词汇表开始使用。</p>
-            <button className="primary" onClick={() => go('import')} style={{ marginTop: '1rem' }}>
-              导入词汇表
-            </button>
+            {isTeacher ? (
+              <>
+                <p className="muted">词库还是空的，请先导入 Excel 词汇表开始使用。</p>
+                <button className="primary" onClick={() => go('import')} style={{ marginTop: '1rem' }}>
+                  导入词汇表
+                </button>
+              </>
+            ) : (
+              <p className="muted">词库暂未导入，请等待老师导入词汇表后再来练习。</p>
+            )}
           </div>
         </div>
       ) : (
