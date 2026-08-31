@@ -125,7 +125,7 @@ input:focus, textarea:focus, select:focus {
 /* 两级导航：分组（手风琴） */
 .nav-group { position: relative; display: inline-block; }
 .nav-group-head { display: inline-flex; align-items: center; gap: 0.2rem; }
-.nav-caret { font-size: 0.7rem; opacity: 0.7; }
+.nav-caret { font-size: 1.05rem; opacity: 0.85; line-height: 1; }
 .nav-group-head.has-active { background: var(--accent-bg); border-color: var(--accent); color: var(--text); }
 .nav-group-items {
   position: absolute;
@@ -553,7 +553,7 @@ textarea { resize: vertical; min-height: 80px; }
 /* 检测到新版本的提示横幅（非考试中显示） */
 .version-banner {
   position: fixed;
-  bottom: 0.8rem;
+  bottom: calc(0.8rem + env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
   z-index: 90;
@@ -566,7 +566,26 @@ textarea { resize: vertical; min-height: 80px; }
   box-shadow: var(--shadow);
   padding: 0.5rem 0.7rem;
   font-size: 0.85rem;
+  width: max-content;
   max-width: calc(100vw - 1.6rem);
+  line-height: 1.4;
 }
-.version-banner span { flex: 1; }
+.version-banner span { white-space: nowrap; }
 .version-banner button { white-space: nowrap; }
+.banner-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
+
+/* 窄屏：改为卡片式纵向布局，避免文字被按钮挤压换行 */
+@media (max-width: 520px) {
+  .version-banner {
+    left: 0.8rem;
+    right: 0.8rem;
+    transform: none;
+    width: auto;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.45rem;
+    padding: 0.65rem 0.8rem;
+  }
+  .version-banner span { white-space: normal; }
+  .banner-actions { justify-content: flex-end; }
+}

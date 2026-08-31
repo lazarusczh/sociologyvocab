@@ -93,17 +93,18 @@ function AppBody() {
     viewRef.current = view;
   }, [view]);
 
-  // 菜单展开时，在菜单与汉堡按钮以外的区域按下（点击或拖动起始）即自动折叠
+  // 汉堡菜单或二级分组任一展开时，在导航与汉堡按钮以外的区域按下（点击或拖动起始）即自动收回
   useEffect(() => {
-    if (!menuOpen) return;
+    if (!menuOpen && !expandedGroup) return;
     const onDocPointerDown = (e: PointerEvent) => {
       const t = e.target as Node;
       if (navRef.current?.contains(t) || toggleRef.current?.contains(t)) return;
       setMenuOpen(false);
+      setExpandedGroup(null);
     };
     document.addEventListener('pointerdown', onDocPointerDown);
     return () => document.removeEventListener('pointerdown', onDocPointerDown);
-  }, [menuOpen]);
+  }, [menuOpen, expandedGroup]);
 
   // Android 硬件/手势返回键：非首页时先回首页，首页时退出应用
   useEffect(() => {

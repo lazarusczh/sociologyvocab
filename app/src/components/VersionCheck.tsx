@@ -57,9 +57,11 @@ export default function VersionCheck() {
 
   return (
     <div className="version-banner" role="status">
-      <span>有新版本可用，点击刷新获取最新内容</span>
-      <button className="primary" onClick={() => window.location.reload()}>刷新</button>
-      <button className="ghost" onClick={() => setHasUpdate(false)}>稍后</button>
+      <span>发现新版本，刷新后获取最新内容</span>
+      <div className="banner-actions">
+        <button className="primary" onClick={() => window.location.reload()}>刷新</button>
+        <button className="ghost" onClick={() => setHasUpdate(false)}>稍后</button>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
+
+// World Bank 请求基地址：网页端走相对路径 /wb/*（Vite dev proxy / Cloudflare Worker 同路径代理），
+// APK 端无 Worker 代理，改为直连云端 Worker 的绝对地址（Worker 返回 Access-Control-Allow-Origin: *）
+const WB_BASE = Capacitor.isNativePlatform()
+  ? 'https://sociologyvocab.zihaochen2096.workers.dev'
+  : '';
 
 // 国家集：常规主要国家 + 数据极端的案例
 const COUNTRIES = [
@@ -85,8 +92,6 @@ const STATIC_INDICATORS: IndicatorDef[] = [
   },
 ];
 
-const INDICATORS: IndicatorDef[] = [...WB_INDICATORS, ...STATIC_INDICATORS];
-
 // 国家 → 数值 + 年份（可为 null = 无数据）
 interface Datum {
   name: string;
@@ -99,13 +104,24 @@ interface ChartData {
   data: Datum[];
 }
 
+// fetch 带超时：网络慢/不可达时快速失败，避免挂起拖住整个页面（超时后各调用方的 catch 兜底为空数据）
+async function fetchWithTimeout(url: string, ms = 8000): Promise<Response> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try {
+    return await fetch(url, { signal: ctrl.signal, cache: 'no-store' });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // 拉取某个指标下所有国家的最新值（World Bank API，带年份）
 async function fetchIndicator(def: IndicatorDef): Promise<ChartData> {
   const jobs = COUNTRIES.map(async ({ code, name }) => {
     try {
-      // 走相对路径 /wb/*：本地由 Vite dev proxy 转发，部署后由 Worker 代理（避免浏览器直连被墙/CORS）
-      const res = await fetch(
-        `/wb/v2/country/${code}/indicator/${def.code}?format=json&per_page=1&mrnev=1`,
+      // 网页端走相对路径 /wb/*（Vite dev proxy / Worker 代理）；APK 端用 WB_BASE 直连云端 Worker（避免被墙/CORS）
+      const res = await fetchWithTimeout(
+        `${WB_BASE}/wb/v2/country/${code}/indicator/${def.code}?format=json&per_page=1&mrnev=1`,
       );
       if (!res.ok) return { name, value: null, year: null } as Datum;
       const json = (await res.json()) as unknown;
@@ -133,7 +149,7 @@ function hasAnyValue(data: Datum[]): boolean {
 // 预抓取指标：读取内置 /social-data.json（新结构：{ latest: [...], series: {...} }）
 async function fetchStaticIndicator(def: IndicatorDef): Promise<ChartData> {
   try {
-    const res = await fetch('/social-data.json', { cache: 'no-store' });
+    const res = await fetchWithTimeout('/social-data.json');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = (await res.json()) as {
       indicators?: Record<string, {
@@ -160,8 +176,8 @@ async function fetchStaticIndicator(def: IndicatorDef): Promise<ChartData> {
 // 拉取某国某指标的历史序列（World Bank date 范围），供趋势图
 async function fetchSeries(code: string, def: IndicatorDef): Promise<{ year: string; value: number }[]> {
   try {
-    const res = await fetch(
-      `/wb/v2/country/${code}/indicator/${def.code}?format=json&per_page=60&date=1990:2024`,
+    const res = await fetchWithTimeout(
+      `${WB_BASE}/wb/v2/country/${code}/indicator/${def.code}?format=json&per_page=60&date=1990:2024`,
     );
     if (!res.ok) return [];
     const json = (await res.json()) as unknown;
@@ -178,7 +194,7 @@ async function fetchSeries(code: string, def: IndicatorDef): Promise<{ year: str
 // 预抓取指标的历史序列（从内置 /social-data.json 读，无逐年数据则返回空）
 async function fetchStaticSeries(code: string, def: IndicatorDef): Promise<{ year: string; value: number }[]> {
   try {
-    const res = await fetch('/social-data.json', { cache: 'no-store' });
+    const res = await fetchWithTimeout('/social-data.json');
     if (!res.ok) return [];
     const json = (await res.json()) as {
       indicators?: Record<string, { series?: Record<string, { series?: { year: number; value: number }[] }> }>;
@@ -201,13 +217,6 @@ const PAD_R = 14;
 const PAD_T = 20;
 const PAD_B = 30;
 
-// 加载全部指标（wb 实时 + static 内置）
-async function loadAllIndicators(): Promise<ChartData[]> {
-  return Promise.all(
-    INDICATORS.map((def) => (def.source === 'static' ? fetchStaticIndicator(def) : fetchIndicator(def))),
-  );
-}
-
 export default function DataBoard() {
   const [charts, setCharts] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -217,53 +226,50 @@ export default function DataBoard() {
   const [trendData, setTrendData] = useState<{ def: IndicatorDef; series: { year: string; value: number }[] }[]>([]);
   const [trendLoading, setTrendLoading] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      try {
-        const results = await loadAllIndicators();
-        if (cancelled) return;
-        setCharts(results);
-      } catch {
-        if (!cancelled) setError('数据加载失败，请检查网络后重试。');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, []);
-
-  const reload = useCallback(() => {
+  // 加载数据：快照（static，本地/秒开）先行渲染，wb 实时在后台补（各自 8s 超时兜底），
+  // 避免网络慢/不可达时 wb 请求挂起把快照也拖住
+  const loadAll = useCallback(async (cancelled?: () => boolean) => {
     setError('');
     setLoading(true);
-    (async () => {
-      try {
-        const results = await loadAllIndicators();
-        setCharts(results);
-      } catch {
-        setError('数据加载失败，请检查网络后重试。');
-      } finally {
-        setLoading(false);
-      }
-    })();
+    try {
+      const statics = await Promise.all(STATIC_INDICATORS.map((def) => fetchStaticIndicator(def)));
+      if (cancelled?.()) return;
+      setCharts(statics);
+      setLoading(false);
+      const wbs = await Promise.all(WB_INDICATORS.map((def) => fetchIndicator(def)));
+      if (cancelled?.()) return;
+      setCharts((prev) => [...prev.filter((c) => c.def.source === 'static'), ...wbs]);
+    } catch {
+      if (cancelled?.()) return;
+      setError('数据加载失败，请检查网络后重试。');
+      setLoading(false);
+    }
   }, []);
 
-  // 加载某国的历史趋势（wb 实时 + static 内置）
+  useEffect(() => {
+    let cancelled = false;
+    loadAll(() => cancelled);
+    return () => { cancelled = true; };
+  }, [loadAll]);
+
+  const reload = useCallback(() => loadAll(), [loadAll]);
+
+  // 加载某国的历史趋势：快照系列先行渲染，wb 实时后台补（各自 8s 超时兜底）
   const loadTrend = useCallback(async (code: string) => {
     setTrendLoading(true);
     setError('');
     try {
-      const results = await Promise.all(
-        INDICATORS.map(async (def) => ({
-          def,
-          series: def.source === 'static' ? await fetchStaticSeries(code, def) : await fetchSeries(code, def),
-        })),
+      const statics = await Promise.all(
+        STATIC_INDICATORS.map(async (def) => ({ def, series: await fetchStaticSeries(code, def) })),
       );
-      setTrendData(results);
+      setTrendData(statics);
+      setTrendLoading(false);
+      const wbs = await Promise.all(
+        WB_INDICATORS.map(async (def) => ({ def, series: await fetchSeries(code, def) })),
+      );
+      setTrendData((prev) => [...prev.filter((c) => c.def.source === 'static'), ...wbs]);
     } catch {
       setError('趋势数据加载失败。');
-    } finally {
       setTrendLoading(false);
     }
   }, []);
@@ -409,8 +415,9 @@ function BarChart({ data, decimals }: { data: Datum[]; decimals: number }) {
   );
 }
 
-// SVG 折线图：某国某指标历史趋势
+// SVG 折线图：某国某指标历史趋势（悬停/点按数据点显示具体数值）
 function LineChart({ series, decimals }: { series: { year: string; value: number }[]; decimals: number }) {
+  const [hover, setHover] = useState<number | null>(null);
   if (series.length === 0) {
     return <p className="muted" style={{ fontSize: '0.85rem', padding: '0.6rem 0' }}>该国家此指标暂无历史数据。</p>;
   }
@@ -431,8 +438,12 @@ function LineChart({ series, decimals }: { series: { year: string; value: number
 
   const pts = series.map((p) => `${x(p.year)},${yPos(p.value)}`).join(' ');
 
+  const tip = hover != null ? series[hover] : null;
+  // tooltip 显示在点上方；点靠近顶部时改为下方，避免溢出图表
+  const tipAbove = tip != null && yPos(tip.value) > 40;
+
   return (
-    <div style={{ overflowX: 'auto' }}>
+    <div style={{ position: 'relative', overflowX: 'auto' }}>
       <svg width={W2} height={H2} viewBox={`0 0 ${W2} ${H2}`} style={{ display: 'block' }}>
         {/* 网格线 */}
         {[0, 0.25, 0.5, 0.75, 1].map((t) => {
@@ -447,13 +458,29 @@ function LineChart({ series, decimals }: { series: { year: string; value: number
           );
         })}
         <polyline points={pts} fill="none" stroke="var(--accent)" strokeWidth={2} />
-        {series.map((p) => (
-          <g key={p.year}>
-            <circle cx={x(p.year)} cy={yPos(p.value)} r={2.5} fill="var(--accent)">
-              <title>{`${p.year}：${p.value.toFixed(decimals)}`}</title>
-            </circle>
-          </g>
-        ))}
+        {series.map((p, i) => {
+          const cx = x(p.year), cy = yPos(p.value);
+          const active = hover === i;
+          return (
+            <g key={p.year}>
+              {/* 透明扩大热区：PC 悬停 + 移动端点按切换 */}
+              <circle
+                cx={cx}
+                cy={cy}
+                r={10}
+                fill="transparent"
+                onMouseEnter={() => setHover(i)}
+                onMouseLeave={() => setHover(null)}
+                onClick={() => setHover(active ? null : i)}
+                style={{ cursor: 'pointer' }}
+              />
+              {active && (
+                <circle cx={cx} cy={cy} r={7} fill="var(--accent)" opacity={0.25} />
+              )}
+              <circle cx={cx} cy={cy} r={active ? 4 : 2.5} fill="var(--accent)" />
+            </g>
+          );
+        })}
         {/* 首尾年份标注 */}
         <text x={x(series[0].year)} y={H2 - PADB + 16} textAnchor="middle" fontSize="9" fill="var(--text-muted)">
           {series[0].year}
@@ -462,6 +489,27 @@ function LineChart({ series, decimals }: { series: { year: string; value: number
           {series[series.length - 1].year}
         </text>
       </svg>
+      {tip && (
+        <div
+          style={{
+            position: 'absolute',
+            left: x(tip.year),
+            top: yPos(tip.value),
+            transform: tipAbove ? 'translate(-50%, calc(-100% - 10px))' : 'translate(-50%, 12px)',
+            background: 'var(--surface)',
+            border: '1px solid var(--accent)',
+            borderRadius: 6,
+            padding: '3px 9px',
+            fontSize: 12,
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+            zIndex: 5,
+          }}
+        >
+          <b>{tip.year}</b>　{tip.value.toFixed(decimals)}
+        </div>
+      )}
     </div>
   );
 }

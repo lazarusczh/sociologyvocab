@@ -10,7 +10,7 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "feishu:send-apk": "lark-cli im +messages-send --user-id ou_a8b3dfc8f689afbda1007203e93f0fbe --file android/app/build/outputs/apk/release/app-release.apk --as user",
-    "release": "npm run build && npx cap sync android && npx cap build android --release && npm run feishu:send-apk"
+    "release": "npm run icons && npm run build && npx cap sync android && cd android && gradlew.bat assembleRelease && cd .. && npm run feishu:send-apk"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.1",
