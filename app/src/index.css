@@ -533,13 +533,26 @@ input:focus, textarea:focus, select:focus {
   transition: width var(--dur-slow) var(--ease);
 }
 .goal-card__msg { font-size: 13px; opacity: .95; }
-.goal-card__cta {
+/* 反白主 CTA（压在蓝色 goal-card 上）：白底蓝字
+   注意：必须写成 button.goal-card__cta（特异性 0,1,1）。若只写 .goal-card__cta（0,1,0），
+   会被更靠前的 button.primary 的「蓝底白字」覆盖 —— 按钮与蓝卡同色、边界消失，
+   hover 时又变成与卡片近乎同色的深蓝，视觉上整个按钮「溶」进卡片。 */
+button.goal-card__cta {
   margin-top: auto;
   background: #FFFFFF;
   border-color: #FFFFFF;
   color: var(--c-primary);
 }
-.goal-card__cta:hover { background: var(--c-surface-soft); border-color: var(--c-surface-soft); color: var(--c-primary-deep); }
+button.goal-card__cta:hover {
+  background: var(--c-surface-soft);
+  border-color: var(--c-surface-soft);
+  color: var(--c-primary-deep);
+}
+button.goal-card__cta:active {
+  background: var(--c-hairline-soft);
+  border-color: var(--c-hairline-soft);
+  color: var(--c-primary-deep);
+}
 
 /* 4 项累计统计 */
 .stats-row {
