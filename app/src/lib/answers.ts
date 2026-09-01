@@ -9,6 +9,7 @@ export function normalizeKey(s: string): string {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '') // 去变音符号（é->e, ü->u …）
     .toLowerCase()
+    .replace(/&/g, 'and') // & 可写成 and（如 "Tiger & Fox" 与 "Tiger and Fox" 等价）
     .replace(/\b([a-z]+?)isation\b/g, '$1ization') // 英式 -isation -> 美式 -ization
     .replace(/\b([a-z]+?)ise\b/g, '$1ize') // 英式 -ise -> 美式 -ize
     .replace(/[^a-z0-9]/g, '');

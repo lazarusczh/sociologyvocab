@@ -263,6 +263,16 @@ export async function submitQuizSubmission(input: {
   if (error) throw error;
 }
 
+// 教师重判某试卷：传入 submission_id -> 新分数，RPC 批量更新（security definer，仅 teacher/developer 可调用）
+export async function regradeQuizSubmissions(quizId: string, scores: Record<string, number>): Promise<number> {
+  const { data, error } = await supabase.rpc('regrade_quiz_submissions', {
+    p_quiz_id: quizId,
+    p_scores: scores,
+  });
+  if (error) throw error;
+  return Number(data ?? 0);
+}
+
 // 教师查看某试卷的全部交卷记录
 export async function listQuizSubmissions(quizId: string): Promise<QuizSubmission[]> {
   const { data, error } = await supabase

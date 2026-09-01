@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useStore } from '../lib/store';
 import type { VocabItem, Quiz, QuizSubmission, QuizQuestionType, QuizKind } from '../lib/types';
-import { buildQuizQuestions, sampleItems, TYPE_LABELS, KIND_LABELS, formatDuration, isAnswerCorrect, answerText, correctAnswerText, totalPoints, matchingCorrectCount } from '../lib/quiz';
+import { buildQuizQuestions, sampleItems, TYPE_LABELS, KIND_LABELS, formatDuration, isAnswerCorrect, answerText, correctAnswerText, totalPoints, matchingCorrectCount, gradeQuiz } from '../lib/quiz';
 import { PAPER_ORDER } from '../lib/storage';
 import { unitListFor } from '../lib/unitMapping';
 import { maskEmail } from '../lib/shuffle';
-import { createQuiz, updateQuiz, listQuizzes, listQuizSubmissions, deleteQuiz, listDeveloperIds, deleteSubmission, countSubmittedByQuizzes } from '../lib/cloud';
+import { createQuiz, updateQuiz, listQuizzes, listQuizSubmissions, deleteQuiz, listDeveloperIds, deleteSubmission, countSubmittedByQuizzes, regradeQuizSubmissions } from '../lib/cloud';
 
 // 创建表单草稿
 interface Draft {
@@ -110,6 +110,7 @@ export default function QuizManager() {
   const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
   const [viewing, setViewing] = useState<Quiz | null>(null); // 正在查看成绩的试卷
   const [subs, setSubs] = useState<QuizSubmission[]>([]);
+  const [regrading, setRegrading] = useState(false);
   const [submissionCounts, setSubmissionCounts] = useState<Record<string, number>>({});
   const [detailUser, setDetailUser] = useState<string | null>(null); // 正在查看答卷详情的学生 user_id
   const [devIds, setDevIds] = useState<Set<string>>(new Set()); // developer 账户 user_id（识别测试记录）
@@ -351,6 +352,30 @@ export default function QuizManager() {
     }
   };
 
+  // 重判：用最新容错规则（answers.ts）对当前试卷全部已提交卷重新判分，并写回云端
+  const regrade = async () => {
+    if (!viewing) return;
+    const scores: Record<string, number> = {};
+    for (const s of subs) {
+      if (s.status !== 'submitted') continue;
+      scores[s.id] = gradeQuiz(viewing.questions, s.answers ?? {});
+    }
+    if (Object.keys(scores).length === 0) {
+      setError('没有已提交的答卷可重判。');
+      return;
+    }
+    try {
+      setRegrading(true);
+      const n = await regradeQuizSubmissions(viewing.id, scores);
+      setSubs(await listQuizSubmissions(viewing.id));
+      setMsg(`已按最新容错规则重判 ${n} 份答卷。`);
+    } catch (e) {
+      setError(`重判失败：${(e as Error).message}（如尚未执行重判 RPC，请先在 Supabase SQL Editor 运行 db-migration-regrade.sql）`);
+    } finally {
+      setRegrading(false);
+    }
+  };
+
   if (viewing) {
     const detailSubmission = detailUser ? subs.find((s) => s.user_id === detailUser) : null;
     return (
@@ -360,10 +385,14 @@ export default function QuizManager() {
             <button className="ghost" onClick={() => setViewing(null)}>← 返回</button>
             <h3 style={{ margin: 0 }}>成绩：{viewing.title}</h3>
             <span className="spacer" />
+            <button className="ghost" onClick={regrade} disabled={regrading}>
+              {regrading ? '重判中…' : '重判'}
+            </button>
             <span className="muted" style={{ fontSize: '0.85rem' }}>密码 {viewing.code} · 共 {viewing.question_count} 题</span>
           </div>
         </div>
         {error && <div className="card" style={{ marginBottom: '0.8rem', background: 'var(--warn-bg)', borderColor: 'var(--warn)' }}>{error}</div>}
+        {msg && <div className="card" style={{ marginBottom: '0.8rem', background: 'var(--ok-bg)', borderColor: 'var(--ok)' }}>{msg}</div>}
         {subs.length === 0 ? (
           <div className="card"><div className="empty-state"><p className="muted">暂无学生交卷。</p></div></div>
         ) : (
