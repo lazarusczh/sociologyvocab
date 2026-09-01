@@ -12,6 +12,15 @@ export interface VocabItem {
   theory?: string;     // 理论流派（单值，兼容旧显示逻辑；仅学者使用，术语一律走 theories）
   theories?: string[]; // 理论流派（多选标签，教师后台逐个编辑；学者与术语均可使用）
   notes?: string;      // 备注（仅学者）
+  relations?: ItemRelations; // 词对逻辑关系（教师后台「逻辑管理」建立，随词库发布）
+}
+
+// 词对逻辑关系边（教师后台「逻辑管理」人工建立）
+export interface ItemRelations {
+  higher?: string[];   // 高概念：当前词条低于这些词条（对称存储，与 lower 互为反向）
+  lower?: string[];    // 低概念：当前词条高于这些词条
+  peer?: string[];     // 并列概念（同级，对称，无方向）
+  contrast?: string[]; // 对立概念（对称，无方向）
 }
 
 // 正式练习模式（用于区分掌握度增减权重）

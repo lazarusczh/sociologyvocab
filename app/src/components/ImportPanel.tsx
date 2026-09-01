@@ -1,7 +1,35 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, type ReactNode } from 'react';
 import { useStore } from '../lib/store';
-import { publishVocab } from '../lib/cloud';
+import { publishVocab, pullLatestVocab } from '../lib/cloud';
+import { saveVocabVersion } from '../lib/storage';
 import type { ImportResult } from '../lib/types';
+
+// 通用确认弹层：替代 window.confirm（iframe 预览沙箱中 confirm 被禁用，自定义 UI 在 iframe/APK WebView 中都可靠）
+function ConfirmModal({ open, title, body, confirmText = '确认', onCancel, onConfirm }: {
+  open: boolean;
+  title: string;
+  body: ReactNode;
+  confirmText?: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  if (!open) return null;
+  return (
+    <div
+      style={{ position: 'fixed', inset: 0, background: 'rgba(15, 20, 27, 0.45)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
+      onClick={onCancel}
+    >
+      <div className="card" style={{ maxWidth: 440, width: '100%', padding: '1rem' }} onClick={(e) => e.stopPropagation()}>
+        <h3 style={{ marginTop: 0 }}>{title}</h3>
+        <div className="muted" style={{ fontSize: '0.9rem', whiteSpace: 'pre-line' }}>{body}</div>
+        <div className="row" style={{ justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.9rem' }}>
+          <button onClick={onCancel}>取消</button>
+          <button className="primary" onClick={onConfirm}>{confirmText}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function ImportPanel() {
   const { vocab, importFiles, appendVocab, replaceVocab, clearAll, surnameOverrides, setSurnameOverride, removeSurnameOverride, unitOrder, vocabDirty, clearVocabDirty } = useStore();
@@ -14,12 +42,13 @@ export default function ImportPanel() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [publishing, setPublishing] = useState(false);
   const [publishMsg, setPublishMsg] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false); // 发布确认（自定义弹层，替代 window.confirm）
+  const [clearOpen, setClearOpen] = useState(false); // 清空词库确认
+  const [restoreOpen, setRestoreOpen] = useState(false); // 从云端恢复确认
+  const [restoring, setRestoring] = useState(false);
 
   const handlePublish = async () => {
     if (vocab.length === 0) return;
-    // 防误点：发布会把当前词库（含未完成编辑）整包上云，学生端立即同步，先确认
-    const dirtyNote = vocabDirty ? '\n\n（检测到本地有尚未发布过的修改，发布后学生端将同步到这些内容）' : '';
-    if (!confirm(`确定发布词库到云端？\n\n将把当前 ${vocab.length} 条词条发布为新版本，学生端启动/回首页时会自动同步到该版本。${dirtyNote}\n\n发布后如发现需要调整，可再次编辑并发布新版本。`)) return;
     setPublishing(true);
     setPublishMsg('');
     try {
@@ -30,6 +59,27 @@ export default function ImportPanel() {
       setPublishMsg(`发布失败：${(e as Error).message}`);
     } finally {
       setPublishing(false);
+    }
+  };
+
+  // 从云端最新发布版本恢复本地词库（含逻辑关系）
+  const handleRestore = async () => {
+    setRestoring(true);
+    setPublishMsg('');
+    try {
+      const pulled = await pullLatestVocab();
+      if (!pulled || pulled.data.length === 0) {
+        setPublishMsg('云端没有可用词库，或拉取为空。');
+        return;
+      }
+      replaceVocab(pulled.data);
+      clearVocabDirty();
+      saveVocabVersion(pulled.version);
+      setPublishMsg(`已从云端恢复 v${pulled.version}（${pulled.data.length} 条词条），本地词库已覆盖。`);
+    } catch (e) {
+      setPublishMsg(`恢复失败：${(e as Error).message}`);
+    } finally {
+      setRestoring(false);
     }
   };
 
@@ -103,8 +153,11 @@ export default function ImportPanel() {
           </p>
         )}
         <div className="row" style={{ marginTop: '0.6rem' }}>
-          <button className="primary" disabled={publishing || vocab.length === 0} onClick={handlePublish}>
+          <button className="primary" disabled={publishing || vocab.length === 0} onClick={() => setConfirmOpen(true)}>
             {publishing ? '发布中…' : '发布新版本'}
+          </button>
+          <button className="ghost" disabled={restoring} onClick={() => setRestoreOpen(true)}>
+            {restoring ? '恢复中…' : '从云端恢复'}
           </button>
         </div>
         {publishMsg && <p className="muted" style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}>{publishMsg}</p>}
@@ -129,13 +182,7 @@ export default function ImportPanel() {
           {vocab.length > 0 && (
             <>
               <span className="spacer" />
-              <button
-                className="danger"
-                disabled={busy}
-                onClick={() => {
-                  if (confirm('确定清空所有词条？此操作不可撤销。')) clearAll();
-                }}
-              >
+              <button className="danger" disabled={busy} onClick={() => setClearOpen(true)}>
                 清空词库
               </button>
             </>
@@ -246,6 +293,38 @@ export default function ImportPanel() {
           <li>所有数据仅保存在本机浏览器/设备中，不会上传到任何服务器。</li>
         </ul>
       </div>
+
+      {/* 自定义确认弹层（发布 / 清空）——iframe 预览沙箱中 window.confirm 失效，统一改用自定义 UI */}
+      <ConfirmModal
+        open={confirmOpen}
+        title="确定发布词库到云端？"
+        body={
+          <>
+            将把当前 {vocab.length} 条词条发布为新版本，学生端启动/回首页时会自动同步到该版本。
+            {vocabDirty && '\n\n检测到本地有尚未发布过的修改（含逻辑关系/流派归类等），发布后学生端将同步到这些内容。'}
+            {'\n\n发布后如发现需要调整，可再次编辑并发布新版本。'}
+          </>
+        }
+        confirmText="确认发布"
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={() => { setConfirmOpen(false); handlePublish(); }}
+      />
+      <ConfirmModal
+        open={clearOpen}
+        title="清空所有词条？"
+        body="确定清空所有词条？此操作不可撤销，清空后需重新导入。"
+        confirmText="确认清空"
+        onCancel={() => setClearOpen(false)}
+        onConfirm={() => { setClearOpen(false); clearAll(); }}
+      />
+      <ConfirmModal
+        open={restoreOpen}
+        title="从云端恢复词库？"
+        body="将从云端最新发布版本拉取并覆盖本地词库（含逻辑关系）。发布之后在本地新增的内容会丢失，请确认。"
+        confirmText="确认恢复"
+        onCancel={() => setRestoreOpen(false)}
+        onConfirm={() => { setRestoreOpen(false); handleRestore(); }}
+      />
     </div>
   );
 }
