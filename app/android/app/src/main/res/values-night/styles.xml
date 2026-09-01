@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- 深色模式主主题：状态栏与顶栏同色（#161C24），导航栏透明。
+         色值取自 values-night/colors.xml。 -->
+    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:background">@null</item>
+
+        <item name="android:windowBackground">@color/surfaceColor</item>
+        <item name="android:statusBarColor">@color/surfaceColor</item>
+        <!-- 手势导航栏透明 + 关闭系统强制对比度遮罩（API 29+） -->
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+        <!-- 深色底 → 状态栏图标与三键导航按钮用浅色 -->
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+
+
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <item name="android:background">@drawable/splash</item>
+        <item name="android:statusBarColor">@color/surfaceColor</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

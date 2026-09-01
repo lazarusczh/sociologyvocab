@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 深色模式（跟随系统）下的同名词色，对应 index.css 深色媒体查询内的 token
+         pageBackground 对应前端 CSS 变量 c-page（页面背景）     #0F141B
+         surfaceColor   对应前端 CSS 变量 c-canvas（顶栏/卡片）  #161C24 -->
+    <color name="pageBackground">#0F141B</color>
+    <color name="surfaceColor">#161C24</color>
+</resources>
