@@ -125,6 +125,9 @@
 }
 
 * { box-sizing: border-box; }
+/* 触屏点击高亮（-webkit-tap-highlight-color）默认会在点击 div/卡片时盖一层灰色矩形，
+   已由各按钮/卡片的 :active 样式提供按下反馈，故全局关闭（含 APK WebView 内） */
+* { -webkit-tap-highlight-color: transparent; }
 
 body { margin: 0; min-height: 100vh; }
 

@@ -423,7 +423,7 @@ export default function LogicManager() {
     multi: boolean,
     inputRef: RefObject<HTMLInputElement | null>,
   ) => (
-    <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
+    <div style={{ position: 'relative', flex: '1 1 12rem', minWidth: 0 }}>
       <div
         style={{
           display: 'flex', flexWrap: 'wrap', gap: '0.2rem', alignItems: 'center',
