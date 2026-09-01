@@ -461,12 +461,15 @@ input:focus, textarea:focus, select:focus {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
-  min-height: 116px;
+  min-height: 148px;
   padding: var(--sp-5);
 }
 .mode-card:hover { background: var(--c-surface-soft); border-color: var(--c-hairline); }
 .mode-card .icon { font-size: 1.5rem; }
-.mode-card .desc { color: var(--c-steel); font-size: 0.85rem; }
+/* 练习模式图标（WorkBuddy 出图，320 viewBox 的彩色 SVG） */
+.mode-card__icon { width: 44px; height: 44px; display: block; margin-bottom: 0.2rem; }
+.mode-card strong { font-size: 0.98rem; font-weight: 600; }
+.mode-card .desc { color: var(--c-steel); font-size: 0.85rem; line-height: 1.4; }
 /* 模式卡元信息（上次成绩 / 待复习数）——Step 5 接入持久化数据 */
 .mode-card__meta { margin-top: auto; font-size: 12px; color: var(--c-stone); }
 

@@ -14,15 +14,15 @@ interface Props {
   go: (v: View) => void;
 }
 
-const MODES: { key: View; icon: string; title: string; desc: string }[] = [
-  { key: 'quiz', icon: '🔒', title: '随堂测验 / 作业', desc: '输入老师给的密码进入限时测验' },
-  { key: 'flashcards', icon: '🂠', title: '闪卡记忆', desc: '翻卡看释义，纯自学浏览' },
-  { key: 'choice', icon: '☑', title: '选择题测验', desc: '四选一，术语与释义配对' },
-  { key: 'spelling', icon: '✎', title: '拼写默写', desc: '看中文释义拼写英文术语' },
-  { key: 'matching', icon: '⇄', title: '匹配题', desc: '术语与释义连线配对' },
-  { key: 'crossword', icon: '⊞', title: '纵横填字', desc: '随机生成填字游戏' },
-  { key: 'wordle', icon: '▤', title: 'Wordle', desc: '猜术语的字母游戏' },
-  { key: 'wrong', icon: '✗', title: '错题练习', desc: '复习做错的题目' },
+const MODES: { key: View; title: string; desc: string }[] = [
+  { key: 'quiz', title: '随堂测验 / 作业', desc: '输入老师给的密码进入限时测验' },
+  { key: 'flashcards', title: '闪卡记忆', desc: '翻卡看释义，纯自学浏览' },
+  { key: 'choice', title: '选择题测验', desc: '四选一，术语与释义配对' },
+  { key: 'spelling', title: '拼写默写', desc: '看中文释义拼写英文术语' },
+  { key: 'matching', title: '匹配题', desc: '术语与释义连线配对' },
+  { key: 'crossword', title: '纵横填字', desc: '随机生成填字游戏' },
+  { key: 'wordle', title: 'Wordle', desc: '猜术语的字母游戏' },
+  { key: 'wrong', title: '错题练习', desc: '复习做错的题目' },
 ];
 
 // 周历：周一到周日顺序（设计图），index 0=周一 … 6=周日
@@ -220,7 +220,7 @@ export default function Home({ go }: Props) {
             onClick={() => go(m.key)}
             disabled={total === 0}
           >
-            <span className="icon">{m.icon}</span>
+            <img className="mode-card__icon" src={`/mode-icons/${m.key}.svg`} alt="" />
             <strong>{m.title}</strong>
             <span className="desc">
               {m.key === 'wrong' && wrongCount > 0 ? `待复习 ${wrongCount} 题` : m.desc}
