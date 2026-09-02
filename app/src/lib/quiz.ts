@@ -21,9 +21,10 @@ function buildQuestion(item: VocabItem, type: QuizQuestionType, pool: VocabItem[
     chinese: item.chinese,
     definition: maskedDef,
   };
-  // 干扰项优先取同 paper 词条，避免一眼看出不相关；同 paper 不够再补其他 paper
-  const samePaper = pool.filter((p) => p.id !== item.id && p.paper === item.paper);
-  const restPaper = pool.filter((p) => p.id !== item.id && p.paper !== item.paper);
+  // 干扰项只取同类型词条（术语题只出术语、学者题只出学者），
+  // 否则学生按类型一眼排除选项；再优先同 paper，不够补其他 paper
+  const samePaper = pool.filter((p) => p.id !== item.id && p.type === item.type && p.paper === item.paper);
+  const restPaper = pool.filter((p) => p.id !== item.id && p.type === item.type && p.paper !== item.paper);
 
   if (type === 'spelling') {
     return {

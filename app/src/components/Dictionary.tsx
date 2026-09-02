@@ -31,6 +31,12 @@ export default function Dictionary() {
         }
         if (contain && best === null) best = 1;
       }
+      // 释义关键词反查（低权重）：记得概念但想不起名字时，用释义里的关键词反查词条
+      if (best === null && item.definition) {
+        const defNorm = normalizeKey(item.definition);
+        const defHit = (qNorm && defNorm.includes(qNorm)) || (qRaw && item.definition.toLowerCase().includes(qRaw));
+        if (defHit) best = 2;
+      }
       if (best !== null) scored.push({ item, score: best });
     }
 

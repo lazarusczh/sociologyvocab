@@ -1,7 +1,9 @@
-import { useMemo, useState, useRef, useEffect, type RefObject } from 'react';
+import { useMemo, useState, useRef, useEffect, Fragment, type RefObject } from 'react';
 import { useStore } from '../lib/store';
 import type { VocabItem, ItemRelations } from '../lib/types';
 import { Network, DataSet, type Node as VisNode, type Edge as VisEdge, type Options } from 'vis-network/standalone';
+import { conceptIdOf, suggestRelated } from '../lib/relationSuggest';
+import { buildConceptGraph } from '../lib/conceptGraph';
 
 type RelType = 'higher' | 'lower' | 'peer' | 'contrast';
 
@@ -19,16 +21,7 @@ const EDGE_STYLE: Record<Exclude<RelType, 'lower'>, { color: string; arrows?: 't
   contrast: { color: '#FF7A59', dashes: true },
 };
 
-// ---- 概念组 ----
-// 判断哪些条目属于同一个「概念」：默认按 type+term 归并（跨 paper 同名 = 同一概念）；
-// 特例：同 term 但语义不同的条目需拆开（如 Cultural deprivation 的 deviance / identity 版）。
-const CONCEPT_SPLIT_TERMS = new Set(['Cultural deprivation']);
-function conceptIdOf(item: VocabItem): string {
-  if (CONCEPT_SPLIT_TERMS.has(item.term)) {
-    return `${item.type}|${item.term}|${(item.unit ?? []).slice().sort().join(',')}`;
-  }
-  return `${item.type}|${item.term}`;
-}
+// ---- 概念组归并已移入 lib/relationSuggest.ts（conceptIdOf），此处直接复用 ----
 
 function matchVocab(vocab: VocabItem[], q: string, excludeIds: string[] = []): VocabItem[] {
   const ql = q.trim().toLowerCase();
@@ -133,7 +126,22 @@ function removeRelation(vocab: VocabItem[], aId: string, bId: string, type: RelT
     }
   }
   return vocab.map((i) => byId.get(i.id) ?? i);
-}
+  }
+
+  // 查询 A、B 概念组之间现存的关系类型（raw 字段语义；无则 null）。
+  // 供「修改关系」保存时检测旧关系并替换（先删旧再建新）。
+  function relationTypeBetween(vocab: VocabItem[], a: VocabItem, b: VocabItem): RelType | null {
+  const aCid = conceptIdOf(a);
+  const bCid = conceptIdOf(b);
+  const bIds = new Set(vocab.filter((i) => conceptIdOf(i) === bCid).map((i) => i.id));
+  for (const it of vocab) {
+  if (conceptIdOf(it) !== aCid) continue;
+  for (const t of ['higher', 'lower', 'peer', 'contrast'] as const) {
+    if ((it.relations?.[t] ?? []).some((id) => bIds.has(id))) return t;
+  }
+  }
+  return null;
+  }
 
 export default function LogicManager() {
   const { vocab, replaceVocab } = useStore();
@@ -141,11 +149,15 @@ export default function LogicManager() {
   const [rightQ, setRightQ] = useState('');
   const [left, setLeft] = useState<VocabItem | null>(null);
   const [rights, setRights] = useState<VocabItem[]>([]); // 词条B：支持多选，批量建立关系
+  const [savedAnchor, setSavedAnchor] = useState<VocabItem | null>(null); // 最近保存的词条A（保存后 left 已清空，推荐依据回退到它）
   const [rel, setRel] = useState<RelType>('higher');
   const [msg, setMsg] = useState('');
   const [leftOpen, setLeftOpen] = useState(false);
   const [rightOpen, setRightOpen] = useState(false);
   const [relationsOpen, setRelationsOpen] = useState(false); // 已建立关系默认折叠，避免越积越长
+  const [showDerived, setShowDerived] = useState(false); // 图谱是否显示派生同级（共享父推导，默认关）
+  const [editingRel, setEditingRel] = useState<{ a: VocabItem; b: VocabItem; type: RelType } | null>(null); // 正在编辑的关系（展开行内操作条）
+  const [covType, setCovType] = useState<'all' | 'term' | 'scholar'>('all'); // 覆盖率统计的筛选（全部/术语/学者）
   const [relSearch, setRelSearch] = useState(''); // 关系列表搜索词
   const graphRef = useRef<HTMLDivElement>(null);
   const leftInputRef = useRef<HTMLInputElement>(null);
@@ -202,6 +214,35 @@ export default function LogicManager() {
     return rows;
   }, [vocab]);
 
+  // 编辑助手：推荐「可能相关且尚未入网」的词条（基于当前 A，或最近保存的 A）
+  const suggestions = useMemo(() => {
+    const anchor = left ?? savedAnchor;
+    if (!anchor) return [];
+    const exclude = [anchor.id, ...rights.map((r) => r.id)];
+    return suggestRelated(vocab, anchor, exclude);
+  }, [vocab, left, savedAnchor, rights]);
+
+  // 覆盖率统计：有关系边（higher/lower/peer/contrast 任一）的概念组 / 全部概念组，按类型分
+  const coverage = useMemo(() => {
+    const mk = () => ({ total: 0, covered: 0 });
+    const stat = { all: mk(), term: mk(), scholar: mk() };
+    const cidsByType = { term: new Set<string>(), scholar: new Set<string>() };
+    const coveredCids = new Set<string>();
+    for (const it of vocab) {
+      cidsByType[it.type].add(conceptIdOf(it));
+      if (it.relations && Object.keys(it.relations).length) coveredCids.add(conceptIdOf(it));
+    }
+    stat.term.total = cidsByType.term.size;
+    stat.scholar.total = cidsByType.scholar.size;
+    stat.all.total = stat.term.total + stat.scholar.total;
+    for (const cid of coveredCids) {
+      stat.all.covered++;
+      if (cidsByType.term.has(cid)) stat.term.covered++;
+      if (cidsByType.scholar.has(cid)) stat.scholar.covered++;
+    }
+    return stat;
+  }, [vocab]);
+
   // 关系列表搜索过滤（按两端词条英文名 / 中文匹配）
   const filteredRelations = useMemo(() => {
     const q = relSearch.trim().toLowerCase();
@@ -220,15 +261,32 @@ export default function LogicManager() {
     if (rights.length === 0) { setMsg('请先选择词条B'); return; }
     if (rights.some((b) => conceptIdOf(b) === conceptIdOf(left))) { setMsg('A 与所选 B 属于同一概念，无需建立关系'); return; }
     let next = vocab;
-    for (const b of rights) next = applyRelation(next, left, b, rel);
+    for (const b of rights) {
+      // 该 A-B 已存在其他类型的关系 → 先移除再建立（替换），供「修改关系」用
+      const existing = relationTypeBetween(next, left, b);
+      if (existing && existing !== rel) next = removeRelation(next, left.id, b.id, existing);
+      next = applyRelation(next, left, b, rel);
+    }
     replaceVocab(next);
     const bs = rights.map((b) => b.term).join('、');
     setMsg(`已保存：${left.term} ${REL_LABELS[rel]} ${bs}`);
+    setSavedAnchor(left);
     setLeft(null); setRights([]); setLeftQ(''); setRightQ('');
   };
 
   const del = (aId: string, bId: string, type: RelType) => {
     replaceVocab(removeRelation(vocab, aId, bId, type));
+  };
+
+  // 「修改关系」：把该关系载入上方编辑区；保存时对同一 A-B 会先删旧再建新（替换）
+  const loadEdit = () => {
+    if (!editingRel) return;
+    setLeft(editingRel.a);
+    setRights([editingRel.b]);
+    setRel(editingRel.type);
+    setLeftQ(''); setRightQ('');
+    setMsg(`已载入「${editingRel.a.term} ${REL_LABELS[editingRel.type]} ${editingRel.b.term}」到编辑区，改好后点保存（同一条直接替换）。`);
+    setEditingRel(null);
   };
 
   // 幂等规范化（重建式）：提取「概念级关系」（方向按字段语义，去重、矛盾取先出现），
@@ -309,78 +367,72 @@ export default function LogicManager() {
     }
   }, [vocab, replaceVocab]);
 
-  // 图谱可视化：概念级聚合（节点 = 概念组，边 = 概念级去重），力导向自动布局，类型着色
+  // 图谱可视化：基于 conceptGraph（层级推导层）——节点 = 概念组，
+  // 按连通性（度数）着色体现核心概念地位；派生同级（共享父推导）可开关显示
   useEffect(() => {
     const el = graphRef.current;
     if (!el) return;
-    // itemId -> 概念 id；概念 id -> 组内条目
-    const conceptById = new Map<string, string>();
+    const g = buildConceptGraph(vocab);
+    // 概念 id -> 组内条目（tooltip 展示卷 + 单元）
     const itemsByConcept = new Map<string, VocabItem[]>();
     for (const it of vocab) {
       const cid = conceptIdOf(it);
-      conceptById.set(it.id, cid);
       const arr = itemsByConcept.get(cid) ?? [];
       arr.push(it);
       itemsByConcept.set(cid, arr);
     }
-    // 有关系的概念集合
-    const relConcepts = new Set<string>();
-    for (const it of vocab) {
-      if (!it.relations) continue;
-      const cid = conceptById.get(it.id);
-      if (cid) relConcepts.add(cid);
-      for (const k of ['higher', 'lower', 'peer', 'contrast'] as const) {
-        for (const id of it.relations[k] ?? []) {
-          const c = conceptById.get(id);
-          if (c) relConcepts.add(c);
-        }
-      }
-    }
+    // 度数（含派生同级：真实连通性 / 潜在核心地位）
+    const degree = (cid: string) => g.neighbors.get(cid)?.length ?? 0;
+    // 度数 → 颜色（读设计 token，深色模式自动跟随；浅底用深字保证可读）
+    const cssVar = (name: string, fb: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fb;
+    const colorCore = cssVar('--c-primary', '#0064E0');
+    const colorStrong = cssVar('--c-primary-soft', '#0091FF');
+    const colorMid = cssVar('--c-charcoal', '#444950');
+    const colorLeaf = cssVar('--c-hairline', '#CED0D4');
+    const ink = cssVar('--c-ink', '#1C1E21');
+    const nodeColor = (deg: number) => (deg >= 12 ? colorCore : deg >= 6 ? colorStrong : deg >= 3 ? colorMid : colorLeaf);
+    const nodeFont = (deg: number) => (deg >= 3 ? '#FFFFFF' : ink);
+    const nodeSize = (deg: number) => 14 + Math.min(deg, 20);
     const nodes = new DataSet<VisNode>(
-      [...relConcepts].map((cid) => {
-        const items = itemsByConcept.get(cid)!;
+      [...g.nodes.keys()].map((cid) => {
+        const node = g.nodes.get(cid)!;
+        const items = itemsByConcept.get(cid) ?? [];
         const rep = items[0];
-        // tooltip 展示该概念下的所有条目（卷 + 单元）
+        const deg = degree(cid);
         const subs = items
           .map((i) => `${i.paper}${i.unit?.length ? `（${i.unit.join('、')}）` : ''}`)
           .join(' / ');
         return {
           id: cid,
-          label: rep.term,
-          title: `${rep.term}${rep.chinese ? `（${rep.chinese}）` : ''}${items.length > 1 ? `\n条目：${subs}` : ''}`,
+          label: node.term,
+          title: `${node.term}${rep?.chinese ? `（${rep.chinese}）` : ''}` +
+            `\n连接 ${deg} 个概念${node.depth >= 0 ? ` · 层级 ${node.depth + 1}` : ''}` +
+            (items.length > 1 ? `\n条目：${subs}` : ''),
+          shape: 'box',
+          color: { border: nodeColor(deg), background: nodeColor(deg) },
+          font: { color: nodeFont(deg), size: nodeSize(deg), bold: deg >= 6 ? 'bold' : 'normal' },
         };
       }),
     );
     const edges = new DataSet<VisEdge>();
     let eid = 0;
-    const seen = new Set<string>();
-    for (const it of vocab) {
-      const ca = conceptById.get(it.id)!;
-      for (const bid of it.relations?.higher ?? []) {
-        const cb = conceptById.get(bid);
-        if (!cb || ca === cb) continue; // 孤儿引用 / 同概念跳过
-        const key = `h|${ca}|${cb}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        // 高概念 → 低概念（箭头从高指向低）
-        edges.add({ id: `h${eid++}`, from: cb, to: ca, arrows: 'to', label: '高于', color: { color: EDGE_STYLE.higher.color } });
+    // higher：父（高）→ 子（低），箭头指向低
+    for (const node of g.nodes.values()) {
+      for (const child of node.children) {
+        edges.add({ id: `h${eid++}`, from: node.cid, to: child, arrows: 'to', label: '高于', color: { color: EDGE_STYLE.higher.color } });
       }
-      // peer / contrast 对称，按概念 id 序只画一条
-      for (const bid of it.relations?.peer ?? []) {
-        const cb = conceptById.get(bid);
-        if (!cb || ca === cb) continue;
-        const key = `p|${[ca, cb].sort().join('|')}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        edges.add({ id: `p${eid++}`, from: ca, to: cb, dashes: true, label: '并列', color: { color: EDGE_STYLE.peer.color } });
-      }
-      for (const bid of it.relations?.contrast ?? []) {
-        const cb = conceptById.get(bid);
-        if (!cb || ca === cb) continue;
-        const key = `c|${[ca, cb].sort().join('|')}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        edges.add({ id: `c${eid++}`, from: ca, to: cb, dashes: true, label: '相反', color: { color: EDGE_STYLE.contrast.color } });
+    }
+    // 显式 peer / contrast（对称，各画一条）
+    for (const [a, b] of g.explicitPeers) {
+      edges.add({ id: `p${eid++}`, from: a, to: b, dashes: true, label: '并列', color: { color: EDGE_STYLE.peer.color } });
+    }
+    for (const [a, b] of g.contrasts) {
+      edges.add({ id: `c${eid++}`, from: a, to: b, dashes: true, label: '相反', color: { color: EDGE_STYLE.contrast.color } });
+    }
+    // 派生同级（默认关：全开 489 条会过密）
+    if (showDerived) {
+      for (const [a, b] of g.derivedPeers) {
+        edges.add({ id: `d${eid++}`, from: a, to: b, dashes: true, label: '同级', color: { color: EDGE_STYLE.peer.color, opacity: 0.35 } });
       }
     }
     const options: Options = {
@@ -409,7 +461,7 @@ export default function LogicManager() {
       }
     });
     return () => network.destroy();
-  }, [vocab]);
+  }, [vocab, showDerived]);
 
   const renderPicker = (
     values: VocabItem[],
@@ -427,8 +479,11 @@ export default function LogicManager() {
       <div
         style={{
           display: 'flex', flexWrap: 'wrap', gap: '0.2rem', alignItems: 'center',
-          padding: '0.2rem 0.45rem', border: '1px solid var(--border)', borderRadius: 8,
-          background: 'var(--surface)', cursor: 'text', minHeight: '36px', boxSizing: 'border-box',
+          padding: '0.15rem 0.45rem', border: '1px solid var(--border)', borderRadius: 8,
+          background: 'var(--surface)', cursor: 'text', boxSizing: 'border-box',
+          ...(multi
+            ? { minHeight: 'var(--h-btn-lg)', maxHeight: 96, overflowY: 'auto' } // 多选：允许随选中词条撑开（最多两行），超出滚动
+            : { height: 'var(--h-btn-lg)', overflow: 'hidden' }), // 单选：与保存按钮等高
         }}
         onClick={() => inputRef.current?.focus()}
       >
@@ -513,7 +568,7 @@ export default function LogicManager() {
           <select
             value={rel}
             onChange={(e) => setRel(e.target.value as RelType)}
-            style={{ padding: '0.45rem 0.6rem', fontSize: '0.9rem', width: 'auto', flexShrink: 0 }}
+            style={{ height: 'var(--h-btn-lg)', boxSizing: 'border-box', padding: '0 0.6rem', fontSize: '0.9rem', width: 'auto', flexShrink: 0 }}
           >
             <option value="higher">高于</option>
             <option value="lower">低于</option>
@@ -525,6 +580,28 @@ export default function LogicManager() {
         </div>
       </div>
       {msg && <p className="muted" style={{ fontSize: '0.85rem', marginTop: '0.4rem' }}>{msg}</p>}
+      {suggestions.length > 0 && (
+        <div style={{ marginTop: '0.4rem' }}>
+          <span className="muted" style={{ fontSize: '0.85rem' }}>推荐相关词条：</span>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.3rem' }}>
+            {suggestions.map((s) => (
+              <button
+                key={s.item.id}
+                className="ghost"
+                style={{ fontSize: '0.85rem', padding: '0.2rem 0.6rem' }}
+                title={s.reasons.join('、')}
+                onClick={() => {
+                  setRights((r) => (r.some((x) => x.id === s.item.id) ? r : [...r, s.item]));
+                  setRightQ('');
+                }}
+              >
+                {s.item.term}
+                <span className="muted" style={{ marginLeft: '0.3rem', fontSize: '0.75rem' }}>{s.reasons.join('·')}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="card" style={{ marginTop: '0.8rem', padding: '0.8rem' }}>
         <button
@@ -536,6 +613,30 @@ export default function LogicManager() {
           <span>已建立关系（{relations.length}）</span>
           <span className="collapse-caret">{relationsOpen ? '▾' : '▸'}</span>
         </button>
+        <div style={{ marginTop: '0.5rem' }}>
+          <div className="tag-filter">
+            {(['all', 'term', 'scholar'] as const).map((t) => (
+              <button key={t} className={covType === t ? 'active' : ''} onClick={() => setCovType(t)}>
+                {t === 'all' ? '全部' : t === 'term' ? '术语' : '学者'}
+              </button>
+            ))}
+          </div>
+          <div style={{ marginTop: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ flex: 1, height: 8, borderRadius: 4, background: 'var(--c-track)', overflow: 'hidden' }}>
+              <div
+                style={{
+                  width: `${coverage[covType].total ? (coverage[covType].covered / coverage[covType].total) * 100 : 0}%`,
+                  height: '100%',
+                  background: 'var(--c-primary)',
+                  transition: 'width .3s ease',
+                }}
+              />
+            </div>
+            <span className="muted" style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+              已覆盖 {coverage[covType].covered} / {coverage[covType].total} 概念组
+            </span>
+          </div>
+        </div>
         {relationsOpen &&
           (relations.length === 0 ? (
             <p className="muted" style={{ margin: 0 }}>暂无关系，先在上方建立一条吧。</p>
@@ -553,18 +654,44 @@ export default function LogicManager() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '0.4rem' }}>
                   <tbody>
                     {filteredRelations.map((r, idx) => (
-                      <tr key={idx}>
+                      <Fragment key={idx}>
+                      <tr>
                         <td style={{ padding: '0.3rem 0.4rem', borderBottom: '1px solid var(--c-hairline-soft)', fontSize: '0.9rem' }}>
                           <b>{r.a.term}</b>
                           <span style={{ color: 'var(--c-steel)', margin: '0 0.35rem' }}>{REL_LABELS[r.type]}</span>
                           <b>{r.b.term}</b>
                         </td>
-                        <td style={{ padding: '0.3rem 0.4rem', borderBottom: '1px solid var(--c-hairline-soft)', textAlign: 'right', width: 60 }}>
-                          <button className="ghost" style={{ padding: '0.15rem 0.5rem', fontSize: '0.8rem' }} onClick={() => del(r.a.id, r.b.id, r.type)}>
-                            删除
+                        <td style={{ padding: '0.3rem 0.4rem', borderBottom: '1px solid var(--c-hairline-soft)', textAlign: 'right', width: 70 }}>
+                          <button
+                            className="ghost"
+                            style={{ padding: '0.15rem 0.5rem', fontSize: '0.8rem' }}
+                            onClick={() => {
+                              const isEditing = editingRel?.a.id === r.a.id && editingRel?.b.id === r.b.id;
+                              setEditingRel(isEditing ? null : { a: r.a, b: r.b, type: r.type });
+                            }}
+                          >
+                            {editingRel?.a.id === r.a.id && editingRel?.b.id === r.b.id ? '收起' : '编辑'}
                           </button>
                         </td>
                       </tr>
+                      {editingRel?.a.id === r.a.id && editingRel?.b.id === r.b.id && (
+                        <tr>
+                          <td colSpan={2} style={{ padding: '0.3rem 0.4rem', borderBottom: '1px solid var(--c-hairline-soft)' }}>
+                            <div className="row" style={{ gap: '0.4rem', alignItems: 'center' }}>
+                              <span className="muted" style={{ fontSize: '0.85rem' }}>修改后保存将直接替换该关系：</span>
+                              <button className="ghost" style={{ padding: '0.15rem 0.5rem', fontSize: '0.8rem' }} onClick={loadEdit}>修改关系</button>
+                              <button
+                                className="danger"
+                                style={{ padding: '0.15rem 0.5rem', fontSize: '0.8rem' }}
+                                onClick={() => { del(editingRel.a.id, editingRel.b.id, editingRel.type); setEditingRel(null); }}
+                              >
+                                删除
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                      </Fragment>
                     ))}
                   </tbody>
                 </table>
@@ -574,9 +701,27 @@ export default function LogicManager() {
       </div>
 
       <div className="card" style={{ marginTop: '0.8rem', padding: '0.8rem' }}>
-        <h3 style={{ marginTop: 0 }}>关系网络</h3>
-        <p className="muted" style={{ fontSize: '0.8rem', marginTop: '-0.3rem' }}>
+        <div className="row" style={{ alignItems: 'center' }}>
+          <h3 style={{ margin: 0 }}>关系网络</h3>
+          <span className="spacer" />
+          <button
+            onClick={() => setShowDerived((v) => !v)}
+            style={{
+              fontSize: '0.78rem',
+              lineHeight: 1.2,
+              padding: '0.12rem 0.55rem',
+              borderRadius: 8,
+              background: showDerived ? 'var(--accent)' : 'var(--c-canvas)',
+              borderColor: showDerived ? 'var(--accent)' : 'var(--c-hairline-soft)',
+              color: showDerived ? '#fff' : 'var(--c-charcoal)',
+            }}
+          >
+            {showDerived ? '隐藏派生同级' : '显示派生同级'}
+          </button>
+        </div>
+        <p className="muted" style={{ fontSize: '0.8rem', marginTop: '0.4rem' }}>
           蓝色箭头 = 高于（高→低）；绿色虚线 = 并列；红色虚线 = 相反。可拖动节点。
+          节点颜色越深 = 连通性越强（潜在核心概念），tooltip 可见连接数 / 层级。
         </p>
         <div
           ref={graphRef}

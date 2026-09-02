@@ -42,7 +42,7 @@ function buildQuestion(item: VocabItem, pool: VocabItem[]): Question {
 
   // 取干扰项：同一类型（学者用名字作选项，术语视情况）
   const distractors = pool
-    .filter((p) => p.id !== item.id)
+    .filter((p) => p.id !== item.id && p.type === item.type) // 干扰项只取同类型
     .map((p) => (optionSource === 'term' ? p.term : maskedDef(p)))
     .filter((t) => t && t !== answer)
     .filter((t, i, arr) => arr.indexOf(t) === i);
