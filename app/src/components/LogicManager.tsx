@@ -27,12 +27,24 @@ function matchVocab(vocab: VocabItem[], q: string, excludeIds: string[] = []): V
   const ql = q.trim().toLowerCase();
   if (!ql) return [];
   const excluded = new Set(excludeIds.filter(Boolean));
+  // 相关度排序：term/中文「全等 > 前缀 > 包含」，否则新建词条（追加在数组末尾）会在 slice 前被截掉
+  const rank = (i: VocabItem): number => {
+    const t = i.term.toLowerCase();
+    const c = (i.chinese ?? '').toLowerCase();
+    if (t === ql) return 0;
+    if (c === ql) return 1;
+    if (t.startsWith(ql)) return 2;
+    if (c.startsWith(ql)) return 3;
+    if (t.includes(ql)) return 4;
+    return 5; // 仅中文包含
+  };
   return vocab
     .filter(
       (i) =>
         !excluded.has(i.id) &&
-        (i.term.toLowerCase().includes(ql) || i.chinese.toLowerCase().includes(ql)),
+        (i.term.toLowerCase().includes(ql) || (i.chinese ?? '').toLowerCase().includes(ql)),
     )
+    .sort((a, b) => rank(a) - rank(b))
     .slice(0, 12);
 }
 
@@ -158,6 +170,11 @@ export default function LogicManager() {
   const [showDerived, setShowDerived] = useState(false); // 图谱是否显示派生同级（共享父推导，默认关）
   const [editingRel, setEditingRel] = useState<{ a: VocabItem; b: VocabItem; type: RelType } | null>(null); // 正在编辑的关系（展开行内操作条）
   const [covType, setCovType] = useState<'all' | 'term' | 'scholar'>('all'); // 覆盖率统计的筛选（全部/术语/学者）
+  const [focusQ, setFocusQ] = useState(''); // 图谱聚焦检索词
+  const [focusCid, setFocusCid] = useState<string | null>(null); // 图谱聚焦的概念组（null = 全图）
+  const [focusDepth, setFocusDepth] = useState(1); // 图谱聚焦范围（几度邻居；1=直接上下游）
+  const [uncoveredSeed, setUncoveredSeed] = useState(0); // 未覆盖随机推荐的换一批种子
+  const [activePicker, setActivePicker] = useState<'a' | 'b' | null>(null); // 当前焦点在哪个检索框（随机推荐据此带入 A/B）
   const [relSearch, setRelSearch] = useState(''); // 关系列表搜索词
   const graphRef = useRef<HTMLDivElement>(null);
   const leftInputRef = useRef<HTMLInputElement>(null);
@@ -242,6 +259,47 @@ export default function LogicManager() {
     }
     return stat;
   }, [vocab]);
+
+  // 概念层级图（图谱可视化 + 聚焦筛选共用）
+  const graph = useMemo(() => buildConceptGraph(vocab), [vocab]);
+
+  // 未覆盖概念组（没有任何关系边）及其代表词条——供随机推荐补覆盖
+  const uncovered = useMemo(() => {
+    const covered = new Set<string>();
+    const reps = new Map<string, VocabItem>();
+    for (const it of vocab) {
+      const cid = conceptIdOf(it);
+      if (!reps.has(cid)) reps.set(cid, it);
+      if (it.relations && Object.keys(it.relations).length) covered.add(cid);
+    }
+    return [...reps.entries()].filter(([cid]) => !covered.has(cid)).map(([, it]) => it);
+  }, [vocab]);
+
+  // 随机抽一批未覆盖概念（仅在点「换一批」时重抽，不随覆盖集合变化自动刷新）
+  const uncoveredPick = useMemo(() => {
+    const arr = [...uncovered];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr.slice(0, 6);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uncoveredSeed]);
+
+  // 图谱聚焦候选：按概念组名匹配（term 全等 > 前缀 > 包含，避免精确命中被截掉）
+  const focusMatches = useMemo(() => {
+    const q = focusQ.trim().toLowerCase();
+    if (!q) return [];
+    const rank = (t: string): number => {
+      if (t === q) return 0;
+      if (t.startsWith(q)) return 1;
+      return 2;
+    };
+    return [...graph.nodes.values()]
+      .filter((n) => n.term.toLowerCase().includes(q))
+      .sort((a, b) => rank(a.term.toLowerCase()) - rank(b.term.toLowerCase()))
+      .slice(0, 10);
+  }, [focusQ, graph]);
 
   // 关系列表搜索过滤（按两端词条英文名 / 中文匹配）
   const filteredRelations = useMemo(() => {
@@ -372,7 +430,7 @@ export default function LogicManager() {
   useEffect(() => {
     const el = graphRef.current;
     if (!el) return;
-    const g = buildConceptGraph(vocab);
+    const g = graph;
     // 概念 id -> 组内条目（tooltip 展示卷 + 单元）
     const itemsByConcept = new Map<string, VocabItem[]>();
     for (const it of vocab) {
@@ -393,45 +451,78 @@ export default function LogicManager() {
     const nodeColor = (deg: number) => (deg >= 12 ? colorCore : deg >= 6 ? colorStrong : deg >= 3 ? colorMid : colorLeaf);
     const nodeFont = (deg: number) => (deg >= 3 ? '#FFFFFF' : ink);
     const nodeSize = (deg: number) => 14 + Math.min(deg, 20);
+    // 聚焦模式：按 focusDepth 做 BFS，显示焦点概念周围 n 度邻居；否则全图
+    const colorFocus = cssVar('--c-critical', '#E41E3F');
+    let shownCids: Set<string> | null = null;
+    if (focusCid) {
+      shownCids = new Set([focusCid]);
+      let frontier = [focusCid];
+      for (let d = 0; d < focusDepth; d++) {
+        const next: string[] = [];
+        for (const c of frontier) {
+          for (const nb of g.neighbors.get(c) ?? []) {
+            if (!shownCids.has(nb)) {
+              shownCids.add(nb);
+              next.push(nb);
+            }
+          }
+        }
+        frontier = next;
+        if (frontier.length === 0) break;
+      }
+    }
     const nodes = new DataSet<VisNode>(
-      [...g.nodes.keys()].map((cid) => {
-        const node = g.nodes.get(cid)!;
-        const items = itemsByConcept.get(cid) ?? [];
-        const rep = items[0];
-        const deg = degree(cid);
-        const subs = items
-          .map((i) => `${i.paper}${i.unit?.length ? `（${i.unit.join('、')}）` : ''}`)
-          .join(' / ');
-        return {
-          id: cid,
-          label: node.term,
-          title: `${node.term}${rep?.chinese ? `（${rep.chinese}）` : ''}` +
-            `\n连接 ${deg} 个概念${node.depth >= 0 ? ` · 层级 ${node.depth + 1}` : ''}` +
-            (items.length > 1 ? `\n条目：${subs}` : ''),
-          shape: 'box',
-          color: { border: nodeColor(deg), background: nodeColor(deg) },
-          font: { color: nodeFont(deg), size: nodeSize(deg), bold: deg >= 6 ? 'bold' : 'normal' },
-        };
-      }),
+      [...g.nodes.keys()]
+        .filter((cid) => !shownCids || shownCids.has(cid))
+        .map((cid) => {
+          const node = g.nodes.get(cid)!;
+          const items = itemsByConcept.get(cid) ?? [];
+          const rep = items[0];
+          const deg = degree(cid);
+          const subs = items
+            .map((i) => `${i.paper}${i.unit?.length ? `（${i.unit.join('、')}）` : ''}`)
+            .join(' / ');
+          return {
+            id: cid,
+            label: node.term,
+            title: `${node.term}${rep?.chinese ? `（${rep.chinese}）` : ''}` +
+              `\n连接 ${deg} 个概念${node.depth >= 0 ? ` · 层级 ${node.depth + 1}` : ''}` +
+              (items.length > 1 ? `\n条目：${subs}` : ''),
+            shape: 'box',
+            borderWidth: cid === focusCid ? 4 : 1,
+            color: { border: cid === focusCid ? colorFocus : nodeColor(deg), background: nodeColor(deg) },
+            font: { color: nodeFont(deg), size: nodeSize(deg), bold: cid === focusCid || deg >= 6 ? 'bold' : 'normal' },
+          };
+        }),
     );
     const edges = new DataSet<VisEdge>();
     let eid = 0;
+    const inFocus = (a: string, b: string) => !shownCids || (shownCids.has(a) && shownCids.has(b));
     // higher：父（高）→ 子（低），箭头指向低
     for (const node of g.nodes.values()) {
       for (const child of node.children) {
+        if (!inFocus(node.cid, child)) continue;
         edges.add({ id: `h${eid++}`, from: node.cid, to: child, arrows: 'to', label: '高于', color: { color: EDGE_STYLE.higher.color } });
       }
     }
     // 显式 peer / contrast（对称，各画一条）
     for (const [a, b] of g.explicitPeers) {
+      if (!inFocus(a, b)) continue;
       edges.add({ id: `p${eid++}`, from: a, to: b, dashes: true, label: '并列', color: { color: EDGE_STYLE.peer.color } });
     }
     for (const [a, b] of g.contrasts) {
+      if (!inFocus(a, b)) continue;
       edges.add({ id: `c${eid++}`, from: a, to: b, dashes: true, label: '相反', color: { color: EDGE_STYLE.contrast.color } });
+    }
+    // 显式并列的传递同级（A~B、B~C → A~C；由显式 peer 自动推导，不落库，默认显示）
+    for (const [a, b] of g.transitivePeers) {
+      if (!inFocus(a, b)) continue;
+      edges.add({ id: `t${eid++}`, from: a, to: b, dashes: true, label: '同级', color: { color: EDGE_STYLE.peer.color, opacity: 0.5 } });
     }
     // 派生同级（默认关：全开 489 条会过密）
     if (showDerived) {
       for (const [a, b] of g.derivedPeers) {
+        if (!inFocus(a, b)) continue;
         edges.add({ id: `d${eid++}`, from: a, to: b, dashes: true, label: '同级', color: { color: EDGE_STYLE.peer.color, opacity: 0.35 } });
       }
     }
@@ -461,7 +552,7 @@ export default function LogicManager() {
       }
     });
     return () => network.destroy();
-  }, [vocab, showDerived]);
+  }, [graph, showDerived, focusCid, focusDepth]);
 
   const renderPicker = (
     values: VocabItem[],
@@ -474,6 +565,7 @@ export default function LogicManager() {
     placeholder: string,
     multi: boolean,
     inputRef: RefObject<HTMLInputElement | null>,
+    slot: 'a' | 'b', // 焦点感知：随机推荐据此决定带入 A 还是 B
   ) => (
     <div style={{ position: 'relative', flex: '1 1 12rem', minWidth: 0 }}>
       <div
@@ -513,7 +605,7 @@ export default function LogicManager() {
           value={q}
           placeholder={values.length === 0 ? placeholder : ''}
           onChange={(e) => { if (!multi) setValues([]); setQ(e.target.value); setOpen(true); }}
-          onFocus={() => setOpen(true)}
+          onFocus={() => { setOpen(true); setActivePicker(slot); }}
           onBlur={() => setTimeout(() => setOpen(false), 150)}
         />
       </div>
@@ -564,7 +656,7 @@ export default function LogicManager() {
           手动建立词条间的逻辑关系：高于 / 低于（上下位）、并列（同级）、相反（对立）。保存后随「发布词库」同步云端。
         </p>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-          {renderPicker(left ? [left] : [], (v) => setLeft(v[0] ?? null), leftQ, setLeftQ, leftMatches, leftOpen, setLeftOpen, '检索词条A…', false, leftInputRef)}
+          {renderPicker(left ? [left] : [], (v) => setLeft(v[0] ?? null), leftQ, setLeftQ, leftMatches, leftOpen, setLeftOpen, '检索词条A…', false, leftInputRef, 'a')}
           <select
             value={rel}
             onChange={(e) => setRel(e.target.value as RelType)}
@@ -575,7 +667,7 @@ export default function LogicManager() {
             <option value="peer">并列</option>
             <option value="contrast">相反</option>
           </select>
-          {renderPicker(rights, setRights, rightQ, setRightQ, rightMatches, rightOpen, setRightOpen, '检索词条B…（可多选）', true, rightInputRef)}
+          {renderPicker(rights, setRights, rightQ, setRightQ, rightMatches, rightOpen, setRightOpen, '检索词条B…（可多选）', true, rightInputRef, 'b')}
           <button className="primary" onClick={save}>保存</button>
         </div>
       </div>
@@ -635,6 +727,40 @@ export default function LogicManager() {
             <span className="muted" style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
               已覆盖 {coverage[covType].covered} / {coverage[covType].total} 概念组
             </span>
+          </div>
+          <div style={{ marginTop: '0.5rem', borderTop: '1px dashed var(--c-hairline-soft)', paddingTop: '0.45rem' }}>
+            <div className="row" style={{ alignItems: 'center', marginBottom: '0.3rem' }}>
+              <span className="muted" style={{ fontSize: '0.82rem' }}>尚未覆盖的概念（随机）：</span>
+              <span className="spacer" />
+              <button className="ghost" style={{ padding: '0.1rem 0.5rem', fontSize: '0.78rem' }} onClick={() => setUncoveredSeed((s) => s + 1)}>
+                换一批
+              </button>
+            </div>
+            {uncoveredPick.length === 0 ? (
+              <span className="muted" style={{ fontSize: '0.82rem' }}>所有概念都已覆盖，无需再补。</span>
+            ) : (
+              <div className="tag-filter">
+                {uncoveredPick.map((it) => (
+                  <button
+                    key={it.id}
+                    title={`${it.chinese ?? ''} · ${it.paper}（将带入${activePicker === 'b' ? '词条B' : '词条A'}，可先点 A/B 检索框切换）`}
+                    onClick={() => {
+                      if (activePicker === 'b') {
+                        if (!left) { setMsg('请先在上方选择词条A，再添加词条B。'); return; }
+                        setRights((r) => (r.some((x) => x.id === it.id) ? r : [...r, it]));
+                        setRightQ('');
+                        setMsg(`已把「${it.term}」加入词条B。`);
+                      } else {
+                        setLeft(it); setLeftQ(''); setSavedAnchor(null);
+                        setMsg(`已载入「${it.term}」为词条A，可开始建立关系。`);
+                      }
+                    }}
+                  >
+                    {it.term}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
         {relationsOpen &&
@@ -723,6 +849,58 @@ export default function LogicManager() {
           蓝色箭头 = 高于（高→低）；绿色虚线 = 并列；红色虚线 = 相反。可拖动节点。
           节点颜色越深 = 连通性越强（潜在核心概念），tooltip 可见连接数 / 层级。
         </p>
+        <div style={{ marginTop: '0.4rem', marginBottom: '0.6rem' }}>
+          {focusCid ? (
+            <div className="row" style={{ gap: '0.4rem', alignItems: 'center' }}>
+              <span className="muted" style={{ fontSize: '0.85rem' }}>已聚焦：</span>
+              <b style={{ fontSize: '0.9rem' }}>{graph.nodes.get(focusCid)?.term}</b>
+              <span className="muted" style={{ fontSize: '0.8rem', marginLeft: '0.3rem' }}>范围</span>
+              {[1, 2, 3].map((d) => (
+                <button
+                  key={d}
+                  onClick={() => setFocusDepth(d)}
+                  style={{
+                    fontSize: '0.78rem',
+                    lineHeight: 1.2,
+                    padding: '0.1rem 0.5rem',
+                    borderRadius: 8,
+                    background: focusDepth === d ? 'var(--accent)' : 'var(--c-canvas)',
+                    borderColor: focusDepth === d ? 'var(--accent)' : 'var(--c-hairline-soft)',
+                    color: focusDepth === d ? '#fff' : 'var(--c-charcoal)',
+                  }}
+                >
+                  {d} 度
+                </button>
+              ))}
+              <button
+                className="ghost"
+                style={{ padding: '0.15rem 0.5rem', fontSize: '0.8rem' }}
+                onClick={() => { setFocusCid(null); setFocusQ(''); }}
+              >
+                清除
+              </button>
+            </div>
+          ) : (
+            <>
+              <input
+                type="text"
+                placeholder="输入概念，聚焦其局部上下游…"
+                value={focusQ}
+                onChange={(e) => setFocusQ(e.target.value)}
+                style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.88rem' }}
+              />
+              {focusMatches.length > 0 && (
+                <div className="tag-filter" style={{ marginTop: '0.3rem' }}>
+                  {focusMatches.map((n) => (
+                    <button key={n.cid} onClick={() => { setFocusCid(n.cid); setFocusQ(''); }}>
+                      {n.term}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
         <div
           ref={graphRef}
           style={{ width: '100%', height: 420, border: '1px solid var(--c-hairline-soft)', borderRadius: 'var(--r-md)', touchAction: 'pan-y' }}

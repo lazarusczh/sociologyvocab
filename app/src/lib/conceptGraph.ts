@@ -24,6 +24,7 @@ export interface ConceptGraph {
   explicitPeers: [string, string][]; // 手动并列
   contrasts: [string, string][];     // 对立
   derivedPeers: [string, string][];  // 共享父推导的同级（不落库）
+  transitivePeers: [string, string][]; // 显式并列的传递闭包（A~B、B~C → A~C 同级；不落库）
   cycles: string[][];                // 环（概念组序列，层级异常）
   neighbors: Map<string, string[]>;  // 全邻居（dir + 显式 + 派生 peer），供接龙/连线
 }
@@ -160,7 +161,48 @@ export function buildConceptGraph(vocab: VocabItem[]): ConceptGraph {
     }
   }
 
-  // ---- 5. 全邻居（dir 双向 + 显式 peer/contrast + 派生 peer）----
+  // ---- 4.5 显式并列的传递闭包（同级等价类：A~B、B~C → A~C 也自动同级）----
+  // 仅显式 peer 参与传递（手标是强断言）；共享父推导的 derived 同级不参与，避免网络过密
+  const peerAdj = new Map<string, string[]>();
+  for (const [a, b] of explicitPeers.values()) {
+    const la = peerAdj.get(a) ?? [];
+    la.push(b);
+    peerAdj.set(a, la);
+    const lb = peerAdj.get(b) ?? [];
+    lb.push(a);
+    peerAdj.set(b, lb);
+  }
+  const transitivePairs = new Map<string, [string, string]>();
+  const compSeen = new Set<string>();
+  for (const start of peerAdj.keys()) {
+    if (compSeen.has(start)) continue;
+    const comp: string[] = [];
+    const q = [start];
+    compSeen.add(start);
+    while (q.length) {
+      const cur = q.pop()!;
+      comp.push(cur);
+      for (const nb of peerAdj.get(cur) ?? []) {
+        if (!compSeen.has(nb)) {
+          compSeen.add(nb);
+          q.push(nb);
+        }
+      }
+    }
+    if (comp.length < 2) continue;
+    const uniq = [...new Set(comp)];
+    for (let i = 0; i < uniq.length; i++) {
+      for (let j = i + 1; j < uniq.length; j++) {
+        const k = key(uniq[i], uniq[j]);
+        if (peerKeys.has(k)) continue;     // 已手标并列
+        if (contrastKeys.has(k)) continue; // 已标相反 → 不推导（相反优先）
+        if (derived.has(k)) continue;      // 共享父已推导 → 走 derived 显示通道，不重复
+        transitivePairs.set(k, [uniq[i], uniq[j]]);
+      }
+    }
+  }
+
+  // ---- 5. 全邻居（dir 双向 + 显式 peer/contrast + 派生 peer + 传递 peer）----
   const neighbors = new Map<string, string[]>();
   const addNB = (a: string, b: string) => {
     if (a === b) return;
@@ -175,12 +217,14 @@ export function buildConceptGraph(vocab: VocabItem[]): ConceptGraph {
   for (const [a, b] of explicitPeers.values()) addNB(a, b);
   for (const [a, b] of contrasts.values()) addNB(a, b);
   for (const [a, b] of derived.values()) addNB(a, b);
+  for (const [a, b] of transitivePairs.values()) addNB(a, b);
 
   return {
     nodes,
     explicitPeers: [...explicitPeers.values()],
     contrasts: [...contrasts.values()],
     derivedPeers: [...derived.values()],
+    transitivePeers: [...transitivePairs.values()],
     cycles,
     neighbors,
   };
