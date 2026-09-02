@@ -59,7 +59,7 @@ const NAV_PILLS: NavPill[] = [
   ]},
   { group: '练习', items: [
     { key: 'choice', label: '选择题' },
-    { key: 'chain', label: '接龙' },
+    { key: 'chain', label: '接龙 Beta' },
     { key: 'cloze', label: '语境' },
     { key: 'spelling', label: '拼写' },
     { key: 'matching', label: '匹配' },

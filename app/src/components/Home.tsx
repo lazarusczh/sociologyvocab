@@ -18,7 +18,7 @@ const MODES: { key: View; title: string; desc: string }[] = [
   { key: 'quiz', title: '随堂测验 / 作业', desc: '输入老师给的密码进入限时测验' },
   { key: 'flashcards', title: '闪卡记忆', desc: '翻卡看释义，纯自学浏览' },
   { key: 'choice', title: '选择题测验', desc: '四选一，术语与释义配对' },
-  { key: 'chain', title: '逻辑接龙', desc: '沿概念间的逻辑关系一步步接龙' },
+  { key: 'chain', title: '逻辑接龙 (Beta)', desc: '沿概念间的逻辑关系一步步接龙' },
   { key: 'cloze', title: '语境填空', desc: '结合上下文语境填入术语' },
   { key: 'spelling', title: '拼写默写', desc: '看中文释义拼写英文术语' },
   { key: 'matching', title: '匹配题', desc: '术语与释义连线配对' },

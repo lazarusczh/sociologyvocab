@@ -5,6 +5,8 @@
 // 作答 = 选择题：展示当前概念，从其邻居中选对下一个；干扰项优先取「二度邻居」（相关但不相邻）
 import type { VocabItem } from './types';
 import { buildConceptGraph, type ConceptGraph } from './conceptGraph';
+import { conceptIdOf } from './relationSuggest';
+import { isCorrectAnswer } from './answers';
 import { shuffle } from './shuffle';
 
 export type ChainMode = 'open' | 'target';
@@ -114,4 +116,43 @@ export function buildOptions(
   pool.sort((a, b) => Number(second.has(b)) - Number(second.has(a))); // 二度优先
   const wrongs = shuffle(pool).slice(0, Math.max(0, limit - 1));
   return shuffle([correct, ...wrongs]);
+}
+
+// ---- 默写输入模式助手 ----
+
+/** 把学生输入解析成词库中的概念组（复用答案容错 isCorrectAnswer）；无匹配返回 null */
+export function matchInputToCid(
+  items: VocabItem[],
+  input: string,
+): { cid: string; item: VocabItem } | null {
+  const q = input.trim();
+  if (!q) return null;
+  for (const it of items) {
+    if (it.term === q || isCorrectAnswer(it, q)) return { cid: conceptIdOf(it), item: it };
+  }
+  return null;
+}
+
+/** 返回概念的一个随机邻居（供"看提示"），无可走邻居返回 null */
+export function randomNeighbor(g: ConceptGraph, cid: string): string | null {
+  const nb = g.neighbors.get(cid) ?? [];
+  return nb.length ? nb[Math.floor(Math.random() * nb.length)] : null;
+}
+
+/** 无向 BFS 最短跳数（供 target 探索的距离提示）；不可达返回 null */
+export function shortestDist(g: ConceptGraph, from: string, to: string): number | null {
+  if (from === to) return 0;
+  const dist = new Map<string, number>([[from, 0]]);
+  const queue = [from];
+  while (queue.length) {
+    const c = queue.shift()!;
+    const d = dist.get(c)!;
+    for (const nb of g.neighbors.get(c) ?? []) {
+      if (dist.has(nb)) continue;
+      if (nb === to) return d + 1;
+      dist.set(nb, d + 1);
+      queue.push(nb);
+    }
+  }
+  return null;
 }
