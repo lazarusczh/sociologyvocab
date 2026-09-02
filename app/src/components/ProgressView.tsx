@@ -7,21 +7,21 @@ export default function ProgressView() {
   const { vocab, progress, resetProgress, papers, categories } = useStore();
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
-  const [unit, setUnit] = useState('all');
+  const [units, setUnits] = useState<string[]>([]);
   const [filter, setFilter] = useState<'all' | 'unlearned' | 'mastered'>('all');
 
   const onPaperChange = (p: string) => {
     setPaper(p);
     setCat('all');
-    setUnit('all');
+    setUnits([]);
   };
 
   const onCatChange = (c: string) => {
     setCat(c);
-    setUnit('all');
+    setUnits([]);
   };
 
-  const scope = useMemo(() => filterByPaperCat(vocab, paper, cat, unit), [vocab, paper, cat, unit]);
+  const scope = useMemo(() => filterByPaperCat(vocab, paper, cat, units), [vocab, paper, cat, units]);
 
   const stats = useMemo(() => {
     let unlearned = 0, mastered = 0;
@@ -82,8 +82,8 @@ export default function ProgressView() {
         onPaperChange={onPaperChange}
         cat={cat}
         onCatChange={onCatChange}
-        unit={unit}
-        onUnitChange={setUnit}
+        units={units}
+        onUnitsChange={setUnits}
       />
 
       <div className="row" style={{ marginBottom: '0.5rem' }}>

@@ -22,6 +22,7 @@ import ProfilePanel from './components/ProfilePanel';
 import DevPanel from './components/DevPanel';
 import QuizTaker from './components/QuizTaker';
 import Cloze from './components/Cloze';
+import LogicChain from './components/LogicChain';
 
 export type View =
   | 'home'
@@ -30,6 +31,7 @@ export type View =
   | 'quiz'
   | 'cloze'
   | 'flashcards'
+  | 'chain'
   | 'choice'
   | 'spelling'
   | 'matching'
@@ -57,6 +59,7 @@ const NAV_PILLS: NavPill[] = [
   ]},
   { group: '练习', items: [
     { key: 'choice', label: '选择题' },
+    { key: 'chain', label: '接龙' },
     { key: 'cloze', label: '语境' },
     { key: 'spelling', label: '拼写' },
     { key: 'matching', label: '匹配' },
@@ -343,6 +346,7 @@ function AppBody() {
         {view === 'quiz' && <QuizTaker />}
         {view === 'backup' && skipped && <BackupPanel />}
         {view === 'flashcards' && <Flashcards />}
+        {view === 'chain' && <LogicChain />}
         {view === 'choice' && <MultipleChoice />}
         {view === 'cloze' && isDeveloper && !skipped && <Cloze />}
         {view === 'spelling' && <Spelling />}

@@ -2,13 +2,14 @@ import type { VocabItem } from '../lib/types';
 import { unitListFor } from '../lib/unitMapping';
 import { useStore } from '../lib/store';
 
-// 依据考卷 + 次级标签 + 单元筛选（'all' 时不过滤对应层级）
-export function filterByPaperCat(items: VocabItem[], paper: string, cat: string, unit = 'all'): VocabItem[] {
+// 依据考卷 + 次级标签 + 单元筛选（'all'/空数组时不过滤对应层级）
+// 单元支持多选：units 为选中的单元集合，空数组 = 全部（便于学生按已学单元组合复习）
+export function filterByPaperCat(items: VocabItem[], paper: string, cat: string, units: string[] = []): VocabItem[] {
   return items.filter(
     (i) =>
       (paper === 'all' || i.paper === paper) &&
       (cat === 'all' || i.category === cat) &&
-      (unit === 'all' || (i.unit ?? []).includes(unit)),
+      (units.length === 0 || units.some((u) => (i.unit ?? []).includes(u))),
   );
 }
 
@@ -20,8 +21,8 @@ interface Props {
   onPaperChange: (p: string) => void;
   cat: string;              // 选中次级标签：'all' 或次级标签名
   onCatChange: (c: string) => void;
-  unit?: string;            // 选中单元：'all' 或单元名
-  onUnitChange?: (u: string) => void;
+  units?: string[];         // 选中的单元集合（空数组 = 全部单元）
+  onUnitsChange?: (us: string[]) => void;
   typeFilter?: 'all' | 'term' | 'scholar';
   onTypeChange?: (t: 'all' | 'term' | 'scholar') => void;
 }
@@ -34,8 +35,8 @@ export default function CategoryFilter({
   onPaperChange,
   cat,
   onCatChange,
-  unit = 'all',
-  onUnitChange,
+  units = [],
+  onUnitsChange,
   typeFilter = 'all',
   onTypeChange,
 }: Props) {
@@ -51,13 +52,19 @@ export default function CategoryFilter({
       ? []
       : categories.filter((c) => items.some((i) => i.paper === paper && i.category === c));
 
-  const units = unitListFor(items, paper, cat, unitOrder);
+  const unitOptions = unitListFor(items, paper, cat, unitOrder);
   const unitCount = (u: string) =>
     items.filter(
       (i) => i.paper === paper && (cat === 'all' || i.category === cat) && (i.unit ?? []).includes(u) && typeOk(i),
     ).length;
 
   const shown = paperCount(paper);
+
+  // 单元多选切换：点已选则移除，未选则加入；「全部单元」= 清空
+  const toggleUnit = (u: string) => {
+    if (!onUnitsChange) return;
+    onUnitsChange(units.includes(u) ? units.filter((x) => x !== u) : [...units, u]);
+  };
 
   return (
     <div className="card" style={{ marginBottom: '0.8rem' }}>
@@ -102,14 +109,14 @@ export default function CategoryFilter({
           ))}
         </div>
       )}
-      {units.length > 0 && onUnitChange && (
+      {unitOptions.length > 0 && onUnitsChange && (
         <div className="tag-filter" style={{ marginTop: '0.4rem' }}>
-          <span className="muted" style={{ fontSize: '0.85rem', alignSelf: 'center' }}>单元：</span>
-          <button className={unit === 'all' ? 'active' : ''} onClick={() => onUnitChange('all')}>
+          <span className="muted" style={{ fontSize: '0.85rem', alignSelf: 'center' }}>单元（可多选）：</span>
+          <button className={units.length === 0 ? 'active' : ''} onClick={() => onUnitsChange([])}>
             全部单元
           </button>
-          {units.map((u) => (
-            <button key={u} className={unit === u ? 'active' : ''} onClick={() => onUnitChange(u)}>
+          {unitOptions.map((u) => (
+            <button key={u} className={units.includes(u) ? 'active' : ''} onClick={() => toggleUnit(u)}>
               {u} ({unitCount(u)})
             </button>
           ))}

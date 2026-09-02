@@ -24,6 +24,7 @@ const MASTERY_WEIGHTS: Record<PracticeMode, { gain: number; loss: number }> = {
   crossword: { gain: 10, loss: 20 },
   spelling: { gain: 12, loss: 24 },
   cloze: { gain: 10, loss: 20 }, // 语境题有语境线索，难度介于拼写与配对之间
+  chain: { gain: 8, loss: 16 }, // 逻辑接龙：四选一选相邻概念，需理解概念关系网络
 };
 
 // 依据答对/答错动态调整掌握度（0-100 区间）

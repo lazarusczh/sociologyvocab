@@ -11,7 +11,7 @@ export default function Spelling() {
   const { vocab, recordItem, papers, categories } = useStore();
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
-  const [unit, setUnit] = useState('all');
+  const [units, setUnits] = useState<string[]>([]);
   const [typeFilter, setTypeFilter] = useState<'all' | 'term' | 'scholar'>('term');
   const [round, setRound] = useState<VocabItem[]>([]);
   const [idx, setIdx] = useState(0);
@@ -26,17 +26,17 @@ export default function Spelling() {
   const onPaperChange = (p: string) => {
     setPaper(p);
     setCat('all');
-    setUnit('all');
+    setUnits([]);
   };
 
   const onCatChange = (c: string) => {
     setCat(c);
-    setUnit('all');
+    setUnits([]);
   };
 
   const filtered = useMemo(
-    () => filterByPaperCat(vocab, paper, cat, unit).filter((i) => typeFilter === 'all' || i.type === typeFilter),
-    [vocab, paper, cat, unit, typeFilter],
+    () => filterByPaperCat(vocab, paper, cat, units).filter((i) => typeFilter === 'all' || i.type === typeFilter),
+    [vocab, paper, cat, units, typeFilter],
   );
 
   const start = useCallback(() => {
@@ -88,8 +88,8 @@ export default function Spelling() {
           onPaperChange={onPaperChange}
           cat={cat}
           onCatChange={onCatChange}
-          unit={unit}
-          onUnitChange={setUnit}
+          units={units}
+          onUnitsChange={setUnits}
           typeFilter={typeFilter}
           onTypeChange={setTypeFilter}
         />

@@ -19,7 +19,7 @@ export default function Crossword() {
   const { vocab, recordItem, papers, categories } = useStore();
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
-  const [unit, setUnit] = useState('all');
+  const [units, setUnits] = useState<string[]>([]);
   const [typeFilter, setTypeFilter] = useState<'all' | 'term' | 'scholar'>('term');
   const [puzzle, setPuzzle] = useState<GeneratedCrossword | null>(null);
   const [user, setUser] = useState<Record<string, string>>({});
@@ -46,15 +46,15 @@ export default function Crossword() {
   const onPaperChange = (p: string) => {
     setPaper(p);
     setCat('all');
-    setUnit('all');
+    setUnits([]);
   };
 
   const onCatChange = (c: string) => {
     setCat(c);
-    setUnit('all');
+    setUnits([]);
   };
 
-  const filtered = filterByPaperCat(vocab, paper, cat, unit).filter(
+  const filtered = filterByPaperCat(vocab, paper, cat, units).filter(
     (i) => typeFilter === 'all' || i.type === typeFilter,
   );
 
@@ -363,8 +363,8 @@ export default function Crossword() {
             onPaperChange={onPaperChange}
             cat={cat}
             onCatChange={onCatChange}
-            unit={unit}
-            onUnitChange={setUnit}
+            units={units}
+            onUnitsChange={setUnits}
             typeFilter={typeFilter}
             onTypeChange={setTypeFilter}
           />

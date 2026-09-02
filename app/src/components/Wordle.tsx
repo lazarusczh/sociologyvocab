@@ -57,7 +57,7 @@ export default function Wordle() {
   const { vocab, papers, categories } = useStore();
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
-  const [unit, setUnit] = useState('all');
+  const [units, setUnits] = useState<string[]>([]);
   const [typeFilter, setTypeFilter] = useState<'all' | 'term' | 'scholar'>('term');
   const [target, setTarget] = useState<Target | null>(null);
   const [guesses, setGuesses] = useState<string[]>([]);
@@ -68,18 +68,18 @@ export default function Wordle() {
   const onPaperChange = (p: string) => {
     setPaper(p);
     setCat('all');
-    setUnit('all');
+    setUnits([]);
   };
 
   const onCatChange = (c: string) => {
     setCat(c);
-    setUnit('all');
+    setUnits([]);
   };
 
   const candidates = useMemo(() => {
     const out: Target[] = [];
     const seen = new Set<string>();
-    for (const it of filterByPaperCat(vocab, paper, cat, unit)) {
+    for (const it of filterByPaperCat(vocab, paper, cat, units)) {
       if (typeFilter !== 'all' && it.type !== typeFilter) continue;
       const c = getCandidates(it.term);
       if (c && !seen.has(c.answer)) {
@@ -88,7 +88,7 @@ export default function Wordle() {
       }
     }
     return out;
-  }, [vocab, paper, cat, unit, typeFilter]);
+  }, [vocab, paper, cat, units, typeFilter]);
 
   const start = useCallback(() => {
     const t = pickTarget(candidates);
@@ -139,8 +139,8 @@ export default function Wordle() {
           onPaperChange={onPaperChange}
           cat={cat}
           onCatChange={onCatChange}
-          unit={unit}
-          onUnitChange={setUnit}
+          units={units}
+          onUnitsChange={setUnits}
           typeFilter={typeFilter}
           onTypeChange={setTypeFilter}
         />

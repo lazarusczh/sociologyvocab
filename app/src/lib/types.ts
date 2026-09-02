@@ -24,7 +24,7 @@ export interface ItemRelations {
 }
 
 // 正式练习模式（用于区分掌握度增减权重）
-export type PracticeMode = 'choice' | 'spelling' | 'matching' | 'crossword' | 'cloze';
+export type PracticeMode = 'choice' | 'spelling' | 'matching' | 'crossword' | 'cloze' | 'chain';
 
 // 导入结果
 export interface ImportResult {
