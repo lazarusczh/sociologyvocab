@@ -30,7 +30,8 @@ export default function LogicChain() {
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
   const [units, setUnits] = useState<string[]>([]);
-  const [typeFilter, setTypeFilter] = useState<'all' | 'term' | 'scholar'>('term');
+  // 逻辑网络含教师保留的学者，默认全部纳入（术语 + 学者）
+  const [typeFilter, setTypeFilter] = useState<'all' | 'term' | 'scholar'>('all');
   const [kind, setKind] = useState<AnswerKind>('choice'); // 作答方式：选择 / 默写输入
   const [mode, setMode] = useState<ChainMode>('open');    // 子模式：仅起点 / 起点+终点
   const [genErr, setGenErr] = useState('');
