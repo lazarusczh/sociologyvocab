@@ -164,6 +164,7 @@ export interface Quiz {
   due_at: string | null;
   allow_resume: boolean;
   allow_late: boolean;
+  allow_correction?: boolean; // 作业：是否允许学生订正错题（默认 true；测验恒 false）
   grading_rules?: {
     late_penalty?: {
       enabled?: boolean;

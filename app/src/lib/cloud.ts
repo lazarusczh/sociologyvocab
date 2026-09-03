@@ -167,6 +167,7 @@ export async function createQuiz(input: {
   due_at: string | null;
   allow_resume: boolean;
   allow_late: boolean;
+  allow_correction: boolean;
   grading_rules: unknown;
   created_by: string | null;
 }): Promise<string> {
@@ -195,6 +196,7 @@ export async function updateQuiz(
     due_at: string | null;
     allow_resume: boolean;
     allow_late: boolean;
+    allow_correction: boolean;
     grading_rules: unknown;
   },
 ): Promise<void> {

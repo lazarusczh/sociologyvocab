@@ -23,6 +23,7 @@ interface Draft {
   openAt: string;         // 统一开考时间（'' = 随时可进）
   dueAt: string;          // 作业截止时间
   allowLate: boolean;     // 作业：允许迟交（迟交按罚分规则扣分）
+  allowCorrection: boolean; // 作业：是否允许学生订正错题（默认 true）
   lateEnabled: boolean;   // 迟交罚分是否启用
   latePercents: string;   // 每迟一天追加的百分比（逗号分隔，如 "10,20,30,40"）
 }
@@ -97,6 +98,7 @@ function toDraft(q: Quiz): Draft {
     openAt: q.open_at ? toLocalInput(q.open_at) : '',
     dueAt: q.due_at ? toLocalInput(q.due_at) : '',
     allowLate: q.allow_late ?? false,
+    allowCorrection: q.allow_correction ?? true, // 旧作业无该字段 → 视为允许订正
     lateEnabled: (q.grading_rules as { late_penalty?: { enabled?: boolean } } | null)?.late_penalty?.enabled ?? true,
     latePercents: ((q.grading_rules as { late_penalty?: { daily_percents?: number[] } } | null)?.late_penalty?.daily_percents ?? [10, 20, 30, 40]).join(','),
   };
@@ -197,6 +199,7 @@ export default function QuizManager() {
       openAt: '',
       dueAt: '',
       allowLate: false,
+      allowCorrection: true,
       lateEnabled: true,
       latePercents: loadDefaultPercents(),
     });
@@ -306,6 +309,8 @@ export default function QuizManager() {
       due_at: draft.dueAt ? new Date(draft.dueAt).toISOString() : null,
       allow_resume: draft.kind === 'homework',
       allow_late: draft.kind === 'homework' && draft.allowLate,
+      // 是否允许订正错题：仅作业（homework）有意义；测验恒 false
+      allow_correction: draft.kind === 'homework' && draft.allowCorrection,
       // 评分规则快照：仅作业携带（测验无罚分）；创建时同时记忆教师默认规则
       grading_rules: draft.kind === 'homework' ? buildGradingRules(draft.lateEnabled, draft.latePercents) : null,
     };
@@ -668,8 +673,19 @@ export default function QuizManager() {
 
           {draft.kind === 'homework' && (
             <div className="card" style={{ marginTop: '0.6rem', padding: '0.6rem 0.8rem' }}>
-              <span className="muted" style={{ fontSize: '0.8rem' }}>迟交与评分规则（仅作业）</span>
+              <span className="muted" style={{ fontSize: '0.8rem' }}>订正 / 迟交与评分规则（仅作业）</span>
               <div style={{ marginTop: '0.4rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                <label className="row" style={{ alignItems: 'center', gap: '0.4rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={draft.allowCorrection}
+                    onChange={(e) => setDraft({ ...draft, allowCorrection: e.target.checked })}
+                    style={{ margin: 0, width: '1rem', height: '1rem' }}
+                  />
+                  <span style={{ fontSize: '0.85rem' }}>
+                    允许订正（学生交卷后可对错题做一次重做；订正全对按规则加分。关闭后学生端不显示订正入口）
+                  </span>
+                </label>
                 <label className="row" style={{ alignItems: 'center', gap: '0.4rem' }}>
                   <input
                     type="checkbox"

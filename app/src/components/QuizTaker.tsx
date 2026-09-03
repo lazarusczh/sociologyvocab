@@ -800,12 +800,15 @@ function HistoryDetail({ detail, onBack, onCorrect }: {
 }) {
   const { sub, quiz } = detail;
   const maxPoints = totalPoints(quiz.questions);
-  // 错题数（订正入口只在作业 & 未订正 & 有错题时出现）
+  // 错题数（订正入口只在 作业 & 教师允许订正 & 未订正 & 有错题 时出现）
   const wrongCount = useMemo(
     () => extractWrongItemIds(quiz.questions, sub.answers ?? {}).length,
     [quiz.questions, sub.answers],
   );
-  const canCorrect = quiz.kind === 'homework' && !sub.correction && wrongCount > 0;
+  const canCorrect = quiz.kind === 'homework'
+    && quiz.allow_correction !== false // 教师可对单份作业关闭订正（默认允许）
+    && !sub.correction
+    && wrongCount > 0;
   const finalScore = sub.grading?.final_score != null ? sub.grading.final_score : sub.score;
   return (
     <div>
