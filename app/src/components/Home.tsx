@@ -19,7 +19,7 @@ const MODES: { key: View; title: string; desc: string }[] = [
   { key: 'flashcards', title: '闪卡记忆', desc: '翻卡看释义，纯自学浏览' },
   { key: 'choice', title: '选择题测验', desc: '四选一，术语与释义配对' },
   { key: 'chain', title: '逻辑接龙 (Beta)', desc: '沿概念间的逻辑关系一步步接龙' },
-  { key: 'cloze', title: '语境填空', desc: '结合上下文语境填入术语' },
+  { key: 'cloze', title: '语境填空 (Beta)', desc: '结合上下文语境填入术语' },
   { key: 'spelling', title: '拼写默写', desc: '看中文释义拼写英文术语' },
   { key: 'matching', title: '匹配题', desc: '术语与释义连线配对' },
   { key: 'crossword', title: '纵横填字', desc: '随机生成填字游戏' },
@@ -31,7 +31,7 @@ const MODES: { key: View; title: string; desc: string }[] = [
 const WEEK_LABELS = ['一', '二', '三', '四', '五', '六', '日'];
 
 export default function Home({ go }: Props) {
-  const { vocab, progress, wrongBook, checkin, isTeacher, isDeveloper, skipped, vocabUpdateBanner, syncVocabFromCloud, dismissVocabBanner } = useStore();
+  const { vocab, progress, wrongBook, checkin, isTeacher, vocabUpdateBanner, syncVocabFromCloud, dismissVocabBanner } = useStore();
 
   useEffect(() => { syncVocabFromCloud(); }, [syncVocabFromCloud]);
 
@@ -215,8 +215,7 @@ export default function Home({ go }: Props) {
 
       <h2 style={{ marginTop: '1.2rem' }}>选择练习模式</h2>
       <div className="grid cols-3">
-        {/* 语境填空（cloze）尚未完善，仅开发者可见——与导航栏同一权限策略 */}
-        {MODES.filter((m) => m.key !== 'cloze' || (isDeveloper && !skipped)).map((m) => (
+        {MODES.map((m) => (
           <button
             key={m.key}
             className="mode-card card"

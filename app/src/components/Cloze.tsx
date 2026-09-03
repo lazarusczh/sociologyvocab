@@ -102,6 +102,12 @@ function buildOptions(blank: Blank, category: string, vocab: VocabItem[]): strin
   return shuffle([blank.term, ...wrong]);
 }
 
+const betaTag = (
+  <span style={{ fontSize: '0.65rem', verticalAlign: 'super', color: 'var(--accent)', fontWeight: 700, letterSpacing: '0.02em' }}>
+    Beta
+  </span>
+);
+
 export default function Cloze() {
   const { vocab, recordItem } = useStore();
   const [passages, setPassages] = useState<ClozePassage[]>([]);
@@ -204,7 +210,7 @@ export default function Cloze() {
   if (round.length === 0) {
     return (
       <div>
-        <h1>语境题</h1>
+        <h1>语境题 {betaTag}</h1>
         <p className="muted">根据语境补全术语（来源：历年纸质作业语境填空题 + 高分答卷段落）。</p>
         <div className="card" style={{ marginBottom: '0.6rem' }}>
           <span className="muted" style={{ fontSize: '0.85rem' }}>按试卷筛选：</span>

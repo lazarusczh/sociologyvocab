@@ -60,7 +60,7 @@ const NAV_PILLS: NavPill[] = [
   { group: '练习', items: [
     { key: 'choice', label: '选择题' },
     { key: 'chain', label: '接龙 Beta' },
-    { key: 'cloze', label: '语境' },
+    { key: 'cloze', label: '语境 Beta' },
     { key: 'spelling', label: '拼写' },
     { key: 'matching', label: '匹配' },
     { key: 'wrong', label: '错题' },
@@ -203,11 +203,9 @@ function AppBody() {
               )}
             </div>
           )}
-          {/* 一级 pill：单入口直跳，多入口展开二级下拉；语境题仅开发者（且非离线游客）可见 */}
+          {/* 一级 pill：单入口直跳，多入口展开二级下拉；语境题已对所有账户开放（Beta） */}
           {NAV_PILLS.map((pill) => {
-            const items = (isDeveloper && !skipped)
-              ? pill.items
-              : pill.items.filter((i) => i.key !== 'cloze');
+            const items = pill.items;
             if (items.length === 0) return null;
             const groupActive = items.some((i) => view === i.key);
             const expanded = expandedGroup === pill.group;
@@ -348,7 +346,7 @@ function AppBody() {
         {view === 'flashcards' && <Flashcards />}
         {view === 'chain' && <LogicChain />}
         {view === 'choice' && <MultipleChoice />}
-        {view === 'cloze' && isDeveloper && !skipped && <Cloze />}
+        {view === 'cloze' && <Cloze />}
         {view === 'spelling' && <Spelling />}
         {view === 'matching' && <Matching />}
         {view === 'crossword' && <Crossword />}
