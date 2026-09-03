@@ -1,6 +1,6 @@
 // 云同步层：登录后与 Supabase 的 student_data 表读写，及本地/云端数据合并
 import { supabase } from './supabase';
-import type { CheckInState, Progress, WrongBook, VocabItem, Quiz, QuizSubmission } from './types';
+import type { CheckInState, Progress, WrongBook, VocabItem, Quiz, QuizSubmission, CorrectionResult } from './types';
 
 // 云端 student_data.data 里存储的 JSON 结构（checkin/progress/wrongBook 三块 + 姓名）
 export interface CloudStudentData {
@@ -261,6 +261,23 @@ export async function submitQuizSubmission(input: {
 }): Promise<void> {
   const { error } = await supabase.rpc('submit_quiz_submission', input);
   if (error) throw error;
+}
+
+// 学生保存订正结果：写入 correction 明细 + 更新 grading（加分/最终分）
+// 用 correction IS NULL 作服务端兜底——已订正的记录会被 RLS/条件拦截，防止重复订正覆盖
+export async function saveCorrection(
+  submissionId: string,
+  correction: CorrectionResult,
+  grading: NonNullable<QuizSubmission['grading']>,
+): Promise<void> {
+  const { data, error } = await supabase
+    .from('quiz_submissions')
+    .update({ correction, grading })
+    .eq('id', submissionId)
+    .is('correction', null)
+    .select('id');
+  if (error) throw error;
+  if (!data || data.length === 0) throw new Error('该答卷已完成过订正，不能重复订正');
 }
 
 // 教师重判某试卷：传入 submission_id -> 新分数，RPC 批量更新（security definer，仅 teacher/developer 可调用）

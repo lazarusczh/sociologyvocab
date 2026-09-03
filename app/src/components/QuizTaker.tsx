@@ -2,8 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '../lib/store';
 import type { Quiz, QuizQuestion, QuizSubmission } from '../lib/types';
 import { getQuizByCode, getMySubmission, upsertSubmission, submitQuizSubmission, listMySubmissions } from '../lib/cloud';
-import { gradeQuiz, shuffleQuestionsBySeed, randomOrderSeed, formatDuration, TYPE_LABELS, KIND_LABELS, isAnswerCorrect, answerText, correctAnswerText, matchingCorrectCount, totalPoints } from '../lib/quiz';
+import { gradeQuiz, shuffleQuestionsBySeed, randomOrderSeed, formatDuration, TYPE_LABELS, KIND_LABELS, isAnswerCorrect, answerText, correctAnswerText, matchingCorrectCount, totalPoints, extractWrongItemIds } from '../lib/quiz';
 import { shuffle } from '../lib/shuffle';
+import CorrectionPractice from './CorrectionPractice';
 
 type Phase = 'enter' | 'confirm' | 'taking' | 'done';
 
@@ -43,6 +44,7 @@ export default function QuizTaker() {
   const [historyList, setHistoryList] = useState<{ sub: QuizSubmission; quiz: Quiz | null }[]>([]);
   const [historyDetail, setHistoryDetail] = useState<{ sub: QuizSubmission; quiz: Quiz } | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [correcting, setCorrecting] = useState<{ sub: QuizSubmission; quiz: Quiz } | null>(null); // 正在订正的答卷
 
   const leaveCountRef = useRef(0);
   const leaveSecondsRef = useRef(0);
@@ -63,6 +65,7 @@ export default function QuizTaker() {
     try {
       setHistoryList(await listMySubmissions(authUser.id));
       setHistoryDetail(null);
+      setCorrecting(null);
       setHistoryView(true);
     } catch (e) {
       setError((e as Error).message);
@@ -340,21 +343,35 @@ export default function QuizTaker() {
           <h1>历史结果</h1>
           <div className="card" style={{ maxWidth: 640, margin: '0 auto' }}>
             <div className="row" style={{ alignItems: 'center', marginBottom: '0.6rem' }}>
-              <button className="ghost" onClick={() => { setHistoryView(false); setHistoryDetail(null); setCode(''); }}>← 返回</button>
+              <button className="ghost" onClick={() => { setHistoryView(false); setHistoryDetail(null); setCorrecting(null); setCode(''); }}>← 返回</button>
               <span className="spacer" />
               <span className="muted" style={{ fontSize: '0.85rem' }}>已提交的测验与作业</span>
             </div>
             {error && <p className="gate-error" style={{ marginBottom: '0.6rem' }}>{error}</p>}
             {historyLoading ? (
               <p className="muted">加载中…</p>
+            ) : correcting ? (
+              <CorrectionPractice
+                quiz={correcting.quiz}
+                submission={correcting.sub}
+                onDone={(updated) => {
+                  // 订正完成：更新本地详情与列表（含 correction/grading），回到详情视图
+                  setHistoryList((prev) => prev.map((it) => (it.sub.id === updated.id ? { ...it, sub: updated } : it)));
+                  setHistoryDetail({ sub: updated, quiz: correcting.quiz });
+                  setCorrecting(null);
+                  setError('');
+                }}
+                onCancel={() => setCorrecting(null)}
+              />
             ) : historyDetail ? (
-              <HistoryDetail detail={historyDetail} onBack={() => setHistoryDetail(null)} />
+              <HistoryDetail detail={historyDetail} onBack={() => setHistoryDetail(null)} onCorrect={(d) => setCorrecting(d)} />
             ) : historyList.length === 0 ? (
               <div className="empty-state"><p className="muted">还没有已提交的测验或作业。</p></div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {historyList.map(({ sub, quiz: q }) => {
                   const published = isResultPublished(q);
+                  const finalScore = sub.grading?.final_score != null ? sub.grading.final_score : sub.score;
                   return (
                     <div key={sub.id} style={{ border: '1px solid var(--border)', borderRadius: '0.4rem', padding: '0.6rem 0.8rem' }}>
                       <div className="row" style={{ alignItems: 'center' }}>
@@ -365,14 +382,23 @@ export default function QuizTaker() {
                           </div>
                         </div>
                         {published ? (
-                          <span style={{ fontWeight: 700 }}>{sub.score} / {q?.question_count ?? '?'}</span>
+                          <span style={{ fontWeight: 700 }}>
+                            {finalScore !== sub.score ? `${sub.score} → ${finalScore}` : sub.score} / {q ? totalPoints(q.questions) : '?'}
+                          </span>
                         ) : (
                           <span className="muted" style={{ fontSize: '0.8rem' }}>结果尚未公布</span>
                         )}
                       </div>
-                      {published && q && (
-                        <button className="ghost" style={{ marginTop: '0.4rem' }} onClick={() => setHistoryDetail({ sub, quiz: q! })}>查看答卷</button>
-                      )}
+                      <div className="row" style={{ alignItems: 'center', marginTop: '0.4rem', gap: '0.4rem', flexWrap: 'wrap' }}>
+                        {q?.kind === 'homework' && sub.correction && (
+                          <span className="badge success" style={{ fontSize: '0.8rem' }}>
+                            已订正{sub.correction.all_correct ? '（全对）' : ''}
+                          </span>
+                        )}
+                        {published && q && (
+                          <button className="ghost" style={{ marginLeft: 'auto' }} onClick={() => { setCorrecting(null); setHistoryDetail({ sub, quiz: q! }); }}>查看答卷</button>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
@@ -459,7 +485,7 @@ export default function QuizTaker() {
       <div className="card center" style={{ maxWidth: 480, margin: '0 auto' }}>
         <h2>交卷成功</h2>
         <p className="muted">{quiz.title}</p>
-        <p className="big" style={{ fontSize: '2rem' }}>{score} / {quiz.question_count}</p>
+        <p className="big" style={{ fontSize: '2rem' }}>{score} / {totalPoints(quiz.questions)}</p>
         {grading?.penalty != null && grading.penalty > 0 && (
           <div className="card" style={{ marginTop: '0.5rem', background: 'var(--warn-bg)', borderColor: 'var(--warn)' }}>
             <p style={{ fontSize: '0.9rem' }}>
@@ -766,28 +792,65 @@ function MatchingAnswer({ q, answers, onPair, onUnpair, onNext, isLast, onSubmit
   );
 }
 
-// 历史结果 · 单份答卷详情
-function HistoryDetail({ detail, onBack }: {
+// 历史结果 · 单份答卷详情（含作业订正入口）
+function HistoryDetail({ detail, onBack, onCorrect }: {
   detail: { sub: QuizSubmission; quiz: Quiz };
   onBack: () => void;
+  onCorrect: (d: { sub: QuizSubmission; quiz: Quiz }) => void;
 }) {
   const { sub, quiz } = detail;
+  const maxPoints = totalPoints(quiz.questions);
+  // 错题数（订正入口只在作业 & 未订正 & 有错题时出现）
+  const wrongCount = useMemo(
+    () => extractWrongItemIds(quiz.questions, sub.answers ?? {}).length,
+    [quiz.questions, sub.answers],
+  );
+  const canCorrect = quiz.kind === 'homework' && !sub.correction && wrongCount > 0;
+  const finalScore = sub.grading?.final_score != null ? sub.grading.final_score : sub.score;
   return (
     <div>
       <div className="row" style={{ alignItems: 'center', marginBottom: '0.6rem' }}>
         <button className="ghost" onClick={onBack}>← 返回列表</button>
         <span className="spacer" />
-        <span className="muted" style={{ fontSize: '0.85rem' }}>{sub.score} / {quiz.question_count} 分</span>
+        <span className="muted" style={{ fontSize: '0.85rem' }}>
+          {sub.score} / {maxPoints} 分
+          {finalScore !== sub.score && (
+            <>，最终得分 <strong>{finalScore}</strong> / {maxPoints}</>
+          )}
+        </span>
       </div>
       {sub.grading?.penalty != null && sub.grading.penalty > 0 && (
         <div className="card" style={{ marginBottom: '0.6rem', padding: '0.5rem 0.7rem', background: 'var(--warn-bg)', borderColor: 'var(--warn)' }}>
           <span style={{ fontSize: '0.9rem' }}>
             迟交 {sub.grading.late_days ?? 1} 天，罚分 {sub.grading.penalty} 分
-            {sub.grading.final_score != null && <>，最终得分 <strong>{sub.grading.final_score}</strong> / {quiz.question_count}</>}
+          </span>
+        </div>
+      )}
+      {sub.correction && (
+        <div className="card" style={{ marginBottom: '0.6rem', padding: '0.5rem 0.7rem', background: 'var(--ok-bg)', borderColor: 'var(--success)' }}>
+          <span style={{ fontSize: '0.9rem' }}>
+            已订正（{new Date(sub.correction.submitted_at).toLocaleString()}）：答对 {sub.correction.score} / {sub.correction.total}
+            {sub.correction.all_correct && (sub.grading?.bonus ?? 0) > 0 && (
+              <>，订正全对加分 <strong>+{sub.grading!.bonus}</strong></>
+            )}
+            {sub.grading?.final_score != null && sub.grading.final_score !== sub.score && (
+              <>，最终得分 <strong>{sub.grading.final_score}</strong></>
+            )}
           </span>
         </div>
       )}
       <h3 style={{ margin: '0 0 0.6rem' }}>{quiz.title}</h3>
+      {canCorrect && (
+        <div className="card" style={{ marginBottom: '0.6rem', padding: '0.5rem 0.7rem', background: 'var(--accent-bg)', borderColor: 'var(--accent)' }}>
+          <div className="row" style={{ alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.85rem' }}>
+              本次作业有 <strong>{wrongCount}</strong> 道错题。订正错题：答对全部可在原始分上获得加分（作业专属）；无论对错都会重新计入掌握度与错题本。
+            </span>
+            <span className="spacer" />
+            <button className="primary" onClick={() => onCorrect(detail)}>订正错题（{wrongCount} 题）</button>
+          </div>
+        </div>
+      )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {quiz.questions.map((q, idx) => {
           // 匹配块：按对展示配对结果

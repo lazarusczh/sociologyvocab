@@ -42,11 +42,17 @@ function parsePercents(s: string): number[] {
 }
 
 // 构建 grading_rules 对象（供创建/更新时快照）
+// 加分规则暂无可编辑 UI：始终写入内置默认（作业订正全对 → 满分百分比与几何平均取高者）
 function buildGradingRules(lateEnabled: boolean, percentsStr: string) {
   return {
     late_penalty: {
       enabled: lateEnabled,
       daily_percents: parsePercents(percentsStr),
+    },
+    correction_bonus: {
+      enabled: true,
+      method: 'max_of_two',
+      percent: 10,
     },
   };
 }
@@ -407,6 +413,7 @@ export default function QuizManager() {
                   <th>姓名</th>
                   <th>邮箱</th>
                   <th>得分</th>
+                  <th>订正</th>
                   <th>状态</th>
                   <th>切屏次数</th>
                   <th>离开时长</th>
@@ -415,34 +422,53 @@ export default function QuizManager() {
                 </tr>
               </thead>
               <tbody>
-                {subs.map((s) => (
-                  <tr key={s.id}>
-                    <td>{s.name || '—'}</td>
-                    <td className="muted">{s.email ? maskEmail(s.email) : '—'}</td>
-                    <td>
-                      {s.score} / {viewing.question_count}
-                      {s.grading?.penalty != null && s.grading.penalty > 0 && (
-                        <span className="muted" style={{ fontSize: '0.75rem', marginLeft: '0.3rem' }} title={`迟交 ${s.grading.late_days ?? 1} 天罚 ${s.grading.penalty} 分`}>
-                          → {s.grading.final_score}
-                        </span>
-                      )}
-                    </td>
-                    <td>{s.status === 'submitted' ? '已交卷' : '进行中'}</td>
-                    <td>{s.leave_count}</td>
-                    <td>{s.leave_seconds}s</td>
-                    <td className="muted" style={{ fontSize: '0.8rem' }}>{s.submitted_at ? new Date(s.submitted_at).toLocaleString() : '—'}</td>
-                    <td>
-                      <button onClick={() => setDetailUser(detailUser === s.user_id ? null : s.user_id)}>
-                        {detailUser === s.user_id ? '收起' : '查看'}
-                      </button>
-                      {devIds.has(s.user_id) && (
-                        <button className="danger" onClick={() => removeSubmission(s.id)} style={{ marginLeft: '0.4rem' }}>
-                          删除
+                {subs.map((s) => {
+                  const maxPts = totalPoints(viewing.questions);
+                  const finalScore = s.grading?.final_score != null ? s.grading.final_score : s.score;
+                  const hasBonus = (s.grading?.bonus ?? 0) > 0;
+                  return (
+                    <tr key={s.id}>
+                      <td>{s.name || '—'}</td>
+                      <td className="muted">{s.email ? maskEmail(s.email) : '—'}</td>
+                      <td>
+                        {s.score} / {maxPts}
+                        {s.grading?.penalty != null && s.grading.penalty > 0 && (
+                          <span className="muted" style={{ fontSize: '0.75rem', marginLeft: '0.3rem' }} title={`迟交 ${s.grading.late_days ?? 1} 天罚 ${s.grading.penalty} 分`}>
+                            → {finalScore}
+                          </span>
+                        )}
+                        {!s.grading?.penalty && hasBonus && (
+                          <span className="muted" style={{ fontSize: '0.75rem', marginLeft: '0.3rem' }} title={`订正加分 +${s.grading!.bonus}`}>
+                            → {finalScore}
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        {s.correction ? (
+                          <span className="badge success" style={{ fontSize: '0.8rem' }}>
+                            已订正{s.correction.all_correct ? '·全对' : ''}
+                          </span>
+                        ) : (
+                          <span className="muted" style={{ fontSize: '0.8rem' }}>—</span>
+                        )}
+                      </td>
+                      <td>{s.status === 'submitted' ? '已交卷' : '进行中'}</td>
+                      <td>{s.leave_count}</td>
+                      <td>{s.leave_seconds}s</td>
+                      <td className="muted" style={{ fontSize: '0.8rem' }}>{s.submitted_at ? new Date(s.submitted_at).toLocaleString() : '—'}</td>
+                      <td>
+                        <button onClick={() => setDetailUser(detailUser === s.user_id ? null : s.user_id)}>
+                          {detailUser === s.user_id ? '收起' : '查看'}
                         </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                        {devIds.has(s.user_id) && (
+                          <button className="danger" onClick={() => removeSubmission(s.id)} style={{ marginLeft: '0.4rem' }}>
+                            删除
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -450,18 +476,52 @@ export default function QuizManager() {
 
         {detailSubmission && (
           <div className="card" style={{ marginTop: '0.8rem' }}>
-            <div className="row" style={{ alignItems: 'center' }}>
+            <div className="row" style={{ alignItems: 'center', flexWrap: 'wrap', gap: '0.4rem' }}>
               <h3 style={{ margin: 0 }}>答卷：{detailSubmission.name || (detailSubmission.email ? maskEmail(detailSubmission.email) : '—')}</h3>
               <span className="spacer" />
-              <span className="muted" style={{ fontSize: '0.85rem' }}>
-                {detailSubmission.score} / {viewing.question_count} 分
+              <span className="muted" style={{ fontSize: '0.9rem' }}>
+                原始分 {detailSubmission.score} / {totalPoints(viewing.questions)}
                 {detailSubmission.grading?.penalty != null && detailSubmission.grading.penalty > 0 && (
-                  <span style={{ color: 'var(--warn, #a07a3a)' }}>
-                    {' '}（迟交 {detailSubmission.grading.late_days ?? 1} 天罚 {detailSubmission.grading.penalty} 分，最终 {detailSubmission.grading.final_score}）
-                  </span>
+                  <span style={{ color: 'var(--warn, #a07a3a)' }}> − 迟交罚 {detailSubmission.grading.penalty}</span>
+                )}
+                {(detailSubmission.grading?.bonus ?? 0) > 0 && (
+                  <span style={{ color: 'var(--success, #2e7d32)' }}> + 订正加分 {detailSubmission.grading!.bonus}</span>
+                )}
+                {detailSubmission.grading?.final_score != null && detailSubmission.grading.final_score !== detailSubmission.score && (
+                  <strong> = 最终 {detailSubmission.grading.final_score}</strong>
                 )}
               </span>
             </div>
+            {detailSubmission.correction && (
+              <div className="card" style={{ marginTop: '0.5rem', padding: '0.5rem 0.7rem', background: 'var(--ok-bg)', borderColor: 'var(--success)' }}>
+                <div className="row" style={{ alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.9rem' }}>
+                    订正记录：{new Date(detailSubmission.correction.submitted_at).toLocaleString()} · 答对 {detailSubmission.correction.score} / {detailSubmission.correction.total}
+                    {detailSubmission.correction.all_correct ? ' · 全对' : ''}
+                  </span>
+                  <span className="spacer" />
+                  {detailSubmission.correction.all_correct && (detailSubmission.grading?.bonus ?? 0) > 0 && (
+                    <span className="badge success">加分 +{detailSubmission.grading!.bonus}</span>
+                  )}
+                </div>
+                <div style={{ marginTop: '0.4rem', fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                  {detailSubmission.correction.details.map((d) => {
+                    // 词条显示名：优先词库 id；其次题面 term（choice/spelling）或匹配块 pairs
+                    const term = viewing.questions.flatMap((qq) =>
+                      qq.type === 'matching' && qq.pairs
+                        ? qq.pairs.map((p) => ({ id: p.itemId, label: p.term }))
+                        : [{ id: qq.itemId, label: qq.term }],
+                    ).find((x) => x.id === d.itemId)?.label;
+                    return (
+                      <div key={d.itemId} style={{ color: d.correct ? 'var(--success)' : 'var(--danger)' }}>
+                        {d.correct ? '✓' : '✗'} {term ?? d.itemId}
+                        {d.type === 'choice' ? '（选择）' : d.type === 'spelling' ? '（拼写）' : ''}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
             <div style={{ marginTop: '0.6rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {viewing.questions.map((q, idx) => {
                 // 匹配块：按对展示配对结果

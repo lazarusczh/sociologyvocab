@@ -1,5 +1,5 @@
 // 随堂测验 / 作业：抽题、题目快照生成、判分、密码生成、乱序
-import type { VocabItem, QuizQuestion, QuizQuestionType, QuizKind } from './types';
+import type { VocabItem, Quiz, QuizSubmission, QuizQuestion, QuizQuestionType, QuizKind } from './types';
 import { shuffle, sample } from './shuffle';
 import { maskAnswer, isCorrectAnswer } from './answers';
 
@@ -234,6 +234,56 @@ export function formatDuration(minutes: number): string {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
   return m === 0 ? `${h} 小时` : `${h} 小时 ${m} 分钟`;
+}
+
+// ===== 订正（错题重做 + 加分） =====
+
+// 从一份已交卷的作答里提取「错题词条 id」（去重）：
+// 拼写/选择答错 → 该词条；匹配块只取答错的那几对词条（不整块重做）
+export function extractWrongItemIds(questions: QuizQuestion[], answers: Record<string, string | number>): string[] {
+  const wrong = new Set<string>();
+  for (const q of questions) {
+    if (q.type === 'matching' && q.pairs) {
+      for (const p of q.pairs) {
+        if (answers[p.itemId] !== p.itemId) wrong.add(p.itemId);
+      }
+    } else if (!isAnswerCorrect(q, answers[q.itemId])) {
+      wrong.add(q.itemId);
+    }
+  }
+  return [...wrong];
+}
+
+// 为错题词条生成订正题目：每个词条随机分配 选择/拼写 题型，复用 buildQuestion（同 paper 干扰项）
+export function buildCorrectionQuestions(items: VocabItem[], pool: VocabItem[]): QuizQuestion[] {
+  return items.map((item, i) => buildQuestion(item, Math.random() < 0.5 ? 'choice' : 'spelling', pool, i));
+}
+
+// 订正加分：仅「订正全对且作业（homework）」时结算。
+// 算法取更高者：final1 = min(S + M×percent%, M)；final2 = √(S×M)；取 max 后四舍五入取整，再减去原始分
+export function correctionBonus(S: number, M: number, percent = 10): number {
+  if (M <= 0 || S >= M) return 0; // 已满分无加分空间
+  const final1 = Math.min(S + (M * percent) / 100, M);
+  const final2 = Math.sqrt(S * M);
+  const finalScore = Math.round(Math.max(final1, final2));
+  return Math.max(finalScore - S, 0);
+}
+
+// 订正后的统一评分结算：罚分先扣、加分后加、封底 0 / 封顶真实满分
+// 返回新的 grading 对象（沿用原 penalty/late 字段，更新 bonus/final_score）
+export function applyGradingRules(
+  quiz: Quiz,
+  sub: Pick<QuizSubmission, 'score' | 'grading'>,
+  bonus: number,
+): NonNullable<QuizSubmission['grading']> {
+  const M = totalPoints(quiz.questions);
+  const penalty = sub.grading?.penalty ?? 0;
+  const finalScore = Math.max(0, Math.min(sub.score - penalty + bonus, M));
+  return {
+    ...(sub.grading ?? {}),
+    bonus,
+    final_score: finalScore,
+  };
 }
 
 // 题型中文名

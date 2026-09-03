@@ -169,6 +169,11 @@ export interface Quiz {
       enabled?: boolean;
       daily_percents?: number[];
     };
+    correction_bonus?: {
+      enabled?: boolean;
+      method?: 'none' | 'percent' | 'geometric' | 'max_of_two'; // 预留预设方案
+      percent?: number; // 默认 10（满分百分比）
+    };
   } | null; // 评分规则快照（创建作业时固定；测验为 null）
   created_by: string | null;
   created_at: string;
@@ -196,5 +201,22 @@ export interface QuizSubmission {
     penalty?: number;
     bonus?: number;
     final_score?: number;
-  } | null; // 评分结算（迟交罚分等；测验/无罚分时为空）
+  } | null; // 评分结算（迟交罚分/订正加分；测验/无罚分时为空）
+  correction?: CorrectionResult | null; // 订正答题明细（非 null 即已订正，订正不可重复）
+}
+
+// 订正单题的作答结果（用于订正后展示；判定对错已有详细列表）
+export interface CorrectionDetail {
+  itemId: string;
+  type: QuizQuestionType;
+  correct: boolean;
+}
+
+// 订正记录（写入 quiz_submissions.correction）
+export interface CorrectionResult {
+  submitted_at: string;  // 订正完成时间
+  score: number;         // 订正答对数（错题数中答对几题）
+  total: number;         // 错题总数
+  all_correct: boolean;  // 是否订正全对（加分门槛）
+  details: CorrectionDetail[];
 }
