@@ -239,11 +239,12 @@ export default function QuizManager() {
   );
 
   // 手动模式下的候选词条（按 paper/cat/unit/类型 筛选 + 检索词过滤）
+  // 已勾选的词条稳定置顶，方便教师查看/取消（组内保持原顺序）
   const manualCandidates = useMemo(() => {
     if (!draft) return [];
     const kw = manualSearch.trim();
     const kwLower = kw.toLowerCase();
-    return vocab.filter((i) => {
+    const filtered = vocab.filter((i) => {
       if (draft.paper !== 'all' && i.paper !== draft.paper) return false;
       if (draft.cat !== 'all' && i.category !== draft.cat) return false;
       if (draft.unit !== 'all' && !(i.unit ?? []).includes(draft.unit)) return false;
@@ -256,7 +257,12 @@ export default function QuizManager() {
       }
       return true;
     });
-  }, [draft?.paper, draft?.cat, draft?.unit, draft?.typeFilter, vocab, manualSearch]);
+    // 稳定分组：已勾选在前、未勾选在后；分组内保持原始相对顺序
+    return filtered
+      .map((i) => ({ i, picked: draft.manualIds.includes(i.id) }))
+      .sort((a, b) => Number(b.picked) - Number(a.picked))
+      .map((x) => x.i);
+  }, [draft?.paper, draft?.cat, draft?.unit, draft?.typeFilter, vocab, manualSearch, draft?.manualIds]);
 
   const toggleType = (t: QuizQuestionType) => {
     setDraft((d) => {
