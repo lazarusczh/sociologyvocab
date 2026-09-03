@@ -156,3 +156,123 @@ export function shortestDist(g: ConceptGraph, from: string, to: string): number 
   }
   return null;
 }
+
+/** 从 from 出发，n 度内可达的全部节点（不含自身；用于放宽"可接范围"难度调节） */
+export function nodesWithin(g: ConceptGraph, from: string, degree: number): string[] {
+  const seen = new Set([from]);
+  const out: string[] = [];
+  let frontier = [from];
+  for (let d = 0; d < degree; d++) {
+    const next: string[] = [];
+    for (const c of frontier) {
+      for (const nb of g.neighbors.get(c) ?? []) {
+        if (seen.has(nb)) continue;
+        seen.add(nb);
+        next.push(nb);
+      }
+    }
+    out.push(...next);
+    frontier = next;
+    if (frontier.length === 0) break;
+  }
+  return out;
+}
+
+/**
+ * K 条最短简单路径（Yen's algorithm，无向无权图，距离=跳数）
+ * 供教师后台「路径查询」备课使用：检查两概念之间怎么通、有几条路可走。
+ * 返回按长度升序的路径数组（每条为 cid 序列），不足 K 条时返回实际条数；无通路返回 []。
+ */
+export function kShortestPaths(g: ConceptGraph, s: string, t: string, k = 5): string[][] {
+  if (s === t) return [[s]];
+  const pathKey = (p: string[]) => p.join('\u0001');
+  const edgeKey = (a: string, b: string) => [a, b].sort().join('\u0002');
+
+  // 带禁用节点/禁用边的 BFS 最短路
+  const bfs = (from: string, to: string, bannedNodes: Set<string>, bannedEdges: Set<string>): string[] | null => {
+    if (bannedNodes.has(from)) return null;
+    const prev = new Map<string, string>();
+    const seen = new Set([from]);
+    const queue = [from];
+    while (queue.length) {
+      const c = queue.shift()!;
+      if (c === to) {
+        const out = [to];
+        let cur = to;
+        while (prev.has(cur)) {
+          cur = prev.get(cur)!;
+          out.push(cur);
+        }
+        return out.reverse();
+      }
+      for (const nb of g.neighbors.get(c) ?? []) {
+        if (seen.has(nb) || bannedNodes.has(nb)) continue;
+        if (bannedEdges.has(edgeKey(c, nb))) continue;
+        seen.add(nb);
+        prev.set(nb, c);
+        queue.push(nb);
+      }
+    }
+    return null;
+  };
+
+  const first = bfs(s, t, new Set(), new Set());
+  if (!first) return [];
+
+  const A: string[][] = [first]; // 已确认的最短路径
+  const B: string[][] = [];      // 候选
+  for (let kk = 1; kk < k; kk++) {
+    const prevPath = A[kk - 1];
+    for (let i = 0; i < prevPath.length - 1; i++) {
+      const spurNode = prevPath[i];
+      const rootPath = prevPath.slice(0, i + 1);
+      // 禁用：已确认路径中「前缀相同」时的下一条边，避免重复生成同一条路
+      const bannedEdges = new Set<string>();
+      for (const p of A) {
+        if (p.length > i + 1 && pathKey(p.slice(0, i + 1)) === pathKey(rootPath)) {
+          bannedEdges.add(edgeKey(p[i], p[i + 1]));
+        }
+      }
+      // 禁用：前缀上除分叉点以外的节点，保证路径无重复节点
+      const bannedNodes = new Set(rootPath.slice(0, i));
+      const spur = bfs(spurNode, t, bannedNodes, bannedEdges);
+      if (!spur) continue;
+      const cand = [...rootPath.slice(0, i), ...spur];
+      const ck = pathKey(cand);
+      if (A.some((p) => pathKey(p) === ck) || B.some((p) => pathKey(p) === ck)) continue;
+      B.push(cand);
+    }
+    if (B.length === 0) break;
+    B.sort((x, y) => x.length - y.length);
+    A.push(B.shift()!);
+  }
+  return A;
+}
+
+/**
+ * 方向性提示：target 模式优先给"离终点更近"的一步；open 模式优先给"未走过的新方向"。
+ * 避免旧版随机邻居导致的来回打转。
+ */
+export function smartHint(
+  g: ConceptGraph,
+  cur: string,
+  opts: { degree: number; target?: string | null; history?: string[] },
+): { cid: string; note: string } | null {
+  const cands = nodesWithin(g, cur, opts.degree);
+  if (cands.length === 0) return null;
+  if (opts.target && opts.target !== cur) {
+    const t = opts.target;
+    const curD = shortestDist(g, cur, t);
+    const better = cands.filter((c) => {
+      const d = shortestDist(g, c, t);
+      return d != null && curD != null && d < curD;
+    });
+    if (better.length) return { cid: better[Math.floor(Math.random() * better.length)], note: '（朝终点方向）' };
+    return { cid: cands[Math.floor(Math.random() * cands.length)], note: '（暂时没有更接近终点的走法）' };
+  }
+  // open：优先未访问过的新方向
+  const hist = new Set(opts.history ?? []);
+  const fresh = cands.filter((c) => !hist.has(c));
+  const pool = fresh.length ? fresh : cands;
+  return { cid: pool[Math.floor(Math.random() * pool.length)], note: fresh.length ? '（新方向）' : '（绕回探索，可回退）' };
+}

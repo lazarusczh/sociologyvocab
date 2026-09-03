@@ -4,6 +4,7 @@ import type { VocabItem, ItemRelations } from '../lib/types';
 import { Network, DataSet, type Node as VisNode, type Edge as VisEdge, type Options } from 'vis-network/standalone';
 import { conceptIdOf, suggestRelated } from '../lib/relationSuggest';
 import { buildConceptGraph } from '../lib/conceptGraph';
+import { kShortestPaths } from '../lib/chain';
 
 type RelType = 'higher' | 'lower' | 'peer' | 'contrast';
 
@@ -15,6 +16,8 @@ const REL_LABELS: Record<RelType, string> = {
 };
 
 // 图谱边样式（lower 是 higher 的反向，不单独画）
+const PATH_K = 5; // 路径查询：最多列出的最短路径条数
+
 const EDGE_STYLE: Record<Exclude<RelType, 'lower'>, { color: string; arrows?: 'to'; dashes: boolean }> = {
   higher: { color: '#4361EE', arrows: 'to', dashes: false },
   peer: { color: '#3AA65F', dashes: true },
@@ -173,6 +176,12 @@ export default function LogicManager() {
   const [focusQ, setFocusQ] = useState(''); // 图谱聚焦检索词
   const [focusCid, setFocusCid] = useState<string | null>(null); // 图谱聚焦的概念组（null = 全图）
   const [focusDepth, setFocusDepth] = useState(1); // 图谱聚焦范围（几度邻居；1=直接上下游）
+  const [pqFrom, setPqFrom] = useState('');       // 路径查询：起点检索词
+  const [pqTo, setPqTo] = useState('');           // 路径查询：终点检索词
+  const [fromCid, setFromCid] = useState<string | null>(null); // 已选起点概念
+  const [toCid, setToCid] = useState<string | null>(null);     // 已选终点概念
+  const [foundPaths, setFoundPaths] = useState<string[][] | null>(null); // 查询结果
+  const [pathErr, setPathErr] = useState('');
   const [uncoveredSeed, setUncoveredSeed] = useState(0); // 未覆盖随机推荐的换一批种子
   const [activePicker, setActivePicker] = useState<'a' | 'b' | null>(null); // 当前焦点在哪个检索框（随机推荐据此带入 A/B）
   const [relSearch, setRelSearch] = useState(''); // 关系列表搜索词
@@ -300,6 +309,63 @@ export default function LogicManager() {
       .sort((a, b) => rank(a.term.toLowerCase()) - rank(b.term.toLowerCase()))
       .slice(0, 10);
   }, [focusQ, graph]);
+
+  // ---- 路径查询（教师备课：查两个概念之间怎么通）----
+  const termOf = (cid: string) => graph.nodes.get(cid)?.term ?? cid;
+  const matchConcepts = (q: string) => {
+    const ql = q.trim().toLowerCase();
+    if (!ql) return [];
+    return [...graph.nodes.values()]
+      .filter((n) => n.term.toLowerCase().includes(ql))
+      .slice(0, 10);
+  };
+  const runPathQuery = () => {
+    setPathErr('');
+    if (!fromCid || !toCid) return;
+    setFoundPaths(kShortestPaths(graph, fromCid, toCid, PATH_K));
+  };
+  const renderPathPicker = (
+    q: string,
+    setQ: (s: string) => void,
+    selected: string | null,
+    onPick: (cid: string | null) => void,
+    placeholder: string,
+  ) => {
+    const matches = matchConcepts(q);
+    return (
+      <div style={{ position: 'relative', flex: '1 1 12rem', minWidth: 0 }}>
+        {selected ? (
+          <button
+            className="ghost"
+            style={{ width: '100%', textAlign: 'left', fontSize: '0.88rem' }}
+            onClick={() => { onPick(null); setFoundPaths(null); setPathErr(''); }}
+            title="点击取消选择"
+          >
+            {termOf(selected)} ×
+          </button>
+        ) : (
+          <>
+            <input
+              type="text"
+              placeholder={placeholder}
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              style={{ width: '100%', boxSizing: 'border-box', fontSize: '0.88rem' }}
+            />
+            {matches.length > 0 && (
+              <div className="tag-filter" style={{ marginTop: '0.3rem' }}>
+                {matches.map((n) => (
+                  <button key={n.cid} onClick={() => { onPick(n.cid); setQ(''); setFoundPaths(null); setPathErr(''); }}>
+                    {n.term}
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    );
+  };
 
   // 关系列表搜索过滤（按两端词条英文名 / 中文匹配）
   const filteredRelations = useMemo(() => {
@@ -905,6 +971,49 @@ export default function LogicManager() {
           ref={graphRef}
           style={{ width: '100%', height: 420, border: '1px solid var(--c-hairline-soft)', borderRadius: 'var(--r-md)', touchAction: 'pan-y' }}
         />
+      </div>
+
+      <div className="card" style={{ marginTop: '0.8rem', padding: '0.8rem' }}>
+        <h3 style={{ margin: 0 }}>路径查询</h3>
+        <p className="muted" style={{ fontSize: '0.8rem', marginTop: '0.3rem' }}>
+          输入起点与终点概念，列出它们之间的最短路径（最多 {PATH_K} 条）。点路径里的概念可在上方图谱聚焦它。
+        </p>
+        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.4rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+          {renderPathPicker(pqFrom, setPqFrom, fromCid, setFromCid, '起点概念…')}
+          <span className="muted" style={{ alignSelf: 'center' }}>→</span>
+          {renderPathPicker(pqTo, setPqTo, toCid, setToCid, '终点概念…')}
+          <button className="primary" onClick={runPathQuery} disabled={!fromCid || !toCid} style={{ alignSelf: 'flex-start' }}>
+            查询路径
+          </button>
+        </div>
+        {pathErr && <p style={{ fontSize: '0.85rem', color: 'var(--danger)', marginTop: '0.4rem' }}>{pathErr}</p>}
+        {foundPaths && foundPaths.length > 0 && (
+          <div style={{ marginTop: '0.6rem' }}>
+            {foundPaths.map((p, i) => (
+              <div key={`p${i}`} className="row" style={{ gap: '0.2rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '0.35rem' }}>
+                <span className="badge">{p.length - 1} 跳</span>
+                {p.map((cid, j) => (
+                  <span key={`${j}-${cid}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                    <button
+                      className="ghost"
+                      style={{ padding: '0.05rem 0.45rem', fontSize: '0.85rem' }}
+                      onClick={() => setFocusCid(cid)}
+                      title="在图谱聚焦这个概念"
+                    >
+                      {termOf(cid)}
+                    </button>
+                    {j < p.length - 1 && <span className="muted" style={{ fontSize: '0.7rem' }}>→</span>}
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+        {foundPaths && foundPaths.length === 0 && (
+          <p className="muted" style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
+            这两个概念之间在当前关系网络里没有通路（可能还没给它们之间建过足够的逻辑关系）。
+          </p>
+        )}
       </div>
     </div>
   );

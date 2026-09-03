@@ -83,7 +83,11 @@ function toDraft(q: Quiz): Draft {
     questionCount: q.question_count,
     durationMinutes: q.duration_minutes,
     questionTypes: q.question_types,
-    manualIds: q.selection_mode === 'manual' ? [...new Set(q.questions.map((x) => x.itemId))] : [],
+    // 手动模式：从题目快照反推勾选的词条。匹配块 6 个词合成一道题，
+    // 其 itemId 只是块内第一个词，其余 5 个在 pairs 里——必须展开，否则编辑时显示少 5 条
+    manualIds: q.selection_mode === 'manual'
+      ? [...new Set(q.questions.flatMap((x) => (x.type === 'matching' && x.pairs ? x.pairs.map((p) => p.itemId) : [x.itemId])))]
+      : [],
     openAt: q.open_at ? toLocalInput(q.open_at) : '',
     dueAt: q.due_at ? toLocalInput(q.due_at) : '',
     allowLate: q.allow_late ?? false,

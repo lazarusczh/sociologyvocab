@@ -4,7 +4,7 @@ import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
 import { conceptIdOf } from '../lib/relationSuggest';
 import {
   buildRangeGraph, randomOpenPath, randomTargetPath, buildOptions,
-  matchInputToCid, randomNeighbor, shortestDist,
+  matchInputToCid, shortestDist, nodesWithin, smartHint,
   type ChainRun, type ChainMode,
 } from '../lib/chain';
 import type { VocabItem } from '../lib/types';
@@ -21,6 +21,7 @@ interface InputRun {
   target: string | null; // target 模式终点；open 为 null
   goal: number | null;   // open 目标步数；target 为 null（无上限自由探索）
   history: string[];     // 走过的 cid（含起点与当前）
+  refPath: string[] | null; // target 模式参考答案最短路径（cid 序列）
 }
 
 const betaTag = <span style={{ fontSize: '0.65rem', verticalAlign: 'super', color: 'var(--accent)', fontWeight: 700, letterSpacing: '0.02em' }}>Beta</span>;
@@ -30,9 +31,9 @@ export default function LogicChain() {
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
   const [units, setUnits] = useState<string[]>([]);
-  // 逻辑网络含教师保留的学者，默认全部纳入（术语 + 学者）
-  const [typeFilter, setTypeFilter] = useState<'all' | 'term' | 'scholar'>('all');
   const [kind, setKind] = useState<AnswerKind>('choice'); // 作答方式：选择 / 默写输入
+  const [inDeg, setInDeg] = useState(1); // 文字输入模式可接度数：1=相邻 / 2=放宽到隔一跳
+  const [gaveUp, setGaveUp] = useState(false); // 文字输入 target 是否已放弃（查看答案）
   const [mode, setMode] = useState<ChainMode>('open');    // 子模式：仅起点 / 起点+终点
   const [genErr, setGenErr] = useState('');
 
@@ -53,8 +54,8 @@ export default function LogicChain() {
   const onCatChange = (c: string) => { setCat(c); setUnits([]); };
 
   const filtered = useMemo(
-    () => filterByPaperCat(vocab, paper, cat, units).filter((i) => typeFilter === 'all' || i.type === typeFilter),
-    [vocab, paper, cat, units, typeFilter],
+    () => filterByPaperCat(vocab, paper, cat, units),
+    [vocab, paper, cat, units],
   );
   const graph = useMemo(() => buildRangeGraph(filtered), [filtered]);
   const cids = useMemo(() => [...graph.nodes.keys()], [graph]);
@@ -69,10 +70,11 @@ export default function LogicChain() {
   const irunDone =
     irun !== null &&
     (irun.mode === 'open' ? irun.history.length - 1 >= (irun.goal ?? 0) : irun.cur === irun.target);
+  const irunEnded = irunDone || (irun !== null && gaveUp); // 到终点/达标，或放弃后展示结果
   const inChoice = run !== null && !choiceDone;
-  const inInput = irun !== null && !irunDone;
+  const inInput = irun !== null && !irunEnded;
   useStudySession(inChoice || inInput);
-  useCelebrateCheckIn(choiceDone || irunDone);
+  useCelebrateCheckIn(choiceDone || irunDone); // 放弃不算达成，不触发庆祝
 
   // ===== 开始 =====
   const startChoice = () => {
@@ -97,8 +99,10 @@ export default function LogicChain() {
 
   const startInput = () => {
     setGenErr('');
+    setGaveUp(false);
     let start: string;
     let target: string | null = null;
+    let refPath: string[] | null = null;
     if (mode === 'target') {
       const attempt = randomTargetPath(graph, TARGET_MIN, TARGET_MAX);
       if (!attempt) {
@@ -107,6 +111,7 @@ export default function LogicChain() {
       }
       start = attempt.path[0];
       target = attempt.target;
+      refPath = attempt.path; // 保存参考答案最短路径
     } else {
       const starters = cids.filter((c) => (graph.neighbors.get(c) ?? []).length >= 2);
       const pool = starters.length ? starters : cids.filter((c) => (graph.neighbors.get(c) ?? []).length >= 1);
@@ -116,7 +121,7 @@ export default function LogicChain() {
       }
       start = pool[Math.floor(Math.random() * pool.length)];
     }
-    setIrun({ mode, cur: start, target, goal: mode === 'open' ? OPEN_STEPS : null, history: [start] });
+    setIrun({ mode, cur: start, target, goal: mode === 'open' ? OPEN_STEPS : null, history: [start], refPath });
     setIText('');
     setIMsg(null);
     setHintCid(null);
@@ -127,7 +132,7 @@ export default function LogicChain() {
 
   const exitRun = () => {
     setRun(null); setIrun(null); setChosen(null); setStepIdx(0); setScore(0);
-    setIText(''); setIMsg(null); setHintCid(null);
+    setIText(''); setIMsg(null); setHintCid(null); setGaveUp(false);
   };
 
   // ===== 选择模式：作答 =====
@@ -155,12 +160,12 @@ export default function LogicChain() {
   };
 
   // ===== 默写输入模式：作答 =====
-  const iCurItem = irun && !irunDone ? itemOf(irun.cur) : undefined;
+  const iCurItem = inInput ? itemOf(irun!.cur) : undefined;
   const iTargetItem = irun?.target ? itemOf(irun.target) : undefined;
   const distLeft = irun && irun.target ? shortestDist(graph, irun.cur, irun.target) : null;
 
   const tryMove = () => {
-    if (!irun || irunDone) return;
+    if (!irun || irunEnded) return;
     const q = iText.trim();
     if (!q) return;
     const m = matchInputToCid(filtered, q);
@@ -172,9 +177,15 @@ export default function LogicChain() {
       setIMsg({ kind: 'warn', text: `「${m.item.term}」就是当前这个概念，要接的是它的下一个概念。` });
       return;
     }
-    const nb = graph.neighbors.get(irun.cur) ?? [];
-    if (!nb.includes(m.cid)) {
-      setIMsg({ kind: 'warn', text: `「${m.item.term}」和「${iCurItem?.term}」不相邻，换一个相邻概念再试。` });
+    // 可接范围 = 相邻 inDeg 度（难度调节）
+    const reach = nodesWithin(graph, irun.cur, inDeg);
+    if (!reach.includes(m.cid)) {
+      setIMsg({
+        kind: 'warn',
+        text: inDeg >= 2
+          ? `「${m.item.term}」不在可接范围（相邻 ${inDeg} 度内）里。`
+          : `「${m.item.term}」和「${iCurItem?.term}」不相邻，换一个相邻概念再试。`,
+      });
       return;
     }
     const prev = irun.history.length >= 2 ? irun.history[irun.history.length - 2] : null;
@@ -192,15 +203,20 @@ export default function LogicChain() {
   };
 
   const showHint = () => {
-    if (!irun || irunDone) return;
-    const h = hintCid ?? randomNeighbor(graph, irun.cur);
-    if (h) {
-      if (hintCid === null && iCurItem) recordItem(iCurItem.id, false, 'chain'); // 首次看提示记一次答错
-      setHintCid(h);
-      setIMsg({ kind: 'ok', text: `提示：可以接「${itemOf(h)?.term ?? h}」` });
-    } else {
-      setIMsg({ kind: 'warn', text: '这里似乎没有可走的相邻概念。' });
+    if (!irun || irunEnded) return;
+    if (hintCid !== null) {
+      // 已给过提示：只重申，不再重复扣分
+      setIMsg({ kind: 'ok', text: `提示：可以接「${itemOf(hintCid)?.term ?? hintCid}」` });
+      return;
     }
+    const hint = smartHint(graph, irun.cur, { degree: inDeg, target: irun.target, history: irun.history });
+    if (!hint) {
+      setIMsg({ kind: 'warn', text: '这里似乎没有可走的概念了。' });
+      return;
+    }
+    if (iCurItem) recordItem(iCurItem.id, false, 'chain'); // 首次看提示记一次答错
+    setHintCid(hint.cid);
+    setIMsg({ kind: 'ok', text: `提示：可以接「${itemOf(hint.cid)?.term ?? hint.cid}」${hint.note}` });
   };
 
   const undoStep = () => {
@@ -210,6 +226,12 @@ export default function LogicChain() {
     setIText('');
     setIMsg(null);
     setHintCid(null);
+  };
+
+  // target 模式中途放弃：结束本局，直接看参考路线
+  const giveUp = () => {
+    if (!irun || irun.target == null || gaveUp) return;
+    setGaveUp(true);
   };
 
   if (vocab.length === 0) {
@@ -236,8 +258,6 @@ export default function LogicChain() {
           onCatChange={onCatChange}
           units={units}
           onUnitsChange={setUnits}
-          typeFilter={typeFilter}
-          onTypeChange={setTypeFilter}
         />
         <div className="card">
           <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
@@ -277,12 +297,31 @@ export default function LogicChain() {
               </button>
             ))}
           </div>
+          {kind === 'input' && (
+            <div className="row" style={{ gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+              <span className="muted" style={{ fontSize: '0.85rem', alignSelf: 'center' }}>可接范围：</span>
+              {([1, 2] as const).map((d) => (
+                <button
+                  key={d}
+                  onClick={() => setInDeg(d)}
+                  style={{
+                    fontSize: '0.85rem', padding: '0.35rem 0.8rem', borderRadius: 10,
+                    background: inDeg === d ? 'var(--accent)' : 'var(--c-canvas)',
+                    borderColor: inDeg === d ? 'var(--accent)' : 'var(--c-hairline-soft)',
+                    color: inDeg === d ? '#fff' : 'var(--c-charcoal)',
+                  }}
+                >
+                  {d === 1 ? '相邻（1 度）' : '放宽到 2 度'}
+                </button>
+              ))}
+            </div>
+          )}
           <p className="muted" style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
             {kind === 'choice'
               ? '四选一：从四个候选中选出与当前概念相邻的那个，答对即前进。'
               : mode === 'open'
-                ? `默写输入：每步打出与当前概念相邻的概念名，共接 ${OPEN_STEPS} 步达成目标；答不出可看提示。`
-                : '默写输入自由探索：从起点打相邻概念一路走下去，不设步数上限，摸索到终点即通关（可随时回退上一步，上方会显示距终点最短还有几跳）。'}
+                ? `默写输入：每步打出与当前概念相连（${inDeg === 1 ? '相邻' : '1~2 度内'}）的概念名，共接 ${OPEN_STEPS} 步达成目标；答不出可看方向提示。`
+                : `默写输入自由探索：从起点打相连（${inDeg === 1 ? '相邻' : '1~2 度内'}）的概念一路走到终点，不设步数上限，可随时回退；想不出可看提示，也可以中途放弃并查看参考答案路径。`}
           </p>
           {genErr && <p style={{ fontSize: '0.85rem', color: 'var(--danger)' }}>{genErr}</p>}
           <button className="primary" onClick={start} disabled={cids.length < 2} style={{ marginTop: '0.4rem' }}>
@@ -293,26 +332,28 @@ export default function LogicChain() {
     );
   }
 
-  // ============ 默写输入：结果屏 ============
-  if (irun && irunDone) {
-    const arrived = irun.mode === 'target';
+  // ============ 默写输入：结果屏（到达 / 达标 / 中途放弃） ============
+  if (irun && irunEnded) {
+    const arrived = irun.mode === 'target' && irun.cur === irun.target;
+    const stepsTaken = irun.history.length - 1;
+    const refLen = irun.refPath ? irun.refPath.length - 1 : null;
     return (
       <div>
         <h1>逻辑接龙 {betaTag}</h1>
-        <div className="card center">
+        <div className="card">
           <h2 style={{ marginBottom: '0.4rem' }}>
-            {arrived ? '🎉 到达终点！' : '🎉 达成目标步数！'}
+            {arrived ? '🎉 到达终点！' : irun.mode === 'target' ? '✋ 已放弃本局' : '🎉 达成目标步数！'}
           </h2>
           <p className="muted">
             {arrived
-              ? (() => {
-                  const best = irun.history.length - 1;
-                  const min = distLeft != null ? (shortestDist(graph, irun.history[0], irun.target!) ?? best) : best;
-                  return `你走了 ${best} 步到达「${iTargetItem?.term}」（最短约 ${min} 步）`;
-                })()
-              : `一共接了 ${irun.history.length - 1} 步`}
+              ? `你走了 ${stepsTaken} 步到达「${iTargetItem?.term}」${refLen != null ? `（参考最短 ${refLen} 步）` : ''}`
+              : irun.mode === 'target'
+                ? `走了 ${stepsTaken} 步后放弃，参考路线见下。`
+                : `一共接了 ${stepsTaken} 步。`}
           </p>
-          <div className="row" style={{ justifyContent: 'center', gap: '0.3rem', flexWrap: 'wrap', margin: '0.8rem 0' }}>
+
+          <div style={{ fontWeight: 600, marginTop: '0.6rem' }}>你的路线</div>
+          <div className="row" style={{ gap: '0.25rem', flexWrap: 'wrap', margin: '0.3rem 0' }}>
             {irun.history.map((cid, i) => {
               const it = itemOf(cid);
               const isTarget = irun.target === cid;
@@ -333,7 +374,38 @@ export default function LogicChain() {
               );
             })}
           </div>
-          <div className="row" style={{ justifyContent: 'center', gap: '0.5rem' }}>
+
+          {irun.target && irun.refPath && (
+            <>
+              <div style={{ fontWeight: 600, marginTop: '0.4rem' }}>
+                参考答案路径（最短 {refLen} 步）
+              </div>
+              <div className="row" style={{ gap: '0.25rem', flexWrap: 'wrap', margin: '0.3rem 0' }}>
+                {irun.refPath.map((cid, i) => {
+                  const it = itemOf(cid);
+                  const isTarget = irun.target === cid;
+                  return (
+                    <span key={`${i}-${cid}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                      <span
+                        className="badge"
+                        style={{
+                          fontWeight: 600,
+                          background: isTarget ? 'var(--accent)' : 'var(--c-surface-soft)',
+                          color: isTarget ? '#fff' : undefined,
+                          border: '1px dashed var(--c-hairline)',
+                        }}
+                      >
+                        {it?.term ?? cid}
+                      </span>
+                      {i < irun.refPath!.length - 1 && <span className="muted" style={{ fontSize: '0.7rem' }}>→</span>}
+                    </span>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          <div className="row" style={{ gap: '0.5rem', marginTop: '0.6rem' }}>
             <button className="primary" onClick={startInput}>再来一局</button>
             <button className="ghost" onClick={exitRun}>换一批范围</button>
           </div>
@@ -343,7 +415,7 @@ export default function LogicChain() {
   }
 
   // ============ 默写输入：作答屏 ============
-  if (irun) {
+  if (irun && !irunEnded) {
     const totalDone = irun.history.length - 1;
     const isOpen = irun.mode === 'open';
     const targetLen = irun.goal ?? 0;
@@ -358,15 +430,20 @@ export default function LogicChain() {
           <button className="ghost" onClick={undoStep} disabled={irun.history.length <= 1} style={{ fontSize: '0.8rem' }}>
             ↩ 回退一步
           </button>
+          {!isOpen && irun.target && (
+            <button className="ghost" onClick={giveUp} style={{ fontSize: '0.8rem', color: 'var(--danger)' }}>
+              放弃
+            </button>
+          )}
         </div>
 
         {irun.target && iTargetItem && (
           <div className="card" style={{ padding: '0.5rem 0.8rem', marginBottom: '0.5rem', background: 'var(--c-surface-soft)' }}>
             <span className="muted" style={{ fontSize: '0.85rem' }}>终点目标：</span>
-            <b style={{ fontSize: '0.95rem', color: 'var(--accent)' }}>{iTargetItem.term}</b>
-            {iTargetItem.chinese && <span className="muted" style={{ marginLeft: '0.3rem', fontSize: '0.8rem' }}>{iTargetItem.chinese}</span>}
+            <b style={{ fontSize: '1.25rem', color: 'var(--accent)' }}>{iTargetItem.term}</b>
+            {iTargetItem.chinese && <span className="muted" style={{ marginLeft: '0.4rem', fontSize: '0.9rem' }}>{iTargetItem.chinese}</span>}
             {!isOpen && distLeft != null && (
-              <span className="muted" style={{ fontSize: '0.8rem', marginLeft: '0.5rem' }}>（还差约 {distLeft} 跳）</span>
+              <span className="muted" style={{ fontSize: '0.85rem', marginLeft: '0.5rem' }}>（还差约 {distLeft} 跳）</span>
             )}
           </div>
         )}
@@ -401,7 +478,9 @@ export default function LogicChain() {
           {iCurItem && <span className="badge">{iCurItem.paper}</span>}
 
           <div style={{ marginTop: '0.8rem', fontWeight: 600, fontSize: '0.95rem' }}>
-            输入一个与「{iCurItem?.term}」相邻的概念：
+            {inDeg >= 2
+              ? <>输入一个与「{iCurItem?.term}」相连的概念（相邻或隔 1 个概念都算）：</>
+              : <>输入一个与「{iCurItem?.term}」相邻的概念：</>}
           </div>
 
           <div className="row" style={{ marginTop: '0.6rem' }}>
@@ -412,7 +491,7 @@ export default function LogicChain() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter') { e.preventDefault(); tryMove(); }
               }}
-              placeholder="打出相邻的概念名…"
+              placeholder={inDeg >= 2 ? '打出相连（1~2 度内）的概念名…' : '打出相邻的概念名…'}
               autoComplete="off"
               style={{ flex: 1, minWidth: 180 }}
             />
@@ -497,8 +576,8 @@ export default function LogicChain() {
         {run.mode === 'target' && targetItem && (
           <div className="card" style={{ padding: '0.5rem 0.8rem', marginBottom: '0.5rem', background: 'var(--c-surface-soft)' }}>
             <span className="muted" style={{ fontSize: '0.85rem' }}>终点目标：</span>
-            <b style={{ fontSize: '0.95rem', color: 'var(--accent)' }}>{targetItem.term}</b>
-            {targetItem.chinese && <span className="muted" style={{ marginLeft: '0.3rem', fontSize: '0.8rem' }}>{targetItem.chinese}</span>}
+            <b style={{ fontSize: '1.25rem', color: 'var(--accent)' }}>{targetItem.term}</b>
+            {targetItem.chinese && <span className="muted" style={{ marginLeft: '0.4rem', fontSize: '0.9rem' }}>{targetItem.chinese}</span>}
           </div>
         )}
 
