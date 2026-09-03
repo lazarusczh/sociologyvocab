@@ -23,6 +23,7 @@ import DevPanel from './components/DevPanel';
 import QuizTaker from './components/QuizTaker';
 import Cloze from './components/Cloze';
 import LogicChain from './components/LogicChain';
+import ConceptMapView from './components/ConceptMapView';
 
 export type View =
   | 'home'
@@ -40,6 +41,7 @@ export type View =
   | 'wrong'
   | 'progress'
   | 'data'
+  | 'conceptmap'
   | 'backup'
   | 'profile'
   | 'dev';
@@ -73,8 +75,9 @@ const NAV_PILLS: NavPill[] = [
   { group: '闪卡', items: [
     { key: 'flashcards', label: '闪卡' },
   ]},
-  { group: '统计', items: [
+  { group: '资料', items: [
     { key: 'data', label: '社会数据' },
+    { key: 'conceptmap', label: '概念网络' },
   ]},
 ];
 
@@ -354,6 +357,7 @@ function AppBody() {
         {view === 'wrong' && <WrongPractice />}
         {view === 'progress' && <ProgressView />}
         {view === 'data' && <DataBoard />}
+        {view === 'conceptmap' && <ConceptMapView />}
         {view === 'profile' && authUser && <ProfilePanel />}
         {view === 'dev' && isDeveloper && <DevPanel />}
       </main>
