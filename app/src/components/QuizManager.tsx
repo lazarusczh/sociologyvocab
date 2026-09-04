@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useStore } from '../lib/store';
 import type { VocabItem, Quiz, QuizSubmission, QuizQuestionType, QuizKind } from '../lib/types';
-import { buildQuizQuestions, sampleItems, TYPE_LABELS, KIND_LABELS, formatDuration, isAnswerCorrect, answerText, correctAnswerText, totalPoints, matchingCorrectCount, gradeQuiz } from '../lib/quiz';
+import { buildQuizQuestions, sampleItems, TYPE_LABELS, KIND_LABELS, formatDuration, isAnswerCorrect, answerText, correctAnswerText, totalPoints, matchingCorrectCount, gradeQuiz, refreshQuestionAliases } from '../lib/quiz';
 import { PAPER_ORDER } from '../lib/storage';
 import { unitListFor } from '../lib/unitMapping';
 import { maskEmail } from '../lib/shuffle';
-import { createQuiz, updateQuiz, listQuizzes, listQuizSubmissions, deleteQuiz, listDeveloperIds, deleteSubmission, countSubmittedByQuizzes, regradeQuizSubmissions } from '../lib/cloud';
+import { createQuiz, updateQuiz, updateQuizQuestions, listQuizzes, listQuizSubmissions, deleteQuiz, listDeveloperIds, deleteSubmission, countSubmittedByQuizzes, regradeQuizSubmissions } from '../lib/cloud';
+import QuizWrongBoard from './QuizWrongBoard';
 
 // 创建表单草稿
 interface Draft {
@@ -121,6 +122,7 @@ export default function QuizManager() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
   const [viewing, setViewing] = useState<Quiz | null>(null); // 正在查看成绩的试卷
+  const [analysisOpen, setAnalysisOpen] = useState(false);   // 跨卷全局错题榜视图
   const [subs, setSubs] = useState<QuizSubmission[]>([]);
   const [regrading, setRegrading] = useState(false);
   const [submissionCounts, setSubmissionCounts] = useState<Record<string, number>>({});
@@ -373,29 +375,48 @@ export default function QuizManager() {
     }
   };
 
-  // 重判：用最新容错规则（answers.ts）对当前试卷全部已提交卷重新判分，并写回云端
+  // 重判：用最新容错规则对当前试卷全部已提交卷重新判分，并写回云端。
+  // 关键：题目快照的 aliases 不随词库发布自动更新——教师在词库新增/修改容错后，
+  // 先用「当前词库」刷新拼写题快照再判分，并把新快照写回，保证学生端历史详情、
+  // 后续迟交作答与错题分析都同口径（旧卷此前按快照判错是「没加分」的根因）。
   const regrade = async () => {
     if (!viewing) return;
+    const itemById = new Map(vocab.map((i) => [i.id, i]));
+    const refreshedQuestions = refreshQuestionAliases(viewing.questions, itemById);
+    const questionsChanged = refreshedQuestions.some((q, i) => q !== viewing.questions[i]);
     const scores: Record<string, number> = {};
     for (const s of subs) {
       if (s.status !== 'submitted') continue;
-      scores[s.id] = gradeQuiz(viewing.questions, s.answers ?? {});
-    }
-    if (Object.keys(scores).length === 0) {
-      setError('没有已提交的答卷可重判。');
-      return;
+      scores[s.id] = gradeQuiz(refreshedQuestions, s.answers ?? {});
     }
     try {
       setRegrading(true);
+      // 先把最新容错写回快照（即使暂无已交卷，后续迟交/详情/错题榜也同口径）
+      if (questionsChanged) {
+        await updateQuizQuestions(viewing.id, refreshedQuestions);
+        setViewing({ ...viewing, questions: refreshedQuestions });
+      }
+      if (Object.keys(scores).length === 0) {
+        setError(questionsChanged ? '已按当前词库刷新拼写题容错快照，但暂无已提交答卷可重判。' : '没有已提交的答卷可重判。');
+        return;
+      }
       const n = await regradeQuizSubmissions(viewing.id, scores);
       setSubs(await listQuizSubmissions(viewing.id));
-      setMsg(`已按最新容错规则重判 ${n} 份答卷。`);
+      setMsg(
+        questionsChanged
+          ? `已按当前词库容错刷新拼写题并重判 ${n} 份答卷。`
+          : `已按最新容错规则重判 ${n} 份答卷。`,
+      );
     } catch (e) {
       setError(`重判失败：${(e as Error).message}（如尚未执行重判 RPC，请先在 Supabase SQL Editor 运行 db-migration-regrade.sql）`);
     } finally {
       setRegrading(false);
     }
   };
+
+  if (analysisOpen) {
+    return <QuizWrongBoard onBack={() => setAnalysisOpen(false)} />;
+  }
 
   if (viewing) {
     const detailSubmission = detailUser ? subs.find((s) => s.user_id === detailUser) : null;
@@ -619,11 +640,13 @@ export default function QuizManager() {
         <div className="row" style={{ alignItems: 'center' }}>
           <h3 style={{ margin: 0 }}>随堂测验 / 作业</h3>
           <span className="spacer" />
+          <button className="ghost" onClick={() => setAnalysisOpen(true)}>错题分析</button>
           <button className="ghost" onClick={refresh} disabled={loading}>{loading ? '加载中…' : '刷新'}</button>
           <button className="primary" onClick={startCreate}>+ 创建</button>
         </div>
         <p className="muted" style={{ marginTop: '0.4rem', fontSize: '0.85rem' }}>
-          生成测验或作业，得到 4 位密码告知学生。学生凭密码进入作答，交卷后此处查看成绩。
+          生成测验或作业，得到 4 位密码告知学生。学生凭密码进入作答，交卷后此处查看成绩；
+          「错题分析」查看跨卷聚合的高频错词条（可按题型/单元切片、下钻到具体学生）。
         </p>
         {error && <div className="card" style={{ marginTop: '0.6rem', background: 'var(--warn-bg)', borderColor: 'var(--warn)' }}>{error}</div>}
         {msg && <div className="card" style={{ marginTop: '0.6rem', background: 'var(--ok-bg)', borderColor: 'var(--ok)' }}>{msg}</div>}

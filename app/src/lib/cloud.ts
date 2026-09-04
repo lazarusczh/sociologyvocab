@@ -204,6 +204,13 @@ export async function updateQuiz(
   if (error) throw error;
 }
 
+// 教师重判时刷新试卷快照的拼写题容错（aliases）：只更新 questions 字段，其余保持不变。
+// 用于「教师在词库修改容错并发布后，对历史答卷重判」，让快照与当前词库的可接受答案一致。
+export async function updateQuizQuestions(quizId: string, questions: Quiz['questions']): Promise<void> {
+  const { error } = await supabase.from('quizzes').update({ questions }).eq('id', quizId);
+  if (error) throw error;
+}
+
 // 学生凭密码拉取试卷（校验 open_at 由前端做）
 export async function getQuizByCode(code: string): Promise<Quiz | null> {
   const { data, error } = await supabase
@@ -317,6 +324,25 @@ export async function countSubmittedByQuizzes(quizIds: string[]): Promise<Record
     counts[row.quiz_id] = (counts[row.quiz_id] ?? 0) + 1;
   }
   return counts;
+}
+
+// 教师跨卷分析：批量拉取多份试卷的「全部已交卷记录」（仅 status = submitted；RLS 与单卷查看一致）。
+// quizIds 数量大时按 ~100 个一批分片，避免 PostgREST URL 过长；纯只读，不影响任何已布置作业。
+export async function listSubmissionsByQuizzes(quizIds: string[]): Promise<QuizSubmission[]> {
+  const out: QuizSubmission[] = [];
+  const CHUNK = 100;
+  for (let i = 0; i < quizIds.length; i += CHUNK) {
+    const chunk = quizIds.slice(i, i + CHUNK);
+    const { data, error } = await supabase
+      .from('quiz_submissions')
+      .select('*')
+      .in('quiz_id', chunk)
+      .eq('status', 'submitted')
+      .order('submitted_at', { ascending: true });
+    if (error) throw error;
+    out.push(...((data ?? []) as QuizSubmission[]));
+  }
+  return out;
 }
 
 // 教师查看自己创建的全部试卷（按创建时间倒序）

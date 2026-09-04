@@ -1174,3 +1174,171 @@ textarea { resize: vertical; min-height: 80px; }
     -webkit-text-fill-color: var(--c-ink);
   }
 }
+
+/* =============================================================
+   历年真题（按考点）资料页（PastPaperTopics，2026-09-05）
+   考点折叠 + 数量角标；statement 突出、指令次之；只读展示无答案
+   ============================================================= */
+.ppt-state {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+.ppt-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.8rem;
+}
+.ppt-tab {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--r-pill);
+  padding: 0.32rem 0.9rem;
+  font-size: 0.88rem;
+  color: var(--text);
+  cursor: pointer;
+  transition: background var(--dur-fast), border-color var(--dur-fast);
+}
+.ppt-tab:hover { border-color: var(--accent); }
+.ppt-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+.ppt-toolbar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+.ppt-meta { color: var(--text-muted); font-size: 0.84rem; }
+.ppt-actions { display: inline-flex; gap: 0.8rem; }
+.ppt-link {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--accent);
+  font-size: 0.84rem;
+  cursor: pointer;
+}
+.ppt-link:hover { text-decoration: underline; }
+
+.ppt-root-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--e1);
+  text-align: left;
+  font: inherit;
+  font-size: 1.04rem;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  padding-top: 0.72rem;
+  padding-bottom: 0.72rem;
+  margin: 0.5rem 0 0;
+  line-height: 1.35;
+}
+.ppt-root-head:active { background: var(--c-surface-soft); }
+.ppt-fold-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font: inherit;
+  font-size: 0.96rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  line-height: 1.35;
+}
+.ppt-fold-title { min-width: 0; flex: 1 1 auto; }
+.ppt-caret {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  flex: none;
+  transition: transform var(--dur);
+}
+.ppt-caret.open { transform: rotate(90deg); }
+.ppt-count {
+  flex: none;
+  background: var(--c-primary-bg);
+  color: var(--c-primary);
+  font-size: 0.74rem;
+  font-weight: 700;
+  min-width: 2.1rem;
+  text-align: center;
+  padding: 0.12rem 0.5rem;
+  border-radius: var(--r-pill);
+}
+.ppt-fold-body {
+  padding: 0.15rem 0 0.4rem;
+  margin-left: 1.25rem;
+  padding-left: 0.4rem;
+  border-left: 1px dashed var(--c-hairline);
+}
+
+.ppt-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 0.55rem 0.8rem;
+  margin: 0.5rem 0;
+}
+.ppt-item-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.3rem;
+}
+.ppt-tag {
+  font-size: 0.72rem;
+  color: var(--c-steel);
+  background: var(--c-surface-soft);
+  padding: 0.06rem 0.5rem;
+  border-radius: var(--r-pill);
+}
+.ppt-tag-marks {
+  color: var(--c-success-ink);
+  background: var(--c-success-bg);
+  font-weight: 700;
+}
+.ppt-note { font-size: 0.74rem; color: var(--c-stone); }
+.ppt-stmt {
+  margin: 0.1rem 0 0.1rem;
+  font-family: Georgia, 'Times New Roman', 'Noto Serif SC', serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--text);
+}
+.ppt-stmt::before { content: '“'; color: var(--accent); }
+.ppt-stmt::after { content: '”'; color: var(--accent); }
+.ppt-instr {
+  margin: 0.15rem 0 0;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.ppt-instr-primary {
+  color: var(--text);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+@media (max-width: 560px) {
+  .ppt-toolbar { align-items: flex-start; flex-direction: column; }
+}

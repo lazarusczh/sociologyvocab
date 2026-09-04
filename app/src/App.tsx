@@ -24,6 +24,7 @@ import QuizTaker from './components/QuizTaker';
 import Cloze from './components/Cloze';
 import LogicChain from './components/LogicChain';
 import ConceptMapView from './components/ConceptMapView';
+import PastPaperTopics from './components/PastPaperTopics';
 
 export type View =
   | 'home'
@@ -42,6 +43,7 @@ export type View =
   | 'progress'
   | 'data'
   | 'conceptmap'
+  | 'papers'
   | 'backup'
   | 'profile'
   | 'dev';
@@ -76,6 +78,7 @@ const NAV_PILLS: NavPill[] = [
     { key: 'flashcards', label: '闪卡' },
   ]},
   { group: '资料', items: [
+    { key: 'papers', label: '历年真题' },
     { key: 'data', label: '社会数据' },
     { key: 'conceptmap', label: '概念网络' },
   ]},
@@ -358,6 +361,7 @@ function AppBody() {
         {view === 'progress' && <ProgressView />}
         {view === 'data' && <DataBoard />}
         {view === 'conceptmap' && <ConceptMapView />}
+        {view === 'papers' && <PastPaperTopics />}
         {view === 'profile' && authUser && <ProfilePanel />}
         {view === 'dev' && isDeveloper && <DevPanel />}
       </main>

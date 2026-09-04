@@ -1,0 +1,5765 @@
+{
+ "generatedAt": "2026-09-04T16:55:52.255Z",
+ "papers": [
+  {
+   "label": "Paper 1",
+   "file": "Paper1真题-按考点.md",
+   "title": "Paper 1 Past Paper Questions by Topics（第一版）",
+   "total": 205,
+   "topics": [
+    {
+     "title": "1. 社会化机制、社会控制与先天教养之辩（Socialisation, social control, nature vs nurture）",
+     "level": 2,
+     "items": [],
+     "children": [
+      {
+       "title": "1.1 规范 / 价值观 / 角色（norms, values, roles）[4]",
+       "level": 3,
+       "items": [
+        {
+         "src": "W25 QP12 Q1",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two social roles.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP11 Q1",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two examples of social norms.",
+         "note": ""
+        },
+        {
+         "src": "W24 QP12 Q1",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two social values.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 3
+      },
+      {
+       "title": "1.2 社会制裁与社会控制（social sanctions / social control）[4]",
+       "level": 3,
+       "items": [
+        {
+         "src": "M26 QP12 Q1",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two informal social sanctions.",
+         "note": ""
+        },
+        {
+         "src": "S21 QP11 Q1",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two informal social sanctions.",
+         "note": ""
+        },
+        {
+         "src": "W25 QP11 & QP13 Q1",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two positive social sanctions.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP13 Q1",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two negative social sanctions.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP12 Q1",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two formal social sanctions.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 5
+      },
+      {
+       "title": "1.3 社会化的性质与力量（is socialisation one-way? does it control behaviour?）[10+6] / [26]",
+       "level": 3,
+       "items": [
+        {
+         "src": "W22 QP11 & QP13 Q3",
+         "marks": "10+6",
+         "statement": "Socialisation controls the way people behave.",
+         "instruction": "",
+         "note": ""
+        },
+        {
+         "src": "S23 QP12 Q3",
+         "marks": "10+6",
+         "statement": "Socialisation is a one-way process.",
+         "instruction": "",
+         "note": ""
+        },
+        {
+         "src": "W24 QP12 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that sociologists exaggerate the extent to which human behaviour is shaped by socialisation.",
+         "note": ""
+        },
+        {
+         "src": "M23 QP12 Q1",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two ways the peer group may influence behaviour.",
+         "note": "⚠ 场所=peer 但对象是行为；已按“兼属两类”同列 3.3②peer"
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 4
+      },
+      {
+       "title": "1.4 先天 vs 教养（nature vs nurture）[26]",
+       "level": 3,
+       "items": [
+        {
+         "src": "M26 QP12 Q4",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that human behaviour is shaped by nature rather than nurture.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP11 Q4",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that nature is more important than nurture in shaping human behaviour.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP11 Q4",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that human behaviour is shaped by nurture rather than nature.",
+         "note": ""
+        },
+        {
+         "src": "W21 QP11 & QP13 Q4",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that nurture is more important than nature in shaping human behaviour.",
+         "note": ""
+        },
+        {
+         "src": "S21 QP12 Q4",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that human behaviour is shaped entirely by the process of socialisation.",
+         "note": ""
+        },
+        {
+         "src": "M22 QP12 Q4",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that socialisation is the most significant factor in shaping human behaviour.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 6
+      }
+     ],
+     "skip": false,
+     "count": 18
+    },
+    {
+     "title": "2. 偏差与越轨（Deviance）",
+     "level": 2,
+     "items": [],
+     "children": [
+      {
+       "title": "2.1 解释观点的陈述题 [10+6]",
+       "level": 3,
+       "items": [
+        {
+         "src": "S26 QP11 Q3",
+         "marks": "10+6",
+         "statement": "Cultural deprivation provides the best explanation for deviant behaviour.",
+         "instruction": "",
+         "note": ""
+        },
+        {
+         "src": "M22 QP12 Q3",
+         "marks": "10+6",
+         "statement": "The existence of subcultures best explains deviant behaviour.",
+         "instruction": "",
+         "note": ""
+        },
+        {
+         "src": "M23 QP12 Q3",
+         "marks": "10+6",
+         "statement": "Under-socialisation is the main reason that individuals act in deviant ways.",
+         "instruction": "",
+         "note": ""
+        },
+        {
+         "src": "S22 QP12 Q3",
+         "marks": "10+6",
+         "statement": "Under-socialisation is the main cause of deviance.",
+         "instruction": "",
+         "note": ""
+        },
+        {
+         "src": "S23 QP13 Q3",
+         "marks": "10+6",
+         "statement": "Marginalisation provides the best explanation for deviant behaviour.",
+         "instruction": "",
+         "note": ""
+        },
+        {
+         "src": "S24 QP12 Q3",
+         "marks": "10+6",
+         "statement": "Cultural deprivation is the main cause of deviant behaviour.",
+         "instruction": "",
+         "note": ""
+        },
+        {
+         "src": "S24 QP13 Q3",
+         "marks": "10+6",
+         "statement": "Subcultural norms and values cause people to act in deviant ways.",
+         "instruction": "",
+         "note": ""
+        },
+        {
+         "src": "S25 QP13 Q3",
+         "marks": "10+6",
+         "statement": "Inadequate socialisation is the main cause of deviant behaviour.",
+         "instruction": "",
+         "note": ""
+        },
+        {
+         "src": "W21 QP12 Q3",
+         "marks": "10+6",
+         "statement": "Cultural deprivation is the main reason individuals act in deviant ways.",
+         "instruction": "",
+         "note": ""
+        },
+        {
+         "src": "W23 QP12 Q3",
+         "marks": "10+6",
+         "statement": "The main cause of deviant behaviour is social resistance.",
+         "instruction": "",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 10
+      },
+      {
+       "title": "2.2 偏差解释的综述论述 [26]",
+       "level": 3,
+       "items": [
+        {
+         "src": "S21 QP11 Q4",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate cultural explanations of deviance.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP11 Q4",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate sociological explanations of deviance.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 2
+      }
+     ],
+     "skip": false,
+     "count": 12
+    },
+    {
+     "title": "3. 社会认同的形成与变化（Social identity）",
+     "level": 2,
+     "items": [],
+     "children": [
+      {
+       "title": "3.1 泛化认同（④，维度场所均未指定）",
+       "level": 3,
+       "items": [
+        {
+         "src": "S22 QP12 Q1",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two examples of social identities.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP12 Q4",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that traditional social identities are the most important influence on the way people live today.",
+         "note": ""
+        },
+        {
+         "src": "S21 QP13 Q4",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that social identities are changing due to increased choice.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP12 Q4",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that the extent to which social identities are changing has been exaggerated.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 4
+      },
+      {
+       "title": "3.2 仅指定认同维度（①）",
+       "level": 3,
+       "items": [],
+       "children": [
+        {
+         "title": "3.2.1 阶级认同（class identity）",
+         "level": 4,
+         "items": [
+          {
+           "src": "M21 QP12 Q1",
+           "marks": "4",
+           "statement": "",
+           "instruction": "Describe two characteristics of upper-class culture.",
+           "note": ""
+          },
+          {
+           "src": "W23 QP12 Q1",
+           "marks": "4",
+           "statement": "",
+           "instruction": "Describe two features of working-class identity.",
+           "note": ""
+          },
+          {
+           "src": "M25 QP12 Q4",
+           "marks": "26",
+           "statement": "",
+           "instruction": "Evaluate the view that class is the main influence on social identity.",
+           "note": ""
+          },
+          {
+           "src": "S22 QP13 Q4",
+           "marks": "26",
+           "statement": "",
+           "instruction": "Evaluate the view that social class has little influence on identity today.",
+           "note": ""
+          },
+          {
+           "src": "S23 QP12 Q4",
+           "marks": "26",
+           "statement": "",
+           "instruction": "Evaluate the view that social class is no longer an important influence on a person’s identity.",
+           "note": ""
+          },
+          {
+           "src": "W21 QP12 Q4",
+           "marks": "26",
+           "statement": "",
+           "instruction": "Evaluate the view that an individual’s identity is largely shaped by their social class.",
+           "note": ""
+          }
+         ],
+         "children": [],
+         "skip": false,
+         "count": 6
+        },
+        {
+         "title": "3.2.2 性别认同（gender identity）",
+         "level": 4,
+         "items": [
+          {
+           "src": "W21 QP12 Q1",
+           "marks": "4",
+           "statement": "",
+           "instruction": "Describe two types of femininity.",
+           "note": ""
+          },
+          {
+           "src": "M25 QP12 Q1",
+           "marks": "4",
+           "statement": "",
+           "instruction": "Describe two types of masculinity.",
+           "note": ""
+          },
+          {
+           "src": "S25 QP13 Q1",
+           "marks": "4",
+           "statement": "",
+           "instruction": "Describe two ways children learn about gender identity.",
+           "note": ""
+          },
+          {
+           "src": "S21 QP11 Q3",
+           "marks": "10+6",
+           "statement": "Male identity is changing.",
+           "instruction": "",
+           "note": ""
+          },
+          {
+           "src": "M21 QP12 Q4",
+           "marks": "26",
+           "statement": "",
+           "instruction": "Evaluate the view that gender identity is changing.",
+           "note": ""
+          },
+          {
+           "src": "S23 QP13 Q4",
+           "marks": "26",
+           "statement": "",
+           "instruction": "Evaluate the view that changes in gender identity have been exaggerated.",
+           "note": ""
+          },
+          {
+           "src": "S25 QP12 Q4",
+           "marks": "26",
+           "statement": "",
+           "instruction": "Evaluate the view that female identity is very different from fifty years ago.",
+           "note": ""
+          },
+          {
+           "src": "2021 Specimen 1 Q4",
+           "marks": "26",
+           "statement": "",
+           "instruction": "Evaluate the view that female identity is changing.",
+           "note": ""
+          },
+          {
+           "src": "W24 QP11 & QP13 Q4",
+           "marks": "26",
+           "statement": "",
+           "instruction": "Evaluate the view that traditional male identity has little influence on male behaviour today.",
+           "note": ""
+          },
+          {
+           "src": "W25 QP12 Q4",
+           "marks": "26",
+           "statement": "",
+           "instruction": "Evaluate the view that traditional gender identity is the most significant influence on male and female behaviour.",
+           "note": ""
+          }
+         ],
+         "children": [],
+         "skip": false,
+         "count": 10
+        },
+        {
+         "title": "3.2.3 族裔认同（ethnic identity）",
+         "level": 4,
+         "items": [
+          {
+           "src": "S21 QP12 Q3",
+           "marks": "10+6",
+           "statement": "Ethnic identity is changing, with new hybrid identities emerging.",
+           "instruction": "",
+           "note": ""
+          },
+          {
+           "src": "M24 QP12 Q4",
+           "marks": "26",
+           "statement": "",
+           "instruction": "Evaluate the view that ethnicity has little influence on identity today.",
+           "note": ""
+          },
+          {
+           "src": "W23 QP11 & QP13 Q4",
+           "marks": "26",
+           "statement": "",
+           "instruction": "Evaluate the view that the extent to which ethnic identities are changing has been exaggerated.",
+           "note": ""
+          }
+         ],
+         "children": [],
+         "skip": false,
+         "count": 3
+        },
+        {
+         "title": "3.2.4 年龄认同（age / youth / elderly identity）",
+         "level": 4,
+         "items": [
+          {
+           "src": "S21 QP13 Q1",
+           "marks": "4",
+           "statement": "",
+           "instruction": "Describe two social roles associated with young people.",
+           "note": ""
+          },
+          {
+           "src": "S23 QP11 Q1",
+           "marks": "4",
+           "statement": "",
+           "instruction": "Describe two characteristics of youth identity.",
+           "note": ""
+          },
+          {
+           "src": "S24 QP12 Q1",
+           "marks": "4",
+           "statement": "",
+           "instruction": "Describe two social characteristics associated with the elderly.",
+           "note": ""
+          },
+          {
+           "src": "S26 QP11 Q4",
+           "marks": "26",
+           "statement": "",
+           "instruction": "Evaluate the view that age is the most important factor shaping an individual’s identity.",
+           "note": ""
+          },
+          {
+           "src": "S22 QP11 Q4",
+           "marks": "26",
+           "statement": "",
+           "instruction": "Evaluate the view that age is the main influence on a person’s identity.",
+           "note": ""
+          },
+          {
+           "src": "W23 QP12 Q4",
+           "marks": "26",
+           "statement": "",
+           "instruction": "Evaluate the view that age is the most important influence on a person’s identity.",
+           "note": ""
+          },
+          {
+           "src": "W25 QP11 & QP13 Q4",
+           "marks": "26",
+           "statement": "",
+           "instruction": "Evaluate the view that age identities are clear and fixed.",
+           "note": ""
+          },
+          {
+           "src": "M23 QP12 Q5",
+           "marks": "26",
+           "statement": "",
+           "instruction": "Evaluate the view that age identities are no longer clear and fixed.",
+           "note": ""
+          },
+          {
+           "src": "S24 QP13 Q4",
+           "marks": "26",
+           "statement": "",
+           "instruction": "Evaluate the view that age identities have changed over time.",
+           "note": ""
+          }
+         ],
+         "children": [],
+         "skip": false,
+         "count": 9
+        }
+       ],
+       "skip": false,
+       "count": 28
+      },
+      {
+       "title": "3.3 仅指定社会化场所（②）",
+       "level": 3,
+       "items": [
+        {
+         "src": "S26 QP11 Q1",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two ways the media may influence identity.",
+         "note": "（media）"
+        },
+        {
+         "src": "S26 QP13 Q4",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that the media is the most significant influence in shaping an individual’s identity.",
+         "note": "（media）"
+        },
+        {
+         "src": "W21 QP11 & QP13 Q3",
+         "marks": "10+6",
+         "statement": "The media is the most important influence in shaping an individual’s identity.",
+         "instruction": "",
+         "note": "（media）"
+        },
+        {
+         "src": "W22 QP11 & QP13 Q4",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that the media is the most important influence on identity.",
+         "note": "（media）"
+        },
+        {
+         "src": "W25 QP11 & QP13 Q3",
+         "marks": "10+6",
+         "statement": "Religion has little influence in shaping an individual’s identity.",
+         "instruction": "",
+         "note": "（religion）"
+        },
+        {
+         "src": "W24 QP12 Q3",
+         "marks": "10+6",
+         "statement": "Religion is the most important influence in shaping an individual’s identity.",
+         "instruction": "",
+         "note": "（religion）"
+        },
+        {
+         "src": "M21 QP12 Q3",
+         "marks": "10+6",
+         "statement": "Education is the most important agent of socialisation in shaping identity.",
+         "instruction": "",
+         "note": "（education）"
+        },
+        {
+         "src": "S24 QP12 Q4",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that peers are the most important agent shaping an individual’s identity.",
+         "note": "（peer group）"
+        },
+        {
+         "src": "2021 Specimen 1 Q3",
+         "marks": "10+6",
+         "statement": "Peers are the most important influence in shaping an individual’s identity.",
+         "instruction": "",
+         "note": "（peer group）"
+        },
+        {
+         "src": "M23 QP12 Q1",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two ways the peer group may influence behaviour.",
+         "note": "（peer group；兼属 1.3，对象为行为）"
+        },
+        {
+         "src": "S25 QP13 Q4",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that the family is the most important agent of socialisation in shaping identity.",
+         "note": "（family）"
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 11
+      },
+      {
+       "title": "3.4 组合：场所 + 维度（③）",
+       "level": 3,
+       "items": [
+        {
+         "src": "S26 QP12 Q3",
+         "marks": "10+6",
+         "statement": "Education is the most important influence in shaping age identity.",
+         "instruction": "",
+         "note": "（education→age）"
+        },
+        {
+         "src": "S26 QP13 Q3",
+         "marks": "10+6",
+         "statement": "The family has little influence in shaping class identity.",
+         "instruction": "",
+         "note": "（family→class）"
+        },
+        {
+         "src": "M26 QP12 Q3",
+         "marks": "10+6",
+         "statement": "The media is the most important influence in shaping class identity.",
+         "instruction": "",
+         "note": "（media→class）"
+        },
+        {
+         "src": "W25 QP12 Q3",
+         "marks": "10+6",
+         "statement": "Family is the main influence on an individual’s age identity.",
+         "instruction": "",
+         "note": "（family→age）"
+        },
+        {
+         "src": "M24 QP12 Q3",
+         "marks": "10+6",
+         "statement": "Peer group is the most important influence on class identity.",
+         "instruction": "",
+         "note": "（peer→class）"
+        },
+        {
+         "src": "M25 QP12 Q3",
+         "marks": "10+6",
+         "statement": "Education is the most important influence on an individual’s gender identity.",
+         "instruction": "",
+         "note": "（education→gender）"
+        },
+        {
+         "src": "S21 QP13 Q3",
+         "marks": "10+6",
+         "statement": "The family is the most important influence on social class identity.",
+         "instruction": "",
+         "note": "（family→class）"
+        },
+        {
+         "src": "S22 QP11 Q3",
+         "marks": "10+6",
+         "statement": "The family is the main influence on gender identity.",
+         "instruction": "",
+         "note": "（family→gender）"
+        },
+        {
+         "src": "S22 QP12 Q4",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that the media is the most important influence in shaping gender identity.",
+         "note": "（media→gender）"
+        },
+        {
+         "src": "S22 QP13 Q3",
+         "marks": "10+6",
+         "statement": "Religion is the most important factor shaping ethnic identity.",
+         "instruction": "",
+         "note": "（religion→ethnicity）"
+        },
+        {
+         "src": "S23 QP11 Q3",
+         "marks": "10+6",
+         "statement": "Family is the main influence on ethnic identity.",
+         "instruction": "",
+         "note": "（family→ethnicity）"
+        },
+        {
+         "src": "S24 QP11 Q3",
+         "marks": "10+6",
+         "statement": "Family is the most important influence on age identity.",
+         "instruction": "",
+         "note": "（family→age）"
+        },
+        {
+         "src": "S25 QP11 Q3",
+         "marks": "10+6",
+         "statement": "Education is the most important influence in shaping class identity.",
+         "instruction": "",
+         "note": "（education→class）"
+        },
+        {
+         "src": "S25 QP12 Q3",
+         "marks": "10+6",
+         "statement": "The peer group is the most important influence in shaping age identity.",
+         "instruction": "",
+         "note": "（peer→age）"
+        },
+        {
+         "src": "W22 QP12 Q3",
+         "marks": "10+6",
+         "statement": "The peer group is the most influential agent of socialisation in shaping gender identity.",
+         "instruction": "",
+         "note": "（peer→gender）"
+        },
+        {
+         "src": "W23 QP11 & QP13 Q3",
+         "marks": "10+6",
+         "statement": "Education is the most important influence on class identity.",
+         "instruction": "",
+         "note": "（education→class）"
+        },
+        {
+         "src": "W24 QP11 & QP13 Q3",
+         "marks": "10+6",
+         "statement": "The media is the most important influence in shaping youth identity.",
+         "instruction": "",
+         "note": "（media→youth）"
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 17
+      }
+     ],
+     "skip": false,
+     "count": 60
+    },
+    {
+     "title": "4. 全球化（Globalisation）",
+     "level": 2,
+     "items": [
+      {
+       "src": "S22 QP13 Q1",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two features of globalisation.",
+       "note": ""
+      }
+     ],
+     "children": [],
+     "skip": false,
+     "count": 1
+    },
+    {
+     "title": "5. 研究方法（Research methods）",
+     "level": 2,
+     "items": [],
+     "children": [
+      {
+       "title": "5.1 问卷（Questionnaires）",
+       "level": 3,
+       "items": [
+        {
+         "src": "S26 QP13 Q1",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two types of questionnaire.",
+         "note": ""
+        },
+        {
+         "src": "M22 QP12 Q1",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two types of questionnaire.",
+         "note": ""
+        },
+        {
+         "src": "M21 QP12 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two strengths of closed-ended questionnaires as a research method.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP12 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain one strength and one limitation of questionnaires as a research method.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP11 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two strengths of questionnaires as a research method.",
+         "note": ""
+        },
+        {
+         "src": "W21 QP11 & QP13 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two limitations of using a postal questionnaire as a research method.",
+         "note": ""
+        },
+        {
+         "src": "M25 QP12 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two limitations of questionnaires as a research method.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP12 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two strengths of online questionnaires.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP12 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons why positivists favour the use of questionnaires.",
+         "note": ""
+        },
+        {
+         "src": "W23 QP11 & QP13 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons questionnaires are considered high in reliability.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP13 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that questionnaires have limited value in sociological research because they lack validity.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 11
+      },
+      {
+       "title": "5.2 访谈（Interviews）",
+       "level": 3,
+       "items": [
+        {
+         "src": "S24 QP12 Q1",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two types of interview used in sociological research.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP11 Q1 / W21 QP11 & QP13 Q1",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two types of qualitative interview.",
+         "note": ""
+        },
+        {
+         "src": "2021 Specimen 1 Q1",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two types of interview.",
+         "note": ""
+        },
+        {
+         "src": "M26 QP12 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons why group interviews are high in validity.",
+         "note": ""
+        },
+        {
+         "src": "W24 QP12 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways an interviewer may influence answers when carrying out sociological interviews.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP12 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons why structured interviews are high in reliability.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP13 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain one strength and one limitation of structured interviews as a research method.",
+         "note": ""
+        },
+        {
+         "src": "S21 QP13 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two strengths of structured interviews as a research method.",
+         "note": ""
+        },
+        {
+         "src": "W23 QP12 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two limitations of structured interviews as a research method.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP12 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the use of structured interviews in sociological research.",
+         "note": ""
+        },
+        {
+         "src": "W25 QP11 & QP13 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two strengths of semi-structured interviews.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP11 & QP13 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain one strength and one limitation of semi-structured interviews.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP13 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons why unstructured interviews are high in validity.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP11 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain one strength and one limitation of unstructured interviews as a research method.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP11 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the use of unstructured interviews in sociological research.",
+         "note": ""
+        },
+        {
+         "src": "S21 QP12 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the use of qualitative interview methods in sociological research.",
+         "note": ""
+        },
+        {
+         "src": "M25 QP12 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that qualitative interview methods provide the best way to study social behaviour.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP13 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that qualitative interviews have little value in sociological research.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 18
+      },
+      {
+       "title": "5.3 观察（Observation）",
+       "level": 3,
+       "items": [
+        {
+         "src": "S24 QP13 Q1",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two types of observation used in sociological research.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP13 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons why interpretivists use participant observation in sociological research.",
+         "note": ""
+        },
+        {
+         "src": "M23 QP12 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two practical factors to consider when conducting observational studies.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP11 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ethical factors to consider when conducting observational studies.",
+         "note": ""
+        },
+        {
+         "src": "M24 QP12 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two limitations of using a covert approach to participant observation.",
+         "note": ""
+        },
+        {
+         "src": "W21 QP12 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain one strength and one limitation of using a covert approach to participant observation.",
+         "note": ""
+        },
+        {
+         "src": "S21 QP11 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two limitations of using an overt approach to participant observation.",
+         "note": ""
+        },
+        {
+         "src": "W23 QP11 & QP13 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two strengths of using an overt approach to participant observation.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP12 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two strengths of using a covert approach to participant observation.",
+         "note": ""
+        },
+        {
+         "src": "W24 QP12 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain one strength and one limitation of using an overt approach to participant observation.",
+         "note": ""
+        },
+        {
+         "src": "2021 Specimen 1 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain one strength and one limitation of overt participant observation as a research method.",
+         "note": ""
+        },
+        {
+         "src": "S21 QP13 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that the strengths of overt participant observation outweigh the limitations.",
+         "note": ""
+        },
+        {
+         "src": "W24 QP11 & QP13 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the arguments for using a covert approach to participant observation.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP11 & QP13 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that ethical issues make covert participant observation unsuitable for sociological research.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 14
+      },
+      {
+       "title": "5.4 实验（Experiments）",
+       "level": 3,
+       "items": [
+        {
+         "src": "S25 QP12 Q1 / W23 QP11 & QP13 Q1",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two features of a laboratory experiment.",
+         "note": ""
+        },
+        {
+         "src": "M25 QP12 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons why positivists use experiments in sociological research.",
+         "note": ""
+        },
+        {
+         "src": "M26 QP12 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two strengths of field experiments as a research method.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP12 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two limitations of field experiments as a research method.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP13 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two strengths of using laboratory experiments in sociological research.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP12 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two limitations of laboratory experiments.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP11 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the use of experiments in sociological research.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 7
+      },
+      {
+       "title": "5.5 抽样（Sampling）",
+       "level": 3,
+       "items": [
+        {
+         "src": "S21 QP12 Q1 / W24 QP11 & QP13 Q1",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two sampling techniques.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP11 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons why a researcher might use a non-representative sampling technique.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 2
+      },
+      {
+       "title": "5.6 纵向研究（Longitudinal studies）",
+       "level": 3,
+       "items": [
+        {
+         "src": "S23 QP12 Q1",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two features of longitudinal studies.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP12 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain one strength and one limitation of longitudinal studies in sociological research.",
+         "note": ""
+        },
+        {
+         "src": "W25 QP12 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two strengths of longitudinal studies in sociological research.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP13 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two limitations of longitudinal studies.",
+         "note": ""
+        },
+        {
+         "src": "W24 QP12 Q4",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the use of longitudinal studies in sociological research.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 5
+      },
+      {
+       "title": "5.7 二手资料、官方统计与内容分析（Secondary data, official statistics, content analysis）",
+       "level": 3,
+       "items": [
+        {
+         "src": "W22 QP11 & QP13 Q1",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two secondary sources of qualitative data.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP11 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two strengths of using qualitative secondary data in sociological research.",
+         "note": ""
+        },
+        {
+         "src": "M22 QP12 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain one strength and one limitation of using qualitative secondary data in sociological research.",
+         "note": ""
+        },
+        {
+         "src": "S21 QP12 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain one strength and one limitation of official statistics.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP13 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two strengths of using official statistics in sociological research.",
+         "note": ""
+        },
+        {
+         "src": "W24 QP11 & QP13 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two limitations of using official statistics in sociological research.",
+         "note": ""
+        },
+        {
+         "src": "M26 QP12 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the use of official statistics in sociological research.",
+         "note": ""
+        },
+        {
+         "src": "M23 QP12 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain one strength and one limitation of using content analysis as a research method.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP11 Q2b",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two strengths of using content analysis in sociological research.",
+         "note": ""
+        },
+        {
+         "src": "W21 QP12 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the use of secondary data in sociological research.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 10
+      },
+      {
+       "title": "5.8 混合方法（Mixed methods）",
+       "level": 3,
+       "items": [
+        {
+         "src": "W21 QP12 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons why a researcher might use more than one method.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP11 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that using different research methods together is more effective than using one method.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 2
+      },
+      {
+       "title": "5.9 选题：实践 vs 理论因素（Choice of research topic / method）",
+       "level": 3,
+       "items": [
+        {
+         "src": "S26 QP11 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two factors that may influence the sociologist’s choice of research topic.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP11 & QP13 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two practical factors that may influence a sociologist’s choice of research topic.",
+         "note": ""
+        },
+        {
+         "src": "W25 QP12 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways that research might be influenced by how it is funded.",
+         "note": ""
+        },
+        {
+         "src": "M22 QP12 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways that research might be affected by how it is funded.",
+         "note": ""
+        },
+        {
+         "src": "S21 QP11 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two practical factors that can influence choice of research method.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP13 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that practical factors are more important than theoretical factors in influencing the choice of research method.",
+         "note": ""
+        },
+        {
+         "src": "M24 QP12 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that practical factors are the most important influence on choice of research method.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP12 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that practical factors are the main influence on a sociologist’s choice of research method.",
+         "note": ""
+        },
+        {
+         "src": "W23 QP11 & QP13 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that the main influence on choice of research method is the theoretical perspective of the sociologist.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 9
+      },
+      {
+       "title": "5.10 进入与接近研究对象（Access, pilot studies, hard-to-reach groups）",
+       "level": 3,
+       "items": [
+        {
+         "src": "W25 QP11 & QP13 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two difficulties in gaining access to a study group.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP13 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two problems a researcher may face in gaining access to a study group.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP11 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons why a researcher might use a pilot study.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP12 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons why some social groups are difficult to study.",
+         "note": ""
+        },
+        {
+         "src": "2021 Specimen 1 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons why some social groups may be more difficult to research than others.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 5
+      },
+      {
+       "title": "5.11 研究伦理（Ethics）",
+       "level": 3,
+       "items": [
+        {
+         "src": "S21 QP12 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ethical issues associated with sociological research.",
+         "note": ""
+        },
+        {
+         "src": "W24 QP11 & QP13 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ethical issues linked to sociological research.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 2
+      },
+      {
+       "title": "5.12 信度与效度（Reliability & validity）",
+       "level": 3,
+       "items": [
+        {
+         "src": "M24 QP12 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways of achieving reliability in sociological research.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP11 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that qualitative methods are unsuitable for sociological research because they lack reliability.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 2
+      },
+      {
+       "title": "5.13 价值、偏差与客观性（Values, bias, objectivity, value freedom）",
+       "level": 3,
+       "items": [
+        {
+         "src": "S22 QP11 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways sociological research may be affected by bias.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP12 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways the values of the sociologist may lead to bias in research findings.",
+         "note": ""
+        },
+        {
+         "src": "W21 QP11 & QP13 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways in which researcher values may lead to bias in research findings.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP12 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways the values of a sociologist may influence the research process.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP13 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons why it is difficult to be objective when conducting sociological research.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP12 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that the values of the sociologist lead to bias in research findings.",
+         "note": ""
+        },
+        {
+         "src": "M23 QP12 Q4",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that society can be studied objectively.",
+         "note": ""
+        },
+        {
+         "src": "M21 QP12 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that sociological research should be value free.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP13 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that sociological research can be value-free.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 9
+      },
+      {
+       "title": "5.14 方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）",
+       "level": 3,
+       "items": [
+        {
+         "src": "S26 QP13 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two features of the interpretivist approach to sociological research.",
+         "note": ""
+        },
+        {
+         "src": "M21 QP12 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two characteristics of the interpretivist approach to sociological research.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP12 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two features of the interpretivist approach to research.",
+         "note": ""
+        },
+        {
+         "src": "S21 QP13 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two characteristics of the positivist approach to sociological research.",
+         "note": ""
+        },
+        {
+         "src": "W23 QP12 Q2a",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two features of the positivist approach to sociological research.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP12 Q1",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two types of qualitative research method.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP11 Q1",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two quantitative research methods.",
+         "note": ""
+        },
+        {
+         "src": "W25 QP11 & QP13 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that the interpretivist approach provides the best way to understand society.",
+         "note": ""
+        },
+        {
+         "src": "W25 QP12 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that quantitative methods provide the best way to study social behaviour.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP12 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that qualitative methods provide the best way to study social behaviour.",
+         "note": ""
+        },
+        {
+         "src": "S21 QP11 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that quantitative research methods have more strengths than limitations.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP13 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that qualitative interviews are a better method than questionnaires for studying society.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP12 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that sociologists should use a scientific approach to research.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP11 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the positivist view that sociologists should use a scientific approach to research.",
+         "note": ""
+        },
+        {
+         "src": "W21 QP11 & QP13 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that sociological research should be based on the methods of the natural sciences.",
+         "note": ""
+        },
+        {
+         "src": "M22 QP12 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that the research methods of the natural sciences should not be used in sociological research.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP12 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that scientific methods have no value in sociological research.",
+         "note": ""
+        },
+        {
+         "src": "2021 Specimen 1 Q5",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the use of scientific methods in sociological research.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 18
+      }
+     ],
+     "skip": false,
+     "count": 114
+    }
+   ]
+  },
+  {
+   "label": "Paper 2",
+   "file": "Paper2真题-历年切题(至S26).md",
+   "title": "Paper 2 The Family — 历年真题按考点切题（至 2026 S26）",
+   "total": 204,
+   "topics": [
+    {
+     "title": "Functionalist view on family",
+     "level": 2,
+     "items": [
+      {
+       "src": "Specimen 2",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two functions of the family.",
+       "note": ""
+      },
+      {
+       "src": "W21 QP21",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two ways the family benefits society.",
+       "note": ""
+      },
+      {
+       "src": "S22 QP23",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two functions performed by the family.",
+       "note": ""
+      },
+      {
+       "src": "S23 QP22",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two functions of the family.",
+       "note": ""
+      },
+      {
+       "src": "M24 QP22",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two ways the family can benefit its members.",
+       "note": ""
+      },
+      {
+       "src": "M21 QP22",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two ways in which the family benefits society, according to functionalists.",
+       "note": ""
+      },
+      {
+       "src": "W22 QP22",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two ways the family benefits its members, according to functionalists.",
+       "note": ""
+      },
+      {
+       "src": "S24 QP21",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two ways the family functions to benefit society.",
+       "note": ""
+      },
+      {
+       "src": "S25 QP23",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two functions the family performs to benefit its members.",
+       "note": ""
+      },
+      {
+       "src": "W22 QP21",
+       "marks": "10+6",
+       "statement": "The family performs functions that benefit the whole of society.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "S23 QP22",
+       "marks": "10+6",
+       "statement": "The family has experienced a loss of functions.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "S25 QP22",
+       "marks": "10+6",
+       "statement": "The main role of the family is to benefit society.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "S21 QP21",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that the family has lost many of its functions.",
+       "note": ""
+      },
+      {
+       "src": "S21 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the functionalist perspective on the role of the family.",
+       "note": ""
+      },
+      {
+       "src": "S22 QP21",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that family benefits all its members equally.",
+       "note": ""
+      },
+      {
+       "src": "M23 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that the main role of the family is to promote social stability.",
+       "note": ""
+      },
+      {
+       "src": "W24 QP21",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate functionalist explanations of the role of the family.",
+       "note": ""
+      },
+      {
+       "src": "M26 QP22",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two functions the family performs.",
+       "note": ""
+      },
+      {
+       "src": "S26 QP22",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two ways the family benefits society, according to functionalists.",
+       "note": ""
+      },
+      {
+       "src": "S26 QP23",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that functionalists offer the best understanding of the role of the family.",
+       "note": ""
+      }
+     ],
+     "children": [
+      {
+       "title": "Evaluations of functionalism",
+       "level": 3,
+       "items": [
+        {
+         "src": "M21 QP22; S24 QP21",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two limitations of the functionalist view of the family.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP22",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain one strength and one limitation of the functionalist view of the family.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP23",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two strengths of functionalist view of the family.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP22",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain one strength and one limitation of functionalist views of the family.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 4
+      }
+     ],
+     "skip": false,
+     "count": 24
+    },
+    {
+     "title": "New Right view on family",
+     "level": 2,
+     "items": [
+      {
+       "src": "W21 QP21",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two ways lone-parent families can have a negative impact on society, according to the New Right.",
+       "note": ""
+      }
+     ],
+     "children": [
+      {
+       "title": "Evaluations of New Right",
+       "level": 3,
+       "items": [
+        {
+         "src": "W21 QP21",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two limitations of New Right views of the family.",
+         "note": ""
+        },
+        {
+         "src": "M23 QP22",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain one strength and one limitation of New Right views of the family.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP23",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two strengths of New Right views of the family.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 3
+      }
+     ],
+     "skip": false,
+     "count": 4
+    },
+    {
+     "title": "Marxist view on family",
+     "level": 2,
+     "items": [
+      {
+       "src": "Specimen 2",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two ways in which the family supports capitalism, according to Marxist theory.",
+       "note": ""
+      },
+      {
+       "src": "S21 QP21",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two ways the family supports ruling class interests, according to Marxist theory.",
+       "note": ""
+      },
+      {
+       "src": "S22 QP21",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two ways the role of women in the family supports capitalism.",
+       "note": ""
+      },
+      {
+       "src": "S22 QP22",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two ways the family supports the economy.",
+       "note": ""
+      },
+      {
+       "src": "S23 QP22",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two ways capitalism benefits from the role of women in the family.",
+       "note": ""
+      },
+      {
+       "src": "S23 QP23",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two ways the family prepares children for the workplace.",
+       "note": ""
+      },
+      {
+       "src": "W24 QP21",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two ways women in the family play an important role in maintaining capitalism.",
+       "note": ""
+      },
+      {
+       "src": "W24 QP22",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two ways the family promotes ruling-class ideology.",
+       "note": ""
+      },
+      {
+       "src": "M25 QP22",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two ways the family supports capitalism.",
+       "note": ""
+      },
+      {
+       "src": "W21 QP22",
+       "marks": "10+6",
+       "statement": "The main role of the family is ideological control.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "M22 QP22",
+       "marks": "10+6",
+       "statement": "The main role of the family is to serve the needs of capitalism.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "S21 QP23",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate Marxist explanations of the role of the family.",
+       "note": ""
+      },
+      {
+       "src": "S23 QP21",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that the main role of the family is to serve the needs of capitalism.",
+       "note": ""
+      },
+      {
+       "src": "M24 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that the main role of the family is to serve ruling class interests.",
+       "note": ""
+      },
+      {
+       "src": "S24 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that Marxist explanations offer the best understanding of the role of the family.",
+       "note": ""
+      },
+      {
+       "src": "S24 QP23",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that the main role of the family is to reproduce inequality in society.",
+       "note": ""
+      },
+      {
+       "src": "S25 QP21",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that the main role of the family is to promote capitalist ideology.",
+       "note": ""
+      },
+      {
+       "src": "S26 QP21",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two ways the family promotes the interests of capitalism.",
+       "note": ""
+      }
+     ],
+     "children": [
+      {
+       "title": "Evaluations of Marxism",
+       "level": 3,
+       "items": [
+        {
+         "src": "Specimen 2; S23 QP23",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two limitations of the Marxist view of the family.",
+         "note": ""
+        },
+        {
+         "src": "S21 QP21; W24 QP22",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain one strength and one limitation of the Marxist view of the family.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP21",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two limitations of Marxist feminist views of the family.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP22; M25 QP22",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two strengths of Marxist views of the family.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP21",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two limitations of Marxist views of the family.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 5
+      }
+     ],
+     "skip": false,
+     "count": 23
+    },
+    {
+     "title": "Feminist view on family",
+     "level": 2,
+     "items": [
+      {
+       "src": "S22 QP22",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two ways the increase of women in paid employment has affected the family.",
+       "note": ""
+      },
+      {
+       "src": "W24 QP22",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two ways gender can influence the experience of childhood.",
+       "note": ""
+      },
+      {
+       "src": "S21 QP23",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two ways the family supports the interests of men, according to feminists.",
+       "note": ""
+      },
+      {
+       "src": "M22 QP22",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two ways that girls experience family life differently to boys, according to feminists.",
+       "note": ""
+      },
+      {
+       "src": "S22 QP21",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two ways the role of women in the family supports capitalism.",
+       "note": ""
+      },
+      {
+       "src": "W22 QP21",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two reasons why there may still be gender inequality in the family.",
+       "note": ""
+      },
+      {
+       "src": "S23 QP22",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two ways capitalism benefits from the role of women in the family.",
+       "note": ""
+      },
+      {
+       "src": "S24 QP22",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two ways men benefit more than women from family life.",
+       "note": ""
+      },
+      {
+       "src": "W24 QP21",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two ways women in the family play an important role in maintaining capitalism.",
+       "note": ""
+      },
+      {
+       "src": "S25 QP21",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two reasons for greater gender equality in some families.",
+       "note": ""
+      },
+      {
+       "src": "W21 QP21",
+       "marks": "10+6",
+       "statement": "Gender is the most important factor affecting the experiences of children in the family.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "S22 QP23",
+       "marks": "10+6",
+       "statement": "Men have more power than women in the family.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "M23 QP22",
+       "marks": "10+6",
+       "statement": "Men continue to dominate family life.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "Specimen 2",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the contribution of different feminist perspectives to our understanding of the family.",
+       "note": ""
+      },
+      {
+       "src": "W21 QP21",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate feminist perspectives on equality in the family.",
+       "note": ""
+      },
+      {
+       "src": "S22 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that the family is a patriarchal institution.",
+       "note": ""
+      },
+      {
+       "src": "W22 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that the improved position of women in society is the main reason for a decline in marriage.",
+       "note": ""
+      },
+      {
+       "src": "S24 QP21",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that gender is the most important factor influencing family life.",
+       "note": ""
+      },
+      {
+       "src": "S24 QP23",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that the main role of the family is to reproduce inequality in society.",
+       "note": ""
+      },
+      {
+       "src": "S24 QP23",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that gender is the main influence on a child’s experience of family life.",
+       "note": ""
+      },
+      {
+       "src": "W24 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that there is equality between men and women in the family.",
+       "note": ""
+      },
+      {
+       "src": "M25 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that there is greater gender equality in the family today.",
+       "note": ""
+      },
+      {
+       "src": "S25 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that roles in the family are still based on traditional gender identities.",
+       "note": ""
+      },
+      {
+       "src": "S26 QP21",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two ways girls may experience family life differently to boys.",
+       "note": ""
+      },
+      {
+       "src": "S26 QP23",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two ways the increase of women in paid work has affected the family.",
+       "note": ""
+      },
+      {
+       "src": "M26 QP22",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two reasons for gender inequality in some families.",
+       "note": ""
+      },
+      {
+       "src": "S26 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that gender inequality still exists within family life.",
+       "note": ""
+      }
+     ],
+     "children": [
+      {
+       "title": "Evaluations of feminism",
+       "level": 3,
+       "items": [
+        {
+         "src": "S21 QP22; S25 QP21",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain one strength and one limitation of the liberal feminist view of the family.",
+         "note": ""
+        },
+        {
+         "src": "S21 QP23; S24 QP22",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two limitations of radical feminist views of the family.",
+         "note": ""
+        },
+        {
+         "src": "M22 QP22",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two strengths of radical feminist views of the family.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP21",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two strengths of liberal feminist views of the family.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP21",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain one strength and one limitation of radical feminist views of the family.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP22",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two strengths of Marxist feminist views of the family.",
+         "note": ""
+        },
+        {
+         "src": "W23 QP22",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain two limitations of liberal feminist views of the family.",
+         "note": ""
+        },
+        {
+         "src": "W24 QP21",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain one strength and one limitation of Marxist feminist views of the family.",
+         "note": ""
+        },
+        {
+         "src": "M26 QP22",
+         "marks": "6",
+         "statement": "",
+         "instruction": "Explain one strength and one limitation of radical feminist views of the family.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 9
+      }
+     ],
+     "skip": false,
+     "count": 36
+    },
+    {
+     "title": "Postmodernism",
+     "level": 2,
+     "items": [
+      {
+       "src": "W21 QP22",
+       "marks": "6",
+       "statement": "",
+       "instruction": "Explain two limitations of postmodernist views of the family.",
+       "note": ""
+      },
+      {
+       "src": "S22 QP23; S25 QP22",
+       "marks": "6",
+       "statement": "",
+       "instruction": "Explain one strength and one limitation of postmodernist view on family diversity.",
+       "note": ""
+      },
+      {
+       "src": "W23 QP21",
+       "marks": "6",
+       "statement": "",
+       "instruction": "Explain two strengths of postmodernist views of the family.",
+       "note": ""
+      },
+      {
+       "src": "M24 QP22",
+       "marks": "6",
+       "statement": "",
+       "instruction": "Explain two limitations of postmodernist views of family diversity.",
+       "note": ""
+      },
+      {
+       "src": "S26 QP23",
+       "marks": "6",
+       "statement": "",
+       "instruction": "Explain two strengths of postmodernist views on family diversity.",
+       "note": ""
+      }
+     ],
+     "children": [],
+     "skip": false,
+     "count": 5
+    },
+    {
+     "title": "Family diversity & trends in demographics",
+     "level": 2,
+     "items": [
+      {
+       "src": "W22 QP21",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two household forms that are not based on marriage.",
+       "note": ""
+      },
+      {
+       "src": "S23 QP23",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two reasons people may stay in an unhappy marriage.",
+       "note": ""
+      },
+      {
+       "src": "S22 QP23",
+       "marks": "6",
+       "statement": "",
+       "instruction": "Explain one strength and one limitation of postmodernist view on family diversity.",
+       "note": ""
+      },
+      {
+       "src": "M24 QP22",
+       "marks": "6",
+       "statement": "",
+       "instruction": "Explain two limitations of postmodernist views of family diversity.",
+       "note": ""
+      },
+      {
+       "src": "W21 QP22",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two reasons for the growth in family diversity.",
+       "note": ""
+      },
+      {
+       "src": "W23 QP21",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two reasons why cohabitation has become more popular in some societies.",
+       "note": ""
+      },
+      {
+       "src": "M24 QP22",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two reasons for the increase in cohabitation in some societies.",
+       "note": ""
+      },
+      {
+       "src": "2021 Specimen 2",
+       "marks": "10+6",
+       "statement": "Family diversity is positive for society.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "S21 QP22",
+       "marks": "10+6",
+       "statement": "Cohabitation is replacing marriage.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "S21 QP23",
+       "marks": "10+6",
+       "statement": "Social class is the main influence on family structure.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "S24 QP22",
+       "marks": "10+6",
+       "statement": "The extent of family diversity has been exaggerated.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "M25 QP22",
+       "marks": "10+6",
+       "statement": "The main reason for family diversity is changes in social policy.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "M21 QP22; S25 QP23",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that cultural differences are the main reason for family diversity.",
+       "note": ""
+      },
+      {
+       "src": "W21 QP21",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that there is no dominant family type today.",
+       "note": ""
+      },
+      {
+       "src": "S22 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that social policies are the main reason for increased family diversity.",
+       "note": ""
+      },
+      {
+       "src": "W22 QP21",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that social class is the most important factor influencing family diversity.",
+       "note": ""
+      },
+      {
+       "src": "M24 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that cultural factors are the main influence on family structure.",
+       "note": ""
+      },
+      {
+       "src": "S24 QP21",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that family structure is now characterised by diversity.",
+       "note": ""
+      },
+      {
+       "src": "S26 QP23",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two reasons for the increase in family diversity.",
+       "note": ""
+      },
+      {
+       "src": "S26 QP21",
+       "marks": "10+6",
+       "statement": "Cohabitation is more popular than marriage today.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "S26 QP21",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that social class is the main factor influencing family diversity.",
+       "note": ""
+      }
+     ],
+     "children": [
+      {
+       "title": "Nuclear family & Marriage",
+       "level": 3,
+       "items": [
+        {
+         "src": "M23 QP22",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two features of a nuclear family.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP22",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons why fewer people are getting married.",
+         "note": ""
+        },
+        {
+         "src": "M21 QP22",
+         "marks": "10+6",
+         "statement": "Marriage has become less important in society.",
+         "instruction": "",
+         "note": ""
+        },
+        {
+         "src": "S23 QP21",
+         "marks": "10+6",
+         "statement": "The nuclear family is the dominant family structure.",
+         "instruction": "",
+         "note": ""
+        },
+        {
+         "src": "W23 QP22",
+         "marks": "10+6",
+         "statement": "The nuclear family has lost its social importance.",
+         "instruction": "",
+         "note": ""
+        },
+        {
+         "src": "W24 QP21",
+         "marks": "10+6",
+         "statement": "Marriage has lost its social importance.",
+         "instruction": "",
+         "note": ""
+        },
+        {
+         "src": "S25 QP23",
+         "marks": "10+6",
+         "statement": "There is no longer any social pressure on people to get married.",
+         "instruction": "",
+         "note": ""
+        },
+        {
+         "src": "Specimen 2",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that the nuclear family is universal.",
+         "note": ""
+        },
+        {
+         "src": "M22 QP22",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that the nuclear family continues to be the dominant family structure.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP23",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that the nuclear family is no longer the dominant family type.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP22",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that increasing family diversity means the nuclear family is no longer dominant.",
+         "note": ""
+        },
+        {
+         "src": "W23 QP21",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that social policies have led to a decline in the nuclear family.",
+         "note": ""
+        },
+        {
+         "src": "W24 QP22",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that the nuclear family is still important in society today.",
+         "note": ""
+        },
+        {
+         "src": "M25 QP22; S25 QP21",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that marriage is no longer socially important.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP22",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that nuclear family is the dominant family type.",
+         "note": ""
+        },
+        {
+         "src": "M26 QP22",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that the nuclear family has lost its social importance.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 16
+      },
+      {
+       "title": "Changes in demographics",
+       "level": 3,
+       "items": [
+        {
+         "src": "S21 QP21",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two reasons for the decline in the number of marriages in some societies.",
+         "note": ""
+        },
+        {
+         "src": "S21 QP22; S25 QP21",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two ways increased life expectancy has impacted on the family.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP22",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two reasons women are now marrying at a later age.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP23",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons for an increase in the age of first marriage.",
+         "note": ""
+        },
+        {
+         "src": "W23 QP22",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons for an increase in divorce.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP23",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons fewer people are marrying today.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP23",
+         "marks": "10+6",
+         "statement": "The improved social position of women is the main reason for the increase in divorce.",
+         "instruction": "",
+         "note": ""
+        },
+        {
+         "src": "W24 QP22",
+         "marks": "10+6",
+         "statement": "Increased life expectancy has had a negative impact on family members.",
+         "instruction": "",
+         "note": ""
+        },
+        {
+         "src": "S21 QP23",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that increased social opportunities for women are the main reason for the rise in divorce rates.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP23",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that increased life expectancy has had a positive impact on family members.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP22",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that the improved position of women in society is the main reason for a decline in marriage.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP22",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that women’s changing expectations of marriage is the main reason for the increase in divorce.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP22",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two changes that have led to an increase in divorce in some societies.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 13
+      }
+     ],
+     "skip": false,
+     "count": 50
+    },
+    {
+     "title": "Social Policy",
+     "level": 2,
+     "items": [
+      {
+       "src": "M21 QP22",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two social policies that restrict the behaviour of children.",
+       "note": ""
+      },
+      {
+       "src": "S21 QP23",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two ways the state may influence the family.",
+       "note": ""
+      },
+      {
+       "src": "S24 QP23",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two ways social policies have had a positive impact on the family.",
+       "note": ""
+      },
+      {
+       "src": "S24 QP22",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two ways social policies may impact upon the family.",
+       "note": ""
+      },
+      {
+       "src": "M23 QP22",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two ways social policies may influence family life.",
+       "note": ""
+      },
+      {
+       "src": "S22 QP21",
+       "marks": "10+6",
+       "statement": "Changes in social policy are the main reason for an increase in divorce.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "M25 QP22",
+       "marks": "10+6",
+       "statement": "The main reason for family diversity is changes in social policy.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "S21 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that social policies have had a positive impact upon the family.",
+       "note": ""
+      },
+      {
+       "src": "S22 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that social policies are the main reason for increased family diversity.",
+       "note": ""
+      },
+      {
+       "src": "W23 QP21",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that social policies have led to a decline in the nuclear family.",
+       "note": ""
+      }
+     ],
+     "children": [],
+     "skip": false,
+     "count": 10
+    },
+    {
+     "title": "Childhood",
+     "level": 2,
+     "items": [
+      {
+       "src": "M21 QP22",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two social policies that restrict the behaviour of children.",
+       "note": ""
+      },
+      {
+       "src": "S23 QP21",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two ways children are protected from adult life.",
+       "note": ""
+      },
+      {
+       "src": "S24 QP22",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two ways the family has become child-centred.",
+       "note": ""
+      },
+      {
+       "src": "W24 QP22",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two ways gender can influence the experience of childhood.",
+       "note": ""
+      },
+      {
+       "src": "M25 QP22",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two ways social class can influence the experience of childhood in the family.",
+       "note": ""
+      },
+      {
+       "src": "S25 QP23",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two ways childhood is a distinct period from adulthood.",
+       "note": ""
+      },
+      {
+       "src": "M22 QP22",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two ways that girls experience family life differently to boys, according to feminists.",
+       "note": ""
+      },
+      {
+       "src": "W21 QP21",
+       "marks": "10+6",
+       "statement": "Gender is the most important factor affecting the experiences of children in the family.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "S22 QP22",
+       "marks": "10+6",
+       "statement": "The experience of childhood is different today than in the past.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "W22 QP22",
+       "marks": "10+6",
+       "statement": "Ethnicity is the main factor affecting the experiences of children in the family.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "S24 QP21",
+       "marks": "10+6",
+       "statement": "Childhood is a distinct period of life is disappearing today.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "S25 QP21",
+       "marks": "10+6",
+       "statement": "Social class is the most important factor affecting the experiences of children in the family.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "S21 QP21",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that in contemporary society the family has become child-centred.",
+       "note": ""
+      },
+      {
+       "src": "W22 QP21",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that the social position of children in the family has improved.",
+       "note": ""
+      },
+      {
+       "src": "S23 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that social class is the main factor affecting the experiences of children in the family.",
+       "note": ""
+      },
+      {
+       "src": "S23 QP23",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that childhood is a period of innocence and protection.",
+       "note": ""
+      },
+      {
+       "src": "W23 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that the distinction between childhood and adulthood is becoming less clear.",
+       "note": ""
+      },
+      {
+       "src": "S24 QP23",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that gender is the main influence on a child’s experience of family life.",
+       "note": ""
+      },
+      {
+       "src": "W24 QP21",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that the experience of childhood today is different to the past.",
+       "note": ""
+      },
+      {
+       "src": "M26 QP22",
+       "marks": "10+6",
+       "statement": "There is a clear distinction between childhood and adulthood today.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "S26 QP23",
+       "marks": "10+6",
+       "statement": "Ethnicity is the most significant factor affecting the experiences of children in the family.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "S26 QP21",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that the distinction between childhood and adulthood has become less clear.",
+       "note": ""
+      }
+     ],
+     "children": [],
+     "skip": false,
+     "count": 22
+    },
+    {
+     "title": "Grandparenting",
+     "level": 2,
+     "items": [
+      {
+       "src": "M22 QP22",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two ways grandparents may provide benefits for the family.",
+       "note": ""
+      },
+      {
+       "src": "W24 QP21",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two ways grandparents may contribute to family life.",
+       "note": ""
+      },
+      {
+       "src": "S24 QP23",
+       "marks": "10+6",
+       "statement": "Grandparents make a positive contribution to family life.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "W21 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that the position of grandparents in the family has improved.",
+       "note": ""
+      },
+      {
+       "src": "S22 QP23",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that increased life expectancy has had a positive impact on family members.",
+       "note": ""
+      },
+      {
+       "src": "S23 QP21",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that grandparents play a positive role in the family.",
+       "note": ""
+      },
+      {
+       "src": "S26 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that grandparents play an important role in the family.",
+       "note": ""
+      }
+     ],
+     "children": [],
+     "skip": false,
+     "count": 7
+    },
+    {
+     "title": "‘Dark side of family life’",
+     "level": 2,
+     "items": [
+      {
+       "src": "S23 QP21",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two ways family life can be harmful for some members.",
+       "note": ""
+      },
+      {
+       "src": "M21 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that family life is harmful for some family members.",
+       "note": ""
+      },
+      {
+       "src": "W23 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that power is shared equally in the family.",
+       "note": ""
+      }
+     ],
+     "children": [],
+     "skip": false,
+     "count": 3
+    },
+    {
+     "title": "Conjugal roles / Motherhood & fatherhood",
+     "level": 2,
+     "items": [
+      {
+       "src": "W21 QP22",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two ways fatherhood has changed.",
+       "note": ""
+      },
+      {
+       "src": "S22 QP21",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two ways motherhood has changed.",
+       "note": ""
+      },
+      {
+       "src": "W22 QP22",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two ways that roles in the family have become more equal.",
+       "note": ""
+      },
+      {
+       "src": "W23 QP21",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two features of the expressive role.",
+       "note": ""
+      },
+      {
+       "src": "S24 QP21",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two ways fatherhood is different today than in the past.",
+       "note": ""
+      },
+      {
+       "src": "S21 QP22",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two reasons why there may be greater gender equality within the family today than in the past.",
+       "note": ""
+      },
+      {
+       "src": "S21 QP21",
+       "marks": "10+6",
+       "statement": "Conjugal roles have become equal.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "W23 QP21",
+       "marks": "10+6",
+       "statement": "Domestic labour is now shared equally between men and women in the family.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "M24 QP22",
+       "marks": "10+6",
+       "statement": "Women continue to perform the majority of tasks in the family.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "W21 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that conjugal roles continue to be unequal.",
+       "note": ""
+      },
+      {
+       "src": "M22 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that conjugal roles are equally shared between men and women today.",
+       "note": ""
+      },
+      {
+       "src": "S22 QP21",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that roles in the family are no longer fixed.",
+       "note": ""
+      },
+      {
+       "src": "W22 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that fatherhood is different today than in the past.",
+       "note": ""
+      },
+      {
+       "src": "M23 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that motherhood is different today than in the past.",
+       "note": ""
+      },
+      {
+       "src": "S23 QP23",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that gender no longer influences roles within the family.",
+       "note": ""
+      },
+      {
+       "src": "W23 QP21",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that the role of parents has changed.",
+       "note": ""
+      },
+      {
+       "src": "S25 QP23",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that parenthood today is different from the past.",
+       "note": ""
+      },
+      {
+       "src": "S26 QP22",
+       "marks": "10+6",
+       "statement": "Parenthood today is different from the past.",
+       "instruction": "",
+       "note": ""
+      },
+      {
+       "src": "M26 QP22",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that fatherhood today has changed from the past.",
+       "note": ""
+      },
+      {
+       "src": "S26 QP23",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that relationships between family members have become more equal.",
+       "note": ""
+      }
+     ],
+     "children": [],
+     "skip": false,
+     "count": 20
+    }
+   ]
+  },
+  {
+   "label": "Paper 3",
+   "file": "Paper3真题-历年切题(至S26).md",
+   "title": "Paper 3 Education — 历年真题按考点切题（至 2026 S26）",
+   "total": 154,
+   "topics": [
+    {
+     "title": "Factors affecting educational achievement",
+     "level": 2,
+     "items": [],
+     "children": [
+      {
+       "title": "Material deprivation",
+       "level": 3,
+       "items": [
+        {
+         "src": "Specimen paper 3",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two examples of how material deprivation may affect educational achievement.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP32",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons why material deprivation may affect educational achievement.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP33",
+         "marks": "12",
+         "statement": "Family income has no influence on a child’s educational attainment.",
+         "instruction": "",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 3
+      },
+      {
+       "title": "Cultural deprivation / capital",
+       "level": 3,
+       "items": [
+        {
+         "src": "M21 QP32",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two ways in which speech codes may affect educational attainment.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP33",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two examples of how cultural capital can influence educational attainment.",
+         "note": ""
+        },
+        {
+         "src": "M25 QP32",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two ways middle-class pupils benefits from cultural capital.",
+         "note": ""
+        },
+        {
+         "src": "S21 QP33",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways in which cultural deprivation may affect educational attainment.",
+         "note": ""
+        },
+        {
+         "src": "W21 QP31",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways in which cultural capital benefits middle-class pupils in school.",
+         "note": ""
+        },
+        {
+         "src": "W23 QP31",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways speech codes can affect educational attainment.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP32",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons why cultural capital can affect educational attainment.",
+         "note": ""
+        },
+        {
+         "src": "W24 QP31/33",
+         "marks": "12",
+         "statement": "Cultural deprivation is the main reason for differences in educational attainment.",
+         "instruction": "Using sociological materials, give two arguments against this view.",
+         "note": ""
+        },
+        {
+         "src": "Specimen paper",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that cultural capital is the main factor influencing educational achievement.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 9
+      },
+      {
+       "title": "In-school factor",
+       "level": 3,
+       "items": [],
+       "children": [
+        {
+         "title": "General",
+         "level": 4,
+         "items": [
+          {
+           "src": "M24 QP32",
+           "marks": "8",
+           "statement": "",
+           "instruction": "Explain two ways in-school factors may affect the educational performance of some ethnic groups.",
+           "note": ""
+          },
+          {
+           "src": "M25 QP32",
+           "marks": "8",
+           "statement": "",
+           "instruction": "Explain two ways teachers’ stereotypes of gender affect pupils’ experience of school.",
+           "note": ""
+          },
+          {
+           "src": "M21 QP32",
+           "marks": "12",
+           "statement": "Boys and girls are treated equally in school today.",
+           "instruction": "Using sociological material, give two arguments against this view.",
+           "note": ""
+          },
+          {
+           "src": "W22 QP32",
+           "marks": "12",
+           "statement": "Pupil attainment is determined by factors outside of school.",
+           "instruction": "Using sociological material, give two arguments against this view.",
+           "note": ""
+          },
+          {
+           "src": "M24 QP32",
+           "marks": "12",
+           "statement": "What happens in schools is the main influence on educational attainment.",
+           "instruction": "Using sociological material, give two arguments against the view.",
+           "note": ""
+          },
+          {
+           "src": "S24 QP31",
+           "marks": "12",
+           "statement": "Home background is the main reason for social class differences in educational attainment.",
+           "instruction": "Using sociological material, give two arguments against this view.",
+           "note": ""
+          },
+          {
+           "src": "W21 QP32",
+           "marks": "26",
+           "statement": "",
+           "instruction": "Evaluate the view that working class under-achievement is mainly the result of in-school factors.",
+           "note": ""
+          },
+          {
+           "src": "W23 QP31",
+           "marks": "26",
+           "statement": "",
+           "instruction": "Evaluate the view that gender differences in educational attainment are mainly due to what happens in schools.",
+           "note": ""
+          }
+         ],
+         "children": [],
+         "skip": false,
+         "count": 8
+        },
+        {
+         "title": "Subculture",
+         "level": 4,
+         "items": [
+          {
+           "src": "S21 QP32",
+           "marks": "4",
+           "statement": "",
+           "instruction": "Describe two examples of how anti-school subcultures can affect educational attainment.",
+           "note": ""
+          },
+          {
+           "src": "S23 QP33",
+           "marks": "8",
+           "statement": "",
+           "instruction": "Explain two reasons why school subcultures might influence educational attainment.",
+           "note": ""
+          },
+          {
+           "src": "W24 QP32",
+           "marks": "8",
+           "statement": "",
+           "instruction": "Explain two reasons why ethnic subcultures can affect educational attainment.",
+           "note": ""
+          },
+          {
+           "src": "S25 QP33",
+           "marks": "8",
+           "statement": "",
+           "instruction": "Explain two ways attainment in school may be influenced by pupil subcultures.",
+           "note": ""
+          }
+         ],
+         "children": [],
+         "skip": false,
+         "count": 4
+        },
+        {
+         "title": "Teacher labelling & streaming / ability grouping",
+         "level": 4,
+         "items": [
+          {
+           "src": "S25 QP31",
+           "marks": "4",
+           "statement": "",
+           "instruction": "Describe two ways streaming can negatively affect educational attainment.",
+           "note": ""
+          },
+          {
+           "src": "S21 QP31",
+           "marks": "8",
+           "statement": "",
+           "instruction": "Explain two ways in which labelling can disadvantage working-class pupils.",
+           "note": ""
+          },
+          {
+           "src": "M22 QP32",
+           "marks": "8",
+           "statement": "",
+           "instruction": "Explain two ways that negative labelling by teachers can affect the educational attainment of pupils.",
+           "note": ""
+          },
+          {
+           "src": "W22 QP31",
+           "marks": "8",
+           "statement": "",
+           "instruction": "Explain two ways that teachers’ perceptions of gender can affect pupils.",
+           "note": ""
+          },
+          {
+           "src": "M23 QP32",
+           "marks": "8",
+           "statement": "",
+           "instruction": "Explain two reasons why ability grouping in schools can disadvantage some children.",
+           "note": ""
+          },
+          {
+           "src": "S21 QP33",
+           "marks": "12",
+           "statement": "Grouping by ability enables all pupils to have the most suitable education.",
+           "instruction": "Using sociological material, give two arguments against this view.",
+           "note": ""
+          },
+          {
+           "src": "S26 QP33",
+           "marks": "4",
+           "statement": "",
+           "instruction": "Describe two ways that streaming may have a negative impact on a pupil’s education.",
+           "note": ""
+          }
+         ],
+         "children": [],
+         "skip": false,
+         "count": 7
+        },
+        {
+         "title": "Institutional racism",
+         "level": 4,
+         "items": [
+          {
+           "src": "W22 QP32",
+           "marks": "4",
+           "statement": "",
+           "instruction": "Describe two examples of how the school curriculum may be ethnocentric.",
+           "note": ""
+          },
+          {
+           "src": "W23 QP31",
+           "marks": "4",
+           "statement": "",
+           "instruction": "Describe two examples of how the school may be ethnocentric.",
+           "note": ""
+          },
+          {
+           "src": "M22 QP32",
+           "marks": "12",
+           "statement": "Ethnic inequality in educational attainment is entirely the result of racism in schools.",
+           "instruction": "Using sociological material, give two arguments against this view.",
+           "note": ""
+          },
+          {
+           "src": "S23 QP31",
+           "marks": "12",
+           "statement": "All ethnic groups are treated equally in schools.",
+           "instruction": "Using sociological material, give two arguments against this view.",
+           "note": ""
+          }
+         ],
+         "children": [],
+         "skip": false,
+         "count": 4
+        },
+        {
+         "title": "Curriculum",
+         "level": 4,
+         "items": [
+          {
+           "src": "W21 QP32",
+           "marks": "4",
+           "statement": "",
+           "instruction": "Describe two examples of what is learned through the hidden curriculum.",
+           "note": ""
+          },
+          {
+           "src": "S22 QP32",
+           "marks": "4",
+           "statement": "",
+           "instruction": "Describe two examples of how hidden curriculum can reinforce gender stereotypes.",
+           "note": ""
+          },
+          {
+           "src": "W22 QP31",
+           "marks": "4",
+           "statement": "",
+           "instruction": "Describe two examples of what can be learned through the hidden curriculum.",
+           "note": ""
+          },
+          {
+           "src": "W22 QP32",
+           "marks": "4",
+           "statement": "",
+           "instruction": "Describe two examples of how the school curriculum may beethnocentric.",
+           "note": ""
+          },
+          {
+           "src": "S24 QP33",
+           "marks": "4",
+           "statement": "",
+           "instruction": "Describe two ways the hidden curriculum can contribute to social cohesion.",
+           "note": ""
+          },
+          {
+           "src": "S21 QP32",
+           "marks": "12",
+           "statement": "The school curriculum gives all pupils an equal chance to fulfil their educational potential.",
+           "instruction": "Using sociological material, give two arguments against this view.",
+           "note": ""
+          },
+          {
+           "src": "S23 QP32",
+           "marks": "26",
+           "statement": "",
+           "instruction": "Evaluate the view that the school curriculum reflects inequalities in society.",
+           "note": ""
+          },
+          {
+           "src": "S25 QP33",
+           "marks": "26",
+           "statement": "",
+           "instruction": "Evaluate the view that school curriculum benefits the privileged within society.",
+           "note": ""
+          }
+         ],
+         "children": [],
+         "skip": false,
+         "count": 8
+        }
+       ],
+       "skip": false,
+       "count": 31
+      }
+     ],
+     "skip": false,
+     "count": 43
+    },
+    {
+     "title": "Social stratifications and educational attainment",
+     "level": 2,
+     "items": [],
+     "children": [
+      {
+       "title": "Gender",
+       "level": 3,
+       "items": [
+        {
+         "src": "S22 QP32",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two examples of how hidden curriculum can reinforce gender stereotypes.",
+         "note": ""
+        },
+        {
+         "src": "M23 QP32",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two changes in schools which have improved girls’ achievement.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP31",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two ways that schools disadvantage boys.",
+         "note": ""
+        },
+        {
+         "src": "W24 QP32",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two ways that schools advantage girls.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP32",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two ways schools can be seen as feminised.",
+         "note": ""
+        },
+        {
+         "src": "Specimen paper",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons why females are outperforming males in many education systems today.",
+         "note": ""
+        },
+        {
+         "src": "S21 QP32",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways in which girls’ educational performance may be influenced by wider social changes.",
+         "note": ""
+        },
+        {
+         "src": "W21 QP32",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways in which a person’s gender may influence their educational attainment.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP31",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways that teachers’ perceptions of gender can affect pupils.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP32",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two changes in the wider society that may have affected female attainment in education.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP31",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways that primary socialisation can lead to gender differences in educational attainment.",
+         "note": ""
+        },
+        {
+         "src": "W23 QP32",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons why boys may be disadvantaged at school compared with girls.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP33",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons why females might be advantaged in schools.",
+         "note": ""
+        },
+        {
+         "src": "W24 QP31/33",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons why gender stereotypes might influence educational attainment.",
+         "note": ""
+        },
+        {
+         "src": "M25 QP32",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways teachers’ stereotypes of gender affect pupils’ experience of school.",
+         "note": ""
+        },
+        {
+         "src": "M21 QP32",
+         "marks": "12",
+         "statement": "Boys and girls are treated equally in school today.",
+         "instruction": "Using sociological material, give two arguments against this view.",
+         "note": ""
+        },
+        {
+         "src": "W21 QP31",
+         "marks": "12",
+         "statement": "Gender differences no longer influence educational achievement levels.",
+         "instruction": "Using sociological material, give two arguments against this view.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP33",
+         "marks": "12",
+         "statement": "Gender is no longer an influence on educational attainment.",
+         "instruction": "Using sociological material, give two arguments against this view.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP32",
+         "marks": "12",
+         "statement": "The educational system advantages males.",
+         "instruction": "Using sociological material, give two arguments against this view.",
+         "note": ""
+        },
+        {
+         "src": "S21 QP33",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that gender is the most important influence on educational attainment.",
+         "note": ""
+        },
+        {
+         "src": "W23 QP31",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that gender differences in educational attainment are mainly due to what happens in schools.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP31",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways the curriculum can affect girls’ educational attainment.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP33",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons why boys might achieve less at school than girls.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 23
+      },
+      {
+       "title": "Social class",
+       "level": 3,
+       "items": [
+        {
+         "src": "S21 QP31",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways in which labelling can disadvantage working-class pupils.",
+         "note": ""
+        },
+        {
+         "src": "W21 QP31",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways in which cultural capital benefits middle-class pupils in school.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP32",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways education systems can serve the interests of the rich and powerful.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP31",
+         "marks": "12",
+         "statement": "Education allows talented working-class pupils to achieve upward social mobility.",
+         "instruction": "Using sociological material, give two arguments against this view.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP31",
+         "marks": "12",
+         "statement": "Home background is the main reason for social class differences in educational attainment.",
+         "instruction": "Using sociological material, give two arguments against this view.",
+         "note": ""
+        },
+        {
+         "src": "W24 QP32",
+         "marks": "12",
+         "statement": "Schools help working-class pupils achieve upward social mobility.",
+         "instruction": "Using sociological material, give two arguments against this view.",
+         "note": ""
+        },
+        {
+         "src": "W21 QP32",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that working class under-achievement is mainly the result of in-school factors.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP31",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that education enables working-class pupils to achieve upward social mobility.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP31",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that social class is the most important factor affecting educational attainment.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP31",
+         "marks": "12",
+         "statement": "In school a pupil’s social class has no relevance.",
+         "instruction": "",
+         "note": ""
+        },
+        {
+         "src": "M26 QP32",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that class is the most important influence on educational attainment.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 11
+      },
+      {
+       "title": "Ethnicity",
+       "level": 3,
+       "items": [
+        {
+         "src": "W21 QP31",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two ways in which a pupil’s ethnic culture can affect their experience in education.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP32",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two examples of how the school curriculum may beethnocentric.",
+         "note": ""
+        },
+        {
+         "src": "W23 QP31",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two examples of how the school may be ethnocentric.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP32",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two ways schools may reinforce ethnic stereotypes.",
+         "note": ""
+        },
+        {
+         "src": "M21 QP32",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons why educational attainment is particularly high among some ethnic groups.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP31",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways that ethnicity may influence a pupil’s experience of school.",
+         "note": ""
+        },
+        {
+         "src": "M24 QP32",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways in-school factors may affect the educational performance of some ethnic groups.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP31",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons why cultural differences between ethnic groups may affect their educational attainment.",
+         "note": ""
+        },
+        {
+         "src": "W24 QP32",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons why ethnic subcultures can affect educational attainment.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP32",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways racism can affect attainment in schools.",
+         "note": ""
+        },
+        {
+         "src": "M22 QP32",
+         "marks": "12",
+         "statement": "Ethnic inequality in educational attainment is entirely the result of racism in schools.",
+         "instruction": "Using sociological material, give two arguments against this view.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP31",
+         "marks": "12",
+         "statement": "All ethnic groups are treated equally in schools.",
+         "instruction": "Using sociological material, give two arguments against this view.",
+         "note": ""
+        },
+        {
+         "src": "W23 QP32",
+         "marks": "12",
+         "statement": "The lower educational attainment of some ethnic groups is due to the culture of those ethnic groups.",
+         "instruction": "Using sociological material, give two arguments against this view.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP33",
+         "marks": "12",
+         "statement": "Ethnicity has limited impact on educational attainment.",
+         "instruction": "Using sociological material, give two arguments against this view.",
+         "note": ""
+        },
+        {
+         "src": "M25 QP32",
+         "marks": "12",
+         "statement": "All ethnic groups have the same experience of education.",
+         "instruction": "Using sociological material, give two arguments against this view.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP32",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that ethnicity is the most important influence on educational attainment.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP32",
+         "marks": "12",
+         "statement": "A pupil’s ethnicity has no impact on their educational attainment at school.",
+         "instruction": "",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 17
+      }
+     ],
+     "skip": false,
+     "count": 51
+    },
+    {
+     "title": "Functions of education",
+     "level": 2,
+     "items": [],
+     "children": [
+      {
+       "title": "Functionalism",
+       "level": 3,
+       "items": [
+        {
+         "src": "W21 QP32",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two examples of what is learned through the hidden curriculum.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP31",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two ways education can contribute to a country’s economy.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP32",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two examples of how hidden curriculum can reinforce gender stereotypes.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP31",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two examples of what can be learned through the hidden curriculum.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP31",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two examples of how education reinforces social values.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP32",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two ways that education contributes to the economy.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP33",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two ways that schools contribute to socialisation.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP33",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two ways the hidden curriculum can contribute to social cohesion.",
+         "note": ""
+        },
+        {
+         "src": "Specimen paper",
+         "marks": "12",
+         "statement": "The main role of schools is to promote social equality.",
+         "instruction": "Using sociological material, give two arguments against this view.",
+         "note": ""
+        },
+        {
+         "src": "W21 QP32",
+         "marks": "12",
+         "statement": "The main purpose of education is the personal development of each individual pupil.",
+         "instruction": "Using sociological material, give two arguments against this view.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP32",
+         "marks": "12",
+         "statement": "The education system maintains the existing social order.",
+         "instruction": "Using sociological material, give two arguments against this view.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP31",
+         "marks": "12",
+         "statement": "Education allows talented working-class pupils to achieve upward social mobility.",
+         "instruction": "Using sociological material, give two arguments against this view.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP32",
+         "marks": "12",
+         "statement": "The main function of education is to help create social solidarity.",
+         "instruction": "Using sociological material, give two arguments against this view.",
+         "note": ""
+        },
+        {
+         "src": "W23 QP31",
+         "marks": "12",
+         "statement": "Schools are an effective agency of social control.",
+         "instruction": "Using sociological material, give two arguments against this view.",
+         "note": ""
+        },
+        {
+         "src": "W24 QP32",
+         "marks": "12",
+         "statement": "Schools help working-class pupils achieve upward social mobility.",
+         "instruction": "Using sociological material, give two arguments against this view.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP31",
+         "marks": "12",
+         "statement": "Education is for the benefit of the individual rather than society.",
+         "instruction": "Using sociological material, give two arguments against this view.",
+         "note": ""
+        },
+        {
+         "src": "W21 QP31",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that the main purpose of education is to maintain the economic system.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP31",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the functionalist view that schools help to maintain the social system.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP31",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that education contributes to social solidarity.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP32",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that the role of education is to allocate young people to suitable occupations.",
+         "note": ""
+        },
+        {
+         "src": "M23 QP32",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the functionalist view of the role of education in society.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP31; S24 QP33",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that education enables working-class pupils to achieve upward social mobility.",
+         "note": ""
+        },
+        {
+         "src": "M24 QP32",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that education is an agent of social control.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP32",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that the main function of education is to allocate individuals to appropriate roles in society.",
+         "note": ""
+        },
+        {
+         "src": "W24 QP31/33",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that the role of education is to provide economic benefits for society.",
+         "note": ""
+        },
+        {
+         "src": "W24 QP32",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that the main function of education is to maintain social solidarity.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP32",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that education contributes to value consensus.",
+         "note": ""
+        },
+        {
+         "src": "M26 QP32",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two ways schools promote value consensus.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP32",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two reasons why schools may be unsuccessful in teaching the norms of society to all pupils.",
+         "note": ""
+        },
+        {
+         "src": "M26 QP32",
+         "marks": "12",
+         "statement": "Education ensures that the important roles in society are filled by the most suitable people.",
+         "instruction": "",
+         "note": ""
+        },
+        {
+         "src": "S26 QP31",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that the purpose of education is to provide economic benefits for society.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP33",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that education systems ensure that the workforce has appropriate skills and attitudes.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 32
+      },
+      {
+       "title": "Marxism",
+       "level": 3,
+       "items": [
+        {
+         "src": "S21 QP31",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two examples of how schools reflect the capitalist workplace.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP32",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways education systems can serve the interests of the rich and powerful.",
+         "note": ""
+        },
+        {
+         "src": "M21 QP32",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that education systems are a barrier to social mobility.",
+         "note": ""
+        },
+        {
+         "src": "S21 QP32",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that education is an instrument of ideological control.",
+         "note": ""
+        },
+        {
+         "src": "M22 QP32",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the Marxist view that the role of education is to prepare young people to accept their position in an unequal society.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP33",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that schools successfully impose ideological control on pupils.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP33",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the Marxist view that education system legitimises inequality.",
+         "note": ""
+        },
+        {
+         "src": "W23 QP32",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the Marxist view that education supports the capitalist economic system.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP31",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the Marxist view that education serves the interests of capitalism.",
+         "note": ""
+        },
+        {
+         "src": "M25 QP32",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the view that education helps to maintain the capitalist economic system.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP32",
+         "marks": "4",
+         "statement": "",
+         "instruction": "Describe two ways schools prepare some pupils for working-class jobs.",
+         "note": ""
+        },
+        {
+         "src": "M26 QP32",
+         "marks": "8",
+         "statement": "",
+         "instruction": "Explain two ways the interests of the powerful can influence the curriculum.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP32",
+         "marks": "26",
+         "statement": "",
+         "instruction": "Evaluate the Marxist view that education systems legitimise social inequality.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 13
+      }
+     ],
+     "skip": false,
+     "count": 45
+    },
+    {
+     "title": "Intelligence",
+     "level": 2,
+     "items": [
+      {
+       "src": "M24 QP32",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two problems in measuring intelligence.",
+       "note": ""
+      },
+      {
+       "src": "W24 QP31/33",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two problems in using IQ tests to measure educational ability.",
+       "note": ""
+      },
+      {
+       "src": "S25 QP33",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two limitations of IQ tests as a measure of intelligence.",
+       "note": ""
+      },
+      {
+       "src": "S22 QP33",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two reasons why intelligence tests may not accurately measure educational ability.",
+       "note": ""
+      },
+      {
+       "src": "S25 QP31",
+       "marks": "8",
+       "statement": "",
+       "instruction": "Explain two reasons why performance in IQ tests can be influenced by social factors.",
+       "note": ""
+      },
+      {
+       "src": "S22 QP31",
+       "marks": "12",
+       "statement": "IQ tests are a good indicator of educational ability.",
+       "instruction": "Using sociological material, give two arguments against this view.",
+       "note": ""
+      },
+      {
+       "src": "M23 QP32",
+       "marks": "12",
+       "statement": "IQ tests are an accurate measure of educational potential.",
+       "instruction": "Using sociological material, give two arguments against this view.",
+       "note": ""
+      },
+      {
+       "src": "S25 QP32",
+       "marks": "12",
+       "statement": "IQ tests are a fair measure of educational ability.",
+       "instruction": "Using sociological material, give two arguments against this view.",
+       "note": ""
+      },
+      {
+       "src": "S21 QP31",
+       "marks": "26",
+       "statement": "",
+       "instruction": "Evaluate the view that intelligence is the main factor influencing educational achievement.",
+       "note": ""
+      },
+      {
+       "src": "S26 QP31",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two ways IQ tests might discriminate against some ethnic groups.",
+       "note": ""
+      }
+     ],
+     "children": [],
+     "skip": false,
+     "count": 10
+    },
+    {
+     "title": "Education policies",
+     "level": 2,
+     "items": [
+      {
+       "src": "S21 QP33",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two education policies designed to help disadvantaged pupils.",
+       "note": ""
+      },
+      {
+       "src": "M22 QP32",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two examples of education policies that aim to reduce inequality.",
+       "note": ""
+      }
+     ],
+     "children": [],
+     "skip": false,
+     "count": 2
+    },
+    {
+     "title": "Marketisation of education",
+     "level": 2,
+     "items": [
+      {
+       "src": "W23 QP32",
+       "marks": "4",
+       "statement": "",
+       "instruction": "Describe two examples of how education can be a commodity for private profit.",
+       "note": ""
+      },
+      {
+       "src": "S22 QP33",
+       "marks": "12",
+       "statement": "Choice and competition between schools leads to greater equality in educational attainment.",
+       "instruction": "Using sociological material, give two arguments against this view.",
+       "note": ""
+      },
+      {
+       "src": "S25 QP33",
+       "marks": "12",
+       "statement": "Marketisation in education increases equality of opportunity.",
+       "instruction": "Using sociological material, give two arguments against this view.",
+       "note": ""
+      }
+     ],
+     "children": [],
+     "skip": false,
+     "count": 3
+    }
+   ]
+  },
+  {
+   "label": "Paper 4 · Globalisation",
+   "file": "Paper4Globalisation真题-历年切题(至S26).md",
+   "title": "Paper 4 Globalisation — 历年真题按考点切题（至 2026 S26）",
+   "total": 64,
+   "topics": [
+    {
+     "title": "Global Crime",
+     "level": 2,
+     "items": [],
+     "children": [
+      {
+       "title": "Policing Global Crime",
+       "level": 3,
+       "items": [
+        {
+         "src": "Specimen Paper 4 2021 Q2",
+         "marks": "",
+         "statement": "It is becoming harder to detect and punish global crime.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP41 Q2",
+         "marks": "",
+         "statement": "Governments are unable to prevent the growth of global crime.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "M23 QP42 Q2",
+         "marks": "",
+         "statement": "Governments are powerless to prevent the growth of global crime.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP41 Q2",
+         "marks": "",
+         "statement": "Globalisation has made crime harder to police.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "M26 QP42 Q2",
+         "marks": "",
+         "statement": "National governments are unable to prevent rising global crime.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 5
+      },
+      {
+       "title": "Cause of Global Crime",
+       "level": 3,
+       "items": [
+        {
+         "src": "M21 QP42 Q1",
+         "marks": "",
+         "statement": "There is no single cause of global crime",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S21 QP42 Q1",
+         "marks": "",
+         "statement": "The large increase in global crime has been caused entirely by the spread of global capitalism",
+         "instruction": "Evaluate this view",
+         "note": ""
+        },
+        {
+         "src": "W22 QP41 Q1",
+         "marks": "",
+         "statement": "Poverty in developing societies is the main factor contributing to the growth in global crime.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP42 Q1",
+         "marks": "",
+         "statement": "Capitalism is the main reason for the growth in global crime.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "W23 QP41 Q2",
+         "marks": "",
+         "statement": "The main factor behind the rise in global crime is Western exploitation of developing societies.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP42 Q2",
+         "marks": "",
+         "statement": "Growth in global crime has been caused by capitalist exploitation of developing countries.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 6
+      }
+     ],
+     "skip": false,
+     "count": 11
+    },
+    {
+     "title": "Global Economic Inequality",
+     "level": 2,
+     "items": [],
+     "children": [
+      {
+       "title": "General",
+       "level": 3,
+       "items": [
+        {
+         "src": "M21 QP42 Q2",
+         "marks": "",
+         "statement": "Global inequalities are caused by economic forces over which poorer countries have little or no control.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP43 Q2",
+         "marks": "",
+         "statement": "Global migration is creating more poverty.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "M23 QP42 Q1",
+         "marks": "",
+         "statement": "Globalisation has resulted in greater inequality between countries.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP41 Q2",
+         "marks": "",
+         "statement": "Globalisation is reducing poverty in developing societies.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "M25 QP42 Q1",
+         "marks": "",
+         "statement": "Globalisation has led to an increase in social inequality.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP41 Q1",
+         "marks": "",
+         "statement": "There is less inequality between countries today as a result of globalisation.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 6
+      },
+      {
+       "title": "Modernisation Theory",
+       "level": 3,
+       "items": [
+        {
+         "src": "W21 QP41 Q1",
+         "marks": "",
+         "statement": "Modernisation theory offers the best explanation of global inequality.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "M22 QP42 Q2",
+         "marks": "",
+         "statement": "Modernisation theory provides the best explanation of global inequality.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP42 Q2",
+         "marks": "",
+         "statement": "Modernisation theory provides the best explanation of why some countries remain poor.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 3
+      },
+      {
+       "title": "Dependency Theory / World System Theory / Marxism",
+       "level": 3,
+       "items": [
+        {
+         "src": "S21 QP43 Q2",
+         "marks": "",
+         "statement": "Dependency theory provides the best explanation of global inequality.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP42 Q1",
+         "marks": "",
+         "statement": "Global inequality is caused by capitalist exploitation of developing countries.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "W23 QP42 Q1",
+         "marks": "",
+         "statement": "Global inequality is best explained by the continuing impact of colonialism.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "M24 QP42 Q1",
+         "marks": "",
+         "statement": "Poverty in developing countries is caused by the spread of global capitalism.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP41 Q2",
+         "marks": "",
+         "statement": "Developing countries remain poor due to dependency on rich capitalist countries.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP43 Q1",
+         "marks": "",
+         "statement": "Developing countries remain poor due to the continuing impact of colonialism.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP42 Q1",
+         "marks": "",
+         "statement": "Poverty in developing societies is a result of colonialism.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 7
+      },
+      {
+       "title": "Transnational organisations / aid",
+       "level": 3,
+       "items": [
+        {
+         "src": "W21 QP42 Q2",
+         "marks": "",
+         "statement": "Transnational organisations have helped to reduce global inequalities.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP43 Q2",
+         "marks": "",
+         "statement": "Transnational organisations have been successful in improving life chances in developing countries.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP43 Q2",
+         "marks": "",
+         "statement": "Aid programmes are ineffective in reducing poverty in developing countries.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP42 Q1",
+         "marks": "",
+         "statement": "Transnational organisations have contributed to an increase in global inequality.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "M25 QP42 Q2",
+         "marks": "",
+         "statement": "International aid programmes have been ineffective in reducing poverty.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP43 Q2",
+         "marks": "",
+         "statement": "Aid programmes are effective in reducing global poverty.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 6
+      }
+     ],
+     "skip": false,
+     "count": 22
+    },
+    {
+     "title": "Global Culture",
+     "level": 2,
+     "items": [],
+     "children": [
+      {
+       "title": "Cultural convergence",
+       "level": 3,
+       "items": [
+        {
+         "src": "S21 QP41 Q1",
+         "marks": "",
+         "statement": "Cultural differences are disappearing as a result of globalisation.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "M22 QP42 Q1",
+         "marks": "",
+         "statement": "Globalisation has led to cultural convergence.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP41 Q1",
+         "marks": "",
+         "statement": "Globalisation is leading to cultural convergence.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "W23 QP41 Q1",
+         "marks": "",
+         "statement": "Cultural differences between people are disappearing as a result of globalisation.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP43 Q1",
+         "marks": "",
+         "statement": "Cultural differences between countries have been replaced by a single global culture.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP41 Q1",
+         "marks": "",
+         "statement": "Cultural differences between countries are disappearing as a result of globalisation.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 6
+      },
+      {
+       "title": "Cultural divergence",
+       "level": 3,
+       "items": [
+        {
+         "src": "S21 QP43 Q1",
+         "marks": "",
+         "statement": "Globalisation is leading to increased cultural diversity.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP43 Q1",
+         "marks": "",
+         "statement": "Globalisation has led to greater cultural diversity.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP42 Q1",
+         "marks": "",
+         "statement": "Globalisation has resulted in greater cultural diversity.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP41 Q2",
+         "marks": "",
+         "statement": "Global migration has led to the growth of hybrid identities.",
+         "instruction": "Evaluate this view.",
+         "note": "（兼属：见 Consequences of migration）"
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 4
+      }
+     ],
+     "skip": false,
+     "count": 10
+    },
+    {
+     "title": "Positive and Negative Consequences of Globalisation",
+     "level": 2,
+     "items": [],
+     "children": [
+      {
+       "title": "Consequences (of migration and in general)",
+       "level": 3,
+       "items": [
+        {
+         "src": "Specimen Paper 4 2021 Q1",
+         "marks": "",
+         "statement": "Global migration has only economic consequences for society.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S21 QP42 Q2",
+         "marks": "",
+         "statement": "The consequences of globalisation for developing countries are entirely negative.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "W21 QP41 Q2",
+         "marks": "",
+         "statement": "Global migration has given people in developing countries more freedom and better life chances.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP41 Q1",
+         "marks": "",
+         "statement": "Globalisation has a positive impact on developing countries.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP42 Q2",
+         "marks": "",
+         "statement": "Global migration has more positive than negative consequences for both migrants and host countries.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP43 Q2",
+         "marks": "",
+         "statement": "Global migration is creating more poverty.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "W23 QP42 Q2",
+         "marks": "",
+         "statement": "Global migration has entirely negative consequences for migrant groups.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP42 Q2",
+         "marks": "",
+         "statement": "Global migration has only negative consequences for developing countries.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP42 Q2",
+         "marks": "",
+         "statement": "Global migration has only positive consequences for migrant groups.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP41 Q2",
+         "marks": "",
+         "statement": "Global migration has led to the growth of hybrid identities.",
+         "instruction": "Evaluate this view.",
+         "note": "（兼属：见 Cultural divergence）"
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 10
+      },
+      {
+       "title": "‘Who benefits?’",
+       "level": 3,
+       "items": [
+        {
+         "src": "S21 QP41 Q2",
+         "marks": "",
+         "statement": "Only the wealthy elites in developed countries benefit from global migration.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "W21 QP42 Q1",
+         "marks": "",
+         "statement": "Globalisation is a positive development that brings benefits to all social groups.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP43 Q1",
+         "marks": "",
+         "statement": "Only rich people benefit from global migration.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP41 Q2",
+         "marks": "",
+         "statement": "Globalisation has failed to benefit developing societies.",
+         "instruction": "Evaluate this view",
+         "note": ""
+        },
+        {
+         "src": "S23 QP43 Q1",
+         "marks": "",
+         "statement": "Only the rich and powerful benefit from globalisation.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "M24 QP42 Q2",
+         "marks": "",
+         "statement": "Only rich countries benefit from global migration.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP41 Q1",
+         "marks": "",
+         "statement": "Only rich countries benefit from globalisation.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP43 Q2",
+         "marks": "",
+         "statement": "Poor people in developing countries benefit most from global migration.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP43 Q2",
+         "marks": "",
+         "statement": "Migrants from poor countries rarely gain any benefit from working in rich countries.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "M26 QP42 Q1",
+         "marks": "",
+         "statement": "Globalisation benefits some groups more than others.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP43 Q1",
+         "marks": "",
+         "statement": "All countries benefit equally from globalisation.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 11
+      }
+     ],
+     "skip": false,
+     "count": 21
+    }
+   ]
+  },
+  {
+   "label": "Paper 4 · Media",
+   "file": "Paper4Media真题-历年切题(至S26).md",
+   "title": "Paper 4 Media — 历年真题按考点切题（至 2026 S26）",
+   "total": 66,
+   "topics": [
+    {
+     "title": "Models of media effects (influencing human behaviours)",
+     "level": 2,
+     "items": [
+      {
+       "src": "Specimen Paper 4 2021 Q3",
+       "marks": "",
+       "statement": "The hypodermic syringe model provides the best explanation of media effects.",
+       "instruction": "Evaluate this view.",
+       "note": ""
+      },
+      {
+       "src": "M21 QP42 Q3",
+       "marks": "",
+       "statement": "The media successfully controls the way people think and behave.",
+       "instruction": "Evaluate this view.",
+       "note": ""
+      },
+      {
+       "src": "S21 QP43 Q4",
+       "marks": "",
+       "statement": "The hypodermic syringe model accurately describes how people are influenced by the media.",
+       "instruction": "Evaluate this view.",
+       "note": ""
+      },
+      {
+       "src": "M22 QP42 Q4",
+       "marks": "",
+       "statement": "The two-step flow model accurately describes how people are influenced by the media.",
+       "instruction": "Evaluate this view.",
+       "note": ""
+      },
+      {
+       "src": "S22 QP42 Q3",
+       "marks": "",
+       "statement": "The media has a significant influence on how people behave.",
+       "instruction": "Evaluate this view.",
+       "note": ""
+      },
+      {
+       "src": "W22 QP41 Q4",
+       "marks": "",
+       "statement": "There is clear evidence that the media has a direct impact on human behaviour.",
+       "instruction": "Evaluate this view.",
+       "note": ""
+      },
+      {
+       "src": "W22 QP42 Q3",
+       "marks": "",
+       "statement": "The cultural effects model has many strengths and few limitations.",
+       "instruction": "Evaluate this view.",
+       "note": ""
+      },
+      {
+       "src": "S23 QP41 Q3",
+       "marks": "",
+       "statement": "The cultural effects model provides the best explanation of how the media influences behaviour.",
+       "instruction": "Evaluate this view.",
+       "note": ""
+      },
+      {
+       "src": "S23 QP42 Q4",
+       "marks": "",
+       "statement": "The two-step flow model provides the best explanation of media influence.",
+       "instruction": "Evaluate this view.",
+       "note": ""
+      },
+      {
+       "src": "W23 QP41 Q3",
+       "marks": "",
+       "statement": "The media is able to shape the way people think and behave.",
+       "instruction": "Evaluate this view.",
+       "note": ""
+      },
+      {
+       "src": "M24 QP42 Q4",
+       "marks": "",
+       "statement": "The media has a direct and powerful influence on human behaviour.",
+       "instruction": "Evaluate this view.",
+       "note": ""
+      },
+      {
+       "src": "S24 QP43 Q4",
+       "marks": "",
+       "statement": "Evidence clearly shows that media content has a direct impact on human behaviour.",
+       "instruction": "Evaluate this view.",
+       "note": ""
+      },
+      {
+       "src": "W24 QP41 Q3",
+       "marks": "",
+       "statement": "The hypodermic syringe model provides the best explanation of how the media influences behaviour.",
+       "instruction": "Evaluate this view.",
+       "note": ""
+      },
+      {
+       "src": "M26 QP42 Q4",
+       "marks": "",
+       "statement": "The influence of the media on human behaviour is best explained by the concept of mass manipulation.",
+       "instruction": "Evaluate this view.",
+       "note": ""
+      },
+      {
+       "src": "S26 QP42 Q4",
+       "marks": "",
+       "statement": "Studies show that the media has a direct influence on human behaviour.",
+       "instruction": "Evaluate this view.",
+       "note": ""
+      },
+      {
+       "src": "S21 QP41 Q4",
+       "marks": "",
+       "statement": "There is no clear evidence that human behaviour is influenced by the media.",
+       "instruction": "Evaluate this view.",
+       "note": ""
+      },
+      {
+       "src": "W21 QP42 Q3",
+       "marks": "",
+       "statement": "Research evidence suggests that the media has little impact on behaviour.",
+       "instruction": "Evaluate this view.",
+       "note": ""
+      },
+      {
+       "src": "M23 QP42 Q3",
+       "marks": "",
+       "statement": "There is no clear evidence that the media influences social behaviour.",
+       "instruction": "Evaluate this view.",
+       "note": ""
+      },
+      {
+       "src": "S24 QP41 Q3",
+       "marks": "",
+       "statement": "The media does not have a direct impact on human behaviour.",
+       "instruction": "Evaluate this view.",
+       "note": ""
+      },
+      {
+       "src": "W24 QP42 Q4",
+       "marks": "",
+       "statement": "The uses and gratifications model accurately describes how people are influenced by the media.",
+       "instruction": "Evaluate this view.",
+       "note": ""
+      },
+      {
+       "src": "S25 QP42 Q3",
+       "marks": "",
+       "statement": "There is little evidence that the media influences the way people think and behave.",
+       "instruction": "Evaluate this view.",
+       "note": ""
+      }
+     ],
+     "children": [],
+     "skip": false,
+     "count": 21
+    },
+    {
+     "title": "Who influence / control media contents",
+     "level": 2,
+     "items": [],
+     "children": [
+      {
+       "title": "All groups (Pluralism)",
+       "level": 3,
+       "items": [
+        {
+         "src": "Specimen Paper 4 2021 Q4",
+         "marks": "",
+         "statement": "The media reflects the interests of all groups in society equally.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "M21 QP42 Q4",
+         "marks": "",
+         "statement": "National government are powerless to control the new media.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S21 QP41 Q3",
+         "marks": "",
+         "statement": "Different groups in society influence the content of the media.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "M22 QP42 Q3",
+         "marks": "",
+         "statement": "Governments have no control over the media.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP41 Q3",
+         "marks": "",
+         "statement": "Audiences are the main influence on the content of the media.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "W22 QP42 Q4",
+         "marks": "",
+         "statement": "The media serves the interests of a wide range of groups.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "M24 QP42 Q3",
+         "marks": "",
+         "statement": "No single group controls the media.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP42 Q4",
+         "marks": "",
+         "statement": "Governments have no control over media content.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "W24 QP42 Q3",
+         "marks": "",
+         "statement": "Governments have no control over the new media.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP41 Q3",
+         "marks": "",
+         "statement": "Owners of the media have little control over media contents.",
+         "instruction": "Evaluate this view",
+         "note": ""
+        },
+        {
+         "src": "S26 QP41 Q4",
+         "marks": "",
+         "statement": "Growth of the new media has given audiences a greater influence over media content.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 11
+      },
+      {
+       "title": "Capitalist ruling class / Media Conglomerates (Marxism)",
+       "level": 3,
+       "items": [
+        {
+         "src": "S21 QP42 Q4",
+         "marks": "",
+         "statement": "The media serves the interests of the ruling class.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP41 Q3",
+         "marks": "",
+         "statement": "Media owners control the content of the media.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP42 Q3",
+         "marks": "",
+         "statement": "Media content is shaped by the interests of the ruling class.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP43 Q4",
+         "marks": "",
+         "statement": "Audiences have no influence on the content of the media.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "W23 QP41 Q4",
+         "marks": "",
+         "statement": "The new media is controlled by the rich and powerful.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "W23 QP42 Q3",
+         "marks": "",
+         "statement": "Media content is controlled by the owners of the media.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP41 Q4",
+         "marks": "",
+         "statement": "Media content reflects the interests of the rich and powerful.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP42 Q4",
+         "marks": "",
+         "statement": "The new media is controlled by large media conglomerates.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "M26 QP42 Q3",
+         "marks": "",
+         "statement": "Owners of the media have complete control over media content.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 9
+      },
+      {
+       "title": "Government (PSBs / Capitalist ruling class / Authoritarian)",
+       "level": 3,
+       "items": [
+        {
+         "src": "S21 QP43 Q3",
+         "marks": "",
+         "statement": "Media content is controlled primarily by governments.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP43 Q4",
+         "marks": "",
+         "statement": "Governments control the media.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "M25 QP42 Q4",
+         "marks": "",
+         "statement": "Government is the main influence on media content.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP43 Q3",
+         "marks": "",
+         "statement": "The media is too powerful for governments to control.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 4
+      },
+      {
+       "title": "‘Gatekeepers’ (Journalists and editors)",
+       "level": 3,
+       "items": [
+        {
+         "src": "W21 QP41 Q3",
+         "marks": "",
+         "statement": "Media content is influenced mainly by editors and journalists.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP43 Q3",
+         "marks": "",
+         "statement": "Media content is controlled by editors and journalists.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 2
+      }
+     ],
+     "skip": false,
+     "count": 26
+    },
+    {
+     "title": "Other theoretical aspects of media",
+     "level": 2,
+     "items": [],
+     "children": [
+      {
+       "title": "Postmodernism",
+       "level": 3,
+       "items": [
+        {
+         "src": "S21 QP42 Q3",
+         "marks": "",
+         "statement": "Postmodernists are right in claiming that the media plays a central role in people’s lives today.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP43 Q3",
+         "marks": "",
+         "statement": "Postmodernists are right that social reality today is shaped by the media.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S24 QP42 Q3",
+         "marks": "",
+         "statement": "Postmodernists have exaggerated the influence of the media in people’s lives today.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 3
+      },
+      {
+       "title": "Conventional and Neo-Marxism",
+       "level": 3,
+       "items": [
+        {
+         "src": "S23 QP42 Q4",
+         "marks": "",
+         "statement": "The media is an agent of ideological control.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP43 Q3",
+         "marks": "",
+         "statement": "The new media is an instrument of ideological control.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP41 Q3",
+         "marks": "",
+         "statement": "The media exists to promote ruling-class ideology.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 3
+      },
+      {
+       "title": "Digital Pessimism & Optimism (New Media)",
+       "level": 3,
+       "items": [
+        {
+         "src": "W21 QP41 Q4",
+         "marks": "",
+         "statement": "Access to the new media has given people more power to challenge existing power structures.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP41 Q4",
+         "marks": "",
+         "statement": "The growth of the new media has weakened the power of governments.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "W23 QP42 Q4",
+         "marks": "",
+         "statement": "The new media is a powerful tool through which people are able to challenge government authority.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "W24 QP41 Q4",
+         "marks": "",
+         "statement": "The new media has created more opportunities for individuals to challenge existing power structures.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP43 Q4",
+         "marks": "",
+         "statement": "The new media has given citizens more power to influence politics.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 5
+      }
+     ],
+     "skip": false,
+     "count": 11
+    },
+    {
+     "title": "Media (mis)representations of social identities",
+     "level": 2,
+     "items": [],
+     "children": [
+      {
+       "title": "一般 / 多群体（General / multiple groups）",
+       "level": 3,
+       "items": [
+        {
+         "src": "S26 QP42 Q3",
+         "marks": "",
+         "statement": "Media representations negatively stereotype some social groups more than others.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 1
+      },
+      {
+       "title": "Gender",
+       "level": 3,
+       "items": [
+        {
+         "src": "W21 QP42 Q4",
+         "marks": "",
+         "statement": "Media representations of men and women are largely based on gender stereotypes.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S22 QP42 Q4",
+         "marks": "",
+         "statement": "The media still portrays women in traditional gender roles.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "M23 QP42 Q4",
+         "marks": "",
+         "statement": "Media representations of women reflect gender stereotypes.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S23 QP43 Q4",
+         "marks": "",
+         "statement": "Representations of women in the media reflect patriarchal values.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "M25 QP42 Q3",
+         "marks": "",
+         "statement": "Media representations of women reflect patriarchal values.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S25 QP41 Q4",
+         "marks": "",
+         "statement": "Media representations of women no longer reflect gender stereotypes.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        },
+        {
+         "src": "S26 QP43 Q4",
+         "marks": "",
+         "statement": "Media content reflects patriarchal values.",
+         "instruction": "Evaluate this view.",
+         "note": ""
+        }
+       ],
+       "children": [],
+       "skip": false,
+       "count": 7
+      }
+     ],
+     "skip": false,
+     "count": 8
+    }
+   ]
+  }
+ ]
+}

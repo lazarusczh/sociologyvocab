@@ -1,5 +1,5 @@
 // 随堂测验 / 作业：抽题、题目快照生成、判分、密码生成、乱序
-import type { VocabItem, Quiz, QuizSubmission, QuizQuestion, QuizQuestionType, QuizKind } from './types';
+import type { VocabItem, Quiz, QuizSubmission, QuizQuestion, QuizQuestionType, QuizKind, QuizPair } from './types';
 import { shuffle, sample } from './shuffle';
 import { maskAnswer, isCorrectAnswer } from './answers';
 
@@ -208,6 +208,24 @@ export function gradeQuiz(questions: QuizQuestion[], answers: Record<string, str
   return score;
 }
 
+// 重判辅助：把拼写题的 aliases 用「当前词库」最新值覆盖（题目快照不会随词库发布自动更新）。
+// 返回新数组；词条不在词库、或 aliases 未变化、或非拼写题时返回原对象（可用引用比较判断是否有变化）。
+// 覆盖后若词库未配置 aliases 则置 undefined，判分时自然回退到内置静态别名（answer-aliases.json）。
+export function refreshQuestionAliases(
+  questions: QuizQuestion[],
+  itemById: Map<string, VocabItem>,
+): QuizQuestion[] {
+  return questions.map((q) => {
+    if (q.type !== 'spelling') return q;
+    const it = itemById.get(q.itemId);
+    if (!it) return q;
+    const cur = it.aliases ?? [];
+    const prev = q.aliases ?? [];
+    if (cur.length === prev.length && cur.every((a, i) => a === prev[i])) return q;
+    return { ...q, aliases: cur.length ? cur : undefined };
+  });
+}
+
 // 生成题目乱序种子（学生端进入时用于打乱题目顺序与选择题选项）
 export function randomOrderSeed(): number {
   return Math.floor(Math.random() * 0x7fffffff);
@@ -298,3 +316,95 @@ export const KIND_LABELS: Record<QuizKind, string> = {
   quiz: '随堂测验',
   homework: '作业',
 };
+
+// ===== 错题分析（教师：跨卷全局错题榜） =====
+
+// 单次「词条作答」的判定记录：聚合最小单元（拼写/选择每词条一条；匹配块每对各一条）。
+// 收集时只负责按题目快照判对错并携带展示信息，切片过滤/排除测试账号由调用方处理。
+export interface WrongAttempt {
+  itemId: string;
+  term: string;              // 词条展示文本（题目快照）
+  chinese: string;           // 中文（快照，可空）
+  itemType: 'term' | 'scholar';
+  qtype: QuizQuestionType;
+  quizId: string;
+  quizTitle: string;
+  quizKind: QuizKind;
+  submittedAt: string | null;
+  userId: string;
+  name: string | null;
+  email: string | null;
+  correct: boolean;
+  prompt: string;            // 题干（下钻展示）
+  studentAnswer: string;     // 学生作答展示文本（答对时为空）
+  correctAnswer: string;     // 正确答案展示文本（答对时为空）
+}
+
+// 匹配块下钻：把学生选中的释义 id 还原成释义文本（未配对返回空串）
+function matchingChosenLabel(pairs: QuizPair[], chosen: string | number | undefined | null): string {
+  if (chosen === undefined || chosen === null || chosen === '') return '';
+  const pair = pairs.find((p) => p.itemId === chosen);
+  return pair ? pair.definition : String(chosen);
+}
+
+// 遍历已交卷记录，逐题（匹配块逐对）复用现有判分函数判定对错，产出词条级作答明细。
+// 判分口径与现有成绩/订正完全一致：选择按下标、拼写走别名容错、匹配按 itemId 配对。
+export function collectWrongAttempts(
+  quizzes: Quiz[],
+  submissions: QuizSubmission[],
+): WrongAttempt[] {
+  const quizById = new Map<string, Quiz>();
+  for (const q of quizzes) quizById.set(q.id, q);
+  const out: WrongAttempt[] = [];
+  for (const s of submissions) {
+    if (s.status !== 'submitted') continue;
+    const quiz = quizById.get(s.quiz_id);
+    if (!quiz) continue;
+    const answers = s.answers ?? {};
+    const base = {
+      quizId: quiz.id,
+      quizTitle: quiz.title,
+      quizKind: quiz.kind,
+      submittedAt: s.submitted_at,
+      userId: s.user_id,
+      name: s.name,
+      email: s.email,
+    };
+    for (const q of quiz.questions) {
+      if (q.type === 'matching' && q.pairs) {
+        for (const p of q.pairs) {
+          const chosen = answers[p.itemId];
+          const correct = chosen === p.itemId;
+          out.push({
+            ...base,
+            itemId: p.itemId,
+            term: p.term,
+            chinese: '',
+            itemType: q.itemType,
+            qtype: 'matching',
+            correct,
+            prompt: q.prompt,
+            studentAnswer: correct ? '' : (matchingChosenLabel(q.pairs, chosen) || '（未配对）'),
+            correctAnswer: correct ? '' : p.definition,
+          });
+        }
+      } else {
+        const a = answers[q.itemId];
+        const correct = isAnswerCorrect(q, a);
+        out.push({
+          ...base,
+          itemId: q.itemId,
+          term: q.term,
+          chinese: q.chinese ?? '',
+          itemType: q.itemType,
+          qtype: q.type,
+          correct,
+          prompt: q.prompt,
+          studentAnswer: correct ? '' : (answerText(q, a) || '（未作答）'),
+          correctAnswer: correct ? '' : correctAnswerText(q),
+        });
+      }
+    }
+  }
+  return out;
+}
