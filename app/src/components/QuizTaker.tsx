@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useStore } from '../lib/store';
+import { useStore, useStudySession, useCelebrateCheckIn } from '../lib/store';
 import type { Quiz, QuizQuestion, QuizSubmission } from '../lib/types';
 import { getQuizByCode, getMySubmission, upsertSubmission, submitQuizSubmission, listMySubmissions } from '../lib/cloud';
 import { gradeQuiz, shuffleQuestionsBySeed, randomOrderSeed, formatDuration, TYPE_LABELS, KIND_LABELS, isAnswerCorrect, answerText, correctAnswerText, matchingCorrectCount, totalPoints, extractWrongItemIds } from '../lib/quiz';
@@ -144,6 +144,12 @@ export default function QuizTaker() {
     }
     setBusy(false);
   };
+
+  // 答题阶段（taking，未交卷中）计入每日打卡学习时长：作业时间与正式练习同口径
+  useStudySession(phase === 'taking' && !submitted);
+  // 交卷成功且当天已达标时触发「打卡成功」庆祝（与完成一组正式练习一致）
+  const quizFinished = phase === 'done' && submitted;
+  useCelebrateCheckIn(quizFinished);
 
   // 倒计时
   useEffect(() => {

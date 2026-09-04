@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { useStore } from '../lib/store';
+import { useStore, useStudySession } from '../lib/store';
 import type { Quiz, QuizSubmission, VocabItem, QuizQuestion, CorrectionResult } from '../lib/types';
 import { extractWrongItemIds, buildCorrectionQuestions, totalPoints, correctionBonus, applyGradingRules, isAnswerCorrect } from '../lib/quiz';
 import { getMySubmission, saveCorrection } from '../lib/cloud';
@@ -52,6 +52,9 @@ export default function CorrectionPractice({ quiz, submission, onDone, onCancel 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const savedRef = useRef(false);
+
+  // 订正答题期间计入每日打卡学习时长（与题量计入口径一致）
+  useStudySession(questions.length > 0);
 
   if (questions.length === 0) {
     return (
