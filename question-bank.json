@@ -1339,9 +1339,7 @@
   "topics": [
    "社会认同的形成与变化（Social identity）",
    "仅指定认同维度（①）",
-   "年龄认同（age / youth / elderly identity）",
-   "研究方法（Research methods）",
-   "访谈（Interviews）"
+   "年龄认同（age / youth / elderly identity）"
   ],
   "marksTotal": 4,
   "kind": "plain"
@@ -1534,7 +1532,7 @@
    "q": "3"
   },
   "stem": "‘The media is the most important influence in shaping an individual’s identity.’",
-  "statement": "The media is the most important influence in shaping an individual",
+  "statement": "The media is the most important influence in shaping an individual’s identity.",
   "marks": "10+6",
   "topics": [
    "社会认同的形成与变化（Social identity）",
@@ -1565,7 +1563,7 @@
    "q": "3"
   },
   "stem": "‘The media is the most important influence in shaping an individual’s identity.’",
-  "statement": "The media is the most important influence in shaping an individual",
+  "statement": "The media is the most important influence in shaping an individual’s identity.",
   "marks": "10+6",
   "topics": [
    "社会认同的形成与变化（Social identity）",
@@ -1634,7 +1632,7 @@
    "q": "3"
   },
   "stem": "‘Religion has little influence in shaping an individual’s identity.’",
-  "statement": "Religion has little influence in shaping an individual",
+  "statement": "Religion has little influence in shaping an individual’s identity.",
   "marks": "10+6",
   "topics": [
    "社会认同的形成与变化（Social identity）",
@@ -1665,7 +1663,7 @@
    "q": "3"
   },
   "stem": "‘Religion has little influence in shaping an individual’s identity.’",
-  "statement": "Religion has little influence in shaping an individual",
+  "statement": "Religion has little influence in shaping an individual’s identity.",
   "marks": "10+6",
   "topics": [
    "社会认同的形成与变化（Social identity）",
@@ -1696,7 +1694,7 @@
    "q": "3"
   },
   "stem": "‘Religion is the most important influence in shaping an individual’s identity.’",
-  "statement": "Religion is the most important influence in shaping an individual",
+  "statement": "Religion is the most important influence in shaping an individual’s identity.",
   "marks": "10+6",
   "topics": [
    "社会认同的形成与变化（Social identity）",
@@ -1889,7 +1887,7 @@
    "q": "3"
   },
   "stem": "‘Family is the main influence on an individual’s age identity.’",
-  "statement": "Family is the main influence on an individual",
+  "statement": "Family is the main influence on an individual’s age identity.",
   "marks": "10+6",
   "topics": [
    "社会认同的形成与变化（Social identity）",
@@ -1951,7 +1949,7 @@
    "q": "3"
   },
   "stem": "‘Education is the most important influence on an individual’s gender identity.’",
-  "statement": "Education is the most important influence on an individual",
+  "statement": "Education is the most important influence on an individual’s gender identity.",
   "marks": "10+6",
   "topics": [
    "社会认同的形成与变化（Social identity）",
@@ -2376,7 +2374,7 @@
   "statement": null,
   "marks": "4",
   "topics": [
-   "全球化（Globalisation）——独立 Topic（暂 1 题，为未来新卷预留）"
+   "全球化（Globalisation）"
   ],
   "marksTotal": 4,
   "kind": "plain"
@@ -2420,203 +2418,191 @@
   "kind": "plain"
  },
  {
-  "qid": "M21_12_q2",
+  "qid": "M21_12_q2b",
   "source": {
    "session": "M21",
    "paper": 1,
    "variant": 2,
    "comp": "12",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain two strengths of closed-ended questionnaires as a research method.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "问卷（Questionnaires）",
-   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）",
-   "取向特征"
+   "问卷（Questionnaires）"
   ],
   "marksTotal": 6,
   "kind": "plain"
  },
  {
-  "qid": "S22_12_q2",
+  "qid": "S22_12_q2b",
   "source": {
    "session": "S22",
    "paper": 1,
    "variant": 2,
    "comp": "12",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain one strength and one limitation of questionnaires as a research method.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "问卷（Questionnaires）",
-   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）",
-   "取向特征"
+   "问卷（Questionnaires）"
   ],
   "marksTotal": 6,
   "kind": "plain"
  },
  {
-  "qid": "S23_11_q2",
+  "qid": "S23_11_q2b",
   "source": {
    "session": "S23",
    "paper": 1,
    "variant": 1,
    "comp": "11",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain two strengths of questionnaires as a research method.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "问卷（Questionnaires）",
-   "进入与接近研究对象（Access, pilot studies, hard-to-reach groups）"
+   "问卷（Questionnaires）"
   ],
   "marksTotal": 6,
   "kind": "plain"
  },
  {
-  "qid": "W21_11_q2",
+  "qid": "W21_11_q2b",
   "source": {
    "session": "W21",
    "paper": 1,
    "variant": 1,
    "comp": "11",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain two limitations of using a postal questionnaire as a research method.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "问卷（Questionnaires）",
-   "价值、偏差与客观性（Values, bias, objectivity, value freedom）"
+   "问卷（Questionnaires）"
   ],
   "marksTotal": 6,
   "kind": "plain"
  },
  {
-  "qid": "W21_13_q2",
+  "qid": "W21_13_q2b",
   "source": {
    "session": "W21",
    "paper": 1,
    "variant": 3,
    "comp": "13",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain two limitations of using a postal questionnaire as a research method.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "问卷（Questionnaires）",
-   "价值、偏差与客观性（Values, bias, objectivity, value freedom）"
+   "问卷（Questionnaires）"
   ],
   "marksTotal": 6,
   "kind": "plain"
  },
  {
-  "qid": "M25_12_q2",
+  "qid": "M25_12_q2b",
   "source": {
    "session": "M25",
    "paper": 1,
    "variant": 2,
    "comp": "12",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain two limitations of questionnaires as a research method.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "问卷（Questionnaires）",
-   "实验（Experiments）"
+   "问卷（Questionnaires）"
   ],
   "marksTotal": 6,
   "kind": "plain"
  },
  {
-  "qid": "S25_12_q2",
+  "qid": "S25_12_q2b",
   "source": {
    "session": "S25",
    "paper": 1,
    "variant": 2,
    "comp": "12",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain two strengths of online questionnaires.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "问卷（Questionnaires）",
-   "进入与接近研究对象（Access, pilot studies, hard-to-reach groups）"
+   "问卷（Questionnaires）"
   ],
   "marksTotal": 6,
   "kind": "plain"
  },
  {
-  "qid": "S24_12_q2",
+  "qid": "S24_12_q2a",
   "source": {
    "session": "S24",
    "paper": 1,
    "variant": 2,
    "comp": "12",
-   "q": "2"
+   "q": "2a"
   },
   "stem": "Explain two reasons why positivists favour the use of questionnaires.",
   "statement": null,
   "marks": "8",
   "topics": [
    "研究方法（Research methods）",
-   "问卷（Questionnaires）",
-   "实验（Experiments）"
+   "问卷（Questionnaires）"
   ],
   "marksTotal": 8,
   "kind": "plain"
  },
  {
-  "qid": "W23_11_q2",
+  "qid": "W23_11_q2a",
   "source": {
    "session": "W23",
    "paper": 1,
    "variant": 1,
    "comp": "11",
-   "q": "2"
+   "q": "2a"
   },
   "stem": "Explain two reasons questionnaires are considered high in reliability.",
   "statement": null,
   "marks": "8",
   "topics": [
    "研究方法（Research methods）",
-   "问卷（Questionnaires）",
-   "观察（Observation）"
+   "问卷（Questionnaires）"
   ],
   "marksTotal": 8,
   "kind": "plain"
  },
  {
-  "qid": "W23_13_q2",
+  "qid": "W23_13_q2a",
   "source": {
    "session": "W23",
    "paper": 1,
    "variant": 3,
    "comp": "13",
-   "q": "2"
+   "q": "2a"
   },
   "stem": "Explain two reasons questionnaires are considered high in reliability.",
   "statement": null,
   "marks": "8",
   "topics": [
    "研究方法（Research methods）",
-   "问卷（Questionnaires）",
-   "观察（Observation）"
+   "问卷（Questionnaires）"
   ],
   "marksTotal": 8,
   "kind": "plain"
@@ -2641,6 +2627,25 @@
   "kind": "plain"
  },
  {
+  "qid": "S24_12_q1_eda2b",
+  "source": {
+   "session": "S24",
+   "paper": 1,
+   "variant": 2,
+   "comp": "12",
+   "q": "1"
+  },
+  "stem": "Describe two types of interview used in sociological research.",
+  "statement": null,
+  "marks": "4",
+  "topics": [
+   "研究方法（Research methods）",
+   "访谈（Interviews）"
+  ],
+  "marksTotal": 4,
+  "kind": "plain"
+ },
+ {
   "qid": "S25_11_q1",
   "source": {
    "session": "S25",
@@ -2660,12 +2665,12 @@
   "kind": "plain"
  },
  {
-  "qid": "W21_11_q1",
+  "qid": "S25_21_q1",
   "source": {
-   "session": "W21",
+   "session": "S25",
    "paper": 1,
    "variant": 1,
-   "comp": "11",
+   "comp": "21",
    "q": "1"
   },
   "stem": "Describe two types of qualitative interview.",
@@ -2679,9 +2684,9 @@
   "kind": "plain"
  },
  {
-  "qid": "W21_13_q1",
+  "qid": "S25_13_q1_e2e67",
   "source": {
-   "session": "W21",
+   "session": "S25",
    "paper": 1,
    "variant": 3,
    "comp": "13",
@@ -2698,128 +2703,115 @@
   "kind": "plain"
  },
  {
-  "qid": "M26_12_q2",
+  "qid": "M26_12_q2a",
   "source": {
    "session": "M26",
    "paper": 1,
    "variant": 2,
    "comp": "12",
-   "q": "2"
+   "q": "2a"
   },
   "stem": "Explain two reasons why group interviews are high in validity.",
   "statement": null,
   "marks": "8",
   "topics": [
    "研究方法（Research methods）",
-   "访谈（Interviews）",
-   "实验（Experiments）"
+   "访谈（Interviews）"
   ],
   "marksTotal": 8,
   "kind": "plain"
  },
  {
-  "qid": "W24_12_q2",
+  "qid": "W24_12_q2a",
   "source": {
    "session": "W24",
    "paper": 1,
    "variant": 2,
    "comp": "12",
-   "q": "2"
+   "q": "2a"
   },
   "stem": "Explain two ways an interviewer may influence answers when carrying out sociological interviews.",
   "statement": null,
   "marks": "8",
   "topics": [
    "研究方法（Research methods）",
-   "访谈（Interviews）",
-   "观察（Observation）"
+   "访谈（Interviews）"
   ],
   "marksTotal": 8,
   "kind": "plain"
  },
  {
-  "qid": "S26_12_q2",
+  "qid": "S26_12_q2a",
   "source": {
    "session": "S26",
    "paper": 1,
    "variant": 2,
    "comp": "12",
-   "q": "2"
+   "q": "2a"
   },
   "stem": "Explain two reasons why structured interviews are high in reliability.",
   "statement": null,
   "marks": "8",
   "topics": [
    "研究方法（Research methods）",
-   "访谈（Interviews）",
-   "结构化 structured",
-   "纵向研究（Longitudinal studies）"
+   "访谈（Interviews）"
   ],
   "marksTotal": 8,
   "kind": "plain"
  },
  {
-  "qid": "S26_13_q2",
+  "qid": "S26_13_q2b",
   "source": {
    "session": "S26",
    "paper": 1,
    "variant": 3,
    "comp": "13",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain one strength and one limitation of structured interviews as a research method.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "访谈（Interviews）",
-   "结构化 structured",
-   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）",
-   "取向特征"
+   "访谈（Interviews）"
   ],
   "marksTotal": 6,
   "kind": "plain"
  },
  {
-  "qid": "S21_13_q2",
+  "qid": "S21_13_q2b",
   "source": {
    "session": "S21",
    "paper": 1,
    "variant": 3,
    "comp": "13",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain two strengths of structured interviews as a research method.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "访谈（Interviews）",
-   "结构化 structured",
-   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）",
-   "取向特征"
+   "访谈（Interviews）"
   ],
   "marksTotal": 6,
   "kind": "plain"
  },
  {
-  "qid": "W23_12_q2",
+  "qid": "W23_12_q2b",
   "source": {
    "session": "W23",
    "paper": 1,
    "variant": 2,
    "comp": "12",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain two limitations of structured interviews as a research method.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "访谈（Interviews）",
-   "结构化 structured",
-   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）",
-   "取向特征"
+   "访谈（Interviews）"
   ],
   "marksTotal": 6,
   "kind": "plain"
@@ -2838,134 +2830,121 @@
   "marks": "26",
   "topics": [
    "研究方法（Research methods）",
-   "访谈（Interviews）",
-   "结构化 structured"
+   "访谈（Interviews）"
   ],
   "marksTotal": 26,
   "kind": "plain"
  },
  {
-  "qid": "W25_11_q2",
+  "qid": "W25_11_q2b",
   "source": {
    "session": "W25",
    "paper": 1,
    "variant": 1,
    "comp": "11",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain two strengths of semi-structured interviews.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "访谈（Interviews）",
-   "半结构化 semi-structured",
-   "进入与接近研究对象（Access, pilot studies, hard-to-reach groups）"
+   "访谈（Interviews）"
   ],
   "marksTotal": 6,
   "kind": "plain"
  },
  {
-  "qid": "W25_13_q2",
+  "qid": "W25_13_q2b",
   "source": {
    "session": "W25",
    "paper": 1,
    "variant": 3,
    "comp": "13",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain two strengths of semi-structured interviews.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "访谈（Interviews）",
-   "半结构化 semi-structured",
-   "进入与接近研究对象（Access, pilot studies, hard-to-reach groups）"
+   "访谈（Interviews）"
   ],
   "marksTotal": 6,
   "kind": "plain"
  },
  {
-  "qid": "W22_11_q2",
+  "qid": "W22_11_q2b",
   "source": {
    "session": "W22",
    "paper": 1,
    "variant": 1,
    "comp": "11",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain one strength and one limitation of semi-structured interviews.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "访谈（Interviews）",
-   "半结构化 semi-structured",
-   "选题：实践 vs 理论因素（Choice of research topic / method）"
+   "访谈（Interviews）"
   ],
   "marksTotal": 6,
   "kind": "plain"
  },
  {
-  "qid": "W22_13_q2",
+  "qid": "W22_13_q2b",
   "source": {
    "session": "W22",
    "paper": 1,
    "variant": 3,
    "comp": "13",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain one strength and one limitation of semi-structured interviews.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "访谈（Interviews）",
-   "半结构化 semi-structured",
-   "选题：实践 vs 理论因素（Choice of research topic / method）"
+   "访谈（Interviews）"
   ],
   "marksTotal": 6,
   "kind": "plain"
  },
  {
-  "qid": "S25_13_q2",
+  "qid": "S25_13_q2a",
   "source": {
    "session": "S25",
    "paper": 1,
    "variant": 3,
    "comp": "13",
-   "q": "2"
+   "q": "2a"
   },
   "stem": "Explain two reasons why unstructured interviews are high in validity.",
   "statement": null,
   "marks": "8",
   "topics": [
    "研究方法（Research methods）",
-   "访谈（Interviews）",
-   "非结构化 unstructured",
-   "实验（Experiments）"
+   "访谈（Interviews）"
   ],
   "marksTotal": 8,
   "kind": "plain"
  },
  {
-  "qid": "S22_11_q2",
+  "qid": "S22_11_q2b",
   "source": {
    "session": "S22",
    "paper": 1,
    "variant": 1,
    "comp": "11",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain one strength and one limitation of unstructured interviews as a research method.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "访谈（Interviews）",
-   "非结构化 unstructured",
-   "价值、偏差与客观性（Values, bias, objectivity, value freedom）"
+   "访谈（Interviews）"
   ],
   "marksTotal": 6,
   "kind": "plain"
@@ -2984,8 +2963,7 @@
   "marks": "26",
   "topics": [
    "研究方法（Research methods）",
-   "访谈（Interviews）",
-   "非结构化 unstructured"
+   "访谈（Interviews）"
   ],
   "marksTotal": 26,
   "kind": "plain"
@@ -3004,8 +2982,7 @@
   "marks": "26",
   "topics": [
    "研究方法（Research methods）",
-   "访谈（Interviews）",
-   "质访谈总评"
+   "访谈（Interviews）"
   ],
   "marksTotal": 26,
   "kind": "plain"
@@ -3024,8 +3001,7 @@
   "marks": "26",
   "topics": [
    "研究方法（Research methods）",
-   "访谈（Interviews）",
-   "质访谈总评"
+   "访谈（Interviews）"
   ],
   "marksTotal": 26,
   "kind": "plain"
@@ -3044,8 +3020,7 @@
   "marks": "26",
   "topics": [
    "研究方法（Research methods）",
-   "访谈（Interviews）",
-   "质访谈总评"
+   "访谈（Interviews）"
   ],
   "marksTotal": 26,
   "kind": "plain"
@@ -3070,141 +3045,191 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_13_q2",
+  "qid": "S23_13_q2a",
   "source": {
    "session": "S23",
    "paper": 1,
    "variant": 3,
    "comp": "13",
-   "q": "2"
+   "q": "2a"
   },
   "stem": "Explain two reasons why interpretivists use participant observation in sociological research.",
   "statement": null,
   "marks": "8",
   "topics": [
    "研究方法（Research methods）",
-   "观察（Observation）",
-   "二手资料、官方统计与内容分析（Secondary data, official statistics, content analysis）"
+   "观察（Observation）"
   ],
   "marksTotal": 8,
   "kind": "plain"
  },
  {
-  "qid": "M23_12_q2",
+  "qid": "M23_12_q2a",
   "source": {
    "session": "M23",
    "paper": 1,
    "variant": 2,
    "comp": "12",
-   "q": "2"
+   "q": "2a"
   },
   "stem": "Explain two practical factors to consider when conducting observational studies.",
   "statement": null,
   "marks": "8",
   "topics": [
    "研究方法（Research methods）",
-   "观察（Observation）",
-   "二手资料、官方统计与内容分析（Secondary data, official statistics, content analysis）"
+   "观察（Observation）"
   ],
   "marksTotal": 8,
   "kind": "plain"
  },
  {
-  "qid": "S25_11_q2",
+  "qid": "S25_11_q2a",
   "source": {
    "session": "S25",
    "paper": 1,
    "variant": 1,
    "comp": "11",
-   "q": "2"
+   "q": "2a"
   },
   "stem": "Explain two ethical factors to consider when conducting observational studies.",
   "statement": null,
   "marks": "8",
   "topics": [
    "研究方法（Research methods）",
-   "观察（Observation）",
-   "二手资料、官方统计与内容分析（Secondary data, official statistics, content analysis）"
+   "观察（Observation）"
   ],
   "marksTotal": 8,
   "kind": "plain"
  },
  {
-  "qid": "M24_12_q2",
+  "qid": "M24_12_q2b",
   "source": {
    "session": "M24",
    "paper": 1,
    "variant": 2,
    "comp": "12",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain two limitations of using a covert approach to participant observation.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "观察（Observation）",
-   "信度与效度（Reliability & validity）"
+   "观察（Observation）"
   ],
   "marksTotal": 6,
   "kind": "plain"
  },
  {
-  "qid": "W21_12_q2",
+  "qid": "W21_12_q2b",
   "source": {
    "session": "W21",
    "paper": 1,
    "variant": 2,
    "comp": "12",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain one strength and one limitation of using a covert approach to participant observation.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "观察（Observation）",
-   "混合方法（Mixed methods）"
+   "观察（Observation）"
   ],
   "marksTotal": 6,
   "kind": "plain"
  },
  {
-  "qid": "S21_11_q2",
+  "qid": "S21_11_q2b",
   "source": {
    "session": "S21",
    "paper": 1,
    "variant": 1,
    "comp": "11",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain two limitations of using an overt approach to participant observation.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "观察（Observation）",
-   "选题：实践 vs 理论因素（Choice of research topic / method）"
+   "观察（Observation）"
   ],
   "marksTotal": 6,
   "kind": "plain"
  },
  {
-  "qid": "S23_12_q2",
+  "qid": "W23_11_q2b",
+  "source": {
+   "session": "W23",
+   "paper": 1,
+   "variant": 1,
+   "comp": "11",
+   "q": "2b"
+  },
+  "stem": "Explain two strengths of using an overt approach to participant observation.",
+  "statement": null,
+  "marks": "6",
+  "topics": [
+   "研究方法（Research methods）",
+   "观察（Observation）"
+  ],
+  "marksTotal": 6,
+  "kind": "plain"
+ },
+ {
+  "qid": "W23_13_q2b",
+  "source": {
+   "session": "W23",
+   "paper": 1,
+   "variant": 3,
+   "comp": "13",
+   "q": "2b"
+  },
+  "stem": "Explain two strengths of using an overt approach to participant observation.",
+  "statement": null,
+  "marks": "6",
+  "topics": [
+   "研究方法（Research methods）",
+   "观察（Observation）"
+  ],
+  "marksTotal": 6,
+  "kind": "plain"
+ },
+ {
+  "qid": "S23_12_q2b",
   "source": {
    "session": "S23",
    "paper": 1,
    "variant": 2,
    "comp": "12",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain two strengths of using a covert approach to participant observation.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "观察（Observation）",
-   "价值、偏差与客观性（Values, bias, objectivity, value freedom）"
+   "观察（Observation）"
+  ],
+  "marksTotal": 6,
+  "kind": "plain"
+ },
+ {
+  "qid": "W24_12_q2b",
+  "source": {
+   "session": "W24",
+   "paper": 1,
+   "variant": 2,
+   "comp": "12",
+   "q": "2b"
+  },
+  "stem": "Explain one strength and one limitation of using an overt approach to participant observation.",
+  "statement": null,
+  "marks": "6",
+  "topics": [
+   "研究方法（Research methods）",
+   "观察（Observation）"
   ],
   "marksTotal": 6,
   "kind": "plain"
@@ -3324,9 +3349,28 @@
   "kind": "plain"
  },
  {
-  "qid": "W23_11_q1",
+  "qid": "S25_23_q1",
   "source": {
-   "session": "W23",
+   "session": "S25",
+   "paper": 1,
+   "variant": 3,
+   "comp": "23",
+   "q": "1"
+  },
+  "stem": "Describe two features of a laboratory experiment.",
+  "statement": null,
+  "marks": "4",
+  "topics": [
+   "研究方法（Research methods）",
+   "实验（Experiments）"
+  ],
+  "marksTotal": 4,
+  "kind": "plain"
+ },
+ {
+  "qid": "S25_11_q1_ea492",
+  "source": {
+   "session": "S25",
    "paper": 1,
    "variant": 1,
    "comp": "11",
@@ -3343,9 +3387,9 @@
   "kind": "plain"
  },
  {
-  "qid": "W23_13_q1",
+  "qid": "S25_13_q1_ea492",
   "source": {
-   "session": "W23",
+   "session": "S25",
    "paper": 1,
    "variant": 3,
    "comp": "13",
@@ -3362,21 +3406,96 @@
   "kind": "plain"
  },
  {
-  "qid": "W22_12_q2",
+  "qid": "M25_12_q2a",
+  "source": {
+   "session": "M25",
+   "paper": 1,
+   "variant": 2,
+   "comp": "12",
+   "q": "2a"
+  },
+  "stem": "Explain two reasons why positivists use experiments in sociological research.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "实验（Experiments）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
+  "qid": "M26_12_q2b",
+  "source": {
+   "session": "M26",
+   "paper": 1,
+   "variant": 2,
+   "comp": "12",
+   "q": "2b"
+  },
+  "stem": "Explain two strengths of field experiments as a research method.",
+  "statement": null,
+  "marks": "6",
+  "topics": [
+   "研究方法（Research methods）",
+   "实验（Experiments）"
+  ],
+  "marksTotal": 6,
+  "kind": "plain"
+ },
+ {
+  "qid": "S24_12_q2b",
+  "source": {
+   "session": "S24",
+   "paper": 1,
+   "variant": 2,
+   "comp": "12",
+   "q": "2b"
+  },
+  "stem": "Explain two limitations of field experiments as a research method.",
+  "statement": null,
+  "marks": "6",
+  "topics": [
+   "研究方法（Research methods）",
+   "实验（Experiments）"
+  ],
+  "marksTotal": 6,
+  "kind": "plain"
+ },
+ {
+  "qid": "S25_13_q2b",
+  "source": {
+   "session": "S25",
+   "paper": 1,
+   "variant": 3,
+   "comp": "13",
+   "q": "2b"
+  },
+  "stem": "Explain two strengths of using laboratory experiments in sociological research.",
+  "statement": null,
+  "marks": "6",
+  "topics": [
+   "研究方法（Research methods）",
+   "实验（Experiments）"
+  ],
+  "marksTotal": 6,
+  "kind": "plain"
+ },
+ {
+  "qid": "W22_12_q2b",
   "source": {
    "session": "W22",
    "paper": 1,
    "variant": 2,
    "comp": "12",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain two limitations of laboratory experiments.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "实验（Experiments）",
-   "价值、偏差与客观性（Values, bias, objectivity, value freedom）"
+   "实验（Experiments）"
   ],
   "marksTotal": 6,
   "kind": "plain"
@@ -3420,9 +3539,9 @@
   "kind": "plain"
  },
  {
-  "qid": "W24_11_q1",
+  "qid": "S21_11_q1_e7c59",
   "source": {
-   "session": "W24",
+   "session": "S21",
    "paper": 1,
    "variant": 1,
    "comp": "11",
@@ -3439,9 +3558,9 @@
   "kind": "plain"
  },
  {
-  "qid": "W24_13_q1",
+  "qid": "S21_13_q1_e7c59",
   "source": {
-   "session": "W24",
+   "session": "S21",
    "paper": 1,
    "variant": 3,
    "comp": "13",
@@ -3458,13 +3577,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_11_q2",
+  "qid": "S24_11_q2a",
   "source": {
    "session": "S24",
    "paper": 1,
    "variant": 1,
    "comp": "11",
-   "q": "2"
+   "q": "2a"
   },
   "stem": "Explain two reasons why a researcher might use a non-representative sampling technique.",
   "statement": null,
@@ -3496,41 +3615,58 @@
   "kind": "plain"
  },
  {
-  "qid": "W25_12_q2",
+  "qid": "S26_12_q2b",
+  "source": {
+   "session": "S26",
+   "paper": 1,
+   "variant": 2,
+   "comp": "12",
+   "q": "2b"
+  },
+  "stem": "Explain one strength and one limitation of longitudinal studies in sociological research.",
+  "statement": null,
+  "marks": "6",
+  "topics": [
+   "研究方法（Research methods）",
+   "纵向研究（Longitudinal studies）"
+  ],
+  "marksTotal": 6,
+  "kind": "plain"
+ },
+ {
+  "qid": "W25_12_q2b",
   "source": {
    "session": "W25",
    "paper": 1,
    "variant": 2,
    "comp": "12",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain two strengths of longitudinal studies in sociological research.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "纵向研究（Longitudinal studies）",
-   "选题：实践 vs 理论因素（Choice of research topic / method）"
+   "纵向研究（Longitudinal studies）"
   ],
   "marksTotal": 6,
   "kind": "plain"
  },
  {
-  "qid": "S22_13_q2",
+  "qid": "S22_13_q2b",
   "source": {
    "session": "S22",
    "paper": 1,
    "variant": 3,
    "comp": "13",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain two limitations of longitudinal studies.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "纵向研究（Longitudinal studies）",
-   "进入与接近研究对象（Access, pilot studies, hard-to-reach groups）"
+   "纵向研究（Longitudinal studies）"
   ],
   "marksTotal": 6,
   "kind": "plain"
@@ -3593,101 +3729,115 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_11_q2",
+  "qid": "S26_11_q2b",
   "source": {
    "session": "S26",
    "paper": 1,
    "variant": 1,
    "comp": "11",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain two strengths of using qualitative secondary data in sociological research.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "二手资料、官方统计与内容分析（Secondary data, official statistics, content analysis）",
-   "选题：实践 vs 理论因素（Choice of research topic / method）"
+   "二手资料、官方统计与内容分析（Secondary data, official statistics, content analysis）"
   ],
   "marksTotal": 6,
   "kind": "plain"
  },
  {
-  "qid": "M22_12_q2",
+  "qid": "M22_12_q2b",
   "source": {
    "session": "M22",
    "paper": 1,
    "variant": 2,
    "comp": "12",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain one strength and one limitation of using qualitative secondary data in sociological research.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "二手资料、官方统计与内容分析（Secondary data, official statistics, content analysis）",
-   "选题：实践 vs 理论因素（Choice of research topic / method）"
+   "二手资料、官方统计与内容分析（Secondary data, official statistics, content analysis）"
   ],
   "marksTotal": 6,
   "kind": "plain"
  },
  {
-  "qid": "S21_12_q2",
+  "qid": "S21_12_q2b",
   "source": {
    "session": "S21",
    "paper": 1,
    "variant": 2,
    "comp": "12",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain one strength and one limitation of official statistics.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "二手资料、官方统计与内容分析（Secondary data, official statistics, content analysis）",
-   "研究伦理（Ethics）"
+   "二手资料、官方统计与内容分析（Secondary data, official statistics, content analysis）"
   ],
   "marksTotal": 6,
   "kind": "plain"
  },
  {
-  "qid": "W24_11_q2",
+  "qid": "S23_13_q2b",
+  "source": {
+   "session": "S23",
+   "paper": 1,
+   "variant": 3,
+   "comp": "13",
+   "q": "2b"
+  },
+  "stem": "Explain two strengths of using official statistics in sociological research.",
+  "statement": null,
+  "marks": "6",
+  "topics": [
+   "研究方法（Research methods）",
+   "二手资料、官方统计与内容分析（Secondary data, official statistics, content analysis）"
+  ],
+  "marksTotal": 6,
+  "kind": "plain"
+ },
+ {
+  "qid": "W24_11_q2b",
   "source": {
    "session": "W24",
    "paper": 1,
    "variant": 1,
    "comp": "11",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain two limitations of using official statistics in sociological research.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "二手资料、官方统计与内容分析（Secondary data, official statistics, content analysis）",
-   "研究伦理（Ethics）"
+   "二手资料、官方统计与内容分析（Secondary data, official statistics, content analysis）"
   ],
   "marksTotal": 6,
   "kind": "plain"
  },
  {
-  "qid": "W24_13_q2",
+  "qid": "W24_13_q2b",
   "source": {
    "session": "W24",
    "paper": 1,
    "variant": 3,
    "comp": "13",
-   "q": "2"
+   "q": "2b"
   },
   "stem": "Explain two limitations of using official statistics in sociological research.",
   "statement": null,
   "marks": "6",
   "topics": [
    "研究方法（Research methods）",
-   "二手资料、官方统计与内容分析（Secondary data, official statistics, content analysis）",
-   "研究伦理（Ethics）"
+   "二手资料、官方统计与内容分析（Secondary data, official statistics, content analysis）"
   ],
   "marksTotal": 6,
   "kind": "plain"
@@ -3712,6 +3862,44 @@
   "kind": "plain"
  },
  {
+  "qid": "M23_12_q2b",
+  "source": {
+   "session": "M23",
+   "paper": 1,
+   "variant": 2,
+   "comp": "12",
+   "q": "2b"
+  },
+  "stem": "Explain one strength and one limitation of using content analysis as a research method.",
+  "statement": null,
+  "marks": "6",
+  "topics": [
+   "研究方法（Research methods）",
+   "二手资料、官方统计与内容分析（Secondary data, official statistics, content analysis）"
+  ],
+  "marksTotal": 6,
+  "kind": "plain"
+ },
+ {
+  "qid": "S25_11_q2b",
+  "source": {
+   "session": "S25",
+   "paper": 1,
+   "variant": 1,
+   "comp": "11",
+   "q": "2b"
+  },
+  "stem": "Explain two strengths of using content analysis in sociological research.",
+  "statement": null,
+  "marks": "6",
+  "topics": [
+   "研究方法（Research methods）",
+   "二手资料、官方统计与内容分析（Secondary data, official statistics, content analysis）"
+  ],
+  "marksTotal": 6,
+  "kind": "plain"
+ },
+ {
   "qid": "W21_12_q5",
   "source": {
    "session": "W21",
@@ -3731,6 +3919,25 @@
   "kind": "plain"
  },
  {
+  "qid": "W21_12_q2a",
+  "source": {
+   "session": "W21",
+   "paper": 1,
+   "variant": 2,
+   "comp": "12",
+   "q": "2a"
+  },
+  "stem": "Explain two reasons why a researcher might use more than one method.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "混合方法（Mixed methods）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
   "qid": "S24_11_q5",
   "source": {
    "session": "S24",
@@ -3747,6 +3954,120 @@
    "混合方法（Mixed methods）"
   ],
   "marksTotal": 26,
+  "kind": "plain"
+ },
+ {
+  "qid": "S26_11_q2a",
+  "source": {
+   "session": "S26",
+   "paper": 1,
+   "variant": 1,
+   "comp": "11",
+   "q": "2a"
+  },
+  "stem": "Explain two factors that may influence the sociologist’s choice of research topic.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "选题：实践 vs 理论因素（Choice of research topic / method）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
+  "qid": "W22_11_q2a",
+  "source": {
+   "session": "W22",
+   "paper": 1,
+   "variant": 1,
+   "comp": "11",
+   "q": "2a"
+  },
+  "stem": "Explain two practical factors that may influence a sociologist’s choice of research topic.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "选题：实践 vs 理论因素（Choice of research topic / method）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
+  "qid": "W22_13_q2a",
+  "source": {
+   "session": "W22",
+   "paper": 1,
+   "variant": 3,
+   "comp": "13",
+   "q": "2a"
+  },
+  "stem": "Explain two practical factors that may influence a sociologist’s choice of research topic.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "选题：实践 vs 理论因素（Choice of research topic / method）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
+  "qid": "W25_12_q2a",
+  "source": {
+   "session": "W25",
+   "paper": 1,
+   "variant": 2,
+   "comp": "12",
+   "q": "2a"
+  },
+  "stem": "Explain two ways that research might be influenced by how it is funded.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "选题：实践 vs 理论因素（Choice of research topic / method）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
+  "qid": "M22_12_q2a",
+  "source": {
+   "session": "M22",
+   "paper": 1,
+   "variant": 2,
+   "comp": "12",
+   "q": "2a"
+  },
+  "stem": "Explain two ways that research might be affected by how it is funded.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "选题：实践 vs 理论因素（Choice of research topic / method）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
+  "qid": "S21_11_q2a",
+  "source": {
+   "session": "S21",
+   "paper": 1,
+   "variant": 1,
+   "comp": "11",
+   "q": "2a"
+  },
+  "stem": "Explain two practical factors that can influence choice of research method.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "选题：实践 vs 理论因素（Choice of research topic / method）"
+  ],
+  "marksTotal": 8,
   "kind": "plain"
  },
  {
@@ -3845,6 +4166,177 @@
   "kind": "plain"
  },
  {
+  "qid": "W25_11_q2a",
+  "source": {
+   "session": "W25",
+   "paper": 1,
+   "variant": 1,
+   "comp": "11",
+   "q": "2a"
+  },
+  "stem": "Explain two difficulties in gaining access to a study group.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "进入与接近研究对象（Access, pilot studies, hard-to-reach groups）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
+  "qid": "W25_13_q2a",
+  "source": {
+   "session": "W25",
+   "paper": 1,
+   "variant": 3,
+   "comp": "13",
+   "q": "2a"
+  },
+  "stem": "Explain two difficulties in gaining access to a study group.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "进入与接近研究对象（Access, pilot studies, hard-to-reach groups）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
+  "qid": "S22_13_q2a",
+  "source": {
+   "session": "S22",
+   "paper": 1,
+   "variant": 3,
+   "comp": "13",
+   "q": "2a"
+  },
+  "stem": "Explain two problems a researcher may face in gaining access to a study group.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "进入与接近研究对象（Access, pilot studies, hard-to-reach groups）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
+  "qid": "S23_11_q2a",
+  "source": {
+   "session": "S23",
+   "paper": 1,
+   "variant": 1,
+   "comp": "11",
+   "q": "2a"
+  },
+  "stem": "Explain two reasons why a researcher might use a pilot study.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "进入与接近研究对象（Access, pilot studies, hard-to-reach groups）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
+  "qid": "S25_12_q2a",
+  "source": {
+   "session": "S25",
+   "paper": 1,
+   "variant": 2,
+   "comp": "12",
+   "q": "2a"
+  },
+  "stem": "Explain two reasons why some social groups are difficult to study.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "进入与接近研究对象（Access, pilot studies, hard-to-reach groups）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
+  "qid": "S21_12_q2a",
+  "source": {
+   "session": "S21",
+   "paper": 1,
+   "variant": 2,
+   "comp": "12",
+   "q": "2a"
+  },
+  "stem": "Explain two ethical issues associated with sociological research.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "研究伦理（Ethics）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
+  "qid": "W24_11_q2a",
+  "source": {
+   "session": "W24",
+   "paper": 1,
+   "variant": 1,
+   "comp": "11",
+   "q": "2a"
+  },
+  "stem": "Explain two ethical issues linked to sociological research.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "研究伦理（Ethics）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
+  "qid": "W24_13_q2a",
+  "source": {
+   "session": "W24",
+   "paper": 1,
+   "variant": 3,
+   "comp": "13",
+   "q": "2a"
+  },
+  "stem": "Explain two ethical issues linked to sociological research.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "研究伦理（Ethics）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
+  "qid": "M24_12_q2a",
+  "source": {
+   "session": "M24",
+   "paper": 1,
+   "variant": 2,
+   "comp": "12",
+   "q": "2a"
+  },
+  "stem": "Explain two ways of achieving reliability in sociological research.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "信度与效度（Reliability & validity）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
   "qid": "S23_11_q5",
   "source": {
    "session": "S23",
@@ -3864,13 +4356,108 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_13_q2",
+  "qid": "S22_11_q2a",
+  "source": {
+   "session": "S22",
+   "paper": 1,
+   "variant": 1,
+   "comp": "11",
+   "q": "2a"
+  },
+  "stem": "Explain two ways sociological research may be affected by bias.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "价值、偏差与客观性（Values, bias, objectivity, value freedom）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
+  "qid": "S23_12_q2a",
+  "source": {
+   "session": "S23",
+   "paper": 1,
+   "variant": 2,
+   "comp": "12",
+   "q": "2a"
+  },
+  "stem": "Explain two ways the values of the sociologist may lead to bias in research findings.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "价值、偏差与客观性（Values, bias, objectivity, value freedom）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
+  "qid": "W21_11_q2a",
+  "source": {
+   "session": "W21",
+   "paper": 1,
+   "variant": 1,
+   "comp": "11",
+   "q": "2a"
+  },
+  "stem": "Explain two ways in which researcher values may lead to bias in research findings.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "价值、偏差与客观性（Values, bias, objectivity, value freedom）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
+  "qid": "W21_13_q2a",
+  "source": {
+   "session": "W21",
+   "paper": 1,
+   "variant": 3,
+   "comp": "13",
+   "q": "2a"
+  },
+  "stem": "Explain two ways in which researcher values may lead to bias in research findings.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "价值、偏差与客观性（Values, bias, objectivity, value freedom）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
+  "qid": "W22_12_q2a",
+  "source": {
+   "session": "W22",
+   "paper": 1,
+   "variant": 2,
+   "comp": "12",
+   "q": "2a"
+  },
+  "stem": "Explain two ways the values of a sociologist may influence the research process.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "价值、偏差与客观性（Values, bias, objectivity, value freedom）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
+  "qid": "S24_13_q2a",
   "source": {
    "session": "S24",
    "paper": 1,
    "variant": 3,
    "comp": "13",
-   "q": "2"
+   "q": "2a"
   },
   "stem": "Explain two reasons why it is difficult to be objective when conducting sociological research.",
   "statement": null,
@@ -3959,6 +4546,101 @@
   "kind": "plain"
  },
  {
+  "qid": "S26_13_q2a",
+  "source": {
+   "session": "S26",
+   "paper": 1,
+   "variant": 3,
+   "comp": "13",
+   "q": "2a"
+  },
+  "stem": "Explain two features of the interpretivist approach to sociological research.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
+  "qid": "M21_12_q2a",
+  "source": {
+   "session": "M21",
+   "paper": 1,
+   "variant": 2,
+   "comp": "12",
+   "q": "2a"
+  },
+  "stem": "Explain two characteristics of the interpretivist approach to sociological research.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
+  "qid": "S22_12_q2a",
+  "source": {
+   "session": "S22",
+   "paper": 1,
+   "variant": 2,
+   "comp": "12",
+   "q": "2a"
+  },
+  "stem": "Explain two features of the interpretivist approach to research.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
+  "qid": "S21_13_q2a",
+  "source": {
+   "session": "S21",
+   "paper": 1,
+   "variant": 3,
+   "comp": "13",
+   "q": "2a"
+  },
+  "stem": "Explain two characteristics of the positivist approach to sociological research.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
+  "qid": "W23_12_q2a",
+  "source": {
+   "session": "W23",
+   "paper": 1,
+   "variant": 2,
+   "comp": "12",
+   "q": "2a"
+  },
+  "stem": "Explain two features of the positivist approach to sociological research.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "研究方法（Research methods）",
+   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
   "qid": "S26_12_q1",
   "source": {
    "session": "S26",
@@ -3972,8 +4654,7 @@
   "marks": "4",
   "topics": [
    "研究方法（Research methods）",
-   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）",
-   "质与量的方法类型"
+   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）"
   ],
   "marksTotal": 4,
   "kind": "plain"
@@ -3992,8 +4673,7 @@
   "marks": "4",
   "topics": [
    "研究方法（Research methods）",
-   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）",
-   "质与量的方法类型"
+   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）"
   ],
   "marksTotal": 4,
   "kind": "plain"
@@ -4012,8 +4692,7 @@
   "marks": "26",
   "topics": [
    "研究方法（Research methods）",
-   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）",
-   "科学方法 / 质 vs 量 / 实证 vs 解释 的立场论述"
+   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）"
   ],
   "marksTotal": 26,
   "kind": "plain"
@@ -4032,8 +4711,7 @@
   "marks": "26",
   "topics": [
    "研究方法（Research methods）",
-   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）",
-   "科学方法 / 质 vs 量 / 实证 vs 解释 的立场论述"
+   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）"
   ],
   "marksTotal": 26,
   "kind": "plain"
@@ -4052,8 +4730,7 @@
   "marks": "26",
   "topics": [
    "研究方法（Research methods）",
-   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）",
-   "科学方法 / 质 vs 量 / 实证 vs 解释 的立场论述"
+   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）"
   ],
   "marksTotal": 26,
   "kind": "plain"
@@ -4072,8 +4749,7 @@
   "marks": "26",
   "topics": [
    "研究方法（Research methods）",
-   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）",
-   "科学方法 / 质 vs 量 / 实证 vs 解释 的立场论述"
+   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）"
   ],
   "marksTotal": 26,
   "kind": "plain"
@@ -4092,8 +4768,7 @@
   "marks": "26",
   "topics": [
    "研究方法（Research methods）",
-   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）",
-   "科学方法 / 质 vs 量 / 实证 vs 解释 的立场论述"
+   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）"
   ],
   "marksTotal": 26,
   "kind": "plain"
@@ -4112,8 +4787,7 @@
   "marks": "26",
   "topics": [
    "研究方法（Research methods）",
-   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）",
-   "科学方法 / 质 vs 量 / 实证 vs 解释 的立场论述"
+   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）"
   ],
   "marksTotal": 26,
   "kind": "plain"
@@ -4132,8 +4806,7 @@
   "marks": "26",
   "topics": [
    "研究方法（Research methods）",
-   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）",
-   "科学方法 / 质 vs 量 / 实证 vs 解释 的立场论述"
+   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）"
   ],
   "marksTotal": 26,
   "kind": "plain"
@@ -4152,8 +4825,7 @@
   "marks": "26",
   "topics": [
    "研究方法（Research methods）",
-   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）",
-   "科学方法 / 质 vs 量 / 实证 vs 解释 的立场论述"
+   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）"
   ],
   "marksTotal": 26,
   "kind": "plain"
@@ -4172,8 +4844,7 @@
   "marks": "26",
   "topics": [
    "研究方法（Research methods）",
-   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）",
-   "科学方法 / 质 vs 量 / 实证 vs 解释 的立场论述"
+   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）"
   ],
   "marksTotal": 26,
   "kind": "plain"
@@ -4192,8 +4863,7 @@
   "marks": "26",
   "topics": [
    "研究方法（Research methods）",
-   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）",
-   "科学方法 / 质 vs 量 / 实证 vs 解释 的立场论述"
+   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）"
   ],
   "marksTotal": 26,
   "kind": "plain"
@@ -4212,8 +4882,7 @@
   "marks": "26",
   "topics": [
    "研究方法（Research methods）",
-   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）",
-   "科学方法 / 质 vs 量 / 实证 vs 解释 的立场论述"
+   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）"
   ],
   "marksTotal": 26,
   "kind": "plain"
@@ -4232,20 +4901,19 @@
   "marks": "26",
   "topics": [
    "研究方法（Research methods）",
-   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）",
-   "科学方法 / 质 vs 量 / 实证 vs 解释 的立场论述"
+   "方法论取向（Positivism vs interpretivism；质 vs 量；科学方法）"
   ],
   "marksTotal": 26,
   "kind": "plain"
  },
  {
-  "qid": "W21_21_e6fc0c503",
+  "qid": "W21_21_q1",
   "source": {
    "session": "W21",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways the family benefits society.",
   "statement": null,
@@ -4257,13 +4925,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_23_e1ddbbd34",
+  "qid": "S22_23_q1",
   "source": {
    "session": "S22",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two functions performed by the family.",
   "statement": null,
@@ -4275,13 +4943,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_22_eabdda656",
+  "qid": "S23_22_q1",
   "source": {
    "session": "S23",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two functions of the family.",
   "statement": null,
@@ -4293,13 +4961,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M24_22_eed95cc4d",
+  "qid": "M24_22_q1",
   "source": {
    "session": "M24",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways the family can benefit its members.",
   "statement": null,
@@ -4311,13 +4979,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M21_22_eb96a46a4",
+  "qid": "M21_22_q2",
   "source": {
    "session": "M21",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways in which the family benefits society, according to functionalists.",
   "statement": null,
@@ -4329,13 +4997,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W22_22_e98e61e0a",
+  "qid": "W22_22_q2",
   "source": {
    "session": "W22",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways the family benefits its members, according to functionalists.",
   "statement": null,
@@ -4347,13 +5015,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_21_ec1b1b6ca",
+  "qid": "S24_21_q2",
   "source": {
    "session": "S24",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways the family functions to benefit society.",
   "statement": null,
@@ -4365,13 +5033,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S25_23_ef2f68a58",
+  "qid": "S25_23_q2",
   "source": {
    "session": "S25",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two functions the family performs to benefit its members.",
   "statement": null,
@@ -4383,16 +5051,16 @@
   "kind": "plain"
  },
  {
-  "qid": "W22_21_edb538471",
+  "qid": "W22_21_q3",
   "source": {
    "session": "W22",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "3"
   },
   "stem": "‘The family performs functions that benefit the whole of society.",
-  "statement": null,
+  "statement": "The family performs functions that benefit the whole of society.",
   "marks": "10+6",
   "topics": [
    "Functionalist view on family"
@@ -4413,13 +5081,13 @@
   ]
  },
  {
-  "qid": "S23_22_e24704087",
+  "qid": "S23_22_q3",
   "source": {
    "session": "S23",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "3"
   },
   "stem": "‘The family has experienced a loss of functions.’",
   "statement": "The family has experienced a loss of functions.",
@@ -4443,13 +5111,13 @@
   ]
  },
  {
-  "qid": "S25_22_e14709591",
+  "qid": "S25_22_q3",
   "source": {
    "session": "S25",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "3"
   },
   "stem": "‘The main role of the family is to benefit society.’",
   "statement": "The main role of the family is to benefit society.",
@@ -4473,13 +5141,13 @@
   ]
  },
  {
-  "qid": "S21_21_e05a5f89f",
+  "qid": "S21_21_q4",
   "source": {
    "session": "S21",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that the family has lost many of its functions.",
   "statement": null,
@@ -4491,13 +5159,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S21_22_edc281470",
+  "qid": "S21_22_q4",
   "source": {
    "session": "S21",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the functionalist perspective on the role of the family.",
   "statement": null,
@@ -4509,13 +5177,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_21_ee3ae9a4c",
+  "qid": "S22_21_q5",
   "source": {
    "session": "S22",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that family benefits all its members equally.",
   "statement": null,
@@ -4527,13 +5195,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M23_22_e65575826",
+  "qid": "M23_22_q5",
   "source": {
    "session": "M23",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that the main role of the family is to promote social stability.",
   "statement": null,
@@ -4545,13 +5213,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W24_21_e944cc643",
+  "qid": "W24_21_q4",
   "source": {
    "session": "W24",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate functionalist explanations of the role of the family.",
   "statement": null,
@@ -4563,13 +5231,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M26_22_ef96824fd",
+  "qid": "M26_22_q1",
   "source": {
    "session": "M26",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two functions the family performs.",
   "statement": null,
@@ -4581,13 +5249,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_22_ebf001ac2",
+  "qid": "S26_22_q2",
   "source": {
    "session": "S26",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways the family benefits society, according to functionalists.",
   "statement": null,
@@ -4599,13 +5267,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_23_eb239bfe2",
+  "qid": "S26_23_q5",
   "source": {
    "session": "S26",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that functionalists offer the best understanding of the role of the family.",
   "statement": null,
@@ -4617,13 +5285,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M21_22_efbcba111",
+  "qid": "M21_22_q2_e5767",
   "source": {
    "session": "M21",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two limitations of the functionalist view of the family.",
   "statement": null,
@@ -4636,13 +5304,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_21_efbcba111",
+  "qid": "S24_21_q2_e5767",
   "source": {
    "session": "S24",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two limitations of the functionalist view of the family.",
   "statement": null,
@@ -4655,13 +5323,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W22_22_e8e271881",
+  "qid": "W22_22_q2_e756a",
   "source": {
    "session": "W22",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain one strength and one limitation of the functionalist view of the family.",
   "statement": null,
@@ -4674,13 +5342,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S25_23_e20e46a53",
+  "qid": "S25_23_q2_edb58",
   "source": {
    "session": "S25",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two strengths of functionalist view of the family.",
   "statement": null,
@@ -4693,13 +5361,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_22_ef4469152",
+  "qid": "S26_22_q2_e0fff",
   "source": {
    "session": "S26",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain one strength and one limitation of functionalist views of the family.",
   "statement": null,
@@ -4712,13 +5380,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W21_21_e713507b9",
+  "qid": "W21_21_q2",
   "source": {
    "session": "W21",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways lone-parent families can have a negative impact on society, according to the New Right.",
   "statement": null,
@@ -4730,13 +5398,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W21_21_e900c3054",
+  "qid": "W21_21_q2_e42a9",
   "source": {
    "session": "W21",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two limitations of New Right views of the family.",
   "statement": null,
@@ -4749,13 +5417,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M23_22_ec0192698",
+  "qid": "M23_22_q2",
   "source": {
    "session": "M23",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain one strength and one limitation of New Right views of the family.",
   "statement": null,
@@ -4768,13 +5436,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_23_e47299da0",
+  "qid": "S24_23_q2",
   "source": {
    "session": "S24",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two strengths of New Right views of the family.",
   "statement": null,
@@ -4787,13 +5455,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S21_21_e798fb73c",
+  "qid": "S21_21_q2",
   "source": {
    "session": "S21",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways the family supports ruling class interests, according to Marxist theory.",
   "statement": null,
@@ -4805,13 +5473,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_21_eaa19e111",
+  "qid": "S22_21_q2",
   "source": {
    "session": "S22",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways the role of women in the family supports capitalism.",
   "statement": null,
@@ -4824,13 +5492,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_22_e95d49a25",
+  "qid": "S22_22_q2",
   "source": {
    "session": "S22",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways the family supports the economy.",
   "statement": null,
@@ -4842,13 +5510,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_22_e028685b0",
+  "qid": "S23_22_q2",
   "source": {
    "session": "S23",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways capitalism benefits from the role of women in the family.",
   "statement": null,
@@ -4861,13 +5529,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_23_e80a7cdee",
+  "qid": "S23_23_q2",
   "source": {
    "session": "S23",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways the family prepares children for the workplace.",
   "statement": null,
@@ -4879,13 +5547,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W24_21_efd0d71a6",
+  "qid": "W24_21_q2",
   "source": {
    "session": "W24",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways women in the family play an important role in maintaining capitalism.",
   "statement": null,
@@ -4898,13 +5566,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W24_22_e7f61d3b4",
+  "qid": "W24_22_q2",
   "source": {
    "session": "W24",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways the family promotes ruling-class ideology.",
   "statement": null,
@@ -4916,13 +5584,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M25_22_e26d0b7f3",
+  "qid": "M25_22_q2",
   "source": {
    "session": "M25",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways the family supports capitalism.",
   "statement": null,
@@ -4934,13 +5602,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W21_22_e8cb59dec",
+  "qid": "W21_22_q3",
   "source": {
    "session": "W21",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "3"
   },
   "stem": "‘The main role of the family is ideological control.’",
   "statement": "The main role of the family is ideological control.",
@@ -4964,13 +5632,13 @@
   ]
  },
  {
-  "qid": "M22_22_e86f358f3",
+  "qid": "M22_22_q3",
   "source": {
    "session": "M22",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "3"
   },
   "stem": "‘The main role of the family is to serve the needs of capitalism.’",
   "statement": "The main role of the family is to serve the needs of capitalism.",
@@ -4994,13 +5662,13 @@
   ]
  },
  {
-  "qid": "S21_23_e54664868",
+  "qid": "S21_23_q5",
   "source": {
    "session": "S21",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate Marxist explanations of the role of the family.",
   "statement": null,
@@ -5012,13 +5680,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_21_e5f75e06b",
+  "qid": "S23_21_q5",
   "source": {
    "session": "S23",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that the main role of the family is to serve the needs of capitalism.",
   "statement": null,
@@ -5030,13 +5698,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M24_22_eea1429e2",
+  "qid": "M24_22_q5",
   "source": {
    "session": "M24",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that the main role of the family is to serve ruling class interests.",
   "statement": null,
@@ -5048,13 +5716,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_22_e2b30a2a2",
+  "qid": "S24_22_q5",
   "source": {
    "session": "S24",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that Marxist explanations offer the best understanding of the role of the family.",
   "statement": null,
@@ -5066,13 +5734,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_23_e49f44e89",
+  "qid": "S24_23_q4",
   "source": {
    "session": "S24",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that the main role of the family is to reproduce inequality in society.",
   "statement": null,
@@ -5085,13 +5753,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S25_21_e069b9731",
+  "qid": "S25_21_q4",
   "source": {
    "session": "S25",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that the main role of the family is to promote capitalist ideology.",
   "statement": null,
@@ -5103,13 +5771,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_21_e7ac8d9e1",
+  "qid": "S26_21_q2",
   "source": {
    "session": "S26",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways the family promotes the interests of capitalism.",
   "statement": null,
@@ -5121,13 +5789,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_23_ed7874357",
+  "qid": "S23_23_q2_eddbf",
   "source": {
    "session": "S23",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two limitations of the Marxist view of the family.",
   "statement": null,
@@ -5140,13 +5808,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S21_21_e3ff164b9",
+  "qid": "S21_21_q2_ef8bf",
   "source": {
    "session": "S21",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain one strength and one limitation of the Marxist view of the family.",
   "statement": null,
@@ -5159,13 +5827,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W24_22_e3ff164b9",
+  "qid": "W24_22_q2_ef8bf",
   "source": {
    "session": "W24",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain one strength and one limitation of the Marxist view of the family.",
   "statement": null,
@@ -5178,13 +5846,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_21_e084e3f89",
+  "qid": "S22_21_q2_e315c",
   "source": {
    "session": "S22",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two limitations of Marxist feminist views of the family.",
   "statement": null,
@@ -5197,13 +5865,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_22_e266a8efa",
+  "qid": "S22_22_q2_e88d2",
   "source": {
    "session": "S22",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two strengths of Marxist views of the family.",
   "statement": null,
@@ -5216,13 +5884,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M25_22_e266a8efa",
+  "qid": "M25_22_q2_e88d2",
   "source": {
    "session": "M25",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two strengths of Marxist views of the family.",
   "statement": null,
@@ -5235,13 +5903,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_21_e522bc5be",
+  "qid": "S26_21_q2_ef8a8",
   "source": {
    "session": "S26",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two limitations of Marxist views of the family.",
   "statement": null,
@@ -5254,13 +5922,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_22_e2e516efc",
+  "qid": "S22_22_q1",
   "source": {
    "session": "S22",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways the increase of women in paid employment has affected the family.",
   "statement": null,
@@ -5272,13 +5940,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W24_22_e2542d6e4",
+  "qid": "W24_22_q1",
   "source": {
    "session": "W24",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways gender can influence the experience of childhood.",
   "statement": null,
@@ -5291,13 +5959,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S21_23_ea157f03b",
+  "qid": "S21_23_q2",
   "source": {
    "session": "S21",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways the family supports the interests of men, according to feminists.",
   "statement": null,
@@ -5309,13 +5977,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M22_22_ed333ba2f",
+  "qid": "M22_22_q2",
   "source": {
    "session": "M22",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways that girls experience family life differently to boys, according to feminists.",
   "statement": null,
@@ -5328,13 +5996,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W22_21_ea6d0dad0",
+  "qid": "W22_21_q2",
   "source": {
    "session": "W22",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons why there may still be gender inequality in the family.",
   "statement": null,
@@ -5346,13 +6014,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_22_e3472d191",
+  "qid": "S24_22_q2",
   "source": {
    "session": "S24",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways men benefit more than women from family life.",
   "statement": null,
@@ -5364,13 +6032,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S25_21_e3ab1bc77",
+  "qid": "S25_21_q2",
   "source": {
    "session": "S25",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons for greater gender equality in some families.",
   "statement": null,
@@ -5382,13 +6050,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W21_21_e3162bbcb",
+  "qid": "W21_21_q3",
   "source": {
    "session": "W21",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Gender is the most important factor affecting the experiences of children in the family.’",
   "statement": "Gender is the most important factor affecting the experiences of children in the family.",
@@ -5413,13 +6081,13 @@
   ]
  },
  {
-  "qid": "S22_23_e13b2c0e7",
+  "qid": "S22_23_q3",
   "source": {
    "session": "S22",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Men have more power than women in the family.’",
   "statement": "Men have more power than women in the family.",
@@ -5443,13 +6111,13 @@
   ]
  },
  {
-  "qid": "M23_22_ede1bba65",
+  "qid": "M23_22_q3",
   "source": {
    "session": "M23",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Men continue to dominate family life.’",
   "statement": "Men continue to dominate family life.",
@@ -5473,13 +6141,13 @@
   ]
  },
  {
-  "qid": "W21_21_efa192041",
+  "qid": "W21_21_q4",
   "source": {
    "session": "W21",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate feminist perspectives on equality in the family.",
   "statement": null,
@@ -5491,13 +6159,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_22_e99c55ecb",
+  "qid": "S22_22_q5",
   "source": {
    "session": "S22",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that the family is a patriarchal institution.",
   "statement": null,
@@ -5509,13 +6177,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W22_22_e043ce76a",
+  "qid": "W22_22_q4",
   "source": {
    "session": "W22",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that the improved position of women in society is the main reason for a decline in marriage.",
   "statement": null,
@@ -5529,13 +6197,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_21_e2318fd85",
+  "qid": "S24_21_q4",
   "source": {
    "session": "S24",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that gender is the most important factor influencing family life.",
   "statement": null,
@@ -5547,13 +6215,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_23_e0b3aedce",
+  "qid": "S24_23_q5",
   "source": {
    "session": "S24",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that gender is the main influence on a child’s experience of family life.",
   "statement": null,
@@ -5566,13 +6234,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W24_22_e4076bc84",
+  "qid": "W24_22_q5",
   "source": {
    "session": "W24",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that there is equality between men and women in the family.",
   "statement": null,
@@ -5584,13 +6252,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M25_22_e84d663d3",
+  "qid": "M25_22_q5",
   "source": {
    "session": "M25",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that there is greater gender equality in the family today.",
   "statement": null,
@@ -5602,13 +6270,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S25_22_e30aa6feb",
+  "qid": "S25_22_q4",
   "source": {
    "session": "S25",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that roles in the family are still based on traditional gender identities.",
   "statement": null,
@@ -5620,13 +6288,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_21_e978e2a47",
+  "qid": "S26_21_q1",
   "source": {
    "session": "S26",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways girls may experience family life differently to boys.",
   "statement": null,
@@ -5638,13 +6306,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_23_e3ab0fb4e",
+  "qid": "S26_23_q1",
   "source": {
    "session": "S26",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways the increase of women in paid work has affected the family.",
   "statement": null,
@@ -5656,13 +6324,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M26_22_ed12967f1",
+  "qid": "M26_22_q2",
   "source": {
    "session": "M26",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons for gender inequality in some families.",
   "statement": null,
@@ -5674,13 +6342,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_22_eb3f3bcf3",
+  "qid": "S26_22_q5",
   "source": {
    "session": "S26",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that gender inequality still exists within family life.",
   "statement": null,
@@ -5692,13 +6360,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S21_22_e264fca88",
+  "qid": "S21_22_q2",
   "source": {
    "session": "S21",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain one strength and one limitation of the liberal feminist view of the family.",
   "statement": null,
@@ -5711,13 +6379,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S25_21_e264fca88",
+  "qid": "S25_21_q2_e7c73",
   "source": {
    "session": "S25",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain one strength and one limitation of the liberal feminist view of the family.",
   "statement": null,
@@ -5730,13 +6398,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S21_23_e0ab7f7c7",
+  "qid": "S21_23_q2_e6c61",
   "source": {
    "session": "S21",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two limitations of radical feminist views of the family.",
   "statement": null,
@@ -5749,13 +6417,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_22_e0ab7f7c7",
+  "qid": "S24_22_q2_e6c61",
   "source": {
    "session": "S24",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two limitations of radical feminist views of the family.",
   "statement": null,
@@ -5768,13 +6436,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M22_22_ea28a4401",
+  "qid": "M22_22_q2_ecb7f",
   "source": {
    "session": "M22",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two strengths of radical feminist views of the family.",
   "statement": null,
@@ -5787,13 +6455,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W22_21_e6dde50f1",
+  "qid": "W22_21_q2_e8a68",
   "source": {
    "session": "W22",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two strengths of liberal feminist views of the family.",
   "statement": null,
@@ -5806,13 +6474,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_21_e9e983a36",
+  "qid": "S23_21_q2",
   "source": {
    "session": "S23",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain one strength and one limitation of radical feminist views of the family.",
   "statement": null,
@@ -5825,13 +6493,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_22_ec1a00fc5",
+  "qid": "S23_22_q2_e7b34",
   "source": {
    "session": "S23",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two strengths of Marxist feminist views of the family.",
   "statement": null,
@@ -5844,13 +6512,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W23_22_e60e16754",
+  "qid": "W23_22_q2",
   "source": {
    "session": "W23",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two limitations of liberal feminist views of the family.",
   "statement": null,
@@ -5863,13 +6531,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W24_21_e359941aa",
+  "qid": "W24_21_q2_e099b",
   "source": {
    "session": "W24",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain one strength and one limitation of Marxist feminist views of the family.",
   "statement": null,
@@ -5882,13 +6550,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M26_22_e9e983a36",
+  "qid": "M26_22_q2_e6bb1",
   "source": {
    "session": "M26",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain one strength and one limitation of radical feminist views of the family.",
   "statement": null,
@@ -5901,13 +6569,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W21_22_e0903de77",
+  "qid": "W21_22_q2",
   "source": {
    "session": "W21",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two limitations of postmodernist views of the family.",
   "statement": null,
@@ -5919,13 +6587,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_23_ec82cd630",
+  "qid": "S22_23_q2",
   "source": {
    "session": "S22",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain one strength and one limitation of postmodernist view on family diversity.",
   "statement": null,
@@ -5938,13 +6606,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S25_22_ec82cd630",
+  "qid": "S25_22_q2",
   "source": {
    "session": "S25",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain one strength and one limitation of postmodernist view on family diversity.",
   "statement": null,
@@ -5956,13 +6624,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W23_21_e092148ab",
+  "qid": "W23_21_q2",
   "source": {
    "session": "W23",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two strengths of postmodernist views of the family.",
   "statement": null,
@@ -5974,13 +6642,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M24_22_e9067424d",
+  "qid": "M24_22_q2",
   "source": {
    "session": "M24",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two limitations of postmodernist views of family diversity.",
   "statement": null,
@@ -5993,13 +6661,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_23_edfb71736",
+  "qid": "S26_23_q2",
   "source": {
    "session": "S26",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two strengths of postmodernist views on family diversity.",
   "statement": null,
@@ -6011,13 +6679,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W22_21_e4a43f46b",
+  "qid": "W22_21_q1",
   "source": {
    "session": "W22",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two household forms that are not based on marriage.",
   "statement": null,
@@ -6029,13 +6697,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_23_ec41cd711",
+  "qid": "S23_23_q1",
   "source": {
    "session": "S23",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two reasons people may stay in an unhappy marriage.",
   "statement": null,
@@ -6047,13 +6715,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W21_22_e8281a623",
+  "qid": "W21_22_q2_e9918",
   "source": {
    "session": "W21",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons for the growth in family diversity.",
   "statement": null,
@@ -6065,13 +6733,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W23_21_ee160bdb7",
+  "qid": "W23_21_q2_e3976",
   "source": {
    "session": "W23",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons why cohabitation has become more popular in some societies.",
   "statement": null,
@@ -6083,13 +6751,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M24_22_e279afea1",
+  "qid": "M24_22_q2_ea3e1",
   "source": {
    "session": "M24",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons for the increase in cohabitation in some societies.",
   "statement": null,
@@ -6101,13 +6769,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S21_22_ea9d75a7b",
+  "qid": "S21_22_q3",
   "source": {
    "session": "S21",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Cohabitation is replacing marriage.’",
   "statement": "Cohabitation is replacing marriage.",
@@ -6131,13 +6799,13 @@
   ]
  },
  {
-  "qid": "S21_23_eeef2ca3a",
+  "qid": "S21_23_q3",
   "source": {
    "session": "S21",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Social class is the main influence on family structure.’",
   "statement": "Social class is the main influence on family structure.",
@@ -6161,13 +6829,13 @@
   ]
  },
  {
-  "qid": "S24_22_e9969dffa",
+  "qid": "S24_22_q3",
   "source": {
    "session": "S24",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "3"
   },
   "stem": "‘The extent of family diversity has been exaggerated.’",
   "statement": "The extent of family diversity has been exaggerated.",
@@ -6191,13 +6859,13 @@
   ]
  },
  {
-  "qid": "M25_22_e450f9f83",
+  "qid": "M25_22_q3",
   "source": {
    "session": "M25",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "3"
   },
   "stem": "‘The main reason for family diversity is changes in social policy.’",
   "statement": "The main reason for family diversity is changes in social policy.",
@@ -6222,13 +6890,13 @@
   ]
  },
  {
-  "qid": "M21_22_ee4587344",
+  "qid": "M21_22_q5",
   "source": {
    "session": "M21",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that cultural differences are the main reason for family diversity.",
   "statement": null,
@@ -6240,13 +6908,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S25_23_ee4587344",
+  "qid": "S25_23_q4",
   "source": {
    "session": "S25",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that cultural differences are the main reason for family diversity.",
   "statement": null,
@@ -6258,13 +6926,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W21_21_ed49f7735",
+  "qid": "W21_21_q5",
   "source": {
    "session": "W21",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that there is no dominant family type today.",
   "statement": null,
@@ -6276,13 +6944,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_22_e504024aa",
+  "qid": "S22_22_q4",
   "source": {
    "session": "S22",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that social policies are the main reason for increased family diversity.",
   "statement": null,
@@ -6295,13 +6963,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W22_21_eee4d4c2f",
+  "qid": "W22_21_q5",
   "source": {
    "session": "W22",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that social class is the most important factor influencing family diversity.",
   "statement": null,
@@ -6313,13 +6981,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M24_22_e99a3525b",
+  "qid": "M24_22_q4",
   "source": {
    "session": "M24",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that cultural factors are the main influence on family structure.",
   "statement": null,
@@ -6331,13 +6999,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_21_eaf7c6cf2",
+  "qid": "S24_21_q5",
   "source": {
    "session": "S24",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that family structure is now characterised by diversity.",
   "statement": null,
@@ -6349,13 +7017,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_23_e32521f31",
+  "qid": "S26_23_q2_ef61f",
   "source": {
    "session": "S26",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons for the increase in family diversity.",
   "statement": null,
@@ -6367,13 +7035,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_21_e0345794d",
+  "qid": "S26_21_q3",
   "source": {
    "session": "S26",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Cohabitation is more popular than marriage today.’",
   "statement": "Cohabitation is more popular than marriage today.",
@@ -6397,13 +7065,13 @@
   ]
  },
  {
-  "qid": "S26_21_eaf771bbc",
+  "qid": "S26_21_q5",
   "source": {
    "session": "S26",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that social class is the main factor influencing family diversity.",
   "statement": null,
@@ -6415,13 +7083,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M23_22_e5f384ea8",
+  "qid": "M23_22_q1",
   "source": {
    "session": "M23",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two features of a nuclear family.",
   "statement": null,
@@ -6434,13 +7102,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S25_22_ec3534dc2",
+  "qid": "S25_22_q2_e7017",
   "source": {
    "session": "S25",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons why fewer people are getting married.",
   "statement": null,
@@ -6453,13 +7121,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M21_22_eb298db0a",
+  "qid": "M21_22_q3",
   "source": {
    "session": "M21",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Marriage has become less important in society.’",
   "statement": "Marriage has become less important in society.",
@@ -6484,13 +7152,13 @@
   ]
  },
  {
-  "qid": "S23_21_ef40aa7c9",
+  "qid": "S23_21_q3",
   "source": {
    "session": "S23",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "3"
   },
   "stem": "‘The nuclear family is the dominant family structure.’",
   "statement": "The nuclear family is the dominant family structure.",
@@ -6515,13 +7183,13 @@
   ]
  },
  {
-  "qid": "W23_22_eb897d566",
+  "qid": "W23_22_q3",
   "source": {
    "session": "W23",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "3"
   },
   "stem": "‘The nuclear family has lost its social importance.’",
   "statement": "The nuclear family has lost its social importance.",
@@ -6546,13 +7214,13 @@
   ]
  },
  {
-  "qid": "W24_21_eea71ffe3",
+  "qid": "W24_21_q3",
   "source": {
    "session": "W24",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Marriage has lost its social importance.’",
   "statement": "Marriage has lost its social importance.",
@@ -6577,13 +7245,13 @@
   ]
  },
  {
-  "qid": "S25_23_e15a66a82",
+  "qid": "S25_23_q3",
   "source": {
    "session": "S25",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "3"
   },
   "stem": "‘There is no longer any social pressure on people to get married.’",
   "statement": "There is no longer any social pressure on people to get married.",
@@ -6608,13 +7276,13 @@
   ]
  },
  {
-  "qid": "M22_22_e70a9d689",
+  "qid": "M22_22_q5",
   "source": {
    "session": "M22",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that the nuclear family continues to be the dominant family structure.",
   "statement": null,
@@ -6627,13 +7295,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_23_ecfb8af5e",
+  "qid": "S22_23_q5",
   "source": {
    "session": "S22",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that the nuclear family is no longer the dominant family type.",
   "statement": null,
@@ -6646,13 +7314,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_22_ee3854e95",
+  "qid": "S23_22_q5",
   "source": {
    "session": "S23",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that increasing family diversity means the nuclear family is no longer dominant.",
   "statement": null,
@@ -6665,13 +7333,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W23_21_e1c184e30",
+  "qid": "W23_21_q5",
   "source": {
    "session": "W23",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that social policies have led to a decline in the nuclear family.",
   "statement": null,
@@ -6685,13 +7353,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W24_22_ea2a241f1",
+  "qid": "W24_22_q4",
   "source": {
    "session": "W24",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that the nuclear family is still important in society today.",
   "statement": null,
@@ -6704,13 +7372,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M25_22_e6eaa0a8f",
+  "qid": "M25_22_q4",
   "source": {
    "session": "M25",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that marriage is no longer socially important.",
   "statement": null,
@@ -6723,13 +7391,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S25_21_e6eaa0a8f",
+  "qid": "S25_21_q5",
   "source": {
    "session": "S25",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that marriage is no longer socially important.",
   "statement": null,
@@ -6742,13 +7410,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S25_22_eb6ce2d7b",
+  "qid": "S25_22_q5",
   "source": {
    "session": "S25",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that nuclear family is the dominant family type.",
   "statement": null,
@@ -6761,13 +7429,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M26_22_e1e4e098d",
+  "qid": "M26_22_q4",
   "source": {
    "session": "M26",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that the nuclear family has lost its social importance.",
   "statement": null,
@@ -6780,13 +7448,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S21_21_ec555b631",
+  "qid": "S21_21_q1",
   "source": {
    "session": "S21",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two reasons for the decline in the number of marriages in some societies.",
   "statement": null,
@@ -6799,13 +7467,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S21_22_e3a2d5487",
+  "qid": "S21_22_q1",
   "source": {
    "session": "S21",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways increased life expectancy has impacted on the family.",
   "statement": null,
@@ -6818,13 +7486,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S25_21_e3a2d5487",
+  "qid": "S25_21_q1_e891a",
   "source": {
    "session": "S25",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways increased life expectancy has impacted on the family.",
   "statement": null,
@@ -6837,13 +7505,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_22_eb28ee246",
+  "qid": "S23_22_q1_e28c2",
   "source": {
    "session": "S23",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two reasons women are now marrying at a later age.",
   "statement": null,
@@ -6856,13 +7524,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_23_e214e6a0e",
+  "qid": "S22_23_q2_e6507",
   "source": {
    "session": "S22",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons for an increase in the age of first marriage.",
   "statement": null,
@@ -6875,13 +7543,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W23_22_ea5c61bff",
+  "qid": "W23_22_q2_e60aa",
   "source": {
    "session": "W23",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons for an increase in divorce.",
   "statement": null,
@@ -6894,13 +7562,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_23_e588d5453",
+  "qid": "S24_23_q2_edb03",
   "source": {
    "session": "S24",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons fewer people are marrying today.",
   "statement": null,
@@ -6913,13 +7581,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_23_e67e141e7",
+  "qid": "S23_23_q3",
   "source": {
    "session": "S23",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "3"
   },
   "stem": "‘The improved social position of women is the main reason for the increase in divorce.’",
   "statement": "The improved social position of women is the main reason for the increase in divorce.",
@@ -6944,13 +7612,13 @@
   ]
  },
  {
-  "qid": "W24_22_e33821bb6",
+  "qid": "W24_22_q3",
   "source": {
    "session": "W24",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Increased life expectancy has had a negative impact on family members.’",
   "statement": "Increased life expectancy has had a negative impact on family members.",
@@ -6975,13 +7643,13 @@
   ]
  },
  {
-  "qid": "S21_23_e7473c1b1",
+  "qid": "S21_23_q4",
   "source": {
    "session": "S21",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that increased social opportunities for women are the main reason for the rise in divorce rates.",
   "statement": null,
@@ -6994,13 +7662,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_23_e7e434bc5",
+  "qid": "S22_23_q4",
   "source": {
    "session": "S22",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that increased life expectancy has had a positive impact on family members.",
   "statement": null,
@@ -7014,13 +7682,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_22_e80e21b43",
+  "qid": "S24_22_q4",
   "source": {
    "session": "S24",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that women’s changing expectations of marriage is the main reason for the increase in divorce.",
   "statement": null,
@@ -7033,13 +7701,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_22_e4da30334",
+  "qid": "S26_22_q1",
   "source": {
    "session": "S26",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two changes that have led to an increase in divorce in some societies.",
   "statement": null,
@@ -7052,13 +7720,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M21_22_e49381145",
+  "qid": "M21_22_q1",
   "source": {
    "session": "M21",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two social policies that restrict the behaviour of children.",
   "statement": null,
@@ -7071,13 +7739,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S21_23_e43bd22f1",
+  "qid": "S21_23_q1",
   "source": {
    "session": "S21",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways the state may influence the family.",
   "statement": null,
@@ -7089,13 +7757,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_23_eb2edd2eb",
+  "qid": "S24_23_q1",
   "source": {
    "session": "S24",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways social policies have had a positive impact on the family.",
   "statement": null,
@@ -7107,13 +7775,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_22_efb158656",
+  "qid": "S24_22_q1",
   "source": {
    "session": "S24",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways social policies may impact upon the family.",
   "statement": null,
@@ -7125,13 +7793,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M23_22_eb1fec03c",
+  "qid": "M23_22_q2_eacef",
   "source": {
    "session": "M23",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways social policies may influence family life.",
   "statement": null,
@@ -7143,13 +7811,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_21_e13b4e51b",
+  "qid": "S22_21_q3",
   "source": {
    "session": "S22",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Changes in social policy are the main reason for an increase in divorce.’",
   "statement": "Changes in social policy are the main reason for an increase in divorce.",
@@ -7173,13 +7841,13 @@
   ]
  },
  {
-  "qid": "S21_22_e185590fb",
+  "qid": "S21_22_q5",
   "source": {
    "session": "S21",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that social policies have had a positive impact upon the family.",
   "statement": null,
@@ -7191,13 +7859,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_21_ed749af6a",
+  "qid": "S23_21_q1",
   "source": {
    "session": "S23",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways children are protected from adult life.",
   "statement": null,
@@ -7209,13 +7877,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_22_eb3eabda1",
+  "qid": "S24_22_q1_e94ad",
   "source": {
    "session": "S24",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways the family has become child-centred.",
   "statement": null,
@@ -7227,13 +7895,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M25_22_e23264aba",
+  "qid": "M25_22_q1",
   "source": {
    "session": "M25",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways social class can influence the experience of childhood in the family.",
   "statement": null,
@@ -7245,13 +7913,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S25_23_e35d75584",
+  "qid": "S25_23_q1_e1256",
   "source": {
    "session": "S25",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways childhood is a distinct period from adulthood.",
   "statement": null,
@@ -7263,13 +7931,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_22_eee05179c",
+  "qid": "S22_22_q3",
   "source": {
    "session": "S22",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "3"
   },
   "stem": "‘The experience of childhood is different today than in the past.’",
   "statement": "The experience of childhood is different today than in the past.",
@@ -7293,13 +7961,13 @@
   ]
  },
  {
-  "qid": "W22_22_ebeecdff8",
+  "qid": "W22_22_q3",
   "source": {
    "session": "W22",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Ethnicity is the main factor affecting the experiences of children in the family.’",
   "statement": "Ethnicity is the main factor affecting the experiences of children in the family.",
@@ -7323,13 +7991,13 @@
   ]
  },
  {
-  "qid": "S24_21_efdce0910",
+  "qid": "S24_21_q3",
   "source": {
    "session": "S24",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Childhood is a distinct period of life is disappearing today.’",
   "statement": "Childhood is a distinct period of life is disappearing today.",
@@ -7353,13 +8021,13 @@
   ]
  },
  {
-  "qid": "S25_21_eda457a31",
+  "qid": "S25_21_q3",
   "source": {
    "session": "S25",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Social class is the most important factor affecting the experiences of children in the family.’",
   "statement": "Social class is the most important factor affecting the experiences of children in the family.",
@@ -7383,13 +8051,13 @@
   ]
  },
  {
-  "qid": "S21_21_e6ee812c3",
+  "qid": "S21_21_q5",
   "source": {
    "session": "S21",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that in contemporary society the family has become child-centred.",
   "statement": null,
@@ -7401,13 +8069,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W22_21_eb0e6fe8b",
+  "qid": "W22_21_q4",
   "source": {
    "session": "W22",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that the social position of children in the family has improved.",
   "statement": null,
@@ -7419,13 +8087,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_22_eef54b879",
+  "qid": "S23_22_q4",
   "source": {
    "session": "S23",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that social class is the main factor affecting the experiences of children in the family.",
   "statement": null,
@@ -7437,13 +8105,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_23_e23ef997a",
+  "qid": "S23_23_q5",
   "source": {
    "session": "S23",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that childhood is a period of innocence and protection.",
   "statement": null,
@@ -7455,13 +8123,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W23_22_e58994753",
+  "qid": "W23_22_q5",
   "source": {
    "session": "W23",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that the distinction between childhood and adulthood is becoming less clear.",
   "statement": null,
@@ -7473,13 +8141,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W24_21_e7a28a4ba",
+  "qid": "W24_21_q5",
   "source": {
    "session": "W24",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that the experience of childhood today is different to the past.",
   "statement": null,
@@ -7491,13 +8159,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M26_22_ea08f1310",
+  "qid": "M26_22_q3",
   "source": {
    "session": "M26",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "3"
   },
   "stem": "‘There is a clear distinction between childhood and adulthood today.’",
   "statement": "There is a clear distinction between childhood and adulthood today.",
@@ -7521,13 +8189,13 @@
   ]
  },
  {
-  "qid": "S26_23_ea064cb24",
+  "qid": "S26_23_q3",
   "source": {
    "session": "S26",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Ethnicity is the most significant factor affecting the experiences of children in the family.’",
   "statement": "Ethnicity is the most significant factor affecting the experiences of children in the family.",
@@ -7551,13 +8219,13 @@
   ]
  },
  {
-  "qid": "S26_21_e21f91932",
+  "qid": "S26_21_q4",
   "source": {
    "session": "S26",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that the distinction between childhood and adulthood has become less clear.",
   "statement": null,
@@ -7569,13 +8237,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M22_22_e7971e618",
+  "qid": "M22_22_q1",
   "source": {
    "session": "M22",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways grandparents may provide benefits for the family.",
   "statement": null,
@@ -7587,13 +8255,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W24_21_e183b2300",
+  "qid": "W24_21_q1",
   "source": {
    "session": "W24",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways grandparents may contribute to family life.",
   "statement": null,
@@ -7605,16 +8273,16 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_23_e2737f770",
+  "qid": "S24_23_q3",
   "source": {
    "session": "S24",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Grandparents make a positive contribution to family life.",
-  "statement": null,
+  "statement": "Grandparents make a positive contribution to family life.",
   "marks": "10+6",
   "topics": [
    "Grandparenting"
@@ -7635,13 +8303,13 @@
   ]
  },
  {
-  "qid": "W21_22_ea4c0bba6",
+  "qid": "W21_22_q5",
   "source": {
    "session": "W21",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that the position of grandparents in the family has improved.",
   "statement": null,
@@ -7653,13 +8321,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_21_ea701d210",
+  "qid": "S23_21_q4",
   "source": {
    "session": "S23",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that grandparents play a positive role in the family.",
   "statement": null,
@@ -7671,13 +8339,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_22_e71bfc3d0",
+  "qid": "S26_22_q4",
   "source": {
    "session": "S26",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that grandparents play an important role in the family.",
   "statement": null,
@@ -7689,13 +8357,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_21_e6c04b734",
+  "qid": "S23_21_q2_ed654",
   "source": {
    "session": "S23",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways family life can be harmful for some members.",
   "statement": null,
@@ -7707,13 +8375,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M21_22_e9770c197",
+  "qid": "M21_22_q4",
   "source": {
    "session": "M21",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that family life is harmful for some family members.",
   "statement": null,
@@ -7725,13 +8393,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W23_22_e361eb503",
+  "qid": "W23_22_q4",
   "source": {
    "session": "W23",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that power is shared equally in the family.",
   "statement": null,
@@ -7743,13 +8411,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W21_22_ea8cfa5f1",
+  "qid": "W21_22_q1",
   "source": {
    "session": "W21",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways fatherhood has changed.",
   "statement": null,
@@ -7761,13 +8429,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_21_ee2543a90",
+  "qid": "S22_21_q1",
   "source": {
    "session": "S22",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways motherhood has changed.",
   "statement": null,
@@ -7779,13 +8447,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W22_22_ef9468ace",
+  "qid": "W22_22_q1",
   "source": {
    "session": "W22",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways that roles in the family have become more equal.",
   "statement": null,
@@ -7797,13 +8465,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W23_21_eaf75c17b",
+  "qid": "W23_21_q1",
   "source": {
    "session": "W23",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two features of the expressive role.",
   "statement": null,
@@ -7815,13 +8483,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_21_e39738a01",
+  "qid": "S24_21_q1",
   "source": {
    "session": "S24",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways fatherhood is different today than in the past.",
   "statement": null,
@@ -7833,13 +8501,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S21_22_e69d26d8a",
+  "qid": "S21_22_q2_e0f00",
   "source": {
    "session": "S21",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons why there may be greater gender equality within the family today than in the past.",
   "statement": null,
@@ -7851,13 +8519,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S21_21_eebe83bfd",
+  "qid": "S21_21_q3",
   "source": {
    "session": "S21",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Conjugal roles have become equal.’",
   "statement": "Conjugal roles have become equal.",
@@ -7881,13 +8549,13 @@
   ]
  },
  {
-  "qid": "W23_21_e9c63df96",
+  "qid": "W23_21_q3",
   "source": {
    "session": "W23",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Domestic labour is now shared equally between men and women in the family.’",
   "statement": "Domestic labour is now shared equally between men and women in the family.",
@@ -7911,13 +8579,13 @@
   ]
  },
  {
-  "qid": "M24_22_e1f56227b",
+  "qid": "M24_22_q3",
   "source": {
    "session": "M24",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Women continue to perform the majority of tasks in the family.’",
   "statement": "Women continue to perform the majority of tasks in the family.",
@@ -7941,13 +8609,13 @@
   ]
  },
  {
-  "qid": "W21_22_e446d61dc",
+  "qid": "W21_22_q4",
   "source": {
    "session": "W21",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that conjugal roles continue to be unequal.",
   "statement": null,
@@ -7959,13 +8627,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M22_22_e0a930ead",
+  "qid": "M22_22_q4",
   "source": {
    "session": "M22",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that conjugal roles are equally shared between men and women today.",
   "statement": null,
@@ -7977,13 +8645,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_21_ef1ebb7c8",
+  "qid": "S22_21_q4",
   "source": {
    "session": "S22",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that roles in the family are no longer fixed.",
   "statement": null,
@@ -7995,13 +8663,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W22_22_e951af36e",
+  "qid": "W22_22_q5",
   "source": {
    "session": "W22",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that fatherhood is different today than in the past.",
   "statement": null,
@@ -8013,13 +8681,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M23_22_e85134595",
+  "qid": "M23_22_q4",
   "source": {
    "session": "M23",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that motherhood is different today than in the past.",
   "statement": null,
@@ -8031,13 +8699,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_23_e4c4cd280",
+  "qid": "S23_23_q4",
   "source": {
    "session": "S23",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that gender no longer influences roles within the family.",
   "statement": null,
@@ -8049,13 +8717,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W23_21_e6c956069",
+  "qid": "W23_21_q4",
   "source": {
    "session": "W23",
    "paper": 2,
    "variant": 1,
    "comp": "21",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that the role of parents has changed.",
   "statement": null,
@@ -8067,13 +8735,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S25_23_ea788f354",
+  "qid": "S25_23_q5",
   "source": {
    "session": "S25",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that parenthood today is different from the past.",
   "statement": null,
@@ -8085,13 +8753,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_22_e2d7c1855",
+  "qid": "S26_22_q3",
   "source": {
    "session": "S26",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Parenthood today is different from the past.’",
   "statement": "Parenthood today is different from the past.",
@@ -8115,13 +8783,13 @@
   ]
  },
  {
-  "qid": "M26_22_e76381982",
+  "qid": "M26_22_q5",
   "source": {
    "session": "M26",
    "paper": 2,
    "variant": 2,
    "comp": "22",
-   "q": null
+   "q": "5"
   },
   "stem": "Evaluate the view that fatherhood today has changed from the past.",
   "statement": null,
@@ -8133,13 +8801,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_23_e538cbcee",
+  "qid": "S26_23_q4",
   "source": {
    "session": "S26",
    "paper": 2,
    "variant": 3,
    "comp": "23",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that relationships between family members have become more equal.",
   "statement": null,
@@ -8151,13 +8819,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_32_e155a1cb1",
+  "qid": "S23_32_q2",
   "source": {
    "session": "S23",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons why material deprivation may affect educational achievement.",
   "statement": null,
@@ -8170,16 +8838,16 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_33_e71d02153",
+  "qid": "S26_33_q3",
   "source": {
    "session": "S26",
    "paper": 3,
    "variant": 3,
    "comp": "33",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Family income has no influence on a child’s educational attainment.’",
-  "statement": "Family income has no influence on a child",
+  "statement": "Family income has no influence on a child’s educational attainment.",
   "marks": "12",
   "topics": [
    "Factors affecting educational achievement",
@@ -8189,13 +8857,13 @@
   "kind": "statement"
  },
  {
-  "qid": "M21_32_eb2f20655",
+  "qid": "M21_32_q1",
   "source": {
    "session": "M21",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways in which speech codes may affect educational attainment.",
   "statement": null,
@@ -8208,13 +8876,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_33_ef5fe82fb",
+  "qid": "S22_33_q1",
   "source": {
    "session": "S22",
    "paper": 3,
    "variant": 3,
    "comp": "33",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two examples of how cultural capital can influence educational attainment.",
   "statement": null,
@@ -8227,13 +8895,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M25_32_e04d09037",
+  "qid": "M25_32_q1",
   "source": {
    "session": "M25",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways middle-class pupils benefits from cultural capital.",
   "statement": null,
@@ -8246,13 +8914,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S21_33_e420b8309",
+  "qid": "S21_33_q2",
   "source": {
    "session": "S21",
    "paper": 3,
    "variant": 3,
    "comp": "33",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways in which cultural deprivation may affect educational attainment.",
   "statement": null,
@@ -8265,13 +8933,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W21_31_e80b024b4",
+  "qid": "W21_31_q2",
   "source": {
    "session": "W21",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways in which cultural capital benefits middle-class pupils in school.",
   "statement": null,
@@ -8286,13 +8954,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W23_31_ed54c38b6",
+  "qid": "W23_31_q2",
   "source": {
    "session": "W23",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways speech codes can affect educational attainment.",
   "statement": null,
@@ -8305,13 +8973,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_32_ef89f7284",
+  "qid": "S24_32_q2",
   "source": {
    "session": "S24",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons why cultural capital can affect educational attainment.",
   "statement": null,
@@ -8324,13 +8992,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W24_31_e2ffe8083",
+  "qid": "W24_31_q3",
   "source": {
    "session": "W24",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Cultural deprivation is the main reason for differences in educational attainment.’Using sociological materials, give two arguments against this view.",
   "statement": "Cultural deprivation is the main reason for differences in educational attainment.",
@@ -8343,13 +9011,32 @@
   "kind": "statement"
  },
  {
-  "qid": "M24_32_ee268ef4d",
+  "qid": "W24_33_q3",
+  "source": {
+   "session": "W24",
+   "paper": 3,
+   "variant": 3,
+   "comp": "33",
+   "q": "3"
+  },
+  "stem": "‘Cultural deprivation is the main reason for differences in educational attainment.’Using sociological materials, give two arguments against this view.",
+  "statement": "Cultural deprivation is the main reason for differences in educational attainment.",
+  "marks": "12",
+  "topics": [
+   "Factors affecting educational achievement",
+   "Cultural deprivation / capital"
+  ],
+  "marksTotal": 12,
+  "kind": "statement"
+ },
+ {
+  "qid": "M24_32_q2",
   "source": {
    "session": "M24",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways in-school factors may affect the educational performance of some ethnic groups.",
   "statement": null,
@@ -8365,13 +9052,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M25_32_edb1ef6a0",
+  "qid": "M25_32_q2",
   "source": {
    "session": "M25",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways teachers’ stereotypes of gender affect pupils’ experience of school.",
   "statement": null,
@@ -8387,13 +9074,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M21_32_e56a75e8c",
+  "qid": "M21_32_q3",
   "source": {
    "session": "M21",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Boys and girls are treated equally in school today.’Using sociological material, give two arguments against this view.",
   "statement": "Boys and girls are treated equally in school today.",
@@ -8409,13 +9096,13 @@
   "kind": "statement"
  },
  {
-  "qid": "W22_32_e570905ba",
+  "qid": "W22_32_q3",
   "source": {
    "session": "W22",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Pupil attainment is determined by factors outside of school.’Using sociological material, give two arguments against this view.",
   "statement": "Pupil attainment is determined by factors outside of school.",
@@ -8429,13 +9116,13 @@
   "kind": "statement"
  },
  {
-  "qid": "M24_32_e0798203f",
+  "qid": "M24_32_q3",
   "source": {
    "session": "M24",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "3"
   },
   "stem": "‘What happens in schools is the main influence on educational attainment.’Using sociological material, give two arguments against the view.",
   "statement": "What happens in schools is the main influence on educational attainment.",
@@ -8449,13 +9136,13 @@
   "kind": "statement"
  },
  {
-  "qid": "S24_31_e225ec0fd",
+  "qid": "S24_31_q3",
   "source": {
    "session": "S24",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Home background is the main reason for social class differences in educational attainment.’Using sociological material, give two arguments against this view.",
   "statement": "Home background is the main reason for social class differences in educational attainment.",
@@ -8471,13 +9158,13 @@
   "kind": "statement"
  },
  {
-  "qid": "W21_32_e4c3efaba",
+  "qid": "W21_32_q4",
   "source": {
    "session": "W21",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that working class under-achievement is mainly the result of in-school factors.",
   "statement": null,
@@ -8493,13 +9180,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W23_31_eebb901c0",
+  "qid": "W23_31_q4",
   "source": {
    "session": "W23",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that gender differences in educational attainment are mainly due to what happens in schools.",
   "statement": null,
@@ -8515,13 +9202,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S21_32_ef41dbe80",
+  "qid": "S21_32_q1",
   "source": {
    "session": "S21",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two examples of how anti-school subcultures can affect educational attainment.",
   "statement": null,
@@ -8535,13 +9222,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_33_e1ca1a7c1",
+  "qid": "S23_33_q2",
   "source": {
    "session": "S23",
    "paper": 3,
    "variant": 3,
    "comp": "33",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons why school subcultures might influence educational attainment.",
   "statement": null,
@@ -8555,13 +9242,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W24_32_eb7fd3908",
+  "qid": "W24_32_q2",
   "source": {
    "session": "W24",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons why ethnic subcultures can affect educational attainment.",
   "statement": null,
@@ -8577,13 +9264,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S25_33_ef65d6d05",
+  "qid": "S25_33_q2",
   "source": {
    "session": "S25",
    "paper": 3,
    "variant": 3,
    "comp": "33",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways attainment in school may be influenced by pupil subcultures.",
   "statement": null,
@@ -8597,13 +9284,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S25_31_e6499560d",
+  "qid": "S25_31_q1",
   "source": {
    "session": "S25",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways streaming can negatively affect educational attainment.",
   "statement": null,
@@ -8617,13 +9304,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S21_31_e858136bc",
+  "qid": "S21_31_q2",
   "source": {
    "session": "S21",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways in which labelling can disadvantage working-class pupils.",
   "statement": null,
@@ -8639,13 +9326,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M22_32_e61c665f3",
+  "qid": "M22_32_q2",
   "source": {
    "session": "M22",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways that negative labelling by teachers can affect the educational attainment of pupils.",
   "statement": null,
@@ -8659,13 +9346,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W22_31_eefa7131f",
+  "qid": "W22_31_q2",
   "source": {
    "session": "W22",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways that teachers’ perceptions of gender can affect pupils.",
   "statement": null,
@@ -8681,13 +9368,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M23_32_eb60550dc",
+  "qid": "M23_32_q2",
   "source": {
    "session": "M23",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons why ability grouping in schools can disadvantage some children.",
   "statement": null,
@@ -8701,13 +9388,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S21_33_ea5fd2e4f",
+  "qid": "S21_33_q3",
   "source": {
    "session": "S21",
    "paper": 3,
    "variant": 3,
    "comp": "33",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Grouping by ability enables all pupils to have the most suitable education.’Using sociological material, give two arguments against this view.",
   "statement": "Grouping by ability enables all pupils to have the most suitable education.",
@@ -8721,13 +9408,13 @@
   "kind": "statement"
  },
  {
-  "qid": "S26_33_ee6847399",
+  "qid": "S26_33_q1",
   "source": {
    "session": "S26",
    "paper": 3,
    "variant": 3,
    "comp": "33",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways that streaming may have a negative impact on a pupil’s education.",
   "statement": null,
@@ -8741,13 +9428,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W22_32_ec51ec5c4",
+  "qid": "W22_32_q1",
   "source": {
    "session": "W22",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two examples of how the school curriculum may be ethnocentric.",
   "statement": null,
@@ -8761,13 +9448,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W23_31_e60dcc639",
+  "qid": "W23_31_q1",
   "source": {
    "session": "W23",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two examples of how the school may be ethnocentric.",
   "statement": null,
@@ -8783,13 +9470,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M22_32_e8e966bb6",
+  "qid": "M22_32_q3",
   "source": {
    "session": "M22",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Ethnic inequality in educational attainment is entirely the result of racism in schools.’Using sociological material, give two arguments against this view.",
   "statement": "Ethnic inequality in educational attainment is entirely the result of racism in schools.",
@@ -8805,13 +9492,13 @@
   "kind": "statement"
  },
  {
-  "qid": "S23_31_e08fcbd11",
+  "qid": "S23_31_q3",
   "source": {
    "session": "S23",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "3"
   },
   "stem": "‘All ethnic groups are treated equally in schools.’Using sociological material, give two arguments against this view.",
   "statement": "All ethnic groups are treated equally in schools.",
@@ -8827,13 +9514,13 @@
   "kind": "statement"
  },
  {
-  "qid": "W21_32_e74b7c108",
+  "qid": "W21_32_q1",
   "source": {
    "session": "W21",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two examples of what is learned through the hidden curriculum.",
   "statement": null,
@@ -8849,13 +9536,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_32_eecaf5a08",
+  "qid": "S22_32_q1",
   "source": {
    "session": "S22",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two examples of how hidden curriculum can reinforce gender stereotypes.",
   "statement": null,
@@ -8873,13 +9560,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W22_31_ef31d26b0",
+  "qid": "W22_31_q1",
   "source": {
    "session": "W22",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two examples of what can be learned through the hidden curriculum.",
   "statement": null,
@@ -8895,13 +9582,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W22_32_e6c435e76",
+  "qid": "W22_32_q1_ee4b2",
   "source": {
    "session": "W22",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two examples of how the school curriculum may beethnocentric.",
   "statement": null,
@@ -8917,13 +9604,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_33_e67f4d8f9",
+  "qid": "S24_33_q1",
   "source": {
    "session": "S24",
    "paper": 3,
    "variant": 3,
    "comp": "33",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways the hidden curriculum can contribute to social cohesion.",
   "statement": null,
@@ -8939,13 +9626,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S21_32_e27c418bf",
+  "qid": "S21_32_q3",
   "source": {
    "session": "S21",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "3"
   },
   "stem": "‘The school curriculum gives all pupils an equal chance to fulfil their educational potential.’Using sociological material, give two arguments against this view.",
   "statement": "The school curriculum gives all pupils an equal chance to fulfil their educational potential.",
@@ -8959,13 +9646,13 @@
   "kind": "statement"
  },
  {
-  "qid": "S23_32_eeb8ad5d5",
+  "qid": "S23_32_q4",
   "source": {
    "session": "S23",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that the school curriculum reflects inequalities in society.",
   "statement": null,
@@ -8979,13 +9666,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S25_33_eea5980f1",
+  "qid": "S25_33_q4",
   "source": {
    "session": "S25",
    "paper": 3,
    "variant": 3,
    "comp": "33",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that school curriculum benefits the privileged within society.",
   "statement": null,
@@ -8999,13 +9686,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M23_32_e7a8134ac",
+  "qid": "M23_32_q1",
   "source": {
    "session": "M23",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two changes in schools which have improved girls’ achievement.",
   "statement": null,
@@ -9018,13 +9705,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_31_ecf236cd2",
+  "qid": "S24_31_q1",
   "source": {
    "session": "S24",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways that schools disadvantage boys.",
   "statement": null,
@@ -9037,13 +9724,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W24_32_edca26701",
+  "qid": "W24_32_q1",
   "source": {
    "session": "W24",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways that schools advantage girls.",
   "statement": null,
@@ -9056,13 +9743,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S25_32_e5fea82c3",
+  "qid": "S25_32_q1",
   "source": {
    "session": "S25",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways schools can be seen as feminised.",
   "statement": null,
@@ -9075,13 +9762,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S21_32_e57085c49",
+  "qid": "S21_32_q2",
   "source": {
    "session": "S21",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways in which girls’ educational performance may be influenced by wider social changes.",
   "statement": null,
@@ -9094,13 +9781,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W21_32_efcae1c1a",
+  "qid": "W21_32_q2",
   "source": {
    "session": "W21",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways in which a person’s gender may influence their educational attainment.",
   "statement": null,
@@ -9113,13 +9800,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W22_32_e1e68a7f6",
+  "qid": "W22_32_q2",
   "source": {
    "session": "W22",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two changes in the wider society that may have affected female attainment in education.",
   "statement": null,
@@ -9132,13 +9819,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_31_e6ac826c1",
+  "qid": "S23_31_q2",
   "source": {
    "session": "S23",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways that primary socialisation can lead to gender differences in educational attainment.",
   "statement": null,
@@ -9151,13 +9838,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W23_32_ede567bec",
+  "qid": "W23_32_q2",
   "source": {
    "session": "W23",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons why boys may be disadvantaged at school compared with girls.",
   "statement": null,
@@ -9170,13 +9857,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_33_e59bc7625",
+  "qid": "S24_33_q2",
   "source": {
    "session": "S24",
    "paper": 3,
    "variant": 3,
    "comp": "33",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons why females might be advantaged in schools.",
   "statement": null,
@@ -9189,13 +9876,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W24_31_e1e15a62e",
+  "qid": "W24_31_q2",
   "source": {
    "session": "W24",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons why gender stereotypes might influence educational attainment.",
   "statement": null,
@@ -9208,13 +9895,32 @@
   "kind": "plain"
  },
  {
-  "qid": "W21_31_ef650376c",
+  "qid": "W24_33_q2",
+  "source": {
+   "session": "W24",
+   "paper": 3,
+   "variant": 3,
+   "comp": "33",
+   "q": "2"
+  },
+  "stem": "Explain two reasons why gender stereotypes might influence educational attainment.",
+  "statement": null,
+  "marks": "8",
+  "topics": [
+   "Social stratifications and educational attainment",
+   "Gender"
+  ],
+  "marksTotal": 8,
+  "kind": "plain"
+ },
+ {
+  "qid": "W21_31_q3",
   "source": {
    "session": "W21",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Gender differences no longer influence educational achievement levels.’Using sociological material, give two arguments against this view.",
   "statement": "Gender differences no longer influence educational achievement levels.",
@@ -9227,13 +9933,13 @@
   "kind": "statement"
  },
  {
-  "qid": "S23_33_e48e761ae",
+  "qid": "S23_33_q3",
   "source": {
    "session": "S23",
    "paper": 3,
    "variant": 3,
    "comp": "33",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Gender is no longer an influence on educational attainment.’Using sociological material, give two arguments against this view.",
   "statement": "Gender is no longer an influence on educational attainment.",
@@ -9246,13 +9952,13 @@
   "kind": "statement"
  },
  {
-  "qid": "S24_32_e8ff3dd23",
+  "qid": "S24_32_q3",
   "source": {
    "session": "S24",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "3"
   },
   "stem": "‘The educational system advantages males.’Using sociological material, give two arguments against this view.",
   "statement": "The educational system advantages males.",
@@ -9265,13 +9971,13 @@
   "kind": "statement"
  },
  {
-  "qid": "S21_33_e8262ea09",
+  "qid": "S21_33_q4",
   "source": {
    "session": "S21",
    "paper": 3,
    "variant": 3,
    "comp": "33",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that gender is the most important influence on educational attainment.",
   "statement": null,
@@ -9284,13 +9990,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_31_e5f07e5d1",
+  "qid": "S26_31_q2",
   "source": {
    "session": "S26",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways the curriculum can affect girls’ educational attainment.",
   "statement": null,
@@ -9303,13 +10009,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_33_ebf4661e6",
+  "qid": "S26_33_q2",
   "source": {
    "session": "S26",
    "paper": 3,
    "variant": 3,
    "comp": "33",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons why boys might achieve less at school than girls.",
   "statement": null,
@@ -9322,13 +10028,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_32_eb8288a2f",
+  "qid": "S22_32_q2",
   "source": {
    "session": "S22",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways education systems can serve the interests of the rich and powerful.",
   "statement": null,
@@ -9343,13 +10049,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W22_31_ea52d32a2",
+  "qid": "W22_31_q3",
   "source": {
    "session": "W22",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Education allows talented working-class pupils to achieve upward social mobility.’Using sociological material, give two arguments against this view.",
   "statement": "Education allows talented working-class pupils to achieve upward social mobility.",
@@ -9364,13 +10070,13 @@
   "kind": "statement"
  },
  {
-  "qid": "W24_32_e625b69bf",
+  "qid": "W24_32_q3",
   "source": {
    "session": "W24",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Schools help working-class pupils achieve upward social mobility.’Using sociological material, give two arguments against this view.",
   "statement": "Schools help working-class pupils achieve upward social mobility.",
@@ -9385,13 +10091,13 @@
   "kind": "statement"
  },
  {
-  "qid": "S23_31_e82dcf6dc",
+  "qid": "S23_31_q4",
   "source": {
    "session": "S23",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that education enables working-class pupils to achieve upward social mobility.",
   "statement": null,
@@ -9406,13 +10112,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S25_31_e13334ba3",
+  "qid": "S25_31_q4",
   "source": {
    "session": "S25",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that social class is the most important factor affecting educational attainment.",
   "statement": null,
@@ -9425,16 +10131,16 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_31_e285646a7",
+  "qid": "S26_31_q3",
   "source": {
    "session": "S26",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "3"
   },
   "stem": "‘In school a pupil’s social class has no relevance.’",
-  "statement": "In school a pupil",
+  "statement": "In school a pupil’s social class has no relevance.",
   "marks": "12",
   "topics": [
    "Social stratifications and educational attainment",
@@ -9444,13 +10150,13 @@
   "kind": "statement"
  },
  {
-  "qid": "M26_32_ed3f17704",
+  "qid": "M26_32_q4",
   "source": {
    "session": "M26",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that class is the most important influence on educational attainment.",
   "statement": null,
@@ -9463,13 +10169,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W21_31_eb5742418",
+  "qid": "W21_31_q1",
   "source": {
    "session": "W21",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways in which a pupil’s ethnic culture can affect their experience in education.",
   "statement": null,
@@ -9482,13 +10188,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_32_e23016645",
+  "qid": "S24_32_q1",
   "source": {
    "session": "S24",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways schools may reinforce ethnic stereotypes.",
   "statement": null,
@@ -9501,13 +10207,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M21_32_e875647f1",
+  "qid": "M21_32_q2",
   "source": {
    "session": "M21",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons why educational attainment is particularly high among some ethnic groups.",
   "statement": null,
@@ -9520,13 +10226,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_31_ef66ab331",
+  "qid": "S22_31_q2",
   "source": {
    "session": "S22",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways that ethnicity may influence a pupil’s experience of school.",
   "statement": null,
@@ -9539,13 +10245,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_31_edb446a3a",
+  "qid": "S24_31_q2",
   "source": {
    "session": "S24",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons why cultural differences between ethnic groups may affect their educational attainment.",
   "statement": null,
@@ -9558,13 +10264,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S25_32_e0468a319",
+  "qid": "S25_32_q2",
   "source": {
    "session": "S25",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways racism can affect attainment in schools.",
   "statement": null,
@@ -9577,13 +10283,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W23_32_e5e9916a2",
+  "qid": "W23_32_q3",
   "source": {
    "session": "W23",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "3"
   },
   "stem": "‘The lower educational attainment of some ethnic groups is due to the culture of those ethnic groups.’Using sociological material, give two arguments against this view.",
   "statement": "The lower educational attainment of some ethnic groups is due to the culture of those ethnic groups.",
@@ -9596,13 +10302,13 @@
   "kind": "statement"
  },
  {
-  "qid": "S24_33_ef5e0bda9",
+  "qid": "S24_33_q3",
   "source": {
    "session": "S24",
    "paper": 3,
    "variant": 3,
    "comp": "33",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Ethnicity has limited impact on educational attainment.’Using sociological material, give two arguments against this view.",
   "statement": "Ethnicity has limited impact on educational attainment.",
@@ -9615,13 +10321,13 @@
   "kind": "statement"
  },
  {
-  "qid": "M25_32_e8cbfafde",
+  "qid": "M25_32_q3",
   "source": {
    "session": "M25",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "3"
   },
   "stem": "‘All ethnic groups have the same experience of education.’Using sociological material, give two arguments against this view.",
   "statement": "All ethnic groups have the same experience of education.",
@@ -9634,13 +10340,13 @@
   "kind": "statement"
  },
  {
-  "qid": "S22_32_ed0a70dda",
+  "qid": "S22_32_q4",
   "source": {
    "session": "S22",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that ethnicity is the most important influence on educational attainment.",
   "statement": null,
@@ -9653,16 +10359,16 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_32_e7176e7da",
+  "qid": "S26_32_q3",
   "source": {
    "session": "S26",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "3"
   },
   "stem": "‘A pupil’s ethnicity has no impact on their educational attainment at school.’",
-  "statement": "A pupil",
+  "statement": "A pupil’s ethnicity has no impact on their educational attainment at school.",
   "marks": "12",
   "topics": [
    "Social stratifications and educational attainment",
@@ -9672,13 +10378,13 @@
   "kind": "statement"
  },
  {
-  "qid": "S22_31_ea77f701c",
+  "qid": "S22_31_q1",
   "source": {
    "session": "S22",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways education can contribute to a country’s economy.",
   "statement": null,
@@ -9691,13 +10397,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_31_e06f7e5c0",
+  "qid": "S23_31_q1",
   "source": {
    "session": "S23",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two examples of how education reinforces social values.",
   "statement": null,
@@ -9710,13 +10416,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_32_efdec6e87",
+  "qid": "S23_32_q1",
   "source": {
    "session": "S23",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways that education contributes to the economy.",
   "statement": null,
@@ -9729,13 +10435,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_33_ebd2c3f52",
+  "qid": "S23_33_q1",
   "source": {
    "session": "S23",
    "paper": 3,
    "variant": 3,
    "comp": "33",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways that schools contribute to socialisation.",
   "statement": null,
@@ -9748,13 +10454,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W21_32_e00901683",
+  "qid": "W21_32_q3",
   "source": {
    "session": "W21",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "3"
   },
   "stem": "‘The main purpose of education is the personal development of each individual pupil.’Using sociological material, give two arguments against this view.",
   "statement": "The main purpose of education is the personal development of each individual pupil.",
@@ -9767,13 +10473,13 @@
   "kind": "statement"
  },
  {
-  "qid": "S22_32_e204c2321",
+  "qid": "S22_32_q3",
   "source": {
    "session": "S22",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "3"
   },
   "stem": "‘The education system maintains the existing social order.’Using sociological material, give two arguments against this view.",
   "statement": "The education system maintains the existing social order.",
@@ -9786,13 +10492,13 @@
   "kind": "statement"
  },
  {
-  "qid": "S23_32_eeb6ae377",
+  "qid": "S23_32_q3",
   "source": {
    "session": "S23",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "3"
   },
   "stem": "‘The main function of education is to help create social solidarity.’Using sociological material, give two arguments against this view.",
   "statement": "The main function of education is to help create social solidarity.",
@@ -9805,13 +10511,13 @@
   "kind": "statement"
  },
  {
-  "qid": "W23_31_ed80dc825",
+  "qid": "W23_31_q3",
   "source": {
    "session": "W23",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Schools are an effective agency of social control.’Using sociological material, give two arguments against this view.",
   "statement": "Schools are an effective agency of social control.",
@@ -9824,13 +10530,13 @@
   "kind": "statement"
  },
  {
-  "qid": "S25_31_e105e6149",
+  "qid": "S25_31_q3",
   "source": {
    "session": "S25",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Education is for the benefit of the individual rather than society.’Using sociological material, give two arguments against this view.",
   "statement": "Education is for the benefit of the individual rather than society.",
@@ -9843,13 +10549,13 @@
   "kind": "statement"
  },
  {
-  "qid": "W21_31_eae974cd0",
+  "qid": "W21_31_q4",
   "source": {
    "session": "W21",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that the main purpose of education is to maintain the economic system.",
   "statement": null,
@@ -9862,13 +10568,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_31_e5efe1b92",
+  "qid": "S22_31_q4",
   "source": {
    "session": "S22",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the functionalist view that schools help to maintain the social system.",
   "statement": null,
@@ -9881,13 +10587,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W22_31_e980c0f98",
+  "qid": "W22_31_q4",
   "source": {
    "session": "W22",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that education contributes to social solidarity.",
   "statement": null,
@@ -9900,13 +10606,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W22_32_e9463896d",
+  "qid": "W22_32_q4",
   "source": {
    "session": "W22",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that the role of education is to allocate young people to suitable occupations.",
   "statement": null,
@@ -9919,13 +10625,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M23_32_ec90f9583",
+  "qid": "M23_32_q4",
   "source": {
    "session": "M23",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the functionalist view of the role of education in society.",
   "statement": null,
@@ -9938,13 +10644,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_33_e82dcf6dc",
+  "qid": "S24_33_q4",
   "source": {
    "session": "S24",
    "paper": 3,
    "variant": 3,
    "comp": "33",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that education enables working-class pupils to achieve upward social mobility.",
   "statement": null,
@@ -9957,13 +10663,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M24_32_e7b8978a2",
+  "qid": "M24_32_q4",
   "source": {
    "session": "M24",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that education is an agent of social control.",
   "statement": null,
@@ -9976,13 +10682,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_32_e80fdafc8",
+  "qid": "S24_32_q4",
   "source": {
    "session": "S24",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that the main function of education is to allocate individuals to appropriate roles in society.",
   "statement": null,
@@ -9995,13 +10701,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W24_31_e2a82e06a",
+  "qid": "W24_31_q4",
   "source": {
    "session": "W24",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that the role of education is to provide economic benefits for society.",
   "statement": null,
@@ -10014,13 +10720,32 @@
   "kind": "plain"
  },
  {
-  "qid": "W24_32_e388f5cbd",
+  "qid": "W24_33_q4",
+  "source": {
+   "session": "W24",
+   "paper": 3,
+   "variant": 3,
+   "comp": "33",
+   "q": "4"
+  },
+  "stem": "Evaluate the view that the role of education is to provide economic benefits for society.",
+  "statement": null,
+  "marks": "26",
+  "topics": [
+   "Functions of education",
+   "Functionalism"
+  ],
+  "marksTotal": 26,
+  "kind": "plain"
+ },
+ {
+  "qid": "W24_32_q4",
   "source": {
    "session": "W24",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that the main function of education is to maintain social solidarity.",
   "statement": null,
@@ -10033,13 +10758,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S25_32_e42d5c3a3",
+  "qid": "S25_32_q4",
   "source": {
    "session": "S25",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that education contributes to value consensus.",
   "statement": null,
@@ -10052,13 +10777,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M26_32_e5c49163d",
+  "qid": "M26_32_q1",
   "source": {
    "session": "M26",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways schools promote value consensus.",
   "statement": null,
@@ -10071,13 +10796,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_32_e10ff8269",
+  "qid": "S26_32_q2",
   "source": {
    "session": "S26",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons why schools may be unsuccessful in teaching the norms of society to all pupils.",
   "statement": null,
@@ -10090,13 +10815,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M26_32_ef9afb4ad",
+  "qid": "M26_32_q3",
   "source": {
    "session": "M26",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Education ensures that the important roles in society are filled by the most suitable people.’",
   "statement": "Education ensures that the important roles in society are filled by the most suitable people.",
@@ -10109,13 +10834,13 @@
   "kind": "statement"
  },
  {
-  "qid": "S26_31_e78dff4d2",
+  "qid": "S26_31_q4",
   "source": {
    "session": "S26",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that the purpose of education is to provide economic benefits for society.",
   "statement": null,
@@ -10128,13 +10853,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_33_e8da15ea9",
+  "qid": "S26_33_q4",
   "source": {
    "session": "S26",
    "paper": 3,
    "variant": 3,
    "comp": "33",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that education systems ensure that the workforce has appropriate skills and attitudes.",
   "statement": null,
@@ -10147,13 +10872,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S21_31_e3772018b",
+  "qid": "S21_31_q1",
   "source": {
    "session": "S21",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two examples of how schools reflect the capitalist workplace.",
   "statement": null,
@@ -10166,13 +10891,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M21_32_e81cfa33e",
+  "qid": "M21_32_q4",
   "source": {
    "session": "M21",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that education systems are a barrier to social mobility.",
   "statement": null,
@@ -10185,13 +10910,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S21_32_e14edd5b2",
+  "qid": "S21_32_q4",
   "source": {
    "session": "S21",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that education is an instrument of ideological control.",
   "statement": null,
@@ -10204,13 +10929,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M22_32_e79179fbd",
+  "qid": "M22_32_q4",
   "source": {
    "session": "M22",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the Marxist view that the role of education is to prepare young people to accept their position in an unequal society.",
   "statement": null,
@@ -10223,13 +10948,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_33_e32333a18",
+  "qid": "S22_33_q4",
   "source": {
    "session": "S22",
    "paper": 3,
    "variant": 3,
    "comp": "33",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that schools successfully impose ideological control on pupils.",
   "statement": null,
@@ -10242,13 +10967,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S23_33_ebaa9536d",
+  "qid": "S23_33_q4",
   "source": {
    "session": "S23",
    "paper": 3,
    "variant": 3,
    "comp": "33",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the Marxist view that education system legitimises inequality.",
   "statement": null,
@@ -10261,13 +10986,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W23_32_e4fa971eb",
+  "qid": "W23_32_q4",
   "source": {
    "session": "W23",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the Marxist view that education supports the capitalist economic system.",
   "statement": null,
@@ -10280,13 +11005,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S24_31_e8d8ffbfe",
+  "qid": "S24_31_q4",
   "source": {
    "session": "S24",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the Marxist view that education serves the interests of capitalism.",
   "statement": null,
@@ -10299,13 +11024,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M25_32_e1c42cc12",
+  "qid": "M25_32_q4",
   "source": {
    "session": "M25",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that education helps to maintain the capitalist economic system.",
   "statement": null,
@@ -10318,13 +11043,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_32_eaf215dac",
+  "qid": "S26_32_q1",
   "source": {
    "session": "S26",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways schools prepare some pupils for working-class jobs.",
   "statement": null,
@@ -10337,13 +11062,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M26_32_e1dfeb9d3",
+  "qid": "M26_32_q2",
   "source": {
    "session": "M26",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two ways the interests of the powerful can influence the curriculum.",
   "statement": null,
@@ -10356,13 +11081,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_32_e83343a26",
+  "qid": "S26_32_q4",
   "source": {
    "session": "S26",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the Marxist view that education systems legitimise social inequality.",
   "statement": null,
@@ -10375,13 +11100,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M24_32_ee5165db5",
+  "qid": "M24_32_q1",
   "source": {
    "session": "M24",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two problems in measuring intelligence.",
   "statement": null,
@@ -10393,13 +11118,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W24_31_ec8507e06",
+  "qid": "W24_31_q1",
   "source": {
    "session": "W24",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two problems in using IQ tests to measure educational ability.",
   "statement": null,
@@ -10411,13 +11136,31 @@
   "kind": "plain"
  },
  {
-  "qid": "S25_33_e0d706e27",
+  "qid": "W24_33_q1",
+  "source": {
+   "session": "W24",
+   "paper": 3,
+   "variant": 3,
+   "comp": "33",
+   "q": "1"
+  },
+  "stem": "Describe two problems in using IQ tests to measure educational ability.",
+  "statement": null,
+  "marks": "4",
+  "topics": [
+   "Intelligence"
+  ],
+  "marksTotal": 4,
+  "kind": "plain"
+ },
+ {
+  "qid": "S25_33_q1",
   "source": {
    "session": "S25",
    "paper": 3,
    "variant": 3,
    "comp": "33",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two limitations of IQ tests as a measure of intelligence.",
   "statement": null,
@@ -10429,13 +11172,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_33_eb5a788e2",
+  "qid": "S22_33_q2",
   "source": {
    "session": "S22",
    "paper": 3,
    "variant": 3,
    "comp": "33",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons why intelligence tests may not accurately measure educational ability.",
   "statement": null,
@@ -10447,13 +11190,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S25_31_e8462b848",
+  "qid": "S25_31_q2",
   "source": {
    "session": "S25",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "2"
   },
   "stem": "Explain two reasons why performance in IQ tests can be influenced by social factors.",
   "statement": null,
@@ -10465,13 +11208,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_31_e34320b85",
+  "qid": "S22_31_q3",
   "source": {
    "session": "S22",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "3"
   },
   "stem": "‘IQ tests are a good indicator of educational ability.’Using sociological material, give two arguments against this view.",
   "statement": "IQ tests are a good indicator of educational ability.",
@@ -10483,13 +11226,13 @@
   "kind": "statement"
  },
  {
-  "qid": "M23_32_e5cf08d90",
+  "qid": "M23_32_q3",
   "source": {
    "session": "M23",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "3"
   },
   "stem": "‘IQ tests are an accurate measure of educational potential.’Using sociological material, give two arguments against this view.",
   "statement": "IQ tests are an accurate measure of educational potential.",
@@ -10501,13 +11244,13 @@
   "kind": "statement"
  },
  {
-  "qid": "S25_32_ed8f80d3c",
+  "qid": "S25_32_q3",
   "source": {
    "session": "S25",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "3"
   },
   "stem": "‘IQ tests are a fair measure of educational ability.’Using sociological material, give two arguments against this view.",
   "statement": "IQ tests are a fair measure of educational ability.",
@@ -10519,13 +11262,13 @@
   "kind": "statement"
  },
  {
-  "qid": "S21_31_ef2269319",
+  "qid": "S21_31_q4",
   "source": {
    "session": "S21",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "4"
   },
   "stem": "Evaluate the view that intelligence is the main factor influencing educational achievement.",
   "statement": null,
@@ -10537,13 +11280,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S26_31_e82784f2b",
+  "qid": "S26_31_q1",
   "source": {
    "session": "S26",
    "paper": 3,
    "variant": 1,
    "comp": "31",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two ways IQ tests might discriminate against some ethnic groups.",
   "statement": null,
@@ -10555,13 +11298,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S21_33_e3cd4fa6c",
+  "qid": "S21_33_q1",
   "source": {
    "session": "S21",
    "paper": 3,
    "variant": 3,
    "comp": "33",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two education policies designed to help disadvantaged pupils.",
   "statement": null,
@@ -10573,13 +11316,13 @@
   "kind": "plain"
  },
  {
-  "qid": "M22_32_efaf44917",
+  "qid": "M22_32_q1",
   "source": {
    "session": "M22",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two examples of education policies that aim to reduce inequality.",
   "statement": null,
@@ -10591,13 +11334,13 @@
   "kind": "plain"
  },
  {
-  "qid": "W23_32_e78e04605",
+  "qid": "W23_32_q1",
   "source": {
    "session": "W23",
    "paper": 3,
    "variant": 2,
    "comp": "32",
-   "q": null
+   "q": "1"
   },
   "stem": "Describe two examples of how education can be a commodity for private profit.",
   "statement": null,
@@ -10609,13 +11352,13 @@
   "kind": "plain"
  },
  {
-  "qid": "S22_33_e53886cc5",
+  "qid": "S22_33_q3",
   "source": {
    "session": "S22",
    "paper": 3,
    "variant": 3,
    "comp": "33",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Choice and competition between schools leads to greater equality in educational attainment.’Using sociological material, give two arguments against this view.",
   "statement": "Choice and competition between schools leads to greater equality in educational attainment.",
@@ -10627,13 +11370,13 @@
   "kind": "statement"
  },
  {
-  "qid": "S25_33_ed1f92253",
+  "qid": "S25_33_q3",
   "source": {
    "session": "S25",
    "paper": 3,
    "variant": 3,
    "comp": "33",
-   "q": null
+   "q": "3"
   },
   "stem": "‘Marketisation in education increases equality of opportunity.’Using sociological material, give two arguments against this view.",
   "statement": "Marketisation in education increases equality of opportunity.",
@@ -11801,8 +12544,7 @@
   "statement": "The media successfully controls the way people think and behave.",
   "marks": "35",
   "topics": [
-   "Models of media effects (influencing human behaviours)",
-   "Influence"
+   "Models of media effects (influencing human behaviours)"
   ],
   "marksTotal": 35,
   "kind": "statement"
@@ -11820,8 +12562,7 @@
   "statement": "The hypodermic syringe model accurately describes how people are influenced by the media.",
   "marks": "35",
   "topics": [
-   "Models of media effects (influencing human behaviours)",
-   "Influence"
+   "Models of media effects (influencing human behaviours)"
   ],
   "marksTotal": 35,
   "kind": "statement"
@@ -11839,8 +12580,7 @@
   "statement": "The two-step flow model accurately describes how people are influenced by the media.",
   "marks": "35",
   "topics": [
-   "Models of media effects (influencing human behaviours)",
-   "Influence"
+   "Models of media effects (influencing human behaviours)"
   ],
   "marksTotal": 35,
   "kind": "statement"
@@ -11858,8 +12598,7 @@
   "statement": "The media has a significant influence on how people behave.",
   "marks": "35",
   "topics": [
-   "Models of media effects (influencing human behaviours)",
-   "Influence"
+   "Models of media effects (influencing human behaviours)"
   ],
   "marksTotal": 35,
   "kind": "statement"
@@ -11877,8 +12616,7 @@
   "statement": "There is clear evidence that the media has a direct impact on human behaviour.",
   "marks": "35",
   "topics": [
-   "Models of media effects (influencing human behaviours)",
-   "Influence"
+   "Models of media effects (influencing human behaviours)"
   ],
   "marksTotal": 35,
   "kind": "statement"
@@ -11896,8 +12634,7 @@
   "statement": "The cultural effects model has many strengths and few limitations.",
   "marks": "35",
   "topics": [
-   "Models of media effects (influencing human behaviours)",
-   "Influence"
+   "Models of media effects (influencing human behaviours)"
   ],
   "marksTotal": 35,
   "kind": "statement"
@@ -11915,8 +12652,7 @@
   "statement": "The cultural effects model provides the best explanation of how the media influences behaviour.",
   "marks": "35",
   "topics": [
-   "Models of media effects (influencing human behaviours)",
-   "Influence"
+   "Models of media effects (influencing human behaviours)"
   ],
   "marksTotal": 35,
   "kind": "statement"
@@ -11934,10 +12670,7 @@
   "statement": "The two-step flow model provides the best explanation of media influence.",
   "marks": "35",
   "topics": [
-   "Models of media effects (influencing human behaviours)",
-   "Influence",
-   "Other theoretical aspects of media",
-   "Conventional and Neo-Marxism"
+   "Models of media effects (influencing human behaviours)"
   ],
   "marksTotal": 35,
   "kind": "statement"
@@ -11955,8 +12688,7 @@
   "statement": "The media is able to shape the way people think and behave.",
   "marks": "35",
   "topics": [
-   "Models of media effects (influencing human behaviours)",
-   "Influence"
+   "Models of media effects (influencing human behaviours)"
   ],
   "marksTotal": 35,
   "kind": "statement"
@@ -11974,8 +12706,7 @@
   "statement": "The media has a direct and powerful influence on human behaviour.",
   "marks": "35",
   "topics": [
-   "Models of media effects (influencing human behaviours)",
-   "Influence"
+   "Models of media effects (influencing human behaviours)"
   ],
   "marksTotal": 35,
   "kind": "statement"
@@ -11993,8 +12724,7 @@
   "statement": "Evidence clearly shows that media content has a direct impact on human behaviour.",
   "marks": "35",
   "topics": [
-   "Models of media effects (influencing human behaviours)",
-   "Influence"
+   "Models of media effects (influencing human behaviours)"
   ],
   "marksTotal": 35,
   "kind": "statement"
@@ -12012,8 +12742,7 @@
   "statement": "The hypodermic syringe model provides the best explanation of how the media influences behaviour.",
   "marks": "35",
   "topics": [
-   "Models of media effects (influencing human behaviours)",
-   "Influence"
+   "Models of media effects (influencing human behaviours)"
   ],
   "marksTotal": 35,
   "kind": "statement"
@@ -12031,8 +12760,7 @@
   "statement": "The influence of the media on human behaviour is best explained by the concept of mass manipulation.",
   "marks": "35",
   "topics": [
-   "Models of media effects (influencing human behaviours)",
-   "Influence"
+   "Models of media effects (influencing human behaviours)"
   ],
   "marksTotal": 35,
   "kind": "statement"
@@ -12050,8 +12778,7 @@
   "statement": "Studies show that the media has a direct influence on human behaviour.",
   "marks": "35",
   "topics": [
-   "Models of media effects (influencing human behaviours)",
-   "Influence"
+   "Models of media effects (influencing human behaviours)"
   ],
   "marksTotal": 35,
   "kind": "statement"
@@ -12069,8 +12796,7 @@
   "statement": "There is no clear evidence that human behaviour is influenced by the media.",
   "marks": "35",
   "topics": [
-   "Models of media effects (influencing human behaviours)",
-   "No influence"
+   "Models of media effects (influencing human behaviours)"
   ],
   "marksTotal": 35,
   "kind": "statement"
@@ -12088,8 +12814,7 @@
   "statement": "Research evidence suggests that the media has little impact on behaviour.",
   "marks": "35",
   "topics": [
-   "Models of media effects (influencing human behaviours)",
-   "No influence"
+   "Models of media effects (influencing human behaviours)"
   ],
   "marksTotal": 35,
   "kind": "statement"
@@ -12107,8 +12832,7 @@
   "statement": "There is no clear evidence that the media influences social behaviour.",
   "marks": "35",
   "topics": [
-   "Models of media effects (influencing human behaviours)",
-   "No influence"
+   "Models of media effects (influencing human behaviours)"
   ],
   "marksTotal": 35,
   "kind": "statement"
@@ -12126,8 +12850,7 @@
   "statement": "The media does not have a direct impact on human behaviour.",
   "marks": "35",
   "topics": [
-   "Models of media effects (influencing human behaviours)",
-   "No influence"
+   "Models of media effects (influencing human behaviours)"
   ],
   "marksTotal": 35,
   "kind": "statement"
@@ -12145,8 +12868,7 @@
   "statement": "The uses and gratifications model accurately describes how people are influenced by the media.",
   "marks": "35",
   "topics": [
-   "Models of media effects (influencing human behaviours)",
-   "No influence"
+   "Models of media effects (influencing human behaviours)"
   ],
   "marksTotal": 35,
   "kind": "statement"
@@ -12164,8 +12886,7 @@
   "statement": "There is little evidence that the media influences the way people think and behave.",
   "marks": "35",
   "topics": [
-   "Models of media effects (influencing human behaviours)",
-   "No influence"
+   "Models of media effects (influencing human behaviours)"
   ],
   "marksTotal": 35,
   "kind": "statement"
@@ -12298,8 +13019,7 @@
   "marks": "35",
   "topics": [
    "Who influence / control media contents",
-   "All groups (Pluralism)",
-   "Capitalist ruling class / Media Conglomerates (Marxism)"
+   "All groups (Pluralism)"
   ],
   "marksTotal": 35,
   "kind": "statement"
@@ -12432,9 +13152,7 @@
   "marks": "35",
   "topics": [
    "Who influence / control media contents",
-   "Capitalist ruling class / Media Conglomerates (Marxism)",
-   "Media (mis)representations of social identities",
-   "Gender"
+   "Capitalist ruling class / Media Conglomerates (Marxism)"
   ],
   "marksTotal": 35,
   "kind": "statement"
@@ -12488,6 +13206,25 @@
   },
   "stem": "‘Media content reflects the interests of the rich and powerful.’ Evaluate this view.",
   "statement": "Media content reflects the interests of the rich and powerful.",
+  "marks": "35",
+  "topics": [
+   "Who influence / control media contents",
+   "Capitalist ruling class / Media Conglomerates (Marxism)"
+  ],
+  "marksTotal": 35,
+  "kind": "statement"
+ },
+ {
+  "qid": "S24_42_q4_e6364",
+  "source": {
+   "session": "S24",
+   "paper": 4,
+   "variant": 2,
+   "comp": "42",
+   "q": "4"
+  },
+  "stem": "‘The new media is controlled by large media conglomerates.’ Evaluate this view.",
+  "statement": "The new media is controlled by large media conglomerates.",
   "marks": "35",
   "topics": [
    "Who influence / control media contents",
@@ -12639,7 +13376,7 @@
    "q": "3"
   },
   "stem": "‘Postmodernists are right in claiming that the media plays a central role in people’s lives today.’ Evaluate this view.",
-  "statement": "Postmodernists are right in claiming that the media plays a central role in people",
+  "statement": "Postmodernists are right in claiming that the media plays a central role in people’s lives today.",
   "marks": "35",
   "topics": [
    "Other theoretical aspects of media",
@@ -12677,11 +13414,30 @@
    "q": "3"
   },
   "stem": "‘Postmodernists have exaggerated the influence of the media in people’s lives today.’ Evaluate this view.",
-  "statement": "Postmodernists have exaggerated the influence of the media in people",
+  "statement": "Postmodernists have exaggerated the influence of the media in people’s lives today.",
   "marks": "35",
   "topics": [
    "Other theoretical aspects of media",
    "Postmodernism"
+  ],
+  "marksTotal": 35,
+  "kind": "statement"
+ },
+ {
+  "qid": "S23_42_q4_e24c0",
+  "source": {
+   "session": "S23",
+   "paper": 4,
+   "variant": 2,
+   "comp": "42",
+   "q": "4"
+  },
+  "stem": "‘The media is an agent of ideological control.’ Evaluate this view.",
+  "statement": "The media is an agent of ideological control.",
+  "marks": "35",
+  "topics": [
+   "Other theoretical aspects of media",
+   "Conventional and Neo-Marxism"
   ],
   "marksTotal": 35,
   "kind": "statement"
@@ -12887,6 +13643,25 @@
   },
   "stem": "‘Media representations of women reflect gender stereotypes.’ Evaluate this view.",
   "statement": "Media representations of women reflect gender stereotypes.",
+  "marks": "35",
+  "topics": [
+   "Media (mis)representations of social identities",
+   "Gender"
+  ],
+  "marksTotal": 35,
+  "kind": "statement"
+ },
+ {
+  "qid": "S23_43_q4_e5300",
+  "source": {
+   "session": "S23",
+   "paper": 4,
+   "variant": 3,
+   "comp": "43",
+   "q": "4"
+  },
+  "stem": "‘Representations of women in the media reflect patriarchal values.’ Evaluate this view.",
+  "statement": "Representations of women in the media reflect patriarchal values.",
   "marks": "35",
   "topics": [
    "Media (mis)representations of social identities",

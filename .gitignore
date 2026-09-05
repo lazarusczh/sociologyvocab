@@ -88,6 +88,11 @@ app/public/cloze-data.json
 cloze-p4.json
 挖空试验.md
 
+# mark scheme 切段数据（CIE 官方 ms 派生，含题干原文与评分细则，教师教学 IP，不纳入公开备份；
+# 由 pdf-text/extract_ms_all.py + parse_ms.py 生成）
+ms-data.json
+pdf-text/ms/
+
 # UI 设计参考图（Ardot 画布导出 PNG，教师产品设计想法与知识产权，不纳入公开备份；
 # 同目录的 README.md 索引与 tokens.css 设计规范入库，便于开发对照）
 ui-refs/*.png
