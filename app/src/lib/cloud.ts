@@ -389,3 +389,128 @@ export async function listMySubmissions(userId: string): Promise<{ sub: QuizSubm
   const quizMap = new Map(((quizzes ?? []) as Quiz[]).map((q) => [q.id, q]));
   return list.map((sub) => ({ sub, quiz: quizMap.get(sub.quiz_id) ?? null }));
 }
+
+// ---- 题库 / mark scheme（组卷器数据底座，2026-09-05）----
+export interface QbRow {
+  qid: string;
+  session: string;
+  paper: number;
+  variant: number;
+  comp: string;
+  q: string | null;
+  stem: string;
+  statement: string | null;
+  marks: string;
+  marks_total: number;
+  kind: string;
+  parts: unknown;
+  topics: string[];
+  note?: string | null;
+}
+export interface QbFilter {
+  paper?: number;
+  session?: string;
+  kind?: string;
+  marks?: string;
+  topic?: string;
+}
+
+export async function listQuestionBank(f?: QbFilter): Promise<QbRow[]> {
+  let q = supabase.from('question_bank').select('*').order('paper').order('session').order('comp');
+  if (f?.paper) q = q.eq('paper', f.paper);
+  if (f?.session) q = q.eq('session', f.session);
+  if (f?.kind) q = q.eq('kind', f.kind);
+  if (f?.marks) q = q.eq('marks', f.marks);
+  if (f?.topic) q = q.contains('topics', [f.topic]);
+  const { data, error } = await q.limit(2000);
+  if (error) throw error;
+  return (data ?? []) as QbRow[];
+}
+
+export interface MsSectionRow { q: string; page?: number | null; pdf_url?: string | null }
+
+export async function listMsSections(session: string, comp: string): Promise<MsSectionRow[]> {
+  const { data, error } = await supabase
+    .from('ms_sections')
+    .select('q,page,pdf_url')
+    .eq('session', session.toLowerCase())
+    .eq('comp', comp)
+    .order('q');
+  if (error) throw error;
+  return (data ?? []) as MsSectionRow[];
+}
+
+// ---- 组卷成绩（grouper_runs，2026-09-05）----
+
+// 单条成绩登记（registered=true 为已注册账号，key=`account:${user_id}`；false 为手动添加，key=`manual:<ts>`）
+export interface GrouperRunScore {
+  key: string;
+  name: string;
+  classId: string | null;  // '' / null = 未分班
+  registered: boolean;
+  raw: number | null;      // 卷面原始分，null = 未录入
+}
+
+// 已折算到当次满分的各等级原始分下限（A* 单独存 a_star）
+export interface GrouperThreshold { A: number; B: number; C: number; D: number; E: number }
+
+export interface GrouperRunRow {
+  id: string;
+  title: string;
+  mode: 'template' | 'single' | 'free';
+  paper: number;
+  template_label: string | null;
+  topic: string | null;
+  slots: unknown;                     // 解析为 AssembleSlot[]
+  full_raw: number;
+  thresholds: GrouperThreshold | null;
+  a_star: number | null;
+  scores: GrouperRunScore[];
+  created_by: string | null;
+  created_at: string;
+}
+
+export async function createGrouperRun(input: {
+  title: string;
+  mode: GrouperRunRow['mode'];
+  paper: number;
+  template_label: string | null;
+  topic: string | null;
+  slots: unknown;
+  full_raw: number;
+  thresholds: GrouperThreshold;
+  a_star: number | null;
+  created_by: string | null;
+}): Promise<string> {
+  const { data, error } = await supabase
+    .from('grouper_runs')
+    .insert({ ...input, scores: [] })
+    .select('id')
+    .single();
+  if (error) throw error;
+  return (data as { id: string }).id;
+}
+
+// 教师更新某次组卷：标题 / A* 门槛 / 成绩登记数组
+export async function updateGrouperRun(
+  runId: string,
+  patch: { title?: string; a_star?: number | null; scores?: GrouperRunScore[] },
+): Promise<void> {
+  const { error } = await supabase.from('grouper_runs').update(patch).eq('id', runId);
+  if (error) throw error;
+}
+
+// 教师查看自己创建的全部组卷记录（倒序）
+export async function listGrouperRuns(): Promise<GrouperRunRow[]> {
+  const { data, error } = await supabase
+    .from('grouper_runs')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as GrouperRunRow[];
+}
+
+export async function deleteGrouperRun(runId: string): Promise<void> {
+  const { error } = await supabase.from('grouper_runs').delete().eq('id', runId);
+  if (error) throw error;
+}

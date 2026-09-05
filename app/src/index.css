@@ -1342,3 +1342,47 @@ textarea { resize: vertical; min-height: 80px; }
 @media (max-width: 560px) {
   .ppt-toolbar { align-items: flex-start; flex-direction: column; }
 }
+
+/* ===== 组卷器控件（Grouper）——与其他按钮一致的圆角/尺寸 ===== */
+.grp-btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: var(--r-ctrl);
+  font-size: 0.82rem;
+  padding: 0.26rem 0.7rem;
+  cursor: pointer;
+  transition: background var(--dur-fast), border-color var(--dur-fast);
+}
+.grp-btn:hover { border-color: var(--accent); }
+.grp-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+.grp-go {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  border-radius: var(--r-ctrl);
+  font-size: 0.82rem;
+  padding: 0.26rem 0.8rem;
+  cursor: pointer;
+}
+.grp-go:hover { filter: brightness(0.96); }
+.grp-input {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: var(--r-ctrl);
+  font-size: 0.85rem;
+  padding: 0.24rem 0.5rem;
+}
+.grp-score-table { border-collapse: collapse; width: 100%; }
+.grp-score-table th, .grp-score-table td {
+  text-align: left; padding: 0.3rem 0.6rem;
+  border-bottom: 1px solid var(--border); font-size: 0.85rem;
+}
+.grp-score-table th { color: var(--text-muted); font-weight: 600; }
+.grp-score-table td input { width: 4.2rem; }
