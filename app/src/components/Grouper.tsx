@@ -9,6 +9,7 @@ import {
   bandLinear, buildRows, deriveRowsP1, scaleThresholds,
   type GtList, type ThresholdRows,
 } from '../lib/score';
+import { exportPaperToDocx } from '../lib/exportPaper';
 
 const toItem = (r: QbRow): BankItem => ({
   qid: r.qid,
@@ -275,6 +276,22 @@ export default function Grouper({ onOpenResults }: { onOpenResults?: () => void 
     }
   };
 
+  const doExport = () => {
+    if (!result) return;
+    const slots = mode === 'single'
+      ? (single ? [{ spec: { key: 'single', label: '单题布置', marks: single.marks, marksTotal: single.marksTotal, count: 1 }, items: [single] }] : [])
+      : result.slots;
+    void exportPaperToDocx({
+      title: defaultTitle(),
+      mode,
+      paper,
+      templateLabel: mode === 'template' ? (template?.label ?? null) : mode === 'single' ? '单题布置' : '目标凑分',
+      topic: topic.trim() || null,
+      slots,
+      extraNote: paper === 4 && mode === 'template' ? 'Answer two questions in total, each from a different section.' : null,
+    }).catch((e) => setError((e as Error).message || '导出失败'));
+  };
+
   return (
     <div>
       <div className="card" style={{ marginBottom: '0.8rem' }}>
@@ -345,6 +362,7 @@ export default function Grouper({ onOpenResults }: { onOpenResults?: () => void 
       {result && score && (
         <div className="row" style={{ gap: '0.4rem', flexWrap: 'wrap', margin: '0.5rem 0 0.6rem', alignItems: 'center' }}>
           {!saveOpen && <button className="grp-go" onClick={openSave}>保存本卷</button>}
+          {!saveOpen && <button className="grp-btn" onClick={doExport} title="按 Mock Exam draft 版式生成 Word 卷面">导出 Word</button>}
           {!saveOpen && savedMsg && <span className="badge success">{savedMsg}</span>}
           {!saveOpen && savedMsg && onOpenResults && (
             <button className="grp-btn" onClick={onOpenResults}>去「试卷成绩」登记成绩</button>
