@@ -24,6 +24,7 @@ export interface SlotSpec {
   kind?: BankItem['kind'];
   eitherOr?: boolean;     // 二选一展示（Q4/Q5、P4 每对）：多选一候选题放在同一槽
   sides?: boolean;        // statement-pair 成对（10+6）
+  unit?: 'globalisation' | 'media'; // P4 专用：该槽候选限定来自哪个真题语料
 }
 export interface Template {
   id: string;
@@ -78,11 +79,18 @@ export const TEMPLATES: Template[] = [
   {
     id: 'p4', label: 'Paper 4 全卷（70）', paper: 4,
     slots: [
-      { key: 'sec1', label: 'Section 一对 35（二选一）', marks: '35', marksTotal: 35, count: 2, eitherOr: true },
-      { key: 'sec2', label: 'Section 二对 35（二选一）', marks: '35', marksTotal: 35, count: 2, eitherOr: true },
+      { key: 'sec1', label: 'Section A（Globalisation）35 二选一', marks: '35', marksTotal: 35, count: 2, eitherOr: true, unit: 'globalisation' },
+      { key: 'sec2', label: 'Section B（Media）35 二选一', marks: '35', marksTotal: 35, count: 2, eitherOr: true, unit: 'media' },
     ],
   },
 ];
+
+/** P4 语料归属：按题目的主主题（topics[0]）判定来自 Globalisation 还是 Media 真题卷
+ *  Media 卷主主题均含 'media'（media effects / media representations / …），Globalisation 卷主主题不含；
+ *  两卷互斥、无交集（经 question-bank.json P4 全部 124 道 35 分题核验，60 vs 64）。 */
+export function p4UnitOf(it: Pick<BankItem, 'topics'>): 'globalisation' | 'media' {
+  return (it.topics[0] ?? '').toLowerCase().includes('media') ? 'media' : 'globalisation';
+}
 
 const shuffle = <T,>(a: T[], seed = Date.now()) => {
   const arr = [...a];
@@ -110,7 +118,10 @@ export function assembleTemplate(bank: BankItem[], template: Template, topicFilt
   const used = usedQids ? new Set(usedQids) : new Set<string>();
   const slots: AssembleSlot[] = [];
   for (const spec of template.slots) {
-    let cands = shuffle(pool.filter((it) => compatible(it, spec) && !used.has(it.qid)));
+    // P4：槽位带 unit 时，只在该语料（Globalisation/Media）内抽候选，保证一对候选同语料、两对分属两语料
+    let cands = shuffle(pool.filter((it) =>
+      compatible(it, spec) && !used.has(it.qid) && (!spec.unit || p4UnitOf(it) === spec.unit),
+    ));
     if (spec.eitherOr) cands = cands.slice(0, spec.count); // 二选一：取 count 道不同候选
     else cands = cands.slice(0, spec.count);
     for (const it of cands) used.add(it.qid);

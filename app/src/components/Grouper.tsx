@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useStore } from '../lib/store';
 import { listQuestionBank, createGrouperRun, type QbRow } from '../lib/cloud';
 import {
-  assembleTemplate, assembleToTarget, pickSingle, TEMPLATES,
+  assembleTemplate, assembleToTarget, pickSingle, TEMPLATES, p4UnitOf,
   type AssembleSlot, type BankItem, type PaperId,
 } from '../lib/grouper';
 import {
@@ -152,6 +152,7 @@ export default function Grouper({ onOpenResults }: { onOpenResults?: () => void 
       !used.has(it.qid) &&
       (!spec.kind || it.kind === spec.kind) &&
       it.marks === spec.marks &&
+      (!spec.unit || p4UnitOf(it) === spec.unit) &&
       (mode === 'template' ? it.source.paper === paper : true) &&
       (topic ? it.topics.includes(topic) : true),
     );

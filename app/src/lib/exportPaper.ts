@@ -139,10 +139,11 @@ export function buildBlocks(o: ExportOpts): Block[] {
   };
 
   if (isTemplate && o.paper === 4) {
-    // P4：Section A/B 各一个二选一 35 分槽
+    // P4：Section A（Globalisation）/ Section B（Media）各一个二选一 35 分槽
     if (o.extraNote) blocks.push(plain(o.extraNote, HEAD));
     o.slots.forEach((slot, i) => {
-      const header = `Section ${String.fromCharCode(65 + i)}`;
+      const theme = slot.spec.unit === 'media' ? 'Media' : slot.spec.unit === 'globalisation' ? 'Globalisation' : null;
+      const header = `Section ${String.fromCharCode(65 + i)}${theme ? `: ${theme}` : ''}`;
       addSectionHeader(header);
       blocks.push(...eitherBlocks(slot));
     });
