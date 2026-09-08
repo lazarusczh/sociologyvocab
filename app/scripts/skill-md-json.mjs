@@ -22,6 +22,8 @@
 //             cheatsheet: [{ heading, lines }] }]
 // }
 // 说明：每本各自保留词汇表/答题模式/速查表（重复无所谓），章节 id 带 slug 前缀避免跨本撞名。
+// 兼容层：顶层再放一份第一本的 chapters/glossary/patterns/cheatsheet 扁平字段，
+// 供尚未支持多本(books)的旧版前端（老 APK 等）读取，避免它们拿到新数据后变空白。
 import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, dirname, resolve, basename } from 'node:path';
 
@@ -149,6 +151,14 @@ if (input.toLowerCase().endsWith('.json')) {
 }
 
 const out = { generated: new Date().toISOString().slice(0, 10), books };
+// 兼容层：以第一本为默认书，同时写一份顶层扁平字段给旧前端
+const primary = books[0];
+if (primary) {
+  out.chapters = primary.chapters;
+  out.glossary = primary.glossary;
+  out.patterns = primary.patterns;
+  out.cheatsheet = primary.cheatsheet;
+}
 writeFileSync(outFile, JSON.stringify(out, null, 1), 'utf8');
 
 console.log(`已生成 ${outFile}`);
