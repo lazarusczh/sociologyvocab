@@ -24,6 +24,22 @@ export default function App() {
   const [skill, setSkill] = useState<SkillData | null>(null);
   const [route, setRoute] = useState(parseHash());
   const [menuOpen, setMenuOpen] = useState(false);
+  // 「本」分组手风琴：默认全收起，点书名展开；默认收起保持界面干净
+  const [openBooks, setOpenBooks] = useState<Record<string, boolean>>({});
+
+  // 路由命中某本（深链章节 / 索引页）时自动展开对应分组，避免选中项藏在折叠区外
+  useEffect(() => {
+    if (!skill) return;
+    const list = booksOf(skill);
+    let slug: string | null = route.chapter ? route.chapter.split('/')[0] : null;
+    if (!slug && route.tab && route.tab !== 'ask') slug = route.book ?? list[0]?.slug ?? null;
+    if (!slug || !list.some((b) => b.slug === slug)) {
+      // 老式单本 hash（章节无 slug 前缀）：兜底展开第一本
+      if (list.length === 1) slug = list[0].slug;
+      else return;
+    }
+    setOpenBooks((p) => (p[slug as string] ? p : { ...p, [slug as string]: true }));
+  }, [route, skill]);
 
   // 1) 恢复主站共享的登录会话
   useEffect(() => {
@@ -95,6 +111,10 @@ export default function App() {
   // 索引页（词汇表/答题模式/速查表）按本切换；未指定或 slug 无效时回落到第一本
   const activeBook: Book = books.find((b) => b.slug === route.book) ?? books[0];
 
+  // 折叠展开「本」分组：多本时默认收起，点击书名切换；单本恒展开（兼容数据未变前的形态）
+  const isBookOpen = (slug: string) => openBooks[slug] === true || books.length === 1;
+  const toggleBook = (slug: string) => setOpenBooks((p) => ({ ...p, [slug]: !p[slug] }));
+
   const closeMenu = () => setMenuOpen(false);
 
   return (
@@ -124,34 +144,52 @@ export default function App() {
           <button className={`nav-ask${tab === 'ask' ? ' active' : ''}`} onClick={() => { go('/ask'); closeMenu(); }}>
             💬 AI 问答
           </button>
-          {/* 纯文本与索引按「本」分组展示；AI 问答仍跨全部本检索 */}
-          {books.map((b) => (
-            <Fragment key={b.slug}>
-              <div className="nav-group-title">{b.label}</div>
-              {b.chapters.map((c) => (
-                <button key={c.id} className={chapter?.id === c.id ? 'active' : ''} onClick={() => { go(`/chapter/${c.id}`); closeMenu(); }}>
-                  {shortTitle(c.title)}
+          {/* 纯文本与索引按「本」分组展示（默认收起，点书名展开）；AI 问答仍跨全部本检索 */}
+          {books.map((b) => {
+            const open = isBookOpen(b.slug);
+            const inBook =
+              !!chapter?.id.startsWith(b.slug + '/') ||
+              (route.tab !== undefined && route.tab !== 'ask' && activeBook.slug === b.slug);
+            return (
+              <Fragment key={b.slug}>
+                <button
+                  className={`nav-book${open ? ' open' : ''}${inBook ? ' active' : ''}`}
+                  onClick={() => toggleBook(b.slug)}
+                  aria-expanded={open}
+                  title={b.label}
+                >
+                  <span className="nav-book-label">{b.label}</span>
+                  <span className="nav-book-arrow">▸</span>
                 </button>
-              ))}
-              <div className="nav-index">
-                {b.glossary.length > 0 && (
-                  <button className={tab === 'glossary' && activeBook.slug === b.slug ? 'active' : ''} onClick={() => { go(`/glossary/${b.slug}`); closeMenu(); }}>
-                    术语表（{b.glossary.length}）
-                  </button>
+                {open && (
+                  <div className="nav-book-body">
+                    {b.chapters.map((c) => (
+                      <button key={c.id} className={chapter?.id === c.id ? 'active' : ''} onClick={() => { go(`/chapter/${c.id}`); closeMenu(); }}>
+                        {shortTitle(c.title)}
+                      </button>
+                    ))}
+                    <div className="nav-index">
+                      {b.glossary.length > 0 && (
+                        <button className={tab === 'glossary' && activeBook.slug === b.slug ? 'active' : ''} onClick={() => { go(`/glossary/${b.slug}`); closeMenu(); }}>
+                          术语表（{b.glossary.length}）
+                        </button>
+                      )}
+                      {b.patterns.length > 0 && (
+                        <button className={tab === 'patterns' && activeBook.slug === b.slug ? 'active' : ''} onClick={() => { go(`/patterns/${b.slug}`); closeMenu(); }}>
+                          答题模式（{b.patterns.length}）
+                        </button>
+                      )}
+                      {b.cheatsheet.length > 0 && (
+                        <button className={tab === 'cheatsheet' && activeBook.slug === b.slug ? 'active' : ''} onClick={() => { go(`/cheatsheet/${b.slug}`); closeMenu(); }}>
+                          速查表
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 )}
-                {b.patterns.length > 0 && (
-                  <button className={tab === 'patterns' && activeBook.slug === b.slug ? 'active' : ''} onClick={() => { go(`/patterns/${b.slug}`); closeMenu(); }}>
-                    答题模式（{b.patterns.length}）
-                  </button>
-                )}
-                {b.cheatsheet.length > 0 && (
-                  <button className={tab === 'cheatsheet' && activeBook.slug === b.slug ? 'active' : ''} onClick={() => { go(`/cheatsheet/${b.slug}`); closeMenu(); }}>
-                    速查表
-                  </button>
-                )}
-              </div>
-            </Fragment>
-          ))}
+              </Fragment>
+            );
+          })}
         </nav>
         <div className="sidebar-foot">
           <button className="foot-btn back-home" onClick={goHome}>← 返回词汇 App</button>
@@ -171,7 +209,7 @@ export default function App() {
           </p>
         </header>
 
-        {!route.chapter && !route.tab && <ChapterList books={books} />}
+        {!route.chapter && !route.tab && <ChapterList books={books} openBooks={openBooks} onToggle={toggleBook} />}
 
         {chapter && <ChapterView chapter={chapter} />}
 
@@ -192,24 +230,55 @@ function Centered({ children }: { children: ReactNode }) {
   return <div className="center-wrap">{children}</div>;
 }
 
-function ChapterList({ books }: { books: Book[] }) {
+function ChapterList({
+  books,
+  openBooks,
+  onToggle,
+}: {
+  books: Book[];
+  openBooks: Record<string, boolean>;
+  onToggle: (slug: string) => void;
+}) {
+  const multi = books.length > 1;
+  const chapterList = (b: Book) => (
+    <ul className="chapter-list">
+      {b.chapters.map((c) => (
+        <li key={c.id}>
+          <a href={`#/chapter/${c.id}`}>
+            <span className="cl-title">{c.title}</span>
+            {c.tagline && <span className="cl-tag">{c.tagline}</span>}
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
   return (
     <>
-      {books.map((b) => (
-        <section key={b.slug} className="book-block">
-          {books.length > 1 && <h2 className="book-title">{b.label}</h2>}
-          <ul className="chapter-list">
-            {b.chapters.map((c) => (
-              <li key={c.id}>
-                <a href={`#/chapter/${c.id}`}>
-                  <span className="cl-title">{c.title}</span>
-                  {c.tagline && <span className="cl-tag">{c.tagline}</span>}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
+      {books.map((b) => {
+        const open = multi ? openBooks[b.slug] === true : true;
+        return (
+          <section key={b.slug} className="book-block">
+            {multi ? (
+              <>
+                <button
+                  className={`book-title${open ? ' open' : ''}`}
+                  onClick={() => onToggle(b.slug)}
+                  aria-expanded={open}
+                >
+                  <span>{b.label}</span>
+                  <span className="meta">
+                    {b.chapters.length} 章 · {b.glossary.length} 词
+                    <span className="arrow">▸</span>
+                  </span>
+                </button>
+                {open && <div className="book-body">{chapterList(b)}</div>}
+              </>
+            ) : (
+              chapterList(b)
+            )}
+          </section>
+        );
+      })}
     </>
   );
 }

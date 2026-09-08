@@ -1,7 +1,7 @@
 import { useRef, useState, type KeyboardEvent } from 'react'
 import { retrieve } from './retrieval'
 import { askStream } from './ask'
-import type { SkillData } from './data'
+import { booksOf, type SkillData } from './data'
 
 interface Msg {
   q: string;
@@ -79,7 +79,7 @@ export default function AskView({ skill }: { skill: SkillData }) {
   return (
     <section className="ask">
       <h2>AI 问答</h2>
-      <p className="ask-hint">基于教材知识库检索后作答，附引用出处；知识库未覆盖的内容会如实说明。</p>
+      <p className="ask-hint">基于 {booksOf(skill).length} 本教材语料跨本检索作答，同一概念会并列各书说法；附引用出处，未覆盖内容如实说明。</p>
 
       {msgs.length === 0 && (
         <div className="ask-empty">

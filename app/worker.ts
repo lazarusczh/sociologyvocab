@@ -8,11 +8,26 @@ interface Env {
   AI: Ai;
   SUPABASE_URL: string;
   SUPABASE_ANON_KEY: string;
+  MODELSCOPE_API_KEY?: string; // 魔搭免费 API key（经 secret put 注入，不落代码）
 }
 
 const WB_BASE = 'https://api.worldbank.org';
 // 注意：若换模型需确保在 `npx wrangler ai models list` 中可用
 const CHAT_MODEL = '@cf/meta/llama-3.1-8b-instruct-fp8';
+
+// ===== ModelScope 魔粒多级路由 =====
+// 免费策略：每日 ~250 魔粒；主流档 1 魔粒/次，旗舰档 2 魔粒/次（2026-09 口径）
+const MS_URL = 'https://api-inference.modelscope.cn/v1/chat/completions';
+// hybrid 模型：enable_thinking=false 走快速直答（日常主力），true 走思考链
+const MS_MAIN = 'Qwen/Qwen3-235B-A22B';
+// 独立思考模型（1 魔粒/次）：评估/AO3/对比题用，比 hybrid 思考版更新更强
+const MS_THINK = 'Qwen/Qwen3-235B-A22B-Thinking-2507';
+// 旗舰档（2 魔粒/次）：目前仅作预留，需要高质量顶格输出时再并入链
+const MS_V4 = 'deepseek-ai/DeepSeek-V4-Flash-0731';
+
+// 评估/对比类问题意图词（命中→思考模型）；日常直答模型只用于其余问题
+const HARD_RE =
+  /评估|评价|比较|对比|争议|批判|正反|优劣|优缺点|利弊|观点|同意|反对|AO3|assess|evaluate|compare|contrast|critic|strength|weakness|merit|limitation|advantage|disadvantage|judge|argue|debate/i;
 
 // 校验 Supabase access token：调 auth/v1/user，返回用户 id；无效返回 null
 async function verifyUser(token: string, env: Env): Promise<string | null> {
@@ -86,24 +101,38 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
   const messages: AiMessage[] = [];
   if (system) messages.push({ role: 'system', content: system });
   const userContent = context
-    ? `以下是从教材知识库检索到的相关材料（供作答依据）：\n\n${context}\n\n---\n\n学生提问：${question}\n\n请基于上述材料作答；材料没有覆盖的部分请明确说明「知识库未覆盖」，不要编造。回答尽量精炼、分点、便于 A Level 学生理解，并在回答末尾用「出处」列出你引用的章节/术语。`
+    ? `以下是从教材知识库检索到的相关材料（供作答依据）：\n\n${context}\n\n---\n\n学生提问：${question}\n\n请基于上述材料作答；材料没有覆盖的部分请明确说明「知识库未覆盖」，不要编造。作答要信息量充足、结构清晰（定义→机制→证据→需要时评价），概念与理论题请展开说明，不要只给一句释义或写成翻译。引用各书说法时行内注明书名即可，不要在正文额外列出「出处」清单——页面底部会单独展示出处。`
     : `学生提问：${question}`;
   messages.push({ role: 'user', content: userContent });
 
-  // 4) 流式调用 Workers AI（qwen3，MoE 低成本高中文质量）
+  // 4) 主链路：ModelScope（魔搭，免费魔粒）
+  //    日常题 → Qwen3 hybrid 快速直答；评估/对比类 → Thinking-2507；任一失败自动降级
+  const sseHeaders = {
+    'Content-Type': 'text/event-stream; charset=utf-8',
+    'Cache-Control': 'no-cache',
+    'X-Accel-Buffering': 'no',
+  } as const;
+  const msKey = env.MODELSCOPE_API_KEY;
+  if (msKey) {
+    const hard = HARD_RE.test(question);
+    if (hard) {
+      const think = await msAsk(MS_THINK, messages, msKey, { maxTokens: 2400 });
+      if (think) return new Response(think.body, { headers: sseHeaders });
+    }
+    const main = await msAsk(MS_MAIN, messages, msKey, { thinking: false, temperature: 0.6 });
+    if (main) return new Response(main.body, { headers: sseHeaders });
+  }
+
+  // 5) 兜底：Workers AI（免费 neurons 额度内，成本趋零）
   try {
     const stream = await env.AI.run(CHAT_MODEL, {
       messages,
       stream: true,
-      max_tokens: 900,
+      max_tokens: 1500,
+      temperature: 0.8,
+      top_p: 0.95,
     });
-    return new Response(stream as unknown as ReadableStream, {
-      headers: {
-        'Content-Type': 'text/event-stream; charset=utf-8',
-        'Cache-Control': 'no-cache',
-        'X-Accel-Buffering': 'no',
-      },
-    });
+    return new Response(stream as unknown as ReadableStream, { headers: sseHeaders });
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error('[skill-api/ask] ai error:', msg);
@@ -112,6 +141,38 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
 }
 
 interface AiMessage { role: 'system' | 'user' | 'assistant'; content: string }
+
+// 调用 ModelScope（OpenAI 兼容）。非 200（429/限流/参数错）一律返回 null，交给调用链降级。
+async function msAsk(
+  model: string,
+  messages: AiMessage[],
+  key: string,
+  opts: { thinking?: boolean; temperature?: number; maxTokens?: number } = {},
+): Promise<Response | null> {
+  const body: Record<string, unknown> = {
+    model,
+    messages,
+    stream: true,
+    max_tokens: opts.maxTokens ?? 1500,
+  };
+  if (opts.thinking !== undefined) body.enable_thinking = opts.thinking;
+  if (opts.temperature !== undefined) body.temperature = opts.temperature;
+  try {
+    const r = await fetch(MS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+      body: JSON.stringify(body),
+    });
+    if (!r.ok) {
+      console.error(`[msAsk ${model}] http ${r.status}: ${(await r.text()).slice(0, 160)}`);
+      return null;
+    }
+    return r;
+  } catch (e) {
+    console.error('[msAsk] fetch error:', e instanceof Error ? e.message : String(e));
+    return null;
+  }
+}
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
