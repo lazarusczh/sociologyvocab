@@ -294,8 +294,10 @@ input:focus, textarea:focus, select:focus {
   min-width: 8rem;
   white-space: nowrap;
 }
-/* 二级容器常驻 DOM 以便做进出动画：桌面浮层在未展开时整体隐藏 */
-.nav-group-items:not(.is-expanded) { display: none; }
+/* 二级容器常驻 DOM 以便做进出动画：桌面导航浮层在未展开时整体隐藏。
+   仅作用于 nav-desktop 里的导航分组；账号菜单是条件渲染（没有"未展开"态），
+   排除在外，避免漏加 is-expanded 就被静默 display:none 掉 */
+.nav-desktop .nav-group-items:not(.is-expanded) { display: none; }
 .nav-group-items__inner {
   display: flex;
   flex-direction: column;
