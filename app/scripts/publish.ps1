@@ -98,11 +98,11 @@ try {
         Step-Log "4/5 gradlew assembleRelease"
         Push-Location (Join-Path $AppDir "android")
         try {
-            Invoke-Expression ".\gradlew.bat assembleRelease 2>&1 | Out-Host"
+            # Gradle also writes warnings (SDK XML version, deprecations) to stderr
+            Invoke-Step ".\gradlew.bat assembleRelease" "gradlew assembleRelease"
         } finally {
             Pop-Location
         }
-        Assert-Ok "gradlew assembleRelease"
     }
 
     # 5/5 send APK via Feishu

@@ -37,6 +37,30 @@ const json = (status: number, obj: unknown) =>
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
   });
 
+// 允许调用 /skill-api/ask 的来源：官网、workers.dev 预览、本地 dev，
+// 以及 APK（Capacitor 运行在 https://localhost，跨域调用需要 CORS）。
+const CORS_ALLOWED = new Set([
+  'https://9699vocab.cn',
+  'https://www.9699vocab.cn',
+  'https://sociologyvocab.zihaochen2096.workers.dev',
+  'https://localhost',
+  'capacitor://localhost',
+  'http://localhost:5173',
+  'http://localhost:5174',
+]);
+
+function corsHeaders(request: Request): Record<string, string> {
+  const origin = request.headers.get('Origin') ?? '';
+  const allow = CORS_ALLOWED.has(origin) ? origin : 'https://9699vocab.cn';
+  return {
+    'Access-Control-Allow-Origin': allow,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+    'Access-Control-Max-Age': '86400',
+    Vary: 'Origin',
+  };
+}
+
 // 教材知识站 AI 问答：POST { question, system, context }
 async function handleAsk(request: Request, env: Env): Promise<Response> {
   // 1) 鉴权：仅登录用户可消耗 AI 额度（与版权 RLS 一致）
@@ -93,9 +117,18 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
-    // 教材知识站 AI 问答
-    if (url.pathname === '/skill-api/ask' && request.method === 'POST') {
-      return handleAsk(request, env);
+    // 教材知识站 AI 问答（APK 内 origin 是 https://localhost，需处理预检并回 CORS 头）
+    if (url.pathname === '/skill-api/ask') {
+      if (request.method === 'OPTIONS') {
+        return new Response(null, { status: 204, headers: corsHeaders(request) });
+      }
+      if (request.method === 'POST') {
+        const res = await handleAsk(request, env);
+        const withCors = new Response(res.body, res);
+        for (const [k, v] of Object.entries(corsHeaders(request))) withCors.headers.set(k, v);
+        return withCors;
+      }
+      return json(405, { error: 'method not allowed' });
     }
 
     // 转发 World Bank 数据请求

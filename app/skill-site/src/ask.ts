@@ -6,6 +6,15 @@ export interface AskResult {
   error: string | null;
 }
 
+// APK 内页面运行在 Capacitor 的 https://localhost 下，相对路径只会打到本地 asset server，
+// 到不了 Cloudflare Worker —— 非线上站点（原生壳 / 本地 dev）改用绝对地址。
+const REMOTE_ORIGIN = 'https://9699vocab.cn';
+function askUrl(): string {
+  const o = typeof location !== 'undefined' ? location.origin : '';
+  const onSite = o.includes('9699vocab.cn') || o.includes('workers.dev');
+  return onSite ? '/skill-api/ask' : `${REMOTE_ORIGIN}/skill-api/ask`;
+}
+
 // 用 fetch 流式读取 SSE，逐块回调增量文本
 export async function askStream(
   question: string,
@@ -17,14 +26,26 @@ export async function askStream(
   const token = data.session?.access_token;
   if (!token) return { text: '', error: '登录已过期，请刷新后重试。' };
 
-  const res = await fetch('/skill-api/ask', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ question, system, context }),
-  });
+  // 超时保护：AI 冷启动可能较慢，但不应无限等待（否则界面一直停在"思考中"）
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 120_000);
+
+  let res: Response;
+  try {
+    res = await fetch(askUrl(), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ question, system, context }),
+      signal: ctrl.signal,
+    });
+  } catch {
+    clearTimeout(timer);
+    return { text: '', error: '网络请求失败，请检查网络后重试（APK 需联网访问 9699vocab.cn）。' };
+  }
+  clearTimeout(timer);
 
   if (!res.ok) {
     let msg = `请求失败（${res.status}）`;

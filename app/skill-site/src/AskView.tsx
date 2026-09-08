@@ -36,24 +36,37 @@ export default function AskView({ skill }: { skill: SkillData }) {
 
     const { system, context, sources } = retrieve(skill, q);
 
-    const res = await askStream(q, system, context, (delta) => {
+    // 任何异常都必须收尾，否则 busy 永远为 true（界面卡在"思考中"）
+    try {
+      const res = await askStream(q, system, context, (delta) => {
+        setMsgs((m) => {
+          const copy = [...m];
+          const last = copy[copy.length - 1];
+          if (last && last.q === q) copy[copy.length - 1] = { ...last, a: last.a + delta };
+          return copy;
+        });
+        scrollBottom();
+      });
+
       setMsgs((m) => {
         const copy = [...m];
         const last = copy[copy.length - 1];
-        if (last && last.q === q) copy[copy.length - 1] = { ...last, a: last.a + delta };
+        if (last && last.q === q) copy[copy.length - 1] = { ...last, sources, error: res.error };
         return copy;
       });
+    } catch (e) {
+      setMsgs((m) => {
+        const copy = [...m];
+        const last = copy[copy.length - 1];
+        if (last && last.q === q) {
+          copy[copy.length - 1] = { ...last, sources, error: e instanceof Error ? e.message : '回答失败，请重试。' };
+        }
+        return copy;
+      });
+    } finally {
+      setBusy(false);
       scrollBottom();
-    });
-
-    setMsgs((m) => {
-      const copy = [...m];
-      const last = copy[copy.length - 1];
-      if (last && last.q === q) copy[copy.length - 1] = { ...last, sources, error: res.error };
-      return copy;
-    });
-    setBusy(false);
-    scrollBottom();
+    }
   };
 
   const onKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
