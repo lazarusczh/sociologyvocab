@@ -96,3 +96,15 @@ pdf-text/ms/
 # UI 设计参考图（Ardot 画布导出 PNG，教师产品设计想法与知识产权，不纳入公开备份；
 # 同目录的 README.md 索引与 tokens.css 设计规范入库，便于开发对照）
 ui-refs/*.png
+
+# Agent 技能包与本地工具缓存（第三方 skill 源码、浏览器/Worker 本地状态，非本项目产物）
+.agents/
+.workbuddy/
+.playwright-cli/
+app/.wrangler/
+skills-lock.json
+m1.yaml
+
+# 临时诊断截图（一次性排查用）
+14258f93-ade4-4e34-9ff7-54fca2daa11d.png
+ScreenShot_2026-09-05_215554_347.png

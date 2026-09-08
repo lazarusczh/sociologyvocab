@@ -1,0 +1,163 @@
+import { useRef, useState, type KeyboardEvent } from 'react'
+import { retrieve } from './retrieval'
+import { askStream } from './ask'
+import type { SkillData } from './data'
+
+interface Msg {
+  q: string;
+  a: string;
+  error: string | null;
+  sources: string[];
+}
+
+const SUGGESTIONS = [
+  '功能主义怎么解释教育？',
+  '什么是 meritocracy？',
+  '用评价框架回答 "family is patriarchal"',
+  'Bowles & Gintis 的对应理论是什么',
+];
+
+export default function AskView({ skill }: { skill: SkillData }) {
+  const [msgs, setMsgs] = useState<Msg[]>([]);
+  const [input, setInput] = useState('');
+  const [busy, setBusy] = useState(false);
+  const endRef = useRef<HTMLDivElement>(null);
+
+  const scrollBottom = () =>
+    setTimeout(() => endRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+
+  const send = async (raw?: string) => {
+    const q = (raw ?? input).trim();
+    if (!q || busy) return;
+    setInput('');
+    setMsgs((m) => [...m, { q, a: '', error: null, sources: [] }]);
+    setBusy(true);
+    scrollBottom();
+
+    const { system, context, sources } = retrieve(skill, q);
+
+    const res = await askStream(q, system, context, (delta) => {
+      setMsgs((m) => {
+        const copy = [...m];
+        const last = copy[copy.length - 1];
+        if (last && last.q === q) copy[copy.length - 1] = { ...last, a: last.a + delta };
+        return copy;
+      });
+      scrollBottom();
+    });
+
+    setMsgs((m) => {
+      const copy = [...m];
+      const last = copy[copy.length - 1];
+      if (last && last.q === q) copy[copy.length - 1] = { ...last, sources, error: res.error };
+      return copy;
+    });
+    setBusy(false);
+    scrollBottom();
+  };
+
+  const onKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      void send();
+    }
+  };
+
+  return (
+    <section className="ask">
+      <h2>AI 问答</h2>
+      <p className="ask-hint">基于教材知识库检索后作答，附引用出处；知识库未覆盖的内容会如实说明。</p>
+
+      {msgs.length === 0 && (
+        <div className="ask-empty">
+          <p>试试问：</p>
+          <div className="chips">
+            {SUGGESTIONS.map((s) => (
+              <button key={s} className="chip" onClick={() => void send(s)} disabled={busy}>
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="ask-list">
+        {msgs.map((m, i) => (
+          <div className="ask-pair" key={i}>
+            <div className="ask-q">{m.q}</div>
+            <div className="ask-a">
+              {m.a ? <MdText text={m.a} /> : m.error ? <div className="ask-err">{m.error}</div> : <div className="typing">思考中…</div>}
+              {m.sources.length > 0 && !m.error && (
+                <div className="ask-src">出处：{m.sources.join('、')}</div>
+              )}
+            </div>
+          </div>
+        ))}
+        <div ref={endRef} />
+      </div>
+
+      <div className="ask-input-bar">
+        <textarea
+          className="ask-input"
+          rows={2}
+          placeholder="输入社会学问题（中英皆可）…"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={onKey}
+          disabled={busy}
+        />
+        <button className="btn send-btn" onClick={() => void send()} disabled={busy || !input.trim()}>
+          {busy ? '生成中' : '发送'}
+        </button>
+      </div>
+    </section>
+  );
+}
+
+// —— 极简 markdown 渲染：支持标题/加粗/斜体/行内代码/列表/引用 ——
+function MdText({ text }: { text: string }) {
+  const blocks = text.split(/\n{2,}/);
+  return (
+    <>
+      {blocks.map((block, i) => {
+        const b = block.trim();
+        if (!b) return null;
+
+        if (/^#{1,4}\s/.test(b)) {
+          const level = b.match(/^#{1,4}/)![0].length;
+          const body = inline(b.replace(/^#{1,4}\s*/, ''));
+          const Tag = level <= 2 ? 'h3' : level === 3 ? 'h4' : 'h5';
+          return <Tag key={i}>{body}</Tag>;
+        }
+
+        const lines = b.split('\n');
+        if (lines.every((l) => /^\s*[-•*]\s+/.test(l))) {
+          return (
+            <ul key={i}>
+              {lines.map((l, j) => <li key={j}>{inline(l.replace(/^\s*[-•*]\s+/, ''))}</li>)}
+            </ul>
+          );
+        }
+        if (lines.every((l) => /^\s*\d+[.)]\s+/.test(l))) {
+          return (
+            <ol key={i}>
+              {lines.map((l, j) => <li key={j}>{inline(l.replace(/^\s*\d+[.)]\s+/, ''))}</li>)}
+            </ol>
+          );
+        }
+        return <p key={i}>{inline(b)}</p>;
+      })}
+    </>
+  );
+}
+
+function inline(s: string): React.ReactNode {
+  // 先保护 `code`，再处理 **bold** 与 *italic*，避免嵌套混乱
+  const parts = s.split(/(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*)/g);
+  return parts.map((p, i) => {
+    if (p.startsWith('`') && p.endsWith('`')) return <code key={i}>{p.slice(1, -1)}</code>;
+    if (p.startsWith('**') && p.endsWith('**')) return <strong key={i}>{p.slice(2, -2)}</strong>;
+    if (p.startsWith('*') && p.endsWith('*') && p.length > 2) return <em key={i}>{p.slice(1, -1)}</em>;
+    return p;
+  });
+}

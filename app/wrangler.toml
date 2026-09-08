@@ -2,3 +2,12 @@ name = "sociologyvocab"
 compatibility_date = "2026-08-28"
 main = "worker.ts"
 assets = { directory = "./dist", binding = "ASSETS", run_worker_first = true }
+
+# Workers AI：/skill-api/ask 问答（教材知识站）
+[ai]
+binding = "AI"
+
+# Supabase：/skill-api/ask 校验登录 JWT（anon key 为公开只读凭据）
+[vars]
+SUPABASE_URL = "https://spb-olltk79n0rjrawe5.supabase.opentrust.net"
+SUPABASE_ANON_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiYW5vbiIsInJlZiI6InNwYi1vbGx0azc5bjByanJhd2U1IiwiaXNzIjoic3VwYWJhc2UiLCJpYXQiOjE3ODczMDM0MTEsImV4cCI6MjEwMjg3OTQxMX0.RfvoKkHN8inwV3FXbfaH3tJm21HD5DmR899fPtQ6TlU"

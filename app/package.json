@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "dev:skill": "vite --config skill-site/vite.config.ts",
+    "build": "tsc -b && vite build && vite build --config skill-site/vite.config.ts",
+    "build:skill": "vite build --config skill-site/vite.config.ts",
     "icons": "capacitor-assets generate --android",
     "lint": "oxlint",
     "preview": "vite preview",

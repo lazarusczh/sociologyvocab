@@ -51,7 +51,7 @@ export type View =
 // 导航：一级 pill + 二级下拉。单入口 pill 直跳，多入口 pill 展开二级菜单
 // 2026-08-31 UI 改版：后台合并进右上角用户菜单、错题并入「练习」、
 // 进度改由首页底部入口进入（首页卡片已含进度信息，导航不再单列）
-interface NavItem { key: View; label: string; }
+interface NavItem { key: View | 'skill'; label: string; href?: string; authOnly?: boolean; }
 interface NavPill { group: string; items: NavItem[]; }
 
 const NAV_PILLS: NavPill[] = [
@@ -81,6 +81,7 @@ const NAV_PILLS: NavPill[] = [
     { key: 'papers', label: '历年真题' },
     { key: 'data', label: '社会数据' },
     { key: 'conceptmap', label: '概念网络' },
+    { key: 'skill', label: '教材 AI', href: '/skill/#/ask', authOnly: true },
   ]},
 ];
 
@@ -89,12 +90,17 @@ function AppBody() {
   const [menuOpen, setMenuOpen] = useState(false);
   // 手风琴：当前展开的分组；'account' 表示右上角用户菜单（与导航分组互斥）
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
+  // 窄屏二级面板进出场：expandedGroup 是目标值，panelGroup 是实际渲染值（退场时延迟卸载）
+  const [panelGroup, setPanelGroup] = useState<string | null>(null);
+  const [panelExiting, setPanelExiting] = useState(false);
   const { authUser, isTeacher, isDeveloper, skipped, inQuiz, exitSkip } = useStore();
   const viewRef = useRef(view);
   const navRef = useRef<HTMLElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
   const inQuizRef = useRef(inQuiz);
+  // 窄屏汉堡面板内各分组容器：展开后自动滚入视野，避免子项落在浏览器底栏外
+  const groupRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     inQuizRef.current = inQuiz;
@@ -106,10 +112,66 @@ function AppBody() {
     setMenuOpen(false);
   };
 
+  // 打开导航项：href 外链整页跳转；否则视为 view 切换
+  const openNav = (item: { key: string; label: string; href?: string }) => {
+    if (inQuizRef.current) return;
+    if (item.href) {
+      // 拆出 hash（如 /skill/#/ask），Capacitor 原生环境需落在显式文件后：
+      // 浏览器 → /skill/#/ask；APK → /skill/index.html#/ask
+      const [path, hash] = item.href.split('#');
+      const target = Capacitor.isNativePlatform() && path.endsWith('/')
+        ? `${path}index.html${hash ? `#${hash}` : ''}`
+        : item.href;
+      window.location.href = target;
+      return;
+    }
+    goto(item.key as View);
+  };
+
   // 同步最新 view 到 ref，供原生返回键回调读取
   useEffect(() => {
     viewRef.current = view;
   }, [view]);
+
+  // 展开分组后：把该分组（连同刚展开的二级项）滚入视野，落到底部的分组也能立刻看到子项
+  useEffect(() => {
+    if (!expandedGroup || expandedGroup === 'account') return;
+    const el = groupRefs.current[expandedGroup];
+    if (!el) return;
+    // 等展开动画（240ms）走完再滚动，否则按折叠高度计算会滚不到位
+    const id = window.setTimeout(() => el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 260);
+    return () => window.clearTimeout(id);
+  }, [expandedGroup]);
+
+  // 窄屏二级面板：目标分组驱动进出场动画。
+  // 进入 → 立即渲染子面板播放滑入；返回 → 先播放滑出，动画结束（180ms）后再卸载。
+  const mobileGroup = expandedGroup && expandedGroup !== 'account' ? expandedGroup : null;
+  const firstPanelRun = useRef(true);
+  useEffect(() => {
+    if (firstPanelRun.current) {
+      firstPanelRun.current = false;
+      if (!mobileGroup) return;
+    }
+    if (mobileGroup) {
+      setPanelExiting(false);
+      setPanelGroup(mobileGroup);
+      return;
+    }
+    setPanelExiting(true);
+    const id = window.setTimeout(() => {
+      setPanelGroup(null);
+      setPanelExiting(false);
+    }, 180);
+    return () => window.clearTimeout(id);
+  }, [mobileGroup]);
+
+  // 菜单整体关闭（选中项跳转 / 点外部）时立即收掉二级面板，避免下次打开残留
+  useEffect(() => {
+    if (!menuOpen) {
+      setPanelGroup(null);
+      setPanelExiting(false);
+    }
+  }, [menuOpen]);
 
   // 汉堡菜单或二级分组任一展开时，在导航与汉堡按钮以外的区域按下（点击或拖动起始）即自动收回
   useEffect(() => {
@@ -123,6 +185,24 @@ function AppBody() {
     document.addEventListener('pointerdown', onDocPointerDown);
     return () => document.removeEventListener('pointerdown', onDocPointerDown);
   }, [menuOpen, expandedGroup]);
+
+  // 移动浏览器底栏会动态占用视口，100dvh 在某些 WebView 仍被遮挡；
+  // 用 visualViewport 实时把可用高度写入 --vv-height，CSS 据此计算菜单最大高度。
+  useEffect(() => {
+    const root = document.documentElement;
+    const setVv = () => {
+      const vv = window.visualViewport;
+      const h = vv ? vv.height : window.innerHeight;
+      root.style.setProperty('--vv-height', `${h}px`);
+    };
+    setVv();
+    window.visualViewport?.addEventListener('resize', setVv);
+    window.addEventListener('resize', setVv);
+    return () => {
+      window.visualViewport?.removeEventListener('resize', setVv);
+      window.removeEventListener('resize', setVv);
+    };
+  }, []);
 
   // Android 硬件/手势返回键：非首页时先回首页，首页时退出应用
   useEffect(() => {
@@ -209,56 +289,137 @@ function AppBody() {
               )}
             </div>
           )}
-          {/* 一级 pill：单入口直跳，多入口展开二级下拉；语境题已对所有账户开放（Beta） */}
-          {NAV_PILLS.map((pill) => {
-            const items = pill.items;
-            if (items.length === 0) return null;
-            const groupActive = items.some((i) => view === i.key);
-            const expanded = expandedGroup === pill.group;
 
-            // 单入口：直接跳转
-            if (items.length === 1) {
-              const only = items[0];
-              return (
+          {/* 窄屏 drill-down 菜单（桌面隐藏）：点击分组后从右侧滑出子项面板，隐藏其他一级菜单；
+              返回时先播放反向滑出（子面板右移淡出 + 一级列表从左侧回位），动画结束再卸载 */}
+          <div className="nav-mobile">
+            {panelGroup ? (
+              <div className={`nav-mobile-submenu${panelExiting ? ' is-exiting' : ''}`}>
                 <button
-                  key={pill.group}
-                  className={`nav-pill${view === only.key ? ' active' : ''}`}
-                  onClick={() => goto(only.key)}
+                  className="nav-mobile-back"
+                  onClick={() => setExpandedGroup(null)}
                   disabled={inQuiz}
                 >
-                  {only.label}
+                  <span className="nav-mobile-back__caret">‹</span>
+                  {panelGroup}
                 </button>
-              );
-            }
-
-            // 多入口：展开二级菜单
-            return (
-              <div key={pill.group} className={`nav-group${groupActive ? ' has-active' : ''}`}>
-                <button
-                  className={`nav-group-head nav-pill${expanded ? ' expanded' : ''}${groupActive ? ' active' : ''}`}
-                  onClick={() => setExpandedGroup(expanded ? null : pill.group)}
-                  disabled={inQuiz}
-                >
-                  {pill.group}
-                  <span className="nav-caret">{expanded ? '▾' : '▸'}</span>
-                </button>
-                {expanded && (
-                  <div className="nav-group-items">
-                    {items.map((item) => (
+                <div className="nav-mobile-submenu-items">
+                  {NAV_PILLS.find((p) => p.group === panelGroup)?.items
+                    .filter((i) => !i.authOnly || !!authUser)
+                    .map((item) => (
                       <button
                         key={item.key}
                         className={view === item.key ? 'active' : ''}
-                        onClick={() => goto(item.key)}
+                        onClick={() => {
+                          setExpandedGroup(null);
+                          openNav(item);
+                        }}
                         disabled={inQuiz}
                       >
                         {item.label}
                       </button>
                     ))}
-                  </div>
-                )}
+                </div>
               </div>
-            );
-          })}
+            ) : null}
+            {!panelGroup || panelExiting ? (
+              <div className={`nav-mobile-top${panelExiting ? ' is-restoring' : ''}`}>
+                {NAV_PILLS.map((pill) => {
+                  const items = pill.items.filter((i) => !i.authOnly || !!authUser);
+                  if (items.length === 0) return null;
+                  if (items.length === 1) {
+                    const only = items[0];
+                    return (
+                      <button
+                        key={pill.group}
+                        className={`nav-mobile-item${!only.href && view === only.key ? ' active' : ''}`}
+                        onClick={() => openNav(only)}
+                        disabled={inQuiz}
+                      >
+                        {only.label}
+                      </button>
+                    );
+                  }
+                  const groupActive = items.some((i) => view === i.key);
+                  return (
+                    <button
+                      key={pill.group}
+                      className={`nav-mobile-item nav-mobile-item--group${groupActive ? ' active' : ''}`}
+                      onClick={() => setExpandedGroup(pill.group)}
+                      disabled={inQuiz}
+                    >
+                      {pill.group}
+                      <span className="nav-caret">▸</span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
+          </div>
+
+          {/* 桌面 pill 导航（窄屏隐藏）：单入口直跳，多入口下拉 */}
+          <div className="nav-desktop">
+            {NAV_PILLS.map((pill) => {
+              // authOnly 项仅对已登录用户展示（如「教材知识库」含版权内容）
+              const items = pill.items.filter((i) => !i.authOnly || !!authUser);
+              if (items.length === 0) return null;
+              const groupActive = items.some((i) => view === i.key);
+              const expanded = expandedGroup === pill.group;
+
+              // 单入口：直接跳转（href 外链项整页跳转；否则 view 切换）
+              if (items.length === 1) {
+                const only = items[0];
+                return (
+                  <button
+                    key={pill.group}
+                    className={`nav-pill${!only.href && view === only.key ? ' active' : ''}`}
+                    onClick={() => openNav(only)}
+                    disabled={inQuiz}
+                  >
+                    {only.label}
+                  </button>
+                );
+              }
+
+              // 多入口：展开二级下拉
+              return (
+                <div
+                  key={pill.group}
+                  className={`nav-group${groupActive ? ' has-active' : ''}${expanded ? ' is-open' : ''}`}
+                  ref={(el) => { groupRefs.current[pill.group] = el; }}
+                >
+                  <button
+                    className={`nav-group-head nav-pill${expanded ? ' expanded' : ''}${groupActive ? ' active' : ''}`}
+                    onClick={() => setExpandedGroup(expanded ? null : pill.group)}
+                    disabled={inQuiz}
+                  >
+                    {pill.group}
+                    <span className="nav-caret">{expanded ? '▾' : '▸'}</span>
+                  </button>
+                  <div
+                    className={`nav-group-items${expanded ? ' is-expanded' : ''}`}
+                    inert={!expanded}
+                  >
+                    <div className="nav-group-items__inner">
+                      {items.map((item) => (
+                        <button
+                          key={item.key}
+                          className={view === item.key ? 'active' : ''}
+                          onClick={() => {
+                            setExpandedGroup(null);
+                            openNav(item);
+                          }}
+                          disabled={inQuiz}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </nav>
 
         <span className="spacer" />

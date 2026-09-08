@@ -1,0 +1,236 @@
+:root { --mbar-h: 56px; }
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; color: #1c2430; background: #f4f6f8; }
+
+.center-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.gate { background: #fff; border-radius: 14px; padding: 36px 40px; max-width: 420px; width: 100%; text-align: center; box-shadow: 0 4px 16px rgba(16,36,62,.08); }
+.gate h1 { margin: 0 0 12px; font-size: 22px; }
+.gate p { color: #4a5868; line-height: 1.7; margin: 0 0 22px; }
+.btn { background: #2d7dd2; color: #fff; border: 0; padding: 11px 26px; border-radius: 10px; font-size: 15px; cursor: pointer; }
+.btn:hover { background: #256bb5; }
+
+.layout { min-height: 100vh; }
+/* 桌面：左侧固定侧栏 + 内容区（flex 行） */
+@media (min-width: 721px) {
+  .layout { display: flex; }
+}
+.sidebar {
+  background: #10243e; color: #e8eef6;
+  padding: 0; display: flex; flex-direction: column;
+}
+.brand { font-size: 18px; font-weight: 700; padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,.12); }
+.sidebar nav { flex: 1; overflow-y: auto; padding: 12px 8px; display: flex; flex-direction: column; gap: 2px;
+  /* 深蓝底上的原生浅色滚动条很突兀：改为细的半透明滑块（Firefox/标准属性） */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.22) transparent;
+}
+/* Chromium / Safari：细滑块，默认半透明，悬停时提亮；轨道完全透明 */
+.sidebar nav::-webkit-scrollbar { width: 8px; height: 8px; }
+.sidebar nav::-webkit-scrollbar-track { background: transparent; }
+.sidebar nav::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.2);
+  border-radius: 999px;
+  border: 2px solid transparent;        /* 视觉宽度收窄到 4px */
+  background-clip: content-box;
+}
+.sidebar nav:hover::-webkit-scrollbar-thumb { background: rgba(255,255,255,.32); background-clip: content-box; }
+.sidebar nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.5); background-clip: content-box; }
+.sidebar nav::-webkit-scrollbar-thumb:active { background: rgba(255,255,255,.6); background-clip: content-box; }
+.sidebar nav::-webkit-scrollbar-corner { background: transparent; }
+.nav-group-title { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #8ea6c2; padding: 14px 12px 4px; }
+.sidebar button {
+  text-align: left; background: none; border: 0; color: #c9d6e6; font-size: 13px;
+  padding: 8px 12px; border-radius: 8px; cursor: pointer; line-height: 1.4;
+}
+.sidebar button:hover { background: rgba(255,255,255,.08); }
+.sidebar button.active { background: #2d7dd2; color: #fff; font-weight: 600; }
+.sidebar-foot { border-top: 1px solid rgba(255,255,255,.12); padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
+.sidebar-foot .row { display: flex; align-items: center; gap: 8px; }
+.sidebar-foot span { flex: 1; font-size: 12px; color: #9db4cf; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.foot-btn { background: rgba(255,255,255,.1) !important; color: #c9d6e6 !important; font-size: 12px !important; padding: 6px 10px !important; border-radius: 8px !important; }
+.foot-btn:hover { background: rgba(255,255,255,.2) !important; }
+.back-home { background: rgba(45,125,210,.25) !important; color: #cfe3f7 !important; text-align: left; }
+
+.content { flex: 1; padding: 28px 36px; max-width: 900px; }
+.page-head h1 { margin: 0 0 6px; font-size: 24px; }
+.desc { color: #5c6b7d; margin: 0 0 18px; font-size: 13px; }
+
+.chapter-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.chapter-list a {
+  display: block; padding: 14px 16px; background: #fff; border-radius: 10px;
+  color: #17304e; text-decoration: none; font-weight: 500; box-shadow: 0 1px 2px rgba(16,36,62,.08);
+}
+.chapter-list a:hover { background: #eaf2fb; }
+.cl-tag { display: block; margin-top: 4px; font-weight: 400; color: #6a7a8e; font-size: 13px; }
+
+.chapter h2 { border-bottom: 2px solid #d7e2ee; padding-bottom: 8px; }
+.chapter h3 { color: #1d4f8f; margin: 18px 0 8px; font-size: 17px; }
+.chapter p { line-height: 1.75; color: #333; margin: 8px 0; }
+.doc-sec li, li.li { display: block; line-height: 1.7; color: #333; margin: 5px 0 5px 4px; padding-left: 14px; position: relative; }
+.doc-sec li::before, li.li::before { content: '•'; position: absolute; left: 0; color: #2d7dd2; }
+
+.gloss-item { background: #fff; border-radius: 10px; padding: 12px 16px; margin-bottom: 10px; box-shadow: 0 1px 2px rgba(16,36,62,.06); }
+.gloss-item strong { font-size: 15px; }
+.gloss-item .chaps { color: #8aa0b8; font-size: 12px; margin-left: 10px; }
+.gloss-item p { margin: 6px 0 0; color: #4a5868; line-height: 1.6; }
+.search { width: 100%; max-width: 340px; padding: 9px 12px; border: 1px solid #c9d6e6; border-radius: 8px; font-size: 14px; }
+.hint { color: #8aa0b8; font-size: 12px; margin: 8px 0 14px; }
+.empty { color: #8a97a6; }
+
+/* AI 问答入口（突出） */
+.nav-ask {
+  background: linear-gradient(90deg, rgba(45,125,210,.35), rgba(120,80,220,.28)) !important;
+  color: #e8eef6 !important;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.nav-ask.active { background: #2d7dd2 !important; color: #fff !important; }
+
+/* AI 问答区 */
+.ask { display: flex; flex-direction: column; height: calc(100vh - 170px); min-height: 420px; }
+.ask h2 { margin: 0 0 4px; }
+.ask-hint { color: #6a7a8e; font-size: 13px; margin: 0 0 10px; }
+.ask-empty { padding: 24px 0; color: #5c6b7d; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { background: #eaf2fb; border: 1px solid #cfe0f2; color: #1d4f8f; border-radius: 16px; padding: 7px 14px; font-size: 13px; cursor: pointer; }
+.chip:hover { background: #d8e8f8; }
+.ask-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding: 6px 2px 10px; }
+.ask-pair { display: flex; flex-direction: column; gap: 6px; }
+.ask-q { align-self: flex-end; background: #2d7dd2; color: #fff; border-radius: 14px 14px 2px 14px; padding: 9px 14px; font-size: 14px; max-width: 85%; line-height: 1.5; }
+.ask-a { background: #fff; border-radius: 2px 14px 14px 14px; padding: 12px 16px; box-shadow: 0 1px 2px rgba(16,36,62,.06); font-size: 14px; line-height: 1.75; color: #26323f; max-width: 96%; }
+.ask-a p { margin: 6px 0; }
+.ask-a h3, .ask-a h4 { margin: 10px 0 4px; color: #1d4f8f; font-size: 16px; }
+.ask-a ul, .ask-a ol { margin: 6px 0; padding-left: 22px; }
+.ask-a li { margin: 3px 0; }
+.ask-a code { background: #eef2f6; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+.ask-src { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #d7e2ee; color: #8aa0b8; font-size: 12px; }
+.ask-err { color: #c0392b; }
+.typing { color: #8aa0b8; font-style: italic; }
+.ask-input-bar { display: flex; gap: 8px; align-items: flex-end; }
+.ask-input { flex: 1; border: 1px solid #c9d6e6; border-radius: 10px; padding: 10px 12px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 48px; }
+.ask-input:focus { outline: 2px solid #2d7dd2; outline-offset: 1px; }
+.send-btn { white-space: nowrap; }
+
+/* ===== 桌面（>720px）：左侧固定侧栏，无移动工具条 ===== */
+@media (min-width: 721px) {
+  .m-bar, .scrim, .scrim.show { display: none; }
+  .sidebar {
+    width: 250px; flex-shrink: 0; position: sticky; top: 0;
+    height: 100vh;
+  }
+  .layout { display: flex; }
+  .content { padding: 28px 36px; }
+}
+
+/* ===== 移动工具条（仅窄屏显示） ===== */
+.m-bar { display: none; }
+@media (max-width: 720px) {
+  .m-bar {
+    display: flex;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    align-items: center;
+    gap: 10px;
+    background: #10243e;
+    color: #e8eef6;
+    padding: 10px 14px;
+    min-height: var(--mbar-h);
+    box-shadow: 0 2px 8px rgba(16,36,62,.2);
+  }
+}
+
+.m-burger {
+  display: flex; flex-direction: column; justify-content: center; gap: 4px;
+  width: 36px; height: 36px; padding: 8px; flex-shrink: 0;
+  background: rgba(255,255,255,.1); border: 0; border-radius: 8px; cursor: pointer;
+}
+.m-burger span { display: block; height: 2px; border-radius: 2px; background: #e8eef6; }
+.m-title { flex: 1; font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m-home {
+  flex-shrink: 0;
+  background: rgba(45,125,210,.55); color: #fff;
+  border: 0; border-radius: 8px; padding: 7px 12px; font-size: 13px; cursor: pointer;
+  font-weight: 600; white-space: nowrap;
+}
+/* 窄屏下始终显示简洁的「返回」，示意效果更明显 */
+@media (max-width: 720px) {
+  .m-home-long { display: none; }
+  .m-home-short { display: inline; }
+}
+@media (min-width: 721px) {
+  .m-home-long { display: inline; }
+  .m-home-short { display: none; }
+}
+
+/* 抽屉遮罩（仅窄屏） */
+.scrim { display: none; }
+@media (max-width: 720px) {
+  .scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(16,36,62,.45);
+    z-index: 40;
+  }
+  .scrim.show { display: block; }
+}
+
+/* ===== 窄屏（≤720px）：汉堡 + 左侧抽屉 ===== */
+@media (max-width: 720px) {
+  .layout { display: block; }
+  .m-bar { display: flex; }
+  .sidebar {
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+    width: min(280px, 84vw);
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform .22s ease;
+    box-shadow: 4px 0 18px rgba(16,36,62,.25);
+  }
+  .sidebar.open { transform: translateX(0); }
+  .content { padding: 16px; }
+  .ask { height: calc(100dvh - 130px); }
+}
+
+@media (min-width: 721px) {
+  .ask { height: calc(100vh - 170px); min-height: 420px; }
+}
+
+/* ===== 窄屏问答模式：聊天式满屏布局，输入框固定贴底 ===== */
+@media (max-width: 720px) {
+  /* 内容区撑满「视口 - 移动工具条」，标题块在窄屏省略（工具条已有「教材 AI」标题） */
+  .content.ask-mode {
+    padding: 10px 12px 0;
+    height: calc(100dvh - var(--mbar-h));
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .content.ask-mode .page-head { display: none; }
+  /* 用 flex-basis:0 让 ask 严格按可用空间分配，避免内容撑高导致输入框被挤出视口 */
+  .content.ask-mode .ask {
+    flex: 1 1 0;
+    height: auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .content.ask-mode .ask h2 { font-size: 18px; flex: none; }
+  .content.ask-mode .ask-hint {
+    margin-bottom: 8px;
+    font-size: 12px;
+    flex: none;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .content.ask-mode .ask-list { flex: 1 1 0; min-height: 0; }
+  .content.ask-mode .ask-empty { padding: 12px 0; flex: none; }
+  /* 输入区吸底：位于内容区末端并带安全区留白，键盘弹出时随 dvh 上移 */
+  .content.ask-mode .ask-input-bar {
+    flex: none;
+    background: #f4f6f8;
+    padding: 8px 0 calc(8px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -8px 16px rgba(16,36,62,.08);
+  }
+  .content.ask-mode .ask-input { min-height: 44px; max-height: 120px; }
+}

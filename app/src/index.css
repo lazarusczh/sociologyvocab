@@ -294,6 +294,14 @@ input:focus, textarea:focus, select:focus {
   min-width: 8rem;
   white-space: nowrap;
 }
+/* 二级容器常驻 DOM 以便做进出动画：桌面浮层在未展开时整体隐藏 */
+.nav-group-items:not(.is-expanded) { display: none; }
+.nav-group-items__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-height: 0;
+}
 .nav-group-items button {
   width: 100%;
   text-align: left;
@@ -363,51 +371,163 @@ input:focus, textarea:focus, select:focus {
 /* 移动端用户菜单（默认隐藏，窄屏下在汉堡内显示） */
 .nav-account-mobile { display: none; }
 
+/* 桌面/移动导航切换容器 */
+.nav-mobile { display: none; }
+.nav-desktop {
+  display: flex;
+  gap: 0.2rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
 @media (max-width: 720px) {
   .nav-toggle { display: flex; }
   .topbar nav {
     display: none;
-    position: absolute;
-    top: 100%;
+    position: fixed;
+    top: var(--h-topbar-m, 52px);
     left: 0;
     right: 0;
+    z-index: 9;
     background: var(--surface);
     border-bottom: 1px solid var(--border);
     box-shadow: var(--shadow);
-    padding: 0.6rem 1rem;
+    padding: 0;
     flex-direction: column;
     align-items: stretch;
-    gap: 0.3rem;
+    /* 用 JS 从 visualViewport 读到的真实可用高度；
+       100dvh 在部分手机浏览器/WebView 会被底栏遮住，所以优先 --vv-height */
+    height: calc(var(--vv-height, 100dvh) - var(--h-topbar-m, 52px));
+    overflow: hidden;
+    overscroll-behavior: contain;
   }
   .topbar nav.open { display: flex; }
-  .topbar nav button {
+  .nav-desktop { display: none; }
+  .nav-mobile {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* 一级列表 / 二级面板共用滚动容器 */
+  .nav-mobile-top,
+  .nav-mobile-submenu {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.6rem 1rem calc(0.8rem + env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* drill-down 二级面板：从右侧滑入，独占整个菜单区域，隐藏其他一级菜单 */
+  .nav-mobile-submenu {
+    position: absolute;
+    inset: 0;
+    background: var(--surface);
+    animation: navSlideIn .18s var(--ease) both;
+  }
+  @keyframes navSlideIn {
+    from { transform: translateX(30%); opacity: 0; }
+    to   { transform: translateX(0);   opacity: 1; }
+  }
+  /* 返回：子面板沿进入的相反方向滑出（右移淡出），一级列表同时从左侧回位 */
+  .nav-mobile-submenu.is-exiting {
+    animation: navSlideOut .18s var(--ease) both;
+    pointer-events: none;
+  }
+  @keyframes navSlideOut {
+    from { transform: translateX(0);   opacity: 1; }
+    to   { transform: translateX(30%); opacity: 0; }
+  }
+  .nav-mobile-top.is-restoring {
+    animation: navTopIn .18s var(--ease) both;
+  }
+  @keyframes navTopIn {
+    from { transform: translateX(-14%); opacity: 0.35; }
+    to   { transform: translateX(0);    opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nav-mobile-submenu,
+    .nav-mobile-submenu.is-exiting,
+    .nav-mobile-top.is-restoring { animation: none; }
+  }
+
+  .nav-mobile-item,
+  .nav-mobile-back,
+  .nav-mobile-submenu-items button {
     width: 100%;
     text-align: left;
     padding: 0.6rem 0.8rem;
+    min-height: var(--touch-min);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--r-ctrl);
+    color: var(--c-ink);
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: background var(--dur-fast) var(--ease);
   }
-  /* 窄屏：分组改为纵向展开（不浮出），子项缩进 */
-  .nav-group { display: block; width: 100%; }
-  .nav-group-head { width: 100%; }
-  .nav-group-items {
-    position: static;
-    box-shadow: none;
-    border: none;
-    padding: 0 0 0 1rem;
-    min-width: 0;
+  .nav-mobile-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
-  .nav-group-items button {
-    width: 100%;
-    padding: 0.5rem 0.7rem;
-    font-size: 0.85rem;
+  .nav-mobile-item:hover,
+  .nav-mobile-submenu-items button:hover,
+  .nav-mobile-back:hover { background: var(--c-surface-soft); }
+  .nav-mobile-item.active,
+  .nav-mobile-submenu-items button.active {
+    background: var(--c-primary-bg);
+    color: var(--c-primary);
   }
+
+  .nav-mobile-back {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--c-primary);
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    margin: -0.6rem -1rem 0.35rem;
+    padding: 0.6rem 1rem;
+    width: calc(100% + 2rem);
+  }
+  .nav-mobile-back__caret { font-size: 1.3rem; line-height: 1; }
+
+  .nav-mobile-submenu-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  /* 桌面分组样式在窄屏下不显示，但保留结构占位；避免冲突 */
+  .nav-group { display: none; }
+
   /* 窄屏：右上角账号 chip 收起，改由汉堡顶部用户菜单承载 */
   .topbar .account-menu { display: none; }
   .nav-account-mobile {
     display: block;
-    padding-bottom: 0.5rem;
-    margin-bottom: 0.4rem;
+    padding: 0.6rem 1rem 0.5rem;
     border-bottom: 1px solid var(--border);
   }
+  .nav-account-mobile button {
+    width: 100%;
+    text-align: left;
+    padding: 0.55rem 0.8rem;
+    min-height: var(--touch-min);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--r-ctrl);
+    color: var(--c-ink);
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+  .nav-account-mobile button:hover { background: var(--c-surface-soft); }
+  .nav-account-mobile button.active { background: var(--c-primary-bg); color: var(--c-primary); }
   .nav-account-mobile__name {
     font-size: 0.8rem;
     color: var(--text-muted);
