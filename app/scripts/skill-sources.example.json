@@ -1,0 +1,16 @@
+{
+  "books": [
+    {
+      "slug": "textbook",
+      "label": "教材 · Cambridge 9699",
+      "kind": "教材",
+      "dir": "C:/Users/rebir/.agents/skills/9699textbook1"
+    },
+    {
+      "slug": "guide",
+      "label": "教辅 · 示例",
+      "kind": "教辅",
+      "dir": "C:/path/to/another-book-to-skill-output"
+    }
+  ]
+}

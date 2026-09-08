@@ -1,7 +1,7 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { Fragment, useEffect, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase, getSession, fetchSkillData } from './supabase'
-import type { Chapter, GlossaryEntry, Section, SkillData } from './data'
+import { booksOf, type Book, type Chapter, type GlossaryEntry, type Section, type SkillData } from './data'
 import AskView from './AskView'
 
 type Status = 'loading' | 'guest' | 'ready' | 'error'
@@ -10,11 +10,12 @@ type Status = 'loading' | 'guest' | 'ready' | 'error'
 const TABS = ['glossary', 'patterns', 'cheatsheet', 'ask'] as const;
 type Tab = (typeof TABS)[number];
 
-function parseHash(): { tab?: Tab; chapter?: string } {
+// hash 形态：'' | #/chapter/<slug>/<file> | #/glossary/<slug> | #/patterns/<slug> | #/cheatsheet/<slug> | #/ask
+function parseHash(): { tab?: Tab; chapter?: string; book?: string } {
   const h = window.location.hash;
   if (h.startsWith('#/chapter/')) return { chapter: h.slice('#/chapter/'.length) };
-  const tab = h.slice(2) as Tab;
-  return (TABS as readonly string[]).includes(tab) ? { tab } : {};
+  const [name, arg] = h.slice(2).split('/');
+  return (TABS as readonly string[]).includes(name) ? { tab: name as Tab, book: arg } : {};
 }
 
 export default function App() {
@@ -87,9 +88,12 @@ export default function App() {
     );
   }
 
-  const chapter =
-    route.chapter ? skill.chapters.find((c) => c.id === route.chapter) : undefined;
+  const books = booksOf(skill);
+  const allChapters = books.flatMap((b) => b.chapters);
+  const chapter = route.chapter ? allChapters.find((c) => c.id === route.chapter) : undefined;
   const tab = route.tab ?? '';
+  // 索引页（词汇表/答题模式/速查表）按本切换；未指定或 slug 无效时回落到第一本
+  const activeBook: Book = books.find((b) => b.slug === route.book) ?? books[0];
 
   const closeMenu = () => setMenuOpen(false);
 
@@ -120,22 +124,34 @@ export default function App() {
           <button className={`nav-ask${tab === 'ask' ? ' active' : ''}`} onClick={() => { go('/ask'); closeMenu(); }}>
             💬 AI 问答
           </button>
-          <div className="nav-group-title">章节</div>
-          {skill.chapters.map((c) => (
-            <button key={c.id} className={chapter?.id === c.id ? 'active' : ''} onClick={() => { go(`/chapter/${c.id}`); closeMenu(); }}>
-              {shortTitle(c.title)}
-            </button>
+          {/* 纯文本与索引按「本」分组展示；AI 问答仍跨全部本检索 */}
+          {books.map((b) => (
+            <Fragment key={b.slug}>
+              <div className="nav-group-title">{b.label}</div>
+              {b.chapters.map((c) => (
+                <button key={c.id} className={chapter?.id === c.id ? 'active' : ''} onClick={() => { go(`/chapter/${c.id}`); closeMenu(); }}>
+                  {shortTitle(c.title)}
+                </button>
+              ))}
+              <div className="nav-index">
+                {b.glossary.length > 0 && (
+                  <button className={tab === 'glossary' && activeBook.slug === b.slug ? 'active' : ''} onClick={() => { go(`/glossary/${b.slug}`); closeMenu(); }}>
+                    术语表（{b.glossary.length}）
+                  </button>
+                )}
+                {b.patterns.length > 0 && (
+                  <button className={tab === 'patterns' && activeBook.slug === b.slug ? 'active' : ''} onClick={() => { go(`/patterns/${b.slug}`); closeMenu(); }}>
+                    答题模式（{b.patterns.length}）
+                  </button>
+                )}
+                {b.cheatsheet.length > 0 && (
+                  <button className={tab === 'cheatsheet' && activeBook.slug === b.slug ? 'active' : ''} onClick={() => { go(`/cheatsheet/${b.slug}`); closeMenu(); }}>
+                    速查表
+                  </button>
+                )}
+              </div>
+            </Fragment>
           ))}
-          <div className="nav-group-title">索引</div>
-          <button className={tab === 'glossary' ? 'active' : ''} onClick={() => { go('/glossary'); closeMenu(); }}>
-            术语表（{skill.glossary.length}）
-          </button>
-          <button className={tab === 'patterns' ? 'active' : ''} onClick={() => { go('/patterns'); closeMenu(); }}>
-            答题模式（{skill.patterns.length}）
-          </button>
-          <button className={tab === 'cheatsheet' ? 'active' : ''} onClick={() => { go('/cheatsheet'); closeMenu(); }}>
-            速查表
-          </button>
         </nav>
         <div className="sidebar-foot">
           <button className="foot-btn back-home" onClick={goHome}>← 返回词汇 App</button>
@@ -155,13 +171,13 @@ export default function App() {
           </p>
         </header>
 
-        {!route.chapter && !route.tab && <ChapterList chapters={skill.chapters} />}
+        {!route.chapter && !route.tab && <ChapterList books={books} />}
 
         {chapter && <ChapterView chapter={chapter} />}
 
-        {tab === 'glossary' && <GlossaryView entries={skill.glossary} />}
-        {tab === 'patterns' && <DocView title="答题模式与分析套路" sections={skill.patterns} />}
-        {tab === 'cheatsheet' && <DocView title="决策速查" sections={skill.cheatsheet} />}
+        {tab === 'glossary' && <GlossaryView entries={activeBook.glossary} title={`术语表 · ${activeBook.label}`} />}
+        {tab === 'patterns' && <DocView title={`答题模式 · ${activeBook.label}`} sections={activeBook.patterns} />}
+        {tab === 'cheatsheet' && <DocView title={`决策速查 · ${activeBook.label}`} sections={activeBook.cheatsheet} />}
         {tab === 'ask' && <AskView skill={skill} />}
       </main>
     </div>
@@ -176,18 +192,25 @@ function Centered({ children }: { children: ReactNode }) {
   return <div className="center-wrap">{children}</div>;
 }
 
-function ChapterList({ chapters }: { chapters: Chapter[] }) {
+function ChapterList({ books }: { books: Book[] }) {
   return (
-    <ul className="chapter-list">
-      {chapters.map((c) => (
-        <li key={c.id}>
-          <a href={`#/chapter/${c.id}`}>
-            <span className="cl-title">{c.title}</span>
-            {c.tagline && <span className="cl-tag">{c.tagline}</span>}
-          </a>
-        </li>
+    <>
+      {books.map((b) => (
+        <section key={b.slug} className="book-block">
+          {books.length > 1 && <h2 className="book-title">{b.label}</h2>}
+          <ul className="chapter-list">
+            {b.chapters.map((c) => (
+              <li key={c.id}>
+                <a href={`#/chapter/${c.id}`}>
+                  <span className="cl-title">{c.title}</span>
+                  {c.tagline && <span className="cl-tag">{c.tagline}</span>}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
       ))}
-    </ul>
+    </>
   );
 }
 
@@ -220,7 +243,7 @@ function SectionView({ section }: { section: Section }) {
   );
 }
 
-function GlossaryView({ entries }: { entries: GlossaryEntry[] }) {
+function GlossaryView({ entries, title }: { entries: GlossaryEntry[]; title?: string }) {
   const [q, setQ] = useState('');
   const t = q.trim().toLowerCase();
   const list = t
@@ -228,7 +251,7 @@ function GlossaryView({ entries }: { entries: GlossaryEntry[] }) {
     : entries;
   return (
     <section className="glossary">
-      <h2>术语表</h2>
+      <h2>{title ?? '术语表'}</h2>
       <input className="search" placeholder="搜索术语（中英皆可）…" value={q} onChange={(e) => setQ(e.target.value)} />
       <p className="hint">{list.length} / {entries.length} 条</p>
       {list.map((g) => (

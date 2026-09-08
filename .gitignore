@@ -108,3 +108,10 @@ m1.yaml
 # 临时诊断截图（一次性排查用）
 14258f93-ade4-4e34-9ff7-54fca2daa11d.png
 ScreenShot_2026-09-05_215554_347.png
+
+# 知识站语料清单（含本机绝对路径）与导入中间产物
+app/scripts/skill-sources.local.json
+app/scripts/skill-content*.json
+
+# 参考书目抽取的中间产物（含教材被引原文片段，属教师知识产权）
+app/data/refs-candidates.json

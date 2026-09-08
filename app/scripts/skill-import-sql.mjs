@@ -9,7 +9,8 @@ if (!jsonFile || !outSql) {
 }
 
 const data = readFileSync(jsonFile, 'utf8').trim();
-const note = `9699textbook1 蒸馏内容导入 ${new Date().toISOString().slice(0, 10)}`;
+// note 带完整时间戳：幂等判断以 note 为准，同一天导入多本书才不会被误跳过
+const note = `skill 内容导入 ${new Date().toISOString()}`;
 
 const sql = `-- skill_content 幂等导入（每次执行自动 version+1）
 insert into public.skill_content (version, data, note)

@@ -39,6 +39,8 @@ body { margin: 0; font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang S
 .sidebar nav::-webkit-scrollbar-thumb:active { background: rgba(255,255,255,.6); background-clip: content-box; }
 .sidebar nav::-webkit-scrollbar-corner { background: transparent; }
 .nav-group-title { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #8ea6c2; padding: 14px 12px 4px; }
+/* 每本书自己的索引入口（词汇表/答题模式/速查表），略缩进以区别于章节 */
+.nav-index { display: flex; flex-direction: column; gap: 2px; padding: 4px 0 4px 10px; margin-left: 6px; border-left: 1px solid rgba(255,255,255,.14); }
 .sidebar button {
   text-align: left; background: none; border: 0; color: #c9d6e6; font-size: 13px;
   padding: 8px 12px; border-radius: 8px; cursor: pointer; line-height: 1.4;
@@ -56,6 +58,8 @@ body { margin: 0; font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang S
 .page-head h1 { margin: 0 0 6px; font-size: 24px; }
 .desc { color: #5c6b7d; margin: 0 0 18px; font-size: 13px; }
 
+.book-block { margin-bottom: 26px; }
+.book-title { font-size: 16px; color: #1d4f8f; margin: 0 0 10px; }
 .chapter-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
 .chapter-list a {
   display: block; padding: 14px 16px; background: #fff; border-radius: 10px;
