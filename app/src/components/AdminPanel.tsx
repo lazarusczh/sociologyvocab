@@ -7,10 +7,11 @@ import ClassManager from './ClassManager';
 import QuizManager from './QuizManager';
 import Grouper from './Grouper';
 import PaperResults from './PaperResults';
+import AiGatePanel from './AiGatePanel';
 
-// 教师后台（仅教师版显示）：整合「打卡核验」「班级管理」「随堂测验」「组卷器」「试卷成绩」「词条管理」「逻辑管理」「批量导入」八块。
+// 教师后台（仅教师版显示）：整合「打卡核验」「班级管理」「随堂测验」「组卷器」「试卷成绩」「AI 门禁」「词条管理」「逻辑管理」「批量导入」九块。
 export default function AdminPanel() {
-  const [tab, setTab] = useState<'check' | 'classes' | 'quiz' | 'grouper' | 'results' | 'vocab' | 'logic' | 'import'>('check');
+  const [tab, setTab] = useState<'check' | 'classes' | 'quiz' | 'grouper' | 'results' | 'aigate' | 'vocab' | 'logic' | 'import'>('check');
 
   return (
     <div>
@@ -31,6 +32,9 @@ export default function AdminPanel() {
         <button className={tab === 'results' ? 'active' : ''} onClick={() => setTab('results')}>
           试卷成绩
         </button>
+        <button className={tab === 'aigate' ? 'active' : ''} onClick={() => setTab('aigate')}>
+          AI 门禁
+        </button>
         <button className={tab === 'vocab' ? 'active' : ''} onClick={() => setTab('vocab')}>
           词条管理
         </button>
@@ -46,6 +50,7 @@ export default function AdminPanel() {
       {tab === 'quiz' && <QuizManager />}
       {tab === 'grouper' && <Grouper onOpenResults={() => setTab('results')} />}
       {tab === 'results' && <PaperResults />}
+      {tab === 'aigate' && <AiGatePanel />}
       {tab === 'vocab' && <VocabManager />}
       {tab === 'logic' && <LogicManager />}
       {tab === 'import' && <ImportPanel />}

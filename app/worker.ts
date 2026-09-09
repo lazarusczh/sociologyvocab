@@ -67,6 +67,27 @@ async function verifyUser(token: string, env: Env): Promise<string | null> {
   }
 }
 
+// AI 门禁：关闭期间仅 teacher/developer 可用。返回 null=放行；否则返回学生可见的提示语。
+// 读取失败/角色查询异常时不拦截（宁可放行，不让系统错误误伤学生）。
+async function aiGateForbidden(userId: string, token: string, env: Env): Promise<string | null> {
+  const headers = { apikey: env.SUPABASE_ANON_KEY, Authorization: `Bearer ${token}` };
+  try {
+    const [rolesRes, gateRes] = await Promise.all([
+      fetch(`${env.SUPABASE_URL}/rest/v1/user_roles?select=role&user_id=eq.${userId}`, { headers }),
+      fetch(`${env.SUPABASE_URL}/rest/v1/ai_gate?select=disabled_at,note&id=eq.1`, { headers }),
+    ]);
+    if (!rolesRes.ok || !gateRes.ok) return null;
+    const roles = (await rolesRes.json()) as { role?: string }[];
+    if (roles.some((r) => r.role === 'teacher' || r.role === 'developer')) return null;
+    const gate = (await gateRes.json()) as { disabled_at?: string | null; note?: string }[];
+    const row = gate[0];
+    if (row && row.disabled_at) return row.note?.trim() || 'AI 问答已由老师暂时关闭。';
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 const json = (status: number, obj: unknown) =>
   new Response(JSON.stringify(obj), {
     status,
@@ -107,6 +128,10 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
   if (!token) return json(401, { error: 'unauthorized' });
   const userId = await verifyUser(token, env);
   if (!userId) return json(401, { error: 'invalid session' });
+
+  // 1b) AI 门禁：教师临时关闭期间仅 teacher/developer 可用（防论文/考试作弊）
+  const gateNote = await aiGateForbidden(userId, token, env);
+  if (gateNote) return json(403, { error: 'ai_paused', detail: gateNote });
 
   // 2) 读取请求体
   let body: { question?: string; system?: string; context?: string; history?: { role?: string; content?: string }[] };

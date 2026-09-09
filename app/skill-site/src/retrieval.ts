@@ -3,11 +3,11 @@
 import { booksOf, type Book, type GlossaryEntry, type Section } from './data'
 import type { SkillData } from './data'
 
-// 语料会随挂载书目增长，材料宁精勿多：段数上限放宽、每段与总量收紧，
-// 既避免超模型上下文，也减少无关段落稀释答案。
-const MAX_PARTS = 8;            // 作为材料喂给模型的段落块上限
+// 材料预算（2026-09-09 放宽：上游按调用次数而非 token 计费，喂更多材料不增加成本，
+// 可弥补 skill 蒸馏可能丢的细节；上限仍保留以防窗口溢出与无关段落稀释）。
+const MAX_PARTS = 12;            // 作为材料喂给模型的段落块上限
 const PART_CHAR_LIMIT = 1000;   // 每段截断
-const TOTAL_CHAR_BUDGET = 7000; // 材料总量上限（含术语块）
+const TOTAL_CHAR_BUDGET = 10000; // 材料总量上限（含术语块）
 
 // 「评分视角本」处理：命中即按整章合并成一份「论据档案」喂入（而非按小节零散截取），
 // 保住该考点的 措辞→证据链→平衡收尾 完整性；档案文本仅供模型消化为论据，
