@@ -1,4 +1,5 @@
-import { useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { supabase } from './supabase'
 import { retrieve } from './retrieval'
 import { askStream, type HistMsg } from './ask'
 import { booksOf, type SkillData } from './data'
@@ -50,6 +51,28 @@ export default function AskView({ skill }: { skill: SkillData }) {
     setTier(t);
     try { localStorage.setItem('ask_tier', t); } catch { /* ignore */ }
   };
+  // 教师/开发者自测：勾选后以「学生身份」判定门禁（无需注册纯学生号）
+  const [isStaff, setIsStaff] = useState(false);
+  const [simulate, setSimulate] = useState<boolean>(() => localStorage.getItem('ask_simulate') === '1');
+  const toggleSimulate = () => {
+    const v = !simulate;
+    setSimulate(v);
+    try { localStorage.setItem('ask_simulate', v ? '1' : '0'); } catch { /* ignore */ }
+  };
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const { data: sess } = await supabase.auth.getSession();
+        const uid = sess.session?.user?.id;
+        if (!uid) return;
+        const { data: rows } = await supabase.from('user_roles').select('role').eq('user_id', uid);
+        const roles = ((rows ?? []) as { role: string }[]).map((r) => r.role);
+        if (alive) setIsStaff(roles.includes('teacher') || roles.includes('developer'));
+      } catch { /* ignore */ }
+    })();
+    return () => { alive = false; };
+  }, []);
   const endRef = useRef<HTMLDivElement>(null);
 
   const scrollBottom = () =>
@@ -86,7 +109,7 @@ export default function AskView({ skill }: { skill: SkillData }) {
           return copy;
         });
         scrollBottom();
-      }, history, tier);
+      }, history, tier, simulate);
 
       setMsgs((m) => {
         const copy = [...m];
@@ -140,6 +163,11 @@ export default function AskView({ skill }: { skill: SkillData }) {
             {t.label}
           </button>
         ))}
+        {isStaff && (
+          <label className="ask-sim" title="以学生身份测试：门禁/权限按学生判定，无需注册纯学生号">
+            <input type="checkbox" checked={simulate} onChange={toggleSimulate} /> 学生视角
+          </label>
+        )}
       </div>
 
       {msgs.length === 0 && (

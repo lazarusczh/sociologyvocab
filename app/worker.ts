@@ -69,16 +69,25 @@ async function verifyUser(token: string, env: Env): Promise<string | null> {
 
 // AI 门禁：关闭期间仅 teacher/developer 可用。返回 null=放行；否则返回学生可见的提示语。
 // 读取失败/角色查询异常时不拦截（宁可放行，不让系统错误误伤学生）。
-async function aiGateForbidden(userId: string, token: string, env: Env): Promise<string | null> {
+// simulateStudent=true：跳过角色豁免，让 teacher/developer 以"学生身份"被判定（自测用）。
+async function aiGateForbidden(
+  userId: string,
+  token: string,
+  env: Env,
+  simulateStudent = false,
+): Promise<string | null> {
   const headers = { apikey: env.SUPABASE_ANON_KEY, Authorization: `Bearer ${token}` };
   try {
-    const [rolesRes, gateRes] = await Promise.all([
-      fetch(`${env.SUPABASE_URL}/rest/v1/user_roles?select=role&user_id=eq.${userId}`, { headers }),
-      fetch(`${env.SUPABASE_URL}/rest/v1/ai_gate?select=disabled_at,note&id=eq.1`, { headers }),
-    ]);
-    if (!rolesRes.ok || !gateRes.ok) return null;
-    const roles = (await rolesRes.json()) as { role?: string }[];
-    if (roles.some((r) => r.role === 'teacher' || r.role === 'developer')) return null;
+    if (!simulateStudent) {
+      const rolesRes = await fetch(`${env.SUPABASE_URL}/rest/v1/user_roles?select=role&user_id=eq.${userId}`, {
+        headers,
+      });
+      if (!rolesRes.ok) return null;
+      const roles = (await rolesRes.json()) as { role?: string }[];
+      if (roles.some((r) => r.role === 'teacher' || r.role === 'developer')) return null;
+    }
+    const gateRes = await fetch(`${env.SUPABASE_URL}/rest/v1/ai_gate?select=disabled_at,note&id=eq.1`, { headers });
+    if (!gateRes.ok) return null;
     const gate = (await gateRes.json()) as { disabled_at?: string | null; note?: string }[];
     const row = gate[0];
     if (row && row.disabled_at) return row.note?.trim() || 'AI 问答已由老师暂时关闭。';
@@ -129,12 +138,14 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
   const userId = await verifyUser(token, env);
   if (!userId) return json(401, { error: 'invalid session' });
 
-  // 1b) AI 门禁：教师临时关闭期间仅 teacher/developer 可用（防论文/考试作弊）
-  const gateNote = await aiGateForbidden(userId, token, env);
-  if (gateNote) return json(403, { error: 'ai_paused', detail: gateNote });
-
-  // 2) 读取请求体
-  let body: { question?: string; system?: string; context?: string; history?: { role?: string; content?: string }[] };
+  // 2) 读取请求体（提前解析，门禁的 simulateStudent 标志来自 body）
+  let body: {
+    question?: string;
+    system?: string;
+    context?: string;
+    history?: { role?: string; content?: string }[];
+    simulateStudent?: boolean; // 教师/开发者自测用：把自己的请求按学生身份判定门禁
+  };
   try {
     body = await request.json();
   } catch {
@@ -144,6 +155,11 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
   const system = (body.system ?? '').trim();
   const context = (body.context ?? '').trim();
   if (!question) return json(400, { error: 'missing question' });
+
+  // 1b) AI 门禁：教师临时关闭期间仅 teacher/developer 可用（防论文/考试作弊）。
+  //     simulateStudent=true 时跳过角色豁免，让教师/开发者自测"学生被拦"的效果。
+  const gateNote = await aiGateForbidden(userId, token, env, body.simulateStudent === true);
+  if (gateNote) return json(403, { error: 'ai_paused', detail: gateNote });
 
   // 3) 组装 messages：system → 多轮历史 → 当前轮（带检索材料）
   const messages: AiMessage[] = [];
