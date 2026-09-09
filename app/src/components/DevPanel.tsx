@@ -9,6 +9,18 @@ export default function DevPanel() {
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<VocabItem | null>(null);
   const [testInput, setTestInput] = useState('');
+  // AI 问答「学生视角」模拟：写入 localStorage（与知识库子站同源共享），
+  // 子站提问时实时读取该 key，把教师/开发者的门禁判定按学生身份处理。
+  const [simulateStudent, setSimulateStudent] = useState(
+    () => (typeof localStorage !== 'undefined' ? localStorage.getItem('ask_simulate') === '1' : false),
+  );
+  const toggleSimulateStudent = () => {
+    const v = !simulateStudent;
+    setSimulateStudent(v);
+    try {
+      localStorage.setItem('ask_simulate', v ? '1' : '0');
+    } catch { /* ignore */ }
+  };
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -26,6 +38,18 @@ export default function DevPanel() {
       <p className="muted" style={{ fontSize: '0.85rem' }}>
         仅 developer 账号可见。指定词条查看可接受写法，并直接测试某输入是否判对。
       </p>
+
+      <div className="card" style={{ marginBottom: '0.8rem' }}>
+        <div className="row" style={{ alignItems: 'center' }}>
+          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+            <input type="checkbox" checked={simulateStudent} onChange={toggleSimulateStudent} />
+            <strong>学生视角模拟</strong>
+          </label>
+        </div>
+        <p className="muted" style={{ margin: '0.4rem 0 0', fontSize: '0.8rem' }}>
+          开启后，知识库子站（/skill/）的 AI 问答会按「学生身份」判定——例如教师已关闭 AI 门禁时，你会像学生一样被拦截提示；教师/开发者的豁免不再生效。无需注册纯学生账号；勾选状态保存在本机。
+        </p>
+      </div>
 
       <div className="card" style={{ marginBottom: '0.8rem' }}>
         <input
