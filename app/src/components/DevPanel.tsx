@@ -40,14 +40,29 @@ export default function DevPanel() {
       </p>
 
       <div className="card" style={{ marginBottom: '0.8rem' }}>
-        <div className="row" style={{ alignItems: 'center' }}>
-          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-            <input type="checkbox" checked={simulateStudent} onChange={toggleSimulateStudent} />
-            <strong>学生视角模拟</strong>
+        <div className="gate-switch-row">
+          <label className="switch" title="学生视角模拟">
+            <input
+              type="checkbox"
+              checked={simulateStudent}
+              onChange={toggleSimulateStudent}
+            />
+            <span className="switch__track"><span className="switch__thumb" /></span>
           </label>
+          <div className="gate-switch-meta">
+            <div className="gate-switch-title">学生视角模拟</div>
+            <div className="row tight">
+              <span className={simulateStudent ? 'badge warn' : 'badge'}>
+                {simulateStudent ? '模拟中' : '关闭'}
+              </span>
+              <span className="muted gate-switch-sub">
+                {simulateStudent ? '子站按学生身份判定门禁' : '你享有教师 / 开发者豁免'}
+              </span>
+            </div>
+          </div>
         </div>
-        <p className="muted" style={{ margin: '0.4rem 0 0', fontSize: '0.8rem' }}>
-          开启后，知识库子站（/skill/）的 AI 问答会按「学生身份」判定——例如教师已关闭 AI 门禁时，你会像学生一样被拦截提示；教师/开发者的豁免不再生效。无需注册纯学生账号；勾选状态保存在本机。
+        <p className="muted" style={{ margin: '0', fontSize: '0.8rem' }}>
+          开启后，知识库子站（/skill/）的 AI 问答会按「学生身份」判定——例如教师已关闭 AI 门禁时，你会像学生一样被拦截提示；教师 / 开发者的豁免不再生效。无需注册纯学生账号；勾选状态保存在本机。
         </p>
       </div>
 
