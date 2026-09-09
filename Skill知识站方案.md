@@ -220,3 +220,22 @@ book-to-skill 蒸馏产物通常是：
 **待确认（下一步）**
 - [ ] 是否上线部署（走「三步走」），然后学生端实测；
 - [ ] 若做 AI 问答（M3）：问答结果是否允许 AI 自由发挥 vs 仅检索段落（可配置，课堂演示求稳时应「只答检索到的内容 + 出处」）。
+
+## 六、AI 会话历史持久化（待办，2026-09-09 调研定稿）
+
+**定位**：把 AI 问答从「刷新即丢的单会话」升级为接近 agent 的「会话列表 + 历史回看/续聊」。本轮只完成调研与决策，**未落地**；用户另行安排实施。
+
+**采用方案（已定）**：B — Supabase 云会话。不做 localStorage 过渡。
+
+**理由**：
+- 多轮 `history`（user/assistant 数组）前端构造 + Worker 接收**已就绪**，续聊零后端改动；
+- auth + RLS 基建现成，按 uid 隔离即可；成本≈0（上游按调用次数计费，存储不产生模型成本）；
+- 仅本机 localStorage 达不到「会话列表管理感」，与 agent 体验差距大。
+
+**落地范围（约半天~1 天）**
+- 表 `ai_sessions(id, user_id, title, msgs jsonb, pinned bool, created_at, updated_at)`，RLS `user_id = auth.uid()`；**默认教师不可见**（教师可见教研会话 = 可选立场项，另行拍板）；
+- cloud 层 4 函数：`listSessions / getSession / saveSession / deleteSession`；
+- `AskView.tsx` 顶部加会话列表抽屉（新建 / 切换 / 删除 / 置顶；title=首问前 ~20 字自动生成）；
+- `msgs` 存现有 `{q, a, sources, model, error}[]` 即可；检索 context / system 不存（可再生）。
+
+**语义约定（实施时确认）**：自动保存最近 N 个会话 + 手动置顶/删除；「清空对话」= 清当前会话内容（是否顺带删除该会话记录待定）。
