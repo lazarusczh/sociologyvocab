@@ -6,6 +6,15 @@ import { booksOf, type SkillData } from './data'
 // 回传给模型的多轮上下文上限：最多最近 5 轮（10 条消息）
 const HIST_MAX_MSGS = 10;
 
+// 可选模型档位（发送 body.tier）；「自动」= 日常快档/评估题思考档的默认智能路由
+const TIERS = [
+  { code: 'auto', label: '自动', hint: '日常快档；评估/复杂题自动切思考档' },
+  { code: 'fast', label: '快速', hint: '强制 Qwen3-235B 快速档（不自动切思考）' },
+  { code: 'think', label: '深度', hint: '强制 Qwen3-235B-Thinking' },
+  { code: 'nemotron', label: 'Nemo', hint: 'OpenRouter nemotron-super-120b（免费缓冲）' },
+  { code: 'llama', label: '8B', hint: 'Workers AI Llama-3.1-8B（兜底）' },
+] as const;
+
 interface Msg {
   q: string;
   a: string;
@@ -35,6 +44,12 @@ export default function AskView({ skill }: { skill: SkillData }) {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
+  // 手动档位选择（记忆在 localStorage，便于长期对比）
+  const [tier, setTier] = useState<string>(() => localStorage.getItem('ask_tier') || 'auto');
+  const chooseTier = (t: string) => {
+    setTier(t);
+    try { localStorage.setItem('ask_tier', t); } catch { /* ignore */ }
+  };
   const endRef = useRef<HTMLDivElement>(null);
 
   const scrollBottom = () =>
@@ -71,7 +86,7 @@ export default function AskView({ skill }: { skill: SkillData }) {
           return copy;
         });
         scrollBottom();
-      }, history);
+      }, history, tier);
 
       setMsgs((m) => {
         const copy = [...m];
@@ -111,6 +126,21 @@ export default function AskView({ skill }: { skill: SkillData }) {
     <section className="ask">
       <h2>AI 问答</h2>
       <p className="ask-hint">基于 {booksOf(skill).length} 本教材语料跨本检索作答，同一概念会并列各书说法；附引用出处，未覆盖内容如实说明。</p>
+
+      <div className="ask-tier" role="group" aria-label="模型档位">
+        <span className="ask-tier-label">模型</span>
+        {TIERS.map((t) => (
+          <button
+            key={t.code}
+            type="button"
+            className={tier === t.code ? 'sel' : ''}
+            title={t.hint}
+            onClick={() => chooseTier(t.code)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
       {msgs.length === 0 && (
         <div className="ask-empty">

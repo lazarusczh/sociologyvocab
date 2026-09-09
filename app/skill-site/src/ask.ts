@@ -32,6 +32,7 @@ export async function askStream(
   context: string,
   onDelta: (delta: string) => void,
   history: HistMsg[] = [],
+  tier: string = 'auto',
 ): Promise<AskResult> {
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
@@ -49,7 +50,7 @@ export async function askStream(
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ question, system, context, history }),
+      body: JSON.stringify({ question, system, context, history, tier }),
       signal: ctrl.signal,
     });
   } catch {

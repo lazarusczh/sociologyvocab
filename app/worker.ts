@@ -46,6 +46,10 @@ const OR_MODEL = 'nvidia/nemotron-3-super-120b-a12b:free';
 const HARD_RE =
   /评估|评价|比较|对比|争议|批判|正反|优劣|优缺点|利弊|观点|同意|反对|AO3|assess|evaluate|compare|contrast|critic|strength|weakness|merit|limitation|advantage|disadvantage|judge|argue|debate/i;
 
+// 临时验证开关（已实证 nemotron 线上跑通，2026-09-09）：true 时跳过魔搭双档走降级链。
+// 平时必须为 false。
+const MS_TEST_SKIP = false;
+
 // 校验 Supabase access token：调 auth/v1/user，返回用户 id；无效返回 null
 async function verifyUser(token: string, env: Env): Promise<string | null> {
   try {
@@ -167,8 +171,32 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
     (status: number, snippet: string) =>
       failLog.push(`${name}=${status} ${snippet.replace(/\s+/g, ' ').slice(0, 90)}`);
 
+  // 4x) 手动指定档位（模拟 agent 的模型选择）：成功即返回，失败回落自动链。
+  //     前端传 body.tier：auto(默认自动路由) / fast / think / nemotron / llama
+  const tier = String((body as { tier?: unknown }).tier ?? 'auto').trim();
+  if (msKey && tier === 'fast') {
+    const main = await msAsk(MS_MAIN, messages, msKey, { thinking: false, temperature: 0.6, onFail: rec('ms-main') });
+    if (main) return new Response(main.body, { headers: { ...sseHeaders, 'X-AI-Model': 'qwen3-main' } });
+  }
+  if (msKey && tier === 'think') {
+    const think = await msAsk(MS_THINK, messages, msKey, { maxTokens: 2400, onFail: rec('ms-think') });
+    if (think) return new Response(think.body, { headers: { ...sseHeaders, 'X-AI-Model': 'qwen3-think' } });
+  }
+  if (orKey && tier === 'nemotron') {
+    const orRes = await msAsk(OR_MODEL, messages, orKey, {
+      temperature: 0.6,
+      reasoning: false,
+      base: OR_URL,
+      extraHeaders: { 'HTTP-Referer': 'https://9699vocab.cn', 'X-Title': '9699-sociology-skill' },
+      onFail: rec('or-nemotron'),
+    });
+    if (orRes) return new Response(orRes.body, { headers: { ...sseHeaders, 'X-AI-Model': 'openrouter' } });
+  }
+  // 手动选 llama = 直接走 Workers 8B；其它手动档失败仍走下方自动链兜底
+  const skipAuto = tier === 'llama';
+
   // 4a) 评估/复杂题：魔搭 Thinking 优先
-  if (hard && msKey) {
+  if (hard && msKey && !MS_TEST_SKIP && !skipAuto) {
     const think = await msAsk(MS_THINK, messages, msKey, { maxTokens: 2400, onFail: rec('ms-think') });
     if (think) return new Response(think.body, { headers: { ...sseHeaders, 'X-AI-Model': 'qwen3-think' } });
   }
@@ -180,13 +208,13 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
   }
 
   // 4c) 降级①：魔搭快速档（Agnes 不可用 / 评估题 think 已失败时顶上）
-  if (msKey) {
+  if (msKey && !MS_TEST_SKIP && !skipAuto) {
     const main = await msAsk(MS_MAIN, messages, msKey, { thinking: false, temperature: 0.6, onFail: rec('ms-main') });
     if (main) return new Response(main.body, { headers: { ...sseHeaders, 'X-AI-Model': 'qwen3-main' } });
   }
 
   // 4d) 降级②：OpenRouter :free（nemotron，关推理）
-  if (orKey) {
+  if (orKey && !skipAuto) {
     const orRes = await msAsk(OR_MODEL, messages, orKey, {
       temperature: 0.6,
       reasoning: false, // nemotron 默认吐推理过程，这里关掉只留答案

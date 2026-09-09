@@ -120,6 +120,15 @@ button.book-title.open .arrow { transform: rotate(90deg); }
 .ask { display: flex; flex-direction: column; height: calc(100vh - 170px); min-height: 420px; }
 .ask h2 { margin: 0 0 4px; }
 .ask-hint { color: #6a7a8e; font-size: 13px; margin: 0 0 10px; }
+/* 手动模型档位选择行 */
+.ask-tier { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; flex: none; margin: -2px 0 8px; }
+.ask-tier-label { font-size: 12px; color: #8aa0b8; margin-right: 2px; }
+.ask-tier button {
+  border: 1px solid #c9d6e6; background: #fff; color: #5c6b7d; border-radius: 12px;
+  padding: 3px 10px; font-size: 12px; cursor: pointer; line-height: 1.6;
+}
+.ask-tier button:hover { border-color: #2d7dd2; color: #1d4f8f; }
+.ask-tier button.sel { background: #2d7dd2; border-color: #2d7dd2; color: #fff; }
 /* 对话工具条：轮数 + 清空按钮 */
 .ask-toolbar { display: flex; align-items: center; gap: 10px; flex: none; margin: -2px 0 8px; }
 .ask-count { font-size: 12px; color: #8aa0b8; }
@@ -258,11 +267,13 @@ button.ask-clear:disabled { opacity: .45; cursor: default; }
   }
   .content.ask-mode .ask h2 { font-size: 18px; flex: none; }
   .content.ask-mode .ask-hint {
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     font-size: 12px;
     flex: none;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   }
+  .content.ask-mode .ask-tier { flex: none; margin: 0 0 6px; gap: 5px; }
+  .content.ask-mode .ask-tier button { padding: 4px 11px; }
   .content.ask-mode .ask-list { flex: 1 1 0; min-height: 0; }
   .content.ask-mode .ask-toolbar { flex: none; margin: 0 0 6px; }
   .content.ask-mode button.ask-clear { padding: 5px 14px; }
