@@ -104,12 +104,13 @@ export default function App() {
     );
   }
 
-  const books = booksOf(skill);
-  const allChapters = books.flatMap((b) => b.chapters);
+  const books = booksOf(skill); // 全部本：AI 问答跨全部检索（含 aiOnly 的真题评分语料）
+  const visibleBooks = books.filter((b) => !b.aiOnly); // 可浏览本：侧栏/目录/索引只展示这些
+  const allChapters = visibleBooks.flatMap((b) => b.chapters);
   const chapter = route.chapter ? allChapters.find((c) => c.id === route.chapter) : undefined;
   const tab = route.tab ?? '';
-  // 索引页（词汇表/答题模式/速查表）按本切换；未指定或 slug 无效时回落到第一本
-  const activeBook: Book = books.find((b) => b.slug === route.book) ?? books[0];
+  // 索引页（词汇表/答题模式/速查表）按本切换；未指定或 slug 无效时回落到第一本可浏览本
+  const activeBook: Book = visibleBooks.find((b) => b.slug === route.book) ?? visibleBooks[0];
 
   // 折叠展开「本」分组：多本时默认收起，点击书名切换；单本恒展开（兼容数据未变前的形态）
   const isBookOpen = (slug: string) => openBooks[slug] === true || books.length === 1;
@@ -144,8 +145,8 @@ export default function App() {
           <button className={`nav-ask${tab === 'ask' ? ' active' : ''}`} onClick={() => { go('/ask'); closeMenu(); }}>
             💬 AI 问答
           </button>
-          {/* 纯文本与索引按「本」分组展示（默认收起，点书名展开）；AI 问答仍跨全部本检索 */}
-          {books.map((b) => {
+          {/* 纯文本与索引按「本」分组展示（默认收起，点书名展开）；AI 问答仍跨全部本（含 aiOnly）检索 */}
+          {visibleBooks.map((b) => {
             const open = isBookOpen(b.slug);
             const inBook =
               !!chapter?.id.startsWith(b.slug + '/') ||
@@ -209,7 +210,7 @@ export default function App() {
           </p>
         </header>
 
-        {!route.chapter && !route.tab && <ChapterList books={books} openBooks={openBooks} onToggle={toggleBook} />}
+        {!route.chapter && !route.tab && <ChapterList books={visibleBooks} openBooks={openBooks} onToggle={toggleBook} />}
 
         {chapter && <ChapterView chapter={chapter} />}
 

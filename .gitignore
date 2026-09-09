@@ -115,3 +115,6 @@ app/scripts/skill-content*.json
 
 # 参考书目抽取的中间产物（含教材被引原文片段，属教师知识产权）
 app/data/refs-candidates.json
+
+# 真题评分视角语料（由 ms-data.json 蒸馏生成，含 mark scheme 派生要点，属教师知识产权，不入库）
+app/data/ms-skill/

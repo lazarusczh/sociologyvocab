@@ -9,6 +9,7 @@ interface Env {
   SUPABASE_URL: string;
   SUPABASE_ANON_KEY: string;
   MODELSCOPE_API_KEY?: string; // 魔搭免费 API key（经 secret put 注入，不落代码）
+  OPENROUTER_API_KEY?: string; // OpenRouter key（:free 池，1000 次/日档；第三顺位缓冲）
 }
 
 const WB_BASE = 'https://api.worldbank.org';
@@ -24,6 +25,11 @@ const MS_MAIN = 'Qwen/Qwen3-235B-A22B';
 const MS_THINK = 'Qwen/Qwen3-235B-A22B-Thinking-2507';
 // 旗舰档（2 魔粒/次）：目前仅作预留，需要高质量顶格输出时再并入链
 const MS_V4 = 'deepseek-ai/DeepSeek-V4-Flash-0731';
+
+// OpenRouter（第三顺位缓冲）：:free 池。实测 openrouter/free 综合路由会随机路由到
+// 领域模型（如金融 ling），教学问答不稳 → 锁定池内通用 instruct；id 若掉出免费池再回退 openrouter/free
+const OR_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const OR_MODEL = 'google/gemma-4-31b-it:free';
 
 // 评估/对比类问题意图词（命中→思考模型）；日常直答模型只用于其余问题
 const HARD_RE =
@@ -123,6 +129,17 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
     if (main) return new Response(main.body, { headers: sseHeaders });
   }
 
+  // 4b) 缓冲：OpenRouter :free 池（ModelScope 不可用/被限时顶上；第三顺位）
+  const orKey = env.OPENROUTER_API_KEY;
+  if (orKey) {
+    const orRes = await msAsk(OR_MODEL, messages, orKey, {
+      temperature: 0.6,
+      base: OR_URL,
+      extraHeaders: { 'HTTP-Referer': 'https://9699vocab.cn', 'X-Title': '9699-sociology-skill' },
+    });
+    if (orRes) return new Response(orRes.body, { headers: sseHeaders });
+  }
+
   // 5) 兜底：Workers AI（免费 neurons 额度内，成本趋零）
   try {
     const stream = await env.AI.run(CHAT_MODEL, {
@@ -142,12 +159,18 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
 
 interface AiMessage { role: 'system' | 'user' | 'assistant'; content: string }
 
-// 调用 ModelScope（OpenAI 兼容）。非 200（429/限流/参数错）一律返回 null，交给调用链降级。
+// 调用 OpenAI 兼容端点（ModelScope / OpenRouter 通用）。非 200（429/限流/参数错）一律返回 null。
 async function msAsk(
   model: string,
   messages: AiMessage[],
   key: string,
-  opts: { thinking?: boolean; temperature?: number; maxTokens?: number } = {},
+  opts: {
+    thinking?: boolean;
+    temperature?: number;
+    maxTokens?: number;
+    base?: string; // 默认 ModelScope；传 OR_URL 即走 OpenRouter
+    extraHeaders?: Record<string, string>;
+  } = {},
 ): Promise<Response | null> {
   const body: Record<string, unknown> = {
     model,
@@ -158,9 +181,9 @@ async function msAsk(
   if (opts.thinking !== undefined) body.enable_thinking = opts.thinking;
   if (opts.temperature !== undefined) body.temperature = opts.temperature;
   try {
-    const r = await fetch(MS_URL, {
+    const r = await fetch(opts.base ?? MS_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}`, ...opts.extraHeaders },
       body: JSON.stringify(body),
     });
     if (!r.ok) {

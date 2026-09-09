@@ -26,6 +26,8 @@ export interface Book {
   slug: string;
   label: string;
   kind: string;
+  /** 仅进 AI 问答检索、不在侧栏/目录公开浏览（如真题评分视角语料） */
+  aiOnly?: boolean;
   chapters: Chapter[];
   glossary: GlossaryEntry[];
   patterns: Section[];

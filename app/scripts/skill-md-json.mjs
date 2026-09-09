@@ -102,9 +102,13 @@ function parseGlossary(file) {
 const docSections = (file) =>
   splitSections(readIfExists(file)).map((s) => ({ heading: s.heading, lines: s.lines }));
 
-function buildBook({ slug, label, kind, dir }) {
+function buildBook({ slug, label, kind, dir, exclude = [], aiOnly = false }) {
   const chaptersDir = join(dir, 'chapters');
   if (!existsSync(chaptersDir)) throw new Error(`缺少 chapters 目录: ${chaptersDir}`);
+  // exclude：可选，子串数组（如 ["religion","宗教"]）。命中文件名或标题的章节被剔除，
+  // 用于把"选修不教"的主题从语料中整体拿掉（侧栏与检索都不会再出现）
+  const banned = exclude.map((x) => String(x).toLowerCase());
+  const hitBan = (s) => banned.some((b) => s.toLowerCase().includes(b));
 
   const chapters = readdirSync(chaptersDir)
     .filter((x) => x.endsWith('.md'))
@@ -119,16 +123,21 @@ function buildBook({ slug, label, kind, dir }) {
         tagline: '',
         sections: splitSections(md),
       };
-    });
+    })
+    .filter((c) => !hitBan(c.file + ' ' + c.title));
+
+  const dropTopicSecs = (sections) =>
+    sections.filter((s) => !hitBan(s.heading + ' ' + (s.lines?.[0] ?? '')));
 
   return {
     slug,
     label: label || slug,
     kind: kind || '教材',
+    ...(aiOnly ? { aiOnly: true } : {}), // AI-only：不公开浏览，仅供检索进对话（如真题评分视角）
     chapters,
     glossary: parseGlossary(join(dir, 'glossary.md')),
-    patterns: docSections(join(dir, 'patterns.md')),
-    cheatsheet: docSections(join(dir, 'cheatsheet.md')),
+    patterns: dropTopicSecs(docSections(join(dir, 'patterns.md'))),
+    cheatsheet: dropTopicSecs(docSections(join(dir, 'cheatsheet.md'))),
   };
 }
 

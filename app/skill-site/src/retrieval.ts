@@ -17,11 +17,27 @@ interface Hit {
   score: number;
 }
 
-// 从问题提取检索词：英文整词 + 中文双字组（去停用词）
+// 英文停用词：检索时忽略，避免 is/the/of 这类词让每个段落都拿到基础分、
+// 把真正命中的段落稀释掉（此前 "family is patriarchal" 里的 is 会把排序搅乱）
+const STOP_EN = new Set(
+  ('a an the and or but of to in for on with by at from as is are was were be been being it its this that these those they them their ' +
+    'he she his her we our you your i not no do does did have has had what which who whom whose when where why how can could would should may might must shall will ' +
+    'into than so then also more most such only just because if about against between through during after before above below up down out over under again here there too').split(' '),
+);
+
+// 独立「宗教主题」章的识别与放行信号：宗教是选修（本课不教），默认不让 AI 问答
+// 去抓宗教独立章，避免 family 等无关问题被它带偏；但问题里明显指向宗教领域时才放行。
+// 嵌在 socialisation/family 等章内部的宗教论述不在此列（那些章不是独立宗教章，不设门）。
+const isReligionTopic = (ch: { id: string; title: string }) =>
+  /religion|religious|宗教/.test(`${ch.id} ${ch.title}`);
+const REL_SIGNAL =
+  /religion|religious|church|churches|secular|secularis|belief|believing|god|faith|spiritual|cult|sects?|ritual|worship|宗教|信仰|世俗|教会|教派|仪式|神灵|神学|礼拜/i;
+
+// 从问题提取检索词：英文整词（去停用词）+ 中文双字组（去停用词）
 function tokenize(q: string): string[] {
   const tokens = new Set<string>();
   const en = q.match(/[a-zA-Z][a-zA-Z\-']{1,}/g) ?? [];
-  for (const w of en) if (w.length > 1) tokens.add(w.toLowerCase());
+  for (const w of en) if (w.length > 1 && !STOP_EN.has(w.toLowerCase())) tokens.add(w.toLowerCase());
   const zh = q.replace(/[a-zA-Z0-9\s·•,，。.！？?、；;：:""''（）()《》<>/-]/g, '');
   for (let i = 0; i + 1 < zh.length; i++) {
     const bigram = zh.slice(i, i + 2);
@@ -60,6 +76,8 @@ export function retrieve(skill: SkillData, question: string): { system: string; 
   const perBook: Hit[][] = books.map((b) => {
     const hits: Hit[] = [];
     for (const ch of b.chapters) {
+      // 独立宗教主题章默认跳过检索（选修不教）；问题明确指向宗教领域时才放行
+      if (isReligionTopic(ch) && !REL_SIGNAL.test(q)) continue;
       for (const sec of ch.sections) {
         const blob = `${sec.heading}\n${sec.lines.join('\n')}`;
         const lower = blob.toLowerCase();
