@@ -1,14 +1,28 @@
 import { useRef, useState, type KeyboardEvent } from 'react'
 import { retrieve } from './retrieval'
-import { askStream } from './ask'
+import { askStream, type HistMsg } from './ask'
 import { booksOf, type SkillData } from './data'
+
+// 回传给模型的多轮上下文上限：最多最近 5 轮（10 条消息）
+const HIST_MAX_MSGS = 10;
 
 interface Msg {
   q: string;
   a: string;
   error: string | null;
   sources: string[];
+  model?: string | null;
+  fail?: string | null;
 }
+
+// 响应头 X-AI-Model 的档位代号 → 展示名（便于对比各档效果）
+const MODEL_NAME: Record<string, string> = {
+  agnes: 'Agnes-2.5-Flash',
+  'qwen3-main': 'Qwen3-235B（快速档）',
+  'qwen3-think': 'Qwen3-235B-Thinking',
+  openrouter: 'OpenRouter 缓冲源',
+  'workers-8b': 'Llama-3.1-8B（兜底）',
+};
 
 const SUGGESTIONS = [
   '功能主义怎么解释教育？',
@@ -34,6 +48,17 @@ export default function AskView({ skill }: { skill: SkillData }) {
     setBusy(true);
     scrollBottom();
 
+    // 构造多轮上下文：仅把「已收尾且有回答」的轮次作为历史回传（user/assistant 成对）；
+    // 完全失败(无输出)的轮次跳过，后续追问不必依赖它。
+    const pairs: HistMsg[] = [];
+    for (const m of msgs) {
+      if (!m.a) continue;
+      pairs.push({ role: 'user', content: m.q });
+      pairs.push({ role: 'assistant', content: m.error ? `${m.a}\n\n（该轮回答因错误中断：${m.error}）` : m.a });
+    }
+    let history = pairs.length > HIST_MAX_MSGS ? pairs.slice(pairs.length - HIST_MAX_MSGS) : pairs;
+    if (history[0]?.role === 'assistant') history = history.slice(1);
+
     const { system, context, sources } = retrieve(skill, q);
 
     // 任何异常都必须收尾，否则 busy 永远为 true（界面卡在"思考中"）
@@ -46,12 +71,12 @@ export default function AskView({ skill }: { skill: SkillData }) {
           return copy;
         });
         scrollBottom();
-      });
+      }, history);
 
       setMsgs((m) => {
         const copy = [...m];
         const last = copy[copy.length - 1];
-        if (last && last.q === q) copy[copy.length - 1] = { ...last, sources, error: res.error };
+        if (last && last.q === q) copy[copy.length - 1] = { ...last, sources, error: res.error, model: res.model, fail: res.fail };
         return copy;
       });
     } catch (e) {
@@ -76,6 +101,12 @@ export default function AskView({ skill }: { skill: SkillData }) {
     }
   };
 
+  const clearAll = () => {
+    if (busy) return;
+    setMsgs([]);
+    setInput('');
+  };
+
   return (
     <section className="ask">
       <h2>AI 问答</h2>
@@ -94,14 +125,35 @@ export default function AskView({ skill }: { skill: SkillData }) {
         </div>
       )}
 
+      {msgs.length > 0 && (
+        <div className="ask-toolbar">
+          <span className="ask-count">{msgs.length} 轮</span>
+          <button className="ask-clear" onClick={clearAll} disabled={busy}>
+            清空对话
+          </button>
+        </div>
+      )}
+
       <div className="ask-list">
         {msgs.map((m, i) => (
           <div className="ask-pair" key={i}>
             <div className="ask-q">{m.q}</div>
             <div className="ask-a">
               {m.a ? <MdText text={m.a} /> : m.error ? <div className="ask-err">{m.error}</div> : <div className="typing">思考中…</div>}
-              {m.sources.length > 0 && !m.error && (
-                <div className="ask-src">出处：{m.sources.join('、')}</div>
+              {!m.error && (m.sources.length > 0 || m.model) && (
+                <div className="ask-src">
+                  {m.sources.length > 0 && <span>出处：{m.sources.join('、')}</span>}
+                  {m.model && (
+                    <span className="ask-model">
+                      模型：{MODEL_NAME[m.model] ?? m.model}
+                      {m.fail && (
+                        <span className="ask-fail" title={m.fail}>
+                          ⚠ {m.fail}
+                        </span>
+                      )}
+                    </span>
+                  )}
+                </div>
               )}
             </div>
           </div>

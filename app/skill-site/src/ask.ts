@@ -4,6 +4,16 @@ import { supabase } from './supabase'
 export interface AskResult {
   text: string;
   error: string | null;
+  /** 本次应答所用模型档位标记（来自响应头 X-AI-Model），用于诊断/对比 */
+  model?: string | null;
+  /** 落到兜底档时的降级原因（来自 X-AI-Fail，如 "agnes=429 ... | ms-main=401 ..."），仅诊断用 */
+  fail?: string | null;
+}
+
+// 多轮上下文：模型要看到的最近几轮（user 提问原句 / assistant 纯回答）
+export interface HistMsg {
+  role: 'user' | 'assistant';
+  content: string;
 }
 
 // APK 内页面运行在 Capacitor 的 https://localhost 下，相对路径只会打到本地 asset server，
@@ -21,6 +31,7 @@ export async function askStream(
   system: string,
   context: string,
   onDelta: (delta: string) => void,
+  history: HistMsg[] = [],
 ): Promise<AskResult> {
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
@@ -38,7 +49,7 @@ export async function askStream(
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ question, system, context }),
+      body: JSON.stringify({ question, system, context, history }),
       signal: ctrl.signal,
     });
   } catch {
@@ -57,10 +68,12 @@ export async function askStream(
   }
 
   const ct = res.headers.get('Content-Type') ?? '';
+  const model = res.headers.get('X-AI-Model');
+  const fail = res.headers.get('X-AI-Fail');
   if (!ct.includes('text/event-stream')) {
     // 非流式兜底（如代理吞了流）
     const text = await res.text();
-    return { text, error: null };
+    return { text, error: null, model, fail };
   }
 
   const reader = res.body?.getReader();
@@ -84,13 +97,11 @@ export async function askStream(
           if (!line.startsWith('data:')) continue;
           const payload = line.slice(5).trim();
           if (!payload || payload === '[DONE]') continue;
-          try {
-            const j = JSON.parse(payload) as { response?: string };
-            if (typeof j.response === 'string') {
-              out += j.response;
-              onDelta(j.response);
-            }
-          } catch { /* 忽略非 JSON 行 */ }
+          const piece = ssePiece(payload);
+          if (piece) {
+            out += piece;
+            onDelta(piece);
+          }
         }
       }
     }
@@ -103,13 +114,29 @@ export async function askStream(
     if (!line.startsWith('data:')) continue;
     const payload = line.slice(5).trim();
     if (!payload || payload === '[DONE]') continue;
-    try {
-      const j = JSON.parse(payload) as { response?: string };
-      if (typeof j.response === 'string') {
-        out += j.response;
-        onDelta(j.response);
-      }
-    } catch { /* 忽略 */ }
+    const piece = ssePiece(payload);
+    if (piece) {
+      out += piece;
+      onDelta(piece);
+    }
   }
-  return { text: out, error: null };
+  return { text: out, error: null, model, fail };
+}
+
+// 兼容多种上游的 SSE 负载：
+// - ModelScope 自定义格式 data: { "response": "片段" }
+// - OpenAI 标准流 data: { choices:[{ delta: { content } }] }
+// 推理模型（如 Agnes）的 delta 会带 reasoning_content，这里刻意不取——
+// 只透传 content，思考链天然不外泄。
+function ssePiece(payload: string): string {
+  try {
+    const j = JSON.parse(payload) as {
+      response?: string;
+      choices?: { delta?: { content?: string; reasoning_content?: string } }[];
+    };
+    if (typeof j.response === 'string') return j.response;
+    const d = j.choices?.[0]?.delta;
+    if (d && typeof d.content === 'string') return d.content;
+  } catch { /* 忽略非 JSON 行 */ }
+  return '';
 }

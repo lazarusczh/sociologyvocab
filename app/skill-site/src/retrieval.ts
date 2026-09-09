@@ -1,6 +1,6 @@
 // 教材知识站问答的检索 + prompt 组装
 // 内容已整份在浏览器（登录后拉取），直接在本地做关键词/术语召回，无需服务端向量库
-import { booksOf, type GlossaryEntry } from './data'
+import { booksOf, type Book, type GlossaryEntry, type Section } from './data'
 import type { SkillData } from './data'
 
 // 语料会随挂载书目增长，材料宁精勿多：段数上限放宽、每段与总量收紧，
@@ -8,6 +8,14 @@ import type { SkillData } from './data'
 const MAX_PARTS = 8;            // 作为材料喂给模型的段落块上限
 const PART_CHAR_LIMIT = 1000;   // 每段截断
 const TOTAL_CHAR_BUDGET = 7000; // 材料总量上限（含术语块）
+
+// 「评分视角本」处理：命中即按整章合并成一份「论据档案」喂入（而非按小节零散截取），
+// 保住该考点的 措辞→证据链→平衡收尾 完整性；档案文本仅供模型消化为论据，
+// 评分元信息（小节名里的「评分/失分」等）与真题编号是否外露由 system 统一约束。
+const EXAM_ARCHIVE_CHAR = 1500;
+const isExamBook = (b: Book) => b.kind === '真题' || b.slug === 'papers';
+// 评分章标题形如「家庭与父权（…）：26 分评估题评分视角」，出处/块标签只保留冒号前的主标题
+const examShortTitle = (t: string) => t.split(/[：:]/)[0].trim();
 
 interface Hit {
   book: string;      // 书目名（用于出处标注）
@@ -71,34 +79,60 @@ export function retrieve(skill: SkillData, question: string): { system: string; 
     }
   }
 
-  // 2) 章节段落打分：先本内排序，再「每本保底一段 + 全局按分补齐」
-  //    —— 否则篇幅大的教辅会把教材内容挤光
+  // 2) 章节打分：教材按小节命中；评分视角本按「整章论据档案」命中。
+  //    先本内排序，再「每本保底一段 + 全局按分补齐」——否则篇幅大的教辅会把教材内容挤光。
+  const secScore = (ch: { id: string; sections: Section[] }, blob: string): number => {
+    const lower = blob.toLowerCase();
+    let s = 0;
+    for (const t of terms) {
+      let idx = lower.indexOf(t);
+      let n = 0;
+      while (idx !== -1 && n < 20) { n++; idx = lower.indexOf(t, idx + t.length); }
+      if (n > 0) s += 1 + Math.min(n, 5);
+    }
+    // 术语章节回指加权：g.chapters 形如 ch01，需与章节 id 做包含判断
+    for (const { g } of topTerms) {
+      if (g.chapters.some((c) => ch.id.includes(c))) s += 3;
+    }
+    return s;
+  };
   const perBook: Hit[][] = books.map((b) => {
     const hits: Hit[] = [];
+    const exam = isExamBook(b);
     for (const ch of b.chapters) {
       // 独立宗教主题章默认跳过检索（选修不教）；问题明确指向宗教领域时才放行
       if (isReligionTopic(ch) && !REL_SIGNAL.test(q)) continue;
+      if (exam) {
+        // 评分本：任一节命中就把整章相关节合并成一份论据档案，保留考点完整性
+        let score = 0;
+        const parts: string[] = [];
+        for (const sec of ch.sections) {
+          const blob = `${sec.heading}\n${sec.lines.join('\n')}`;
+          const s = secScore(ch, blob);
+          if (s > 0) { score += s; parts.push(blob); }
+        }
+        if (parts.length) {
+          const title = examShortTitle(ch.title);
+          hits.push({
+            book: b.label,
+            chapter: title,
+            source: `${b.label} › ${title}`,
+            text: parts.join('\n\n').slice(0, EXAM_ARCHIVE_CHAR),
+            score,
+          });
+        }
+        continue;
+      }
       for (const sec of ch.sections) {
         const blob = `${sec.heading}\n${sec.lines.join('\n')}`;
-        const lower = blob.toLowerCase();
-        let score = 0;
-        for (const t of terms) {
-          let idx = lower.indexOf(t);
-          let n = 0;
-          while (idx !== -1 && n < 20) { n++; idx = lower.indexOf(t, idx + t.length); }
-          if (n > 0) score += 1 + Math.min(n, 5);
-        }
-        // 术语章节回指加权：g.chapters 形如 ch01，需与章节 id 做包含判断
-        for (const { g } of topTerms) {
-          if (g.chapters.some((c) => ch.id.includes(c))) score += 3;
-        }
-        if (score > 0) {
+        const s = secScore(ch, blob);
+        if (s > 0) {
           hits.push({
             book: b.label,
             chapter: ch.title,
             source: `${b.label} › ${ch.title} › ${sec.heading}`,
             text: blob.slice(0, PART_CHAR_LIMIT),
-            score,
+            score: s,
           });
         }
       }
@@ -150,14 +184,20 @@ export function retrieve(skill: SkillData, question: string): { system: string; 
 
   // system：角色 + 教学口径（继承 SKILL.md 的答题人格）。
   // 注意：互补是「补充」不是模板——主线必须是完整作答，否则 8B 会被引导成压缩短答。
-  const system = `你是 Cambridge 9699 A Level 社会学教师助手，依据已挂载的多本教材与教辅蒸馏语料作答。
+  // 真题本定位：只提供实战论据，绝不外露评分元讨论与真题编号（详见第 5 条）。
+  const system = `你是 Cambridge 9699 A Level 社会学教师助手，依据已挂载的教材与按考点整理的语料作答。
 
 作答要求：
-1. 严格依据材料作答，不得编造理论家/年份/研究；材料未覆盖处明确说「知识库未覆盖」。引用书名用简称（《Haralambos》《Livesey & Blundell》，材料块首行已标来源）。
-2. 主体作答务必完整、有信息量：先给定义或核心结论，再展开机制与证据（含研究名+年份），需要时正反评价并给平衡结论（对应 AO1/AO2/AO3）。禁止只给一句话术语释义、禁止把英文概念翻译成中文就算回答。概念/理论题请把主体展开到约 300–500 字（书际差异补充段另计）；若答得太短通常意味着漏了机制或证据，请按材料补全。
+1. 严格依据材料作答，不得编造理论家/年份/研究；材料未覆盖处明确说「知识库未覆盖」。正文行内书名仅在两本教材（《Haralambos》《Livesey & Blundell》）之间作区分时使用；出处不必逐句复述——材料块首行与页面底部已有完整来源。
+2. 主体作答务必完整、有信息量：先给定义或核心结论，再展开机制与证据，需要时正反评价并给平衡结论（对应 AO1/AO2/AO3）。引用学者/研究时遵循「引用即论证」：把姓名嵌进它支撑的主张句——如主张家庭仍不平等的一方可引 Oakley 对性别角色社会化的批判、Dobash & Dobash 对婚内暴力的记录；主张已趋平等的一方则举 Willmott & Young 的 symmetrical family、Kaufman 的 involved father——让读者能看出「谁说了什么、站哪一边」。禁止把一串姓名/研究机械罗列成清单、只点名不给观点；材料仅点名未给观点的不要硬凑。禁止只给一句话术语释义、禁止把英文概念翻译成中文就算回答。概念/理论题主体展开到约 300–500 字（差异补充段另计）；若太短通常意味着漏了机制或证据，请按材料补全。
 3. 涉及理论判断先归位「理论指纹」：功能主义(Durkheim/Parsons，value consensus/social solidarity)、马克思主义(Marx/Bowles&Gintis，correspondence principle/false consciousness)、女权主义(patriarchy/intersectionality)、互动论(Mead/Blumer/Goffman，labelling/impression management)、后现代(Lyotard/Baudrillard，simulacra/meta-narrative)。
-4. 两书差异作为「补充段」放在主体之后（不是回答的主结构）：主体完整展开后，若两本及以上都覆盖同一问题，用一小段说明两书侧重——先一句共同点，再简短分列各书差异或出入，指出分歧可作为 AO3 评估点。不要为了对比而压缩主体；只有一本覆盖时就按该书如实作答。
-5. 语言用简体中文为主，术语保留英文原词（如 meritocracy、secularisation）；中英术语可混查（如「文化资本」「cultural capital」均指 Bourdieu 概念）。`;
+4. 两本教材都覆盖同一问题时，主体完整展开后可用一小段点出两书侧重/出入（如某书更强调机制、另一书更强调批判），作为差异讨论；不要为了对比压缩主体；只有一本覆盖就按该书作答。
+5. 材料中标为「真题 · 评分视角」的块是「实战论据集」：其中的观点、研究证据、正反立场与平衡收尾都按真实考题整理，与教材内容同等可信。用法只有一条——把它当作普通论据自然写进定义、证据链与评价里（它常比教材更"直接可用来答题"）。同时严格遵守：
+   - 不得出现任何讨论考试评分机制的话（如"这类题常考/给分点/评分标准/答题策略/常见失分/AO3 拿分"等元叙述）；
+   - 不得外露真题编号、卷别或任何代号（S21/S22/QP22 等一律不出现），也不要复述材料里的出处格式；
+   - 不要向读者介绍"真题评分视角"这本资料，更不要把它与教材并列做来源对比。
+6. 语言用简体中文为主，术语保留英文原词（如 meritocracy、secularisation）；中英术语可混查（如「文化资本」「cultural capital」均指 Bourdieu 概念）。
+7. 中文译名一律使用社会学通行译法，禁止按字面直译，尤其不得出现：functionalism/functionalist=功能主义/功能主义者（严禁"函数主义"）；Marxism=马克思主义；feminism=女权主义（liberal/radical/Marxist feminism=自由派/激进派/马克思主义女权主义）；interactionism=互动论；postmodernism=后现代主义；value consensus=价值共识；social solidarity=社会团结；correspondence principle=对应原则；meritocracy 正文保留英文或写「按绩晋升」，勿自造生僻译名。同一术语全文译名保持一致。`;
 
   return { system, context, sources: [...sources].slice(0, 8) };
 }
