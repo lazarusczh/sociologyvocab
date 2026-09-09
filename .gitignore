@@ -118,3 +118,9 @@ app/data/refs-candidates.json
 
 # 真题评分视角语料（由 ms-data.json 蒸馏生成，含 mark scheme 派生要点，属教师知识产权，不入库）
 app/data/ms-skill/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example

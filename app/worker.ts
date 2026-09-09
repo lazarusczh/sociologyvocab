@@ -9,7 +9,8 @@ interface Env {
   SUPABASE_URL: string;
   SUPABASE_ANON_KEY: string;
   MODELSCOPE_API_KEY?: string; // 魔搭免费 API key（经 secret put 注入，不落代码）
-  OPENROUTER_API_KEY?: string; // OpenRouter key（:free 池，1000 次/日档；第三顺位缓冲）
+  OPENROUTER_API_KEY?: string; // OpenRouter key（:free 池，1000 次/日档；降级缓冲）
+  AGNES_API_KEY?: string;       // Agnes AI key（apihub，免费；日常主力，省魔粒）
 }
 
 const WB_BASE = 'https://api.worldbank.org';
@@ -26,10 +27,20 @@ const MS_THINK = 'Qwen/Qwen3-235B-A22B-Thinking-2507';
 // 旗舰档（2 魔粒/次）：目前仅作预留，需要高质量顶格输出时再并入链
 const MS_V4 = 'deepseek-ai/DeepSeek-V4-Flash-0731';
 
-// OpenRouter（第三顺位缓冲）：:free 池。实测 openrouter/free 综合路由会随机路由到
-// 领域模型（如金融 ling），教学问答不稳 → 锁定池内通用 instruct；id 若掉出免费池再回退 openrouter/free
+// Agnes AI（apihub）：OpenAI 兼容；推理过程在独立字段 reasoning_content，
+// 前端只取 content，思考链不外泄；质量经实测明显强于 8B（合格线达成）。
+// 但从 Cloudflare Worker 出口直连实测恒被拒（CF WAF 1015 限流，与 key 无关，2026-09-09），
+// 故默认不在 Worker 链上启用——仍可用于本地/个人 agent。日后若其风控调整，改回 true 即恢复。
+const AGNES_VIA_CF = false;
+const AG_URL = 'https://apihub.agnes-ai.com/v1/chat/completions';
+const AG_MODEL = 'agnes-2.5-flash';
+
+// OpenRouter（降级缓冲）：:free 池。gemma 系上游是 Google AI Studio 共享池，
+// 高峰期几乎必 429（实测）；NVIDIA nemotron-super-120b 上游池宽松且稳定 200，
+// 但它默认输出推理过程——经 reasoning.enabled=false 关闭后即为干净答案（实测有效）。
+// 若该 id 掉出免费池，再回退到其他 :free 通用模型。
 const OR_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const OR_MODEL = 'google/gemma-4-31b-it:free';
+const OR_MODEL = 'nvidia/nemotron-3-super-120b-a12b:free';
 
 // 评估/对比类问题意图词（命中→思考模型）；日常直答模型只用于其余问题
 const HARD_RE =
@@ -77,6 +88,8 @@ function corsHeaders(request: Request): Record<string, string> {
     'Access-Control-Allow-Origin': allow,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+    // 让跨域客户端（APK/dev）能读到模型档位与降级原因标记
+    'Access-Control-Expose-Headers': 'X-AI-Model, X-AI-Fail',
     'Access-Control-Max-Age': '86400',
     Vary: 'Origin',
   };
@@ -92,7 +105,7 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
   if (!userId) return json(401, { error: 'invalid session' });
 
   // 2) 读取请求体
-  let body: { question?: string; system?: string; context?: string };
+  let body: { question?: string; system?: string; context?: string; history?: { role?: string; content?: string }[] };
   try {
     body = await request.json();
   } catch {
@@ -103,41 +116,85 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
   const context = (body.context ?? '').trim();
   if (!question) return json(400, { error: 'missing question' });
 
-  // 3) 组装 messages：system 注入答题人格；context 为前端检索出的教材段落（开卷材料）
+  // 3) 组装 messages：system → 多轮历史 → 当前轮（带检索材料）
   const messages: AiMessage[] = [];
   if (system) messages.push({ role: 'system', content: system });
+  // 历史轮做防御性清洗：角色白名单、单条去空白/限长、总量限条数，
+  // 避免客户端异常或恶意超长 history 撑爆请求体 / 浪费上下文
+  const MAX_HISTORY_MSGS = 12;
+  const MAX_HISTORY_MSG_LEN = 4000;
+  const rawHistory = Array.isArray(body.history) ? body.history : [];
+  for (const h of rawHistory) {
+    if (messages.length - (system ? 1 : 0) >= MAX_HISTORY_MSGS) break;
+    const role = h.role === 'user' || h.role === 'assistant' ? h.role : null;
+    if (!role) continue;
+    let content = (h.content ?? '').trim();
+    if (!content) continue;
+    if (content.length > MAX_HISTORY_MSG_LEN) content = content.slice(-MAX_HISTORY_MSG_LEN);
+    messages.push({ role, content });
+  }
+  // 多数兼容端点要求首条为 system 或 user：若清洗后首条是 assistant 则丢弃
+  while (messages.length > (system ? 1 : 0) && messages[system ? 1 : 0].role === 'assistant') {
+    messages.splice(system ? 1 : 0, 1);
+  }
+  const hasHistory = Array.isArray(body.history) && body.history.length > 0;
+  const followNote = hasHistory
+    ? '这是同一段对话里的追问：此前已给出的定义、机制与论据都视为已建立的上下文，不要整段复述或原样重排（确需回指时最多用一句「如前所述」带过），把篇幅留给本次提问真正需要的增量。\n\n'
+    : '';
   const userContent = context
-    ? `以下是从教材知识库检索到的相关材料（供作答依据）：\n\n${context}\n\n---\n\n学生提问：${question}\n\n请基于上述材料作答；材料没有覆盖的部分请明确说明「知识库未覆盖」，不要编造。作答要信息量充足、结构清晰（定义→机制→证据→需要时评价），概念与理论题请展开说明，不要只给一句释义或写成翻译。引用各书说法时行内注明书名即可，不要在正文额外列出「出处」清单——页面底部会单独展示出处。`
-    : `学生提问：${question}`;
+    ? `${followNote}以下是从教材知识库检索到的相关材料（供作答依据）：\n\n${context}\n\n---\n\n学生提问：${question}\n\n请基于上述材料作答；材料没有覆盖的部分请明确说明「知识库未覆盖」，不要编造。作答要信息量充足、结构清晰（定义→机制→证据→需要时评价），概念与理论题请展开说明，不要只给一句释义或写成翻译。引用各书说法时行内注明书名即可，不要在正文额外列出「出处」清单——页面底部会单独展示出处。`
+    : `${followNote}学生提问：${question}`;
   messages.push({ role: 'user', content: userContent });
 
-  // 4) 主链路：ModelScope（魔搭，免费魔粒）
-  //    日常题 → Qwen3 hybrid 快速直答；评估/对比类 → Thinking-2507；任一失败自动降级
+  // 4) 多级路由：
+  //    评估/对比类 → 魔搭 Qwen3 Thinking（1 魔粒，深度已被长期验证）
+  //    其余日常    → Agnes-2.5-flash（免费，不烧魔粒；推理链前端剥离）
+  //    逐级失败降级：魔搭快速档 → OpenRouter nemotron(:free 关推理) → Workers 8B
   const sseHeaders = {
     'Content-Type': 'text/event-stream; charset=utf-8',
     'Cache-Control': 'no-cache',
     'X-Accel-Buffering': 'no',
   } as const;
   const msKey = env.MODELSCOPE_API_KEY;
-  if (msKey) {
-    const hard = HARD_RE.test(question);
-    if (hard) {
-      const think = await msAsk(MS_THINK, messages, msKey, { maxTokens: 2400 });
-      if (think) return new Response(think.body, { headers: sseHeaders });
-    }
-    const main = await msAsk(MS_MAIN, messages, msKey, { thinking: false, temperature: 0.6 });
-    if (main) return new Response(main.body, { headers: sseHeaders });
+  const agKey = env.AGNES_API_KEY;
+  const orKey = env.OPENROUTER_API_KEY;
+  const hard = HARD_RE.test(question);
+
+  // 降级原因收集：落到兜底档时经 X-AI-Fail 响应头回传，前端可显示以便诊断
+  const failLog: string[] = [];
+  const rec =
+    (name: string) =>
+    (status: number, snippet: string) =>
+      failLog.push(`${name}=${status} ${snippet.replace(/\s+/g, ' ').slice(0, 90)}`);
+
+  // 4a) 评估/复杂题：魔搭 Thinking 优先
+  if (hard && msKey) {
+    const think = await msAsk(MS_THINK, messages, msKey, { maxTokens: 2400, onFail: rec('ms-think') });
+    if (think) return new Response(think.body, { headers: { ...sseHeaders, 'X-AI-Model': 'qwen3-think' } });
   }
 
-  // 4b) 缓冲：OpenRouter :free 池（ModelScope 不可用/被限时顶上；第三顺位）
-  const orKey = env.OPENROUTER_API_KEY;
+  // 4b) 日常主力：Agnes（免费，省魔粒）——因 CF 出口 1015 限流默认关闭（AGNES_VIA_CF=false）
+  if (AGNES_VIA_CF && agKey) {
+    const ag = await msAsk(AG_MODEL, messages, agKey, { base: AG_URL, maxTokens: 1800, onFail: rec('agnes') });
+    if (ag) return new Response(ag.body, { headers: { ...sseHeaders, 'X-AI-Model': 'agnes' } });
+  }
+
+  // 4c) 降级①：魔搭快速档（Agnes 不可用 / 评估题 think 已失败时顶上）
+  if (msKey) {
+    const main = await msAsk(MS_MAIN, messages, msKey, { thinking: false, temperature: 0.6, onFail: rec('ms-main') });
+    if (main) return new Response(main.body, { headers: { ...sseHeaders, 'X-AI-Model': 'qwen3-main' } });
+  }
+
+  // 4d) 降级②：OpenRouter :free（nemotron，关推理）
   if (orKey) {
     const orRes = await msAsk(OR_MODEL, messages, orKey, {
       temperature: 0.6,
+      reasoning: false, // nemotron 默认吐推理过程，这里关掉只留答案
       base: OR_URL,
       extraHeaders: { 'HTTP-Referer': 'https://9699vocab.cn', 'X-Title': '9699-sociology-skill' },
+      onFail: rec('or-nemotron'),
     });
-    if (orRes) return new Response(orRes.body, { headers: sseHeaders });
+    if (orRes) return new Response(orRes.body, { headers: { ...sseHeaders, 'X-AI-Model': 'openrouter' } });
   }
 
   // 5) 兜底：Workers AI（免费 neurons 额度内，成本趋零）
@@ -149,7 +206,13 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
       temperature: 0.8,
       top_p: 0.95,
     });
-    return new Response(stream as unknown as ReadableStream, { headers: sseHeaders });
+    return new Response(stream as unknown as ReadableStream, {
+      headers: {
+        ...sseHeaders,
+        'X-AI-Model': 'workers-8b',
+        ...(failLog.length ? { 'X-AI-Fail': failLog.join(' | ') } : {}),
+      },
+    });
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error('[skill-api/ask] ai error:', msg);
@@ -166,10 +229,12 @@ async function msAsk(
   key: string,
   opts: {
     thinking?: boolean;
+    reasoning?: boolean; // OpenRouter 推理模型开关：false 关闭思考链，只输出答案
     temperature?: number;
     maxTokens?: number;
     base?: string; // 默认 ModelScope；传 OR_URL 即走 OpenRouter
     extraHeaders?: Record<string, string>;
+    onFail?: (status: number, snippet: string) => void; // 失败时回调，供上层收集降级原因
   } = {},
 ): Promise<Response | null> {
   const body: Record<string, unknown> = {
@@ -179,20 +244,32 @@ async function msAsk(
     max_tokens: opts.maxTokens ?? 1500,
   };
   if (opts.thinking !== undefined) body.enable_thinking = opts.thinking;
+  if (opts.reasoning !== undefined) body.reasoning = { enabled: opts.reasoning };
   if (opts.temperature !== undefined) body.temperature = opts.temperature;
   try {
     const r = await fetch(opts.base ?? MS_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}`, ...opts.extraHeaders },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${key}`,
+        // 免费 API 常校验 UA：不带浏览器 UA 的数据中心请求可能被直接拒绝（本地 node 测试自带 UA 故成功）
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36',
+        ...opts.extraHeaders,
+      },
       body: JSON.stringify(body),
     });
     if (!r.ok) {
-      console.error(`[msAsk ${model}] http ${r.status}: ${(await r.text()).slice(0, 160)}`);
+      const snippet = (await r.text()).slice(0, 160);
+      console.error(`[msAsk ${model}] http ${r.status}: ${snippet}`);
+      opts.onFail?.(r.status, snippet);
       return null;
     }
     return r;
   } catch (e) {
-    console.error('[msAsk] fetch error:', e instanceof Error ? e.message : String(e));
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error('[msAsk] fetch error:', msg);
+    opts.onFail?.(0, `fetch ${msg}`);
     return null;
   }
 }
