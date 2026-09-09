@@ -245,6 +245,25 @@ input:focus, textarea:focus, select:focus {
 .badge.danger   { background: var(--c-critical-bg);  color: var(--c-critical-ink); }
 .badge.warn     { background: var(--c-warning-bg);   color: var(--c-warning-ink); }
 
+/* AI 门禁面板：开关 + 布局（沿用主站色板；开=暂停=警示红，关=正常=绿） */
+.gate-switch-row { display: flex; align-items: center; gap: 0.9rem; margin: 0.9rem 0; padding: 0.8rem 0; border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border); }
+.gate-switch-meta { display: flex; flex-direction: column; gap: 0.25rem; }
+.gate-switch-title { font-weight: 600; font-size: 0.95rem; }
+.gate-switch-sub { font-size: 0.78rem; }
+.gate-note { margin-top: 0.9rem; }
+.gate-note-label { display: block; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.35rem; }
+.gate-time { font-size: 0.74rem; }
+.gate-error { color: var(--c-critical); margin: 0.5rem 0 0; font-size: 0.85rem; }
+
+/* 开关（checkbox 视觉化） */
+.switch { position: relative; display: inline-block; width: 48px; height: 28px; flex: none; cursor: pointer; }
+.switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+.switch__track { position: absolute; inset: 0; border-radius: 999px; background: var(--c-success); transition: background 0.2s ease; }
+.switch__thumb { position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); transition: transform 0.2s ease; }
+.switch input:checked + .switch__track { background: var(--c-critical); }
+.switch input:checked + .switch__track .switch__thumb { transform: translateX(20px); }
+.switch input:disabled + .switch__track { opacity: 0.55; cursor: default; }
+
 /* 顶栏 */
 .topbar {
   position: sticky;
