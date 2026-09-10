@@ -1,15 +1,9 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { Capacitor, registerPlugin } from '@capacitor/core'
+import { Capacitor } from '@capacitor/core'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import './index.css'
 import App from './App.tsx'
-
-// 本地原生插件（android/.../InsetPlugin.java）：控制 WebView 是否避开顶部状态栏
-interface InsetPluginApi {
-  setTopInsetPadding(options: { enabled: boolean }): Promise<unknown>
-}
-const Inset = registerPlugin<InsetPluginApi>('InsetPlugin')
 
 // APK（Capacitor）里：子站移动顶栏是品牌深蓝，让内容延伸到状态栏下，
 // 顶栏自身用 env(safe-area-inset-top) 把深蓝铺满状态栏区域，同时把状态栏图标改成浅色，
@@ -19,8 +13,7 @@ if (Capacitor.isNativePlatform()) {
   // 供 CSS 区分「APK 原生环境」：部分 WebView 不上报 env(safe-area-inset-*)，
   // 需要按状态栏典型高度兜底，保证顶栏深蓝能铺到状态栏区域
   document.documentElement.classList.add('native')
-  // 子站：WebView 顶到状态栏，由深蓝顶栏自己铺满状态栏区域（与顶栏连成一片）
-  void Inset.setTopInsetPadding({ enabled: false }).catch(() => { /* 插件不可用时忽略 */ })
+  // 顶部是否避让状态栏由原生按 URL 判定（子站不避让，深蓝顶栏自绘铺满）
   void (async () => {
     try {
       await StatusBar.setStyle({ style: Style.Dark })   // 深蓝顶栏 → 状态栏用浅色图标
