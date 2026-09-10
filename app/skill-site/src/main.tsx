@@ -1,7 +1,26 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { Capacitor } from '@capacitor/core'
+import { StatusBar, Style } from '@capacitor/status-bar'
 import './index.css'
 import App from './App.tsx'
+
+// APK（Capacitor）里：子站移动顶栏是品牌深蓝，让内容延伸到状态栏下，
+// 顶栏自身用 env(safe-area-inset-top) 把深蓝铺满状态栏区域，同时把状态栏图标改成浅色，
+// 这样状态栏与顶栏始终同色（Android 15 强制 edge-to-edge 下也成立）。
+// 浏览器里不执行（没有原生状态栏）。
+if (Capacitor.isNativePlatform()) {
+  void (async () => {
+    try {
+      await StatusBar.setOverlaysWebView({ overlay: true })
+      await StatusBar.setStyle({ style: Style.Dark })
+    } catch { /* 插件不可用时静默降级 */ }
+    try {
+      // Android 15+ 已废弃该 API；失败无妨，靠顶栏自绘铺色
+      await StatusBar.setBackgroundColor({ color: '#10243e' })
+    } catch { /* ignore */ }
+  })()
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
