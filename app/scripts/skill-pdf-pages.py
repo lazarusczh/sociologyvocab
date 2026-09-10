@@ -1,0 +1,226 @@
+# 教材 PDF → 「页级原文 + 页级索引」，供知识库做两级检索：
+#   常驻前端：索引（章/节标签 + 关键词，体积小）
+#   按需拉取：命中的若干页原文（完整，不切块、不摘要，细节不丢）
+#
+# 设计要点：
+# 1) 页是天然的切分单位 —— 不需要识别标题层级，绕开切块调参的脆弱环节。
+# 2) 页眉（每页顶部重复栏名，如 "5.7 GENDER AND EDUCATIONAL ATTAINMENT"）
+#    不丢弃，而是当作该页的「节标签」，正好提供章节归属与打分关键词。
+# 3) 关键词自动抽取：首字母大写词（Ward / Geeks / Boiz）、带年份的引用
+#    （Ward (2015)）、全大写缩写（GCSE / SFP）、该页高频实词（小写主题词）。
+#    这样正文细节（不在任何标题里的研究案例）也能被索引命中。
+# 4) 全程无 LLM、无手工标注；教材换版重跑即可。
+#
+# 用法（参数用 ASCII，PDF 路径内部用 glob 解析，绕开 shell 中文编码问题）：
+#   python scripts/skill-pdf-pages.py --book haralambos --out C:/tmp/tb1-pages
+#   python scripts/skill-pdf-pages.py --book haralambos --out C:/tmp/tb1-pages --find Ward
+import argparse
+import json
+import re
+from collections import Counter, defaultdict
+from pathlib import Path
+
+import pymupdf
+
+ONEDRIVE = Path("C:/Users/rebir/OneDrive")
+
+BOOKS = {
+    "haralambos": (
+        "*Haralambos*.pdf",
+        "tb1",
+        ["Introduction", "Socialisation and identity", "Research methods", "The family",
+         "Education", "The media", "Religion", "Globalisation", "Preparing for examinations"],
+    ),
+    "livesey": (
+        "*Livesey*.pdf",
+        "tb2",
+        ["Socialisation and the creation of social identity", "Methods of research", "The family",
+         "Education", "Globalisation", "Media", "Religion", "Preparing for assessment"],
+    ),
+}
+
+STOP_EN = set(
+    "a an the and or but of to in for on with by at from as is are was were be been being it its this that these those they them their he she his her we our you your not no do does did have has had what which who whom whose when where why how can could would should may might must about into than then also more most such only just because if there here their there some any all one two three four five six seven eight nine ten other others new first second same different more less very much many".split()
+)
+
+CAP_WORD = re.compile(r"\b[A-Z][a-z]{2,}\b")
+YEAR_REF = re.compile(r"\b([A-Z][\w'&-]+(?:\s+&\s+[A-Z][\w'&-]+)?)\s*\(\s*(\d{4})\s*\)")
+ACRONYM = re.compile(r"\b[A-Z]{2,6}\b")
+LOWER_WORD = re.compile(r"[a-z]{5,}")
+
+
+def pick_pdf(pattern: str) -> Path:
+    cands = sorted(ONEDRIVE.glob(f"**/{pattern}"))
+    if not cands:
+        raise SystemExit(f"no pdf matched: {pattern}")
+    ocr = [p for p in cands if "OCR" in p.name.upper()]
+    return ocr[0] if ocr else cands[0]
+
+
+def extract_page_rows(doc):
+    """返回 [(pno, [(text, size, bold, y0_ratio), ...])]"""
+    out = []
+    for i, page in enumerate(doc):
+        pno = i + 1
+        try:
+            d = page.get_text("dict")
+            ph = page.rect.height or 1
+        except Exception:
+            out.append((pno, []))
+            continue
+        rows = []
+        for blk in d.get("blocks", []):
+            if blk.get("type", 0) != 0:
+                continue
+            for ln in blk.get("lines", []):
+                spans = ln.get("spans", [])
+                if not spans:
+                    continue
+                txt = "".join(s.get("text", "") for s in spans).strip()
+                if not txt:
+                    continue
+                size = max(s.get("size", 0) for s in spans)
+                bold = any("bold" in (s.get("font", "") or "").lower() for s in spans)
+                y0 = ln.get("bbox", [0, 0, 0, 0])[1] / ph
+                rows.append((txt, size, bold, y0))
+        out.append((pno, rows))
+    return out
+
+
+def build_boilerplate(page_rows, total_pages):
+    """页眉页脚：位于页首/页尾且跨 >=3 页重复出现的行。"""
+    edge = defaultdict(set)
+    for pno, rows in page_rows:
+        for txt, size, bold, y0 in rows:
+            if len(txt) > 80:
+                continue
+            if y0 < 0.10 or y0 > 0.90:
+                edge[txt].add(pno)
+    return {t for t, pages in edge.items() if len(pages) >= 3}
+
+
+def chapter_of(label: str, toc):
+    low = (label or "").lower()
+    for name in toc:
+        if name.lower() in low:
+            return name
+    m = re.match(r"^\s*(\d{1,2})[\s.、-]", label or "") or re.search(r"Unit\s+(\d{1,2})[\s.、-]", label or "")
+    if m:
+        n = int(m.group(1))
+        if 1 <= n <= len(toc):
+            return toc[n - 1]
+    return None
+
+
+def keywords(text: str, limit: int = 60):
+    """自动抽关键词：大写词 / 带年份引用 / 缩写 / 本页高频实词。"""
+    kws = set()
+    for w in CAP_WORD.findall(text):
+        kws.add(w.lower())
+    for name, year in YEAR_REF.findall(text):
+        base = name.lower().strip()
+        kws.add(base)
+        kws.add(f"{base} {year}")
+        for part in re.split(r"\s+&\s+", base):
+            if part:
+                kws.add(part)
+    for a in ACRONYM.findall(text):
+        kws.add(a.lower())
+    freq = Counter(w for w in LOWER_WORD.findall(text.lower()) if w not in STOP_EN)
+    for w, _c in freq.most_common(12):
+        kws.add(w)
+    return sorted(kws)[:limit]
+
+
+def slugify(s: str, limit: int = 40) -> str:
+    s = re.sub(r"[^\w\s-]", "", s, flags=re.UNICODE).strip().lower()
+    return re.sub(r"\s+", "-", s)[:limit] or "chapter"
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--book", required=True, choices=sorted(BOOKS))
+    ap.add_argument("--out", required=True)
+    ap.add_argument("--find", default="", help="打印含该关键词的页（索引条目 + 原文片段），用于回归验证")
+    args = ap.parse_args()
+
+    pattern, slug, toc = BOOKS[args.book]
+    pdf = pick_pdf(pattern)
+    print(f"source: {pdf.name}")
+
+    doc = pymupdf.open(pdf)
+    page_rows = extract_page_rows(doc)
+    total_pages = doc.page_count
+    boiler = build_boilerplate(page_rows, total_pages)
+    print(f"pages={total_pages} boilerplate_lines={len(boiler)}")
+
+    pages = []   # {p, chapter, section, text}
+    index = []   # {p, c, s, k}
+    cur_chapter = None
+
+    for pno, rows in page_rows:
+        header_texts = []
+        body = []
+        for txt, size, bold, y0 in rows:
+            if txt in boiler:
+                if y0 < 0.10:      # 页顶栏名 → 该页的节标签
+                    header_texts.append(txt)
+                continue
+            if re.fullmatch(r"[\d\s]+", txt):
+                continue
+            body.append(txt)
+        section = " ".join(header_texts).strip()
+        section = re.sub(r"\s+", " ", section)[:120]
+        ch = chapter_of(section, toc) or cur_chapter
+        if ch:
+            cur_chapter = ch
+        text = re.sub(r"\s+", " ", " ".join(body)).strip()
+        if len(text) < 80:
+            continue        # 空白页/图片页/分隔页
+        pages.append({"p": pno, "chapter": cur_chapter, "section": section, "text": text})
+        index.append({"p": pno, "c": cur_chapter, "s": section, "k": keywords(text)})
+
+    print(f"usable pages={len(pages)}")
+
+    out_dir = Path(args.out)
+    pages_dir = out_dir / "pages"
+    pages_dir.mkdir(parents=True, exist_ok=True)
+
+    by_chapter = defaultdict(list)
+    for pg in pages:
+        by_chapter[pg["chapter"]].append({"p": pg["p"], "t": pg["text"]})
+
+    total_chars = 0
+    for ch, items in by_chapter.items():
+        name = f"{slug}-{slugify(ch or 'front')}.json"
+        blob = json.dumps({"book": slug, "chapter": ch, "pages": items}, ensure_ascii=False)
+        (pages_dir / name).write_text(blob, encoding="utf-8")
+        total_chars += len(blob)
+        print(f"  {name}: {len(items)} pages, {len(blob)} chars")
+
+    idx_blob = json.dumps({"book": slug, "pages": index}, ensure_ascii=False)
+    (out_dir / "index.json").write_text(idx_blob, encoding="utf-8")
+    (out_dir / "meta.json").write_text(
+        json.dumps({"source": pdf.name, "book": slug, "pages": total_pages,
+                    "usable": len(pages), "chapters": list(by_chapter)},
+                   ensure_ascii=False, indent=1),
+        encoding="utf-8",
+    )
+    print(f"index.json: {len(idx_blob)} chars ({len(idx_blob)/1024:.0f} KB)")
+    print(f"pages total: {total_chars} chars ({total_chars/1024/1024:.2f} MB)")
+
+    if args.find:
+        kw = args.find.lower()
+        print(f"\n=== probe '{args.find}' ===")
+        hits = [e for e in index if kw in " ".join(e["k"])]
+        print(f"index hits: {len(hits)} pages -> {[e['p'] for e in hits][:20]}")
+        for e in hits[:5]:
+            raw = next((p["text"] for p in pages if p["p"] == e["p"]), "")
+            i = raw.lower().find(kw)
+            print(f"  p{e['p']} [{e['c']}] {e['s'][:60]}")
+            print(f"     kw: {', '.join(e['k'][:18])}")
+            print(f"     ...{raw[max(0,i-160):i+260]}...")
+
+
+if __name__ == "__main__":
+    main()

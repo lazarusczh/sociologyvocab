@@ -15,7 +15,7 @@ interface Draft {
   selectionMode: 'random' | 'manual';
   paper: string;          // 'all' 或 'Paper N'
   cat: string;            // 次级标签
-  unit: string;           // 单元
+  units: string[];        // 单元（多选；空数组 = 全部）
   typeFilter: 'all' | 'term' | 'scholar'; // 类型筛选
   questionCount: number;  // 题量（random 模式）
   durationMinutes: number;
@@ -86,7 +86,7 @@ function toDraft(q: Quiz): Draft {
     selectionMode: q.selection_mode,
     paper: q.papers.length ? q.papers[0] : 'all',
     cat: q.category ?? 'all',
-    unit: q.units.length ? q.units[0] : 'all',
+    units: q.units ?? [],
     typeFilter: q.type_filter ?? 'all',
     questionCount: q.question_count,
     durationMinutes: q.duration_minutes,
@@ -192,7 +192,7 @@ export default function QuizManager() {
       selectionMode: 'random',
       paper: 'all',
       cat: 'all',
-      unit: 'all',
+      units: [],
       typeFilter: 'all',
       questionCount: 10,
       durationMinutes: 20,
@@ -217,8 +217,19 @@ export default function QuizManager() {
     setError('');
   };
 
-  // random 模式可选范围
+  // random 模式抽题池：按 考卷 / 主题 / 单元（多选）/ 类型 过滤
+  // （此前主题与单元未参与随机抽题，选了单元对抽题不生效，本次一并修正）
   const paperItems = useMemo(
+    () => (draft ? vocab.filter((i) =>
+      (draft.paper === 'all' || i.paper === draft.paper) &&
+      (draft.cat === 'all' || i.category === draft.cat) &&
+      (draft.units.length === 0 || (i.unit ?? []).some((u) => draft.units.includes(u))) &&
+      (draft.typeFilter === 'all' || i.type === draft.typeFilter),
+    ) : []),
+    [vocab, draft?.paper, draft?.cat, draft?.units, draft?.typeFilter],
+  );
+  // 主题列表来源：仅按考卷过滤，避免选了某主题后其它主题从选项中消失
+  const paperPool = useMemo(
     () => (draft ? vocab.filter((i) =>
       (draft.paper === 'all' || i.paper === draft.paper) &&
       (draft.typeFilter === 'all' || i.type === draft.typeFilter),
@@ -227,8 +238,8 @@ export default function QuizManager() {
   );
   const subLabels = useMemo(() => {
     if (!draft || draft.paper === 'all') return [];
-    return [...new Set(paperItems.map((i) => i.category).filter(Boolean))];
-  }, [draft?.paper, paperItems]);
+    return [...new Set(paperPool.map((i) => i.category).filter(Boolean))];
+  }, [draft?.paper, paperPool]);
   const units = useMemo(() => {
     if (!draft) return [];
     return unitListFor(vocab, draft.paper, draft.cat, unitOrder);
@@ -249,7 +260,7 @@ export default function QuizManager() {
     const filtered = vocab.filter((i) => {
       if (draft.paper !== 'all' && i.paper !== draft.paper) return false;
       if (draft.cat !== 'all' && i.category !== draft.cat) return false;
-      if (draft.unit !== 'all' && !(i.unit ?? []).includes(draft.unit)) return false;
+      if (draft.units.length > 0 && !(i.unit ?? []).some((u) => draft.units.includes(u))) return false;
       if (draft.typeFilter !== 'all' && i.type !== draft.typeFilter) return false;
       if (kw) {
         const hitTerm = i.term.toLowerCase().includes(kwLower);
@@ -264,7 +275,7 @@ export default function QuizManager() {
       .map((i) => ({ i, picked: draft.manualIds.includes(i.id) }))
       .sort((a, b) => Number(b.picked) - Number(a.picked))
       .map((x) => x.i);
-  }, [draft?.paper, draft?.cat, draft?.unit, draft?.typeFilter, vocab, manualSearch, draft?.manualIds]);
+  }, [draft?.paper, draft?.cat, draft?.units, draft?.typeFilter, vocab, manualSearch, draft?.manualIds]);
 
   const toggleType = (t: QuizQuestionType) => {
     setDraft((d) => {
@@ -272,6 +283,14 @@ export default function QuizManager() {
       const has = d.questionTypes.includes(t);
       const next = has ? d.questionTypes.filter((x) => x !== t) : [...d.questionTypes, t];
       return { ...d, questionTypes: next };
+    });
+  };
+
+  const toggleUnit = (u: string) => {
+    setDraft((d) => {
+      if (!d) return d;
+      const has = d.units.includes(u);
+      return { ...d, units: has ? d.units.filter((x) => x !== u) : [...d.units, u] };
     });
   };
 
@@ -307,7 +326,7 @@ export default function QuizManager() {
       selection_mode: draft.selectionMode,
       papers: draft.paper === 'all' ? [] : [draft.paper],
       category: draft.cat === 'all' ? null : draft.cat,
-      units: draft.unit === 'all' ? [] : [draft.unit],
+      units: draft.units,
       type_filter: draft.typeFilter,
       question_count: totalPoints(questions),
       duration_minutes: draft.durationMinutes,
@@ -779,24 +798,25 @@ export default function QuizManager() {
               <button className={draft.typeFilter === 'scholar' ? 'active' : ''} onClick={() => setDraft({ ...draft, typeFilter: 'scholar' })}>学者</button>
             </div>
             <div className="tag-filter" style={{ marginTop: '0.3rem' }}>
-              <button className={draft.paper === 'all' ? 'active' : ''} onClick={() => setDraft({ ...draft, paper: 'all', cat: 'all', unit: 'all' })}>全部考卷</button>
+              <button className={draft.paper === 'all' ? 'active' : ''} onClick={() => setDraft({ ...draft, paper: 'all', cat: 'all', units: [] })}>全部考卷</button>
               {PAPER_ORDER.map((p) => (
-                <button key={p} className={draft.paper === p ? 'active' : ''} onClick={() => setDraft({ ...draft, paper: p, cat: 'all', unit: 'all' })}>{p}</button>
+                <button key={p} className={draft.paper === p ? 'active' : ''} onClick={() => setDraft({ ...draft, paper: p, cat: 'all', units: [] })}>{p}</button>
               ))}
             </div>
             {subLabels.length > 1 && (
               <div className="tag-filter" style={{ marginTop: '0.3rem' }}>
-                <button className={draft.cat === 'all' ? 'active' : ''} onClick={() => setDraft({ ...draft, cat: 'all', unit: 'all' })}>全部主题</button>
+                <button className={draft.cat === 'all' ? 'active' : ''} onClick={() => setDraft({ ...draft, cat: 'all', units: [] })}>全部主题</button>
                 {subLabels.map((c) => (
-                  <button key={c} className={draft.cat === c ? 'active' : ''} onClick={() => setDraft({ ...draft, cat: c, unit: 'all' })}>{c}</button>
+                  <button key={c} className={draft.cat === c ? 'active' : ''} onClick={() => setDraft({ ...draft, cat: c, units: [] })}>{c}</button>
                 ))}
               </div>
             )}
             {units.length > 0 && (
               <div className="tag-filter" style={{ marginTop: '0.3rem' }}>
-                <button className={draft.unit === 'all' ? 'active' : ''} onClick={() => setDraft({ ...draft, unit: 'all' })}>全部单元</button>
+                <span className="muted" style={{ fontSize: '0.85rem', alignSelf: 'center' }}>单元（可多选）：</span>
+                <button className={draft.units.length === 0 ? 'active' : ''} onClick={() => setDraft({ ...draft, units: [] })}>全部单元</button>
                 {units.map((u) => (
-                  <button key={u} className={draft.unit === u ? 'active' : ''} onClick={() => setDraft({ ...draft, unit: u })}>{u}</button>
+                  <button key={u} className={draft.units.includes(u) ? 'active' : ''} onClick={() => toggleUnit(u)}>{u}</button>
                 ))}
               </div>
             )}

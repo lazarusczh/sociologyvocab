@@ -110,10 +110,11 @@ function compatible(it: BankItem, spec: SlotSpec): boolean {
   return true;
 }
 
-/** 按模板组卷：每槽从候选池洗牌抽 count 题（eitherOr 槽为展示 2 道候选，二者不重复即可） */
-export function assembleTemplate(bank: BankItem[], template: Template, topicFilter?: string, usedQids?: Set<string>): AssembleResult {
-  const pool = topicFilter
-    ? bank.filter((it) => it.source.paper === template.paper && it.topics.some((t) => t === topicFilter))
+/** 按模板组卷：每槽从候选池洗牌抽 count 题（eitherOr 槽为展示 2 道候选，二者不重复即可）
+ *  topicFilters 为多选考点：命中任一即入池；空数组/未传 = 不限 */
+export function assembleTemplate(bank: BankItem[], template: Template, topicFilters?: string[], usedQids?: Set<string>): AssembleResult {
+  const pool = topicFilters && topicFilters.length
+    ? bank.filter((it) => it.source.paper === template.paper && it.topics.some((t) => topicFilters.includes(t)))
     : bank.filter((it) => it.source.paper === template.paper);
   const used = usedQids ? new Set(usedQids) : new Set<string>();
   const slots: AssembleSlot[] = [];
@@ -131,21 +132,22 @@ export function assembleTemplate(bank: BankItem[], template: Template, topicFilt
   return { template, slots, total, usedQids: used };
 }
 
-/** 单题布置：从某卷/某考点按题号或分值取一题 */
-export function pickSingle(bank: BankItem[], paper: PaperId, opts: { q?: string; marks?: string; topic?: string; session?: string }): BankItem | undefined {
+/** 单题布置：从某卷/某考点按题号或分值取一题（topics 为多选考点，命中任一即可） */
+export function pickSingle(bank: BankItem[], paper: PaperId, opts: { q?: string; marks?: string; topics?: string[]; session?: string }): BankItem | undefined {
   return shuffle(bank.filter((it) =>
     it.source.paper === paper &&
     (!opts.q || it.source.q === opts.q) &&
     (!opts.marks || it.marks === opts.marks) &&
     (!opts.session || it.source.session === opts.session) &&
-    (!opts.topic || it.topics.includes(opts.topic)),
+    (!opts.topics || opts.topics.length === 0 || it.topics.some((t) => opts.topics!.includes(t))),
   ))[0];
 }
 
-/** 凑分（作业减量）：从可用题池中选若干题使 marksTotal 之和恰为 target（≤4 题，深度受限回溯） */
-export function assembleToTarget(bank: BankItem[], target: number, topicFilter?: string, maxItems = 6): AssembleSlot[] | null {
-  const units = shuffle(topicFilter
-    ? bank.filter((it) => it.topics.some((t) => t === topicFilter))
+/** 凑分（作业减量）：从可用题池中选若干题使 marksTotal 之和恰为 target（≤4 题，深度受限回溯）
+ *  topicFilters 为多选考点：命中任一即入池；空数组/未传 = 不限 */
+export function assembleToTarget(bank: BankItem[], target: number, topicFilters?: string[], maxItems = 6): AssembleSlot[] | null {
+  const units = shuffle(topicFilters && topicFilters.length
+    ? bank.filter((it) => it.topics.some((t) => topicFilters.includes(t)))
     : bank);
   const used = new Set<string>();
   // 分值块候选（含 10+6 单侧抽题的减量允许；statement-pair 成对仍整体 16）
@@ -178,4 +180,45 @@ export function assembleToTarget(bank: BankItem[], target: number, topicFilter?:
     spec: { key: `free[${marks}]`, label: `自由组题 ${marks} 分`, marks, marksTotal: markTotal(marks), count: arr.length },
     items: arr,
   }));
+}
+
+// ===== 历史重复检测（新组卷时比对已保存卷面） =====
+// 判据（教师确认口径）：
+//  - 已出过：同一题（qid 完全相同）
+//  - 近考点：非同一题，但最细考点（topics 末层叶子标题）相同 → 保守提醒，少打扰
+export type DupKind = 'exact' | 'similar';
+
+export interface DupIndex {
+  qids: Set<string>;       // 历史出现过的所有题目 id
+  leafTopics: Set<string>; // 历史出现过的所有最细考点
+}
+
+export const EMPTY_DUP_INDEX: DupIndex = { qids: new Set(), leafTopics: new Set() };
+
+/** 题目最细考点（topics 末元素，无则空串） */
+export const leafTopicOf = (it: Pick<BankItem, 'topics'>): string => it.topics.length ? it.topics[it.topics.length - 1] : '';
+
+/** 从历史卷面快照（grouper_runs.slots）构建去重索引；入参宽松，兼容脏数据 */
+export function buildDupIndex(runs: { slots: unknown }[]): DupIndex {
+  const qids = new Set<string>();
+  const leafTopics = new Set<string>();
+  for (const run of runs) {
+    const slots = Array.isArray(run.slots) ? (run.slots as AssembleSlot[]) : [];
+    for (const s of slots) {
+      for (const it of s?.items ?? []) {
+        if (it?.qid) qids.add(it.qid);
+        const leaf = leafTopicOf(it);
+        if (leaf) leafTopics.add(leaf);
+      }
+    }
+  }
+  return { qids, leafTopics };
+}
+
+/** 判定某题是否与历史重复：exact 优先于 similar；无重复返回 null */
+export function dupKindOf(it: BankItem, idx: DupIndex): DupKind | null {
+  if (idx.qids.has(it.qid)) return 'exact';
+  const leaf = leafTopicOf(it);
+  if (leaf && idx.leafTopics.has(leaf)) return 'similar';
+  return null;
 }

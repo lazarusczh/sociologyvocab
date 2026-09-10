@@ -201,3 +201,75 @@ export function retrieve(skill: SkillData, question: string): { system: string; 
 
   return { system, context, sources: [...sources].slice(0, 8) };
 }
+
+// ===== 教材原文页两级检索 =====
+// 第一级：常驻前端的「页级索引」（每页的章/节标签 + 自动抽取的关键词）打分，得到候选页码；
+// 第二级：只对命中的十几页按需拉取原文，保证研究案例这类正文细节不被蒸馏摘要丢掉。
+export interface PageIndexBook {
+  book: string;                                             // tb1 / tb2
+  pages: { p: number; c: string | null; s: string | null; k: string[] }[];
+}
+export interface PageHit {
+  book: string;
+  page: number;
+  chapter: string;
+  section: string;
+  score: number;
+}
+
+// 原文材料预算：按调用次数计费（除兜底 8B），但窗口有限，故限制页数与总字数
+export const PAGE_CHAR_BUDGET = 8000;
+const PAGE_MAX_PER_BOOK = 5;
+const PAGE_CHAR_LIMIT = 2200;   // 单页截断（一页约 2500 字符）
+
+/**
+ * 用页级索引给问题打分，返回候选页（每本最多 PAGE_MAX_PER_BOOK 页）。
+ * 打分：命中索引关键词 +3；关键词前缀命中（长词）+1；命中章/节标签 +2。
+ */
+export function retrievePages(indexes: PageIndexBook[], question: string): PageHit[] {
+  const toks = tokenize(question);
+  if (!toks.length) return [];
+  const hits: PageHit[] = [];
+  for (const bk of indexes) {
+    const scored: PageHit[] = [];
+    for (const e of bk.pages ?? []) {
+      const kws = e.k ?? [];
+      const label = `${e.s ?? ''} ${e.c ?? ''}`.toLowerCase();
+      let s = 0;
+      for (const t of toks) {
+        if (t.length < 2) continue;
+        if (kws.includes(t)) s += 3;
+        else if (t.length >= 4 && kws.some((k) => k.startsWith(t))) s += 1;
+        if (t.length >= 3 && label.includes(t)) s += 2;
+      }
+      if (s > 0) {
+        scored.push({ book: bk.book, page: e.p, chapter: e.c ?? '', section: e.s ?? '', score: s });
+      }
+    }
+    scored.sort((a, b) => b.score - a.score);
+    hits.push(...scored.slice(0, PAGE_MAX_PER_BOOK));
+  }
+  return hits;
+}
+
+/** 把拉取到的页原文组装成材料块（含书名/章/页码出处，便于回查原书）。 */
+export function buildPageContext(
+  hits: PageHit[],
+  texts: Record<string, string>,   // `${book}:${page}` -> 原文
+  bookLabel: Record<string, string>,
+): { context: string; sources: string[] } {
+  const blocks: string[] = [];
+  const sources: string[] = [];
+  let used = 0;
+  for (const h of hits) {
+    if (used >= PAGE_CHAR_BUDGET) break;
+    const raw = texts[`${h.book}:${h.page}`];
+    if (!raw) continue;
+    const label = bookLabel[h.book] ?? h.book;
+    const where = [h.chapter, h.section].filter(Boolean).join(' › ') || '';
+    blocks.push(`【${label}${where ? ` › ${where}` : ''} › p.${h.page}】\n${raw.slice(0, PAGE_CHAR_LIMIT)}`);
+    sources.push(`${label} p.${h.page}`);
+    used += Math.min(raw.length, PAGE_CHAR_LIMIT);
+  }
+  return { context: blocks.join('\n\n---\n\n'), sources };
+}

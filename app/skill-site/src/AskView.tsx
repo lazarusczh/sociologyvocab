@@ -1,7 +1,14 @@
-import { useRef, useState, type KeyboardEvent } from 'react'
-import { retrieve } from './retrieval'
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { retrieve, retrievePages, buildPageContext, type PageIndexBook } from './retrieval'
 import { askStream, type HistMsg } from './ask'
+import { fetchPageIndex, fetchPageTexts } from './supabase'
 import { booksOf, type SkillData } from './data'
+
+// 页原文出处里显示的书名（与导入时的 book 代码对应）
+const PAGE_BOOK_LABEL: Record<string, string> = {
+  tb1: 'Haralambos',
+  tb2: 'Livesey & Blundell',
+};
 
 // 回传给模型的多轮上下文上限：最多最近 5 轮（10 条消息）
 const HIST_MAX_MSGS = 10;
@@ -54,6 +61,16 @@ export default function AskView({ skill }: { skill: SkillData }) {
   // 每次发送前实时读取，保证在主站切过后无需刷新即生效。
   const endRef = useRef<HTMLDivElement>(null);
 
+  // 教材原文页索引（页级关键词 → 页码）：体积小，常驻前端；原文按需拉取
+  const [pageIdx, setPageIdx] = useState<PageIndexBook[] | null>(null);
+  useEffect(() => {
+    let alive = true;
+    fetchPageIndex()
+      .then((d) => { if (alive) setPageIdx(d); })
+      .catch(() => { if (alive) setPageIdx([]); });   // 取不到索引时静默降级
+    return () => { alive = false; };
+  }, []);
+
   const scrollBottom = () =>
     setTimeout(() => endRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
 
@@ -78,9 +95,31 @@ export default function AskView({ skill }: { skill: SkillData }) {
 
     const { system, context, sources } = retrieve(skill, q);
 
+    // 教材原文页：用常驻索引把问题定位到页码，再按需拉取原文，
+    // 补上蒸馏摘要丢掉的研究案例等正文细节（问不到就静默降级为纯蒸馏材料）。
+    let finalContext = context;
+    let finalSources = sources;
+    if (pageIdx && pageIdx.length) {
+      try {
+        const hits = retrievePages(pageIdx, q);
+        const byBook = new Map<string, number[]>();
+        for (const h of hits) byBook.set(h.book, [...(byBook.get(h.book) ?? []), h.page]);
+        const texts: Record<string, string> = {};
+        for (const [book, pages] of byBook) {
+          const rows = await fetchPageTexts(book, pages);
+          for (const r of rows) texts[`${book}:${r.page}`] = r.text;
+        }
+        const pc = buildPageContext(hits, texts, PAGE_BOOK_LABEL);
+        if (pc.context) {
+          finalContext = `${context}\n\n---\n\n${pc.context}`;
+          finalSources = [...sources, ...pc.sources].slice(0, 10);
+        }
+      } catch { /* ignore: 原文不可用时仍用蒸馏材料作答 */ }
+    }
+
     // 任何异常都必须收尾，否则 busy 永远为 true（界面卡在"思考中"）
     try {
-      const res = await askStream(q, system, context, (delta) => {
+      const res = await askStream(q, system, finalContext, (delta) => {
         setMsgs((m) => {
           const copy = [...m];
           const last = copy[copy.length - 1];
@@ -93,7 +132,7 @@ export default function AskView({ skill }: { skill: SkillData }) {
       setMsgs((m) => {
         const copy = [...m];
         const last = copy[copy.length - 1];
-        if (last && last.q === q) copy[copy.length - 1] = { ...last, sources, error: res.error, model: res.model, fail: res.fail };
+        if (last && last.q === q) copy[copy.length - 1] = { ...last, sources: finalSources, error: res.error, model: res.model, fail: res.fail };
         return copy;
       });
     } catch (e) {
@@ -101,7 +140,7 @@ export default function AskView({ skill }: { skill: SkillData }) {
         const copy = [...m];
         const last = copy[copy.length - 1];
         if (last && last.q === q) {
-          copy[copy.length - 1] = { ...last, sources, error: e instanceof Error ? e.message : '回答失败，请重试。' };
+          copy[copy.length - 1] = { ...last, sources: finalSources, error: e instanceof Error ? e.message : '回答失败，请重试。' };
         }
         return copy;
       });

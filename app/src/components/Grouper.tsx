@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useStore } from '../lib/store';
-import { listQuestionBank, createGrouperRun, type QbRow } from '../lib/cloud';
+import { listQuestionBank, createGrouperRun, listGrouperRuns, type QbRow } from '../lib/cloud';
 import {
   assembleTemplate, assembleToTarget, pickSingle, TEMPLATES, p4UnitOf,
-  type AssembleSlot, type BankItem, type PaperId,
+  buildDupIndex, dupKindOf, EMPTY_DUP_INDEX,
+  type AssembleSlot, type BankItem, type PaperId, type DupIndex, type DupKind,
 } from '../lib/grouper';
 import {
   bandLinear, buildRows, deriveRowsP1, scaleThresholds,
@@ -30,7 +31,7 @@ export default function Grouper({ onOpenResults }: { onOpenResults?: () => void 
   const [mode, setMode] = useState<Mode>('template');
   const [paper, setPaper] = useState<PaperId>(1);
   const [templateIdx, setTemplateIdx] = useState(0);
-  const [topic, setTopic] = useState('');
+  const [topicSel, setTopicSel] = useState<string[]>([]);
   const [target, setTarget] = useState('20');
   const [singleQ, setSingleQ] = useState('');
   const [bank, setBank] = useState<BankItem[]>([]);
@@ -49,6 +50,8 @@ export default function Grouper({ onOpenResults }: { onOpenResults?: () => void 
   const [series, setSeries] = useState('');
   const [aStar, setAStar] = useState('');
   const [sampleRaw, setSampleRaw] = useState('20');
+  // 历史组卷去重索引（已出过 / 近考点）
+  const [dupIdx, setDupIdx] = useState<DupIndex>(EMPTY_DUP_INDEX);
 
   useEffect(() => {
     let cancelled = false;
@@ -63,6 +66,18 @@ export default function Grouper({ onOpenResults }: { onOpenResults?: () => void 
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 拉取历史组卷记录，构建去重索引（新组卷时标记已出过 / 近考点）
+  const loadDupIndex = async () => {
+    try {
+      const runs = await listGrouperRuns();
+      setDupIdx(buildDupIndex(runs));
+    } catch {
+      // 历史拉取失败不阻塞组卷（仅不显示重复标记）
+    }
+  };
+
+  useEffect(() => { void loadDupIndex(); }, []);
 
   const paperTemplates = TEMPLATES.filter((t) => t.paper === paper);
   const template = paperTemplates[Math.min(templateIdx, paperTemplates.length - 1)];
@@ -87,6 +102,7 @@ export default function Grouper({ onOpenResults }: { onOpenResults?: () => void 
     setResult(null);
     setSingle(null);
     setSingleQ('');
+    setTopicSel([]); // 换卷后考点选项变化，清空已选
     setLoading(true);
     setError('');
     setPaper(p);
@@ -108,7 +124,7 @@ export default function Grouper({ onOpenResults }: { onOpenResults?: () => void 
   const doAssemble = () => {
     if (!template) return;
     resetSaved();
-    const res = assembleTemplate(bank, template, topic || undefined);
+    const res = assembleTemplate(bank, template, topicSel.length ? topicSel : undefined);
     const ok = res.slots.every((s) => s.items.length >= s.spec.count);
     setRawItems(res.slots.flatMap((s) => s.items));
     setFullRaw(res.total);
@@ -118,7 +134,7 @@ export default function Grouper({ onOpenResults }: { onOpenResults?: () => void 
   const doFree = () => {
     resetSaved();
     const t = Number(target) || 0;
-    const slots = assembleToTarget(bank, t, topic || undefined);
+    const slots = assembleToTarget(bank, t, topicSel.length ? topicSel : undefined);
     if (slots) setRawItems(slots.flatMap((s) => s.items));
     setFullRaw(t);
     setResult(slots ? { slots, note: `凑分成功 · 目标 ${t}` } : { slots: [], note: `无法用现有分值块凑出 ${t}（可放宽考点筛选）` });
@@ -128,7 +144,7 @@ export default function Grouper({ onOpenResults }: { onOpenResults?: () => void 
     resetSaved();
     const it = pickSingle(bank, paper, {
       marks: singleQ || undefined,
-      topic: topic || undefined,
+      topics: topicSel.length ? topicSel : undefined,
     });
     setSingle(it ?? null);
     setRawItems(it ? [it] : []);
@@ -154,7 +170,7 @@ export default function Grouper({ onOpenResults }: { onOpenResults?: () => void 
       it.marks === spec.marks &&
       (!spec.unit || p4UnitOf(it) === spec.unit) &&
       (mode === 'template' ? it.source.paper === paper : true) &&
-      (topic ? it.topics.includes(topic) : true),
+      (topicSel.length ? it.topics.some((t) => topicSel.includes(t)) : true),
     );
     const pick = [...pool].sort(() => Math.random() - 0.5)[0];
     if (!pick) {
@@ -174,7 +190,7 @@ export default function Grouper({ onOpenResults }: { onOpenResults?: () => void 
   const swapSingle = (oldQid: string) => {
     const it = pickSingle(bank.filter((b) => b.qid !== oldQid), paper, {
       marks: singleQ || undefined,
-      topic: topic || undefined,
+      topics: topicSel.length ? topicSel : undefined,
     });
     if (!it) {
       setError('该分值/考点下题库已没有其它题可抽');
@@ -188,30 +204,37 @@ export default function Grouper({ onOpenResults }: { onOpenResults?: () => void 
     setError('');
   };
 
-  const renderItem = (it: BankItem, onSwap?: () => void) => (
-    <div className="card" key={it.qid} style={{ padding: '0.6rem 0.8rem', margin: '0.4rem 0' }}>
-      <div className="row" style={{ gap: '0.35rem', alignItems: 'center', flexWrap: 'wrap' }}>
-        <span className="badge">{srcLabelFor(it)}</span>
-        <span className="badge warn">{it.marks} 分</span>
-        <span className="badge review">{it.kind}</span>
+  const dupKind = (it: BankItem): DupKind | null => dupKindOf(it, dupIdx);
+
+  const renderItem = (it: BankItem, onSwap?: () => void) => {
+    const dup = dupKind(it);
+    return (
+      <div className="card" key={it.qid} style={{ padding: '0.6rem 0.8rem', margin: '0.4rem 0' }}>
+        <div className="row" style={{ gap: '0.35rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <span className="badge">{srcLabelFor(it)}</span>
+          <span className="badge warn">{it.marks} 分</span>
+          <span className="badge review">{it.kind}</span>
+          {dup === 'exact' && <span className="badge danger" title="与历史组卷记录中的题目完全相同">已出过</span>}
+          {dup === 'similar' && <span className="badge warn" title="与历史组卷记录中的题目考同一最细考点">近考点</span>}
+        </div>
+        {it.statement && <p className="ppt-stmt" style={{ margin: '0.3rem 0 0.1rem' }}>{it.statement}</p>}
+        <p className={it.statement ? 'muted' : ''} style={{ margin: '0.2rem 0 0', fontSize: '0.9rem' }}>{it.stem}</p>
+        <div className="row" style={{ gap: '0.3rem', flexWrap: 'wrap', marginTop: '0.35rem', alignItems: 'center' }}>
+          {it.topics.slice(-2).map((t) => <span key={t} className="ppt-tag" style={{ color: 'var(--c-stone)' }}>{t}</span>)}
+          <span className="muted" style={{ fontSize: '0.75rem' }}>ms 见「试卷成绩」</span>
+          {onSwap && (
+            <button
+              className="grp-btn"
+              style={{ fontSize: '0.75rem', padding: '0.15rem 0.5rem', marginLeft: 'auto' }}
+              onClick={onSwap}
+            >
+              换一个
+            </button>
+          )}
+        </div>
       </div>
-      {it.statement && <p className="ppt-stmt" style={{ margin: '0.3rem 0 0.1rem' }}>{it.statement}</p>}
-      <p className={it.statement ? 'muted' : ''} style={{ margin: '0.2rem 0 0', fontSize: '0.9rem' }}>{it.stem}</p>
-      <div className="row" style={{ gap: '0.3rem', flexWrap: 'wrap', marginTop: '0.35rem', alignItems: 'center' }}>
-        {it.topics.slice(-2).map((t) => <span key={t} className="ppt-tag" style={{ color: 'var(--c-stone)' }}>{t}</span>)}
-        <span className="muted" style={{ fontSize: '0.75rem' }}>ms 见「试卷成绩」</span>
-        {onSwap && (
-          <button
-            className="grp-btn"
-            style={{ fontSize: '0.75rem', padding: '0.15rem 0.5rem', marginLeft: 'auto' }}
-            onClick={onSwap}
-          >
-            换一个
-          </button>
-        )}
-      </div>
-    </div>
-  );
+    );
+  };
 
   const score = useMemo(() => {
     if (!rawItems.length || gt.length === 0) return null;
@@ -259,7 +282,7 @@ export default function Grouper({ onOpenResults }: { onOpenResults?: () => void 
           : mode === 'single'
             ? (single ? `${single.source.session} QP${single.source.comp}${single.source.q ? ' Q' + single.source.q : ''}（${single.marks} 分）` : '单题布置')
             : '目标凑分',
-        topic: topic.trim() || null,
+        topic: topicSel.length ? topicSel.join('、') : null,
         slots: mode === 'single'
           ? (single ? [{ spec: { key: 'single', label: '单题布置', marks: single.marks, marksTotal: single.marksTotal, count: 1 }, items: [single] }] : [])
           : result.slots,
@@ -270,6 +293,7 @@ export default function Grouper({ onOpenResults }: { onOpenResults?: () => void 
       });
       setSavedMsg(`已保存「${title}」`);
       setSaveOpen(false);
+      void loadDupIndex(); // 本卷计入历史，后续组卷即可提示重复
     } catch (e) {
       setError((e as Error).message || '保存失败');
     } finally {
@@ -287,7 +311,7 @@ export default function Grouper({ onOpenResults }: { onOpenResults?: () => void 
       mode,
       paper,
       templateLabel: mode === 'template' ? (template?.label ?? null) : mode === 'single' ? '单题布置' : '目标凑分',
-      topic: topic.trim() || null,
+      topic: topicSel.length ? topicSel.join('、') : null,
       slots,
       extraNote: paper === 4 && mode === 'template' ? 'Answer two questions in total, each from a different section.' : null,
     }).catch((e) => setError((e as Error).message || '导出失败'));
@@ -321,11 +345,20 @@ export default function Grouper({ onOpenResults }: { onOpenResults?: () => void 
             <button key={p} className={`grp-btn ${paper === p ? 'active' : ''}`} onClick={() => switchPaper(p as PaperId)}>P{p}</button>
           ))}
           <span style={{ marginLeft: '0.5rem' }} />
-          <span className="muted" style={{ fontSize: '0.85rem' }}>考点：</span>
-          <select className="grp-input" value={topic} onChange={(e) => setTopic(e.target.value)}>
-            <option value="">全部</option>
-            {topics.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
+          <span className="muted" style={{ fontSize: '0.85rem' }}>考点（可多选）：</span>
+        </div>
+        <div className="tag-filter" style={{ marginTop: '0.4rem' }}>
+          <button className={topicSel.length === 0 ? 'active' : ''} onClick={() => setTopicSel([])}>全部</button>
+          {topics.map((t) => (
+            <button
+              key={t}
+              className={topicSel.includes(t) ? 'active' : ''}
+              title={t}
+              onClick={() => setTopicSel((sel) => sel.includes(t) ? sel.filter((x) => x !== t) : [...sel, t])}
+            >
+              {t}
+            </button>
+          ))}
         </div>
         {mode === 'template' && paperTemplates.length > 0 && (
           <div className="row" style={{ gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.6rem' }}>
