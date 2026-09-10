@@ -31,8 +31,19 @@ export async function fetchSkillData(): Promise<SkillData | null> {
 export async function fetchPageIndex(): Promise<PageIndexBook[]> {
   const { data, error } = await supabase.from('skill_page_index').select('book, data');
   if (error) throw error;
-  return ((data ?? []) as { book: string; data: { pages: PageIndexBook['pages'] } }[])
-    .map((r) => ({ book: r.book, pages: r.data?.pages ?? [] }));
+  return ((data ?? []) as {
+    book: string;
+    data: {
+      pages?: PageIndexBook['pages'];
+      units?: PageIndexBook['units'];
+      chapters?: PageIndexBook['chapters'];
+    };
+  }[]).map((r) => ({
+    book: r.book,
+    pages: r.data?.pages ?? [],
+    units: r.data?.units ?? {},
+    chapters: r.data?.chapters ?? {},
+  }));
 }
 
 /** 按需拉取命中的页原文（一次查询取多页，避免逐页请求）。 */

@@ -44,6 +44,7 @@ STOP_EN = set(
 )
 
 CAP_WORD = re.compile(r"\b[A-Z][a-z]{2,}\b")
+UNIT_LINE = re.compile(r"^\s*Unit\s+(\d{1,2}\.\d{1,2}(?:\.\d{1,2})?)\s+(.+)$")
 YEAR_REF = re.compile(r"\b([A-Z][\w'&-]+(?:\s+&\s+[A-Z][\w'&-]+)?)\s*\(\s*(\d{4})\s*\)")
 ACRONYM = re.compile(r"\b[A-Z]{2,6}\b")
 LOWER_WORD = re.compile(r"[a-z]{5,}")
@@ -157,11 +158,15 @@ def main():
     pages = []   # {p, chapter, section, text}
     index = []   # {p, c, s, k}
     cur_chapter = None
+    unit_rows = []   # (unit, title, pno, size)：正文里的 Unit 标题行
 
     for pno, rows in page_rows:
         header_texts = []
         body = []
         for txt, size, bold, y0 in rows:
+            um = UNIT_LINE.match(txt)
+            if um:
+                unit_rows.append((um.group(1), re.sub(r"\s+", " ", um.group(2)).strip(), pno, size))
             if txt in boiler:
                 if y0 < 0.10:      # 页顶栏名 → 该页的节标签
                     header_texts.append(txt)
@@ -182,6 +187,29 @@ def main():
 
     print(f"usable pages={len(pages)}")
 
+    # Unit → 起始页：只取「标题字号」的 Unit 行——正文里 "see Unit 5.1.2" 这类引用是正文字号，
+    # 与标题字号相差 7pt 左右，据此天然排除，无需人工标注。
+    units = {}
+    if unit_rows:
+        # 用「众数字号」而非最大字号做阈值：个别装饰性大标题会把阈值顶飞
+        size_hist = Counter(round(r[3]) for r in unit_rows)
+        title_size = size_hist.most_common(1)[0][0]
+        for unit, title, pno, size in sorted(unit_rows, key=lambda r: r[2]):
+            if round(size) < title_size - 1:
+                continue
+            if unit not in units:
+                units[unit] = {"title": title[:90], "page": pno}
+    seen_units = {r[0] for r in unit_rows}
+    print(f"units: mapped={len(units)} / seen={len(seen_units)}")
+
+    # 章 → 起始页（无 Unit 编号体系的教材也能用：起「范围收缩」与出处标注作用）
+    chapters_map = {}
+    for pg in pages:
+        ch = pg["chapter"] or "front"
+        if ch not in chapters_map:
+            chapters_map[ch] = {"page": pg["p"]}
+    print(f"chapters mapped={len(chapters_map)}")
+
     out_dir = Path(args.out)
     pages_dir = out_dir / "pages"
     pages_dir.mkdir(parents=True, exist_ok=True)
@@ -198,7 +226,10 @@ def main():
         total_chars += len(blob)
         print(f"  {name}: {len(items)} pages, {len(blob)} chars")
 
-    idx_blob = json.dumps({"book": slug, "pages": index}, ensure_ascii=False)
+    idx_blob = json.dumps(
+        {"book": slug, "pages": index, "units": units, "chapters": chapters_map},
+        ensure_ascii=False,
+    )
     (out_dir / "index.json").write_text(idx_blob, encoding="utf-8")
     (out_dir / "meta.json").write_text(
         json.dumps({"source": pdf.name, "book": slug, "pages": total_pages,

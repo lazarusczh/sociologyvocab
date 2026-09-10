@@ -208,6 +208,10 @@ export function retrieve(skill: SkillData, question: string): { system: string; 
 export interface PageIndexBook {
   book: string;                                             // tb1 / tb2
   pages: { p: number; c: string | null; s: string | null; k: string[] }[];
+  /** Unit 编号 → 起始页（Haralambos 有 Unit 体系；把蒸馏层的考点接回原书页码） */
+  units?: Record<string, { title: string; page: number }>;
+  /** 章名 → 起始页（无 Unit 体系的教材用它做范围标注） */
+  chapters?: Record<string, { page: number }>;
 }
 export interface PageHit {
   book: string;
@@ -239,7 +243,18 @@ export function retrievePages(
   if (!toks.length) return [];
   const hits: PageHit[] = [];
   for (const bk of indexes) {
-    const scored: PageHit[] = [];
+    const byPage = new Map<number, PageHit>();
+    const bump = (page: number, score: number, chapter: string, section: string) => {
+      const prev = byPage.get(page);
+      if (prev) {
+        prev.score += score;
+        if (!prev.section && section) prev.section = section;
+      } else {
+        byPage.set(page, { book: bk.book, page, chapter, section, score });
+      }
+    };
+
+    // a) 页索引关键词打分（正文细节词靠这一层，如学者名、研究案例名）
     for (const e of bk.pages ?? []) {
       const kws = e.k ?? [];
       const label = `${e.s ?? ''} ${e.c ?? ''}`.toLowerCase();
@@ -250,12 +265,28 @@ export function retrievePages(
         else if (t.length >= 4 && kws.some((k) => k.startsWith(t))) s += 1;
         if (t.length >= 3 && label.includes(t)) s += 2;
       }
-      if (s > 0) {
-        scored.push({ book: bk.book, page: e.p, chapter: e.c ?? '', section: e.s ?? '', score: s });
+      if (s > 0) bump(e.p, s, e.c ?? '', e.s ?? '');
+    }
+
+    // b) Unit 标题命中：蒸馏层考点 ↔ 原书页码的直接指针，比关键词捞页更准，
+    //    也让出处变成考点级（如 "Unit 5.1.2 · Marxist views on education"）。
+    const unitEntries = Object.entries(bk.units ?? {});
+    if (unitEntries.length) {
+      const pageInfo = new Map<number, { c: string; s: string }>();
+      for (const e of bk.pages ?? []) pageInfo.set(e.p, { c: e.c ?? '', s: e.s ?? '' });
+      for (const [unit, u] of unitEntries) {
+        const title = u.title.toLowerCase();
+        let s = 0;
+        for (const t of toks) {
+          if (t.length >= 4 && title.includes(t)) s += 4;
+          else if (t.length >= 3 && title.includes(t)) s += 2;
+        }
+        if (s > 0) bump(u.page, s, pageInfo.get(u.page)?.c ?? '', `Unit ${unit} · ${u.title}`);
       }
     }
-    scored.sort((a, b) => b.score - a.score);
-    hits.push(...scored.slice(0, PAGE_MAX_PER_BOOK));
+
+    const list = [...byPage.values()].sort((a, b) => b.score - a.score);
+    hits.push(...list.slice(0, PAGE_MAX_PER_BOOK));
   }
   return hits;
 }

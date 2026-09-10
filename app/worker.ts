@@ -269,7 +269,7 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
   // 5) 兜底：Workers AI（免费 neurons 额度内，成本趋零）
   try {
     const stream = await env.AI.run(CHAT_MODEL, {
-      messages,
+      messages: shrinkForLlama(messages),
       stream: true,
       max_tokens: 1500,
       temperature: 0.8,
@@ -341,6 +341,32 @@ async function handleTerms(request: Request, env: Env): Promise<Response> {
 }
 
 interface AiMessage { role: 'system' | 'user' | 'assistant'; content: string }
+
+// 兜底档（Workers 8B）容量小、对长指令的服从性弱，单独降配：
+// 1) 裁剪检索材料——前端组装时材料已按相关度排序，砍尾部（保留末尾提问）；
+// 2) 追加「要点式简答」以覆盖 system 里面向大模型的「展开 300–500 字」要求，
+//    避免弱模型撑不出长答案就编造。
+const LLAMA_CONTEXT_CHAR = 8000;
+const LLAMA_TAIL_NOTE =
+  '\n\n【兜底档专用】若上文要求展开到 300–500 字，本档改为要点式简答：' +
+  '先给定义或结论，再列 3–5 条带证据的要点，最后一句平衡结论；材料未覆盖处直接说明，不要编造。';
+
+function shrinkForLlama(messages: AiMessage[]): AiMessage[] {
+  return messages.map((m) => {
+    if (m.role === 'system') return { role: 'system', content: m.content + LLAMA_TAIL_NOTE };
+    if (m.role !== 'user' || m.content.length <= LLAMA_CONTEXT_CHAR) return m;
+    const content = m.content;
+    const marker = '学生提问：';
+    const i = content.indexOf(marker);
+    if (i === -1) return { role: 'user', content: content.slice(0, LLAMA_CONTEXT_CHAR) + '…' };
+    const tail = content.slice(i);                       // 提问与其后的作答要求必须保留
+    const headLen = Math.max(0, LLAMA_CONTEXT_CHAR - tail.length);
+    return {
+      role: 'user',
+      content: `${content.slice(0, headLen)}\n\n（材料中段因兜底档容量已省略）\n\n${tail}`,
+    };
+  });
+}
 
 // 调用 OpenAI 兼容端点（ModelScope / OpenRouter 通用）。非 200（429/限流/参数错）一律返回 null。
 async function msAsk(
