@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { retrieve, retrievePages, expandPages, buildPageContext, buildScaffoldText, localTerms, type PageIndexBook, type ScaffoldRow } from './retrieval'
-import { parseBlocks } from './md'
+import { parseBlocks, orderedLabels } from './md'
 import { askStream, fetchQueryTerms, type HistMsg } from './ask'
 import { fetchPageIndex, fetchPageTexts, fetchScaffolds } from './supabase'
 import { booksOf, type SkillData } from './data'
@@ -281,18 +281,23 @@ function MdText({ text }: { text: string }) {
           const Tag = b.level <= 2 ? 'h3' : b.level === 3 ? 'h4' : 'h5';
           return <Tag key={i}>{inline(b.text)}</Tag>;
         }
-        if (b.kind === 'ul') {
+        if (b.kind === 'ul' || b.kind === 'ol') {
+          const Tag = b.kind === 'ul' ? 'ul' : 'ol';
+          const labels = b.kind === 'ol' ? orderedLabels(b.items) : [];
           return (
-            <ul key={i}>
-              {b.items.map((it, j) => <li key={j}>{inline(it)}</li>)}
-            </ul>
-          );
-        }
-        if (b.kind === 'ol') {
-          return (
-            <ol key={i}>
-              {b.items.map((it, j) => <li key={j}>{inline(it)}</li>)}
-            </ol>
+            <Tag key={i}>
+              {b.items.map((it, j) => (
+                <li key={j}>
+                  {labels[j] && <span className="md-num">{labels[j]}.</span>}
+                  {inline(it.text)}
+                  {it.subs.length > 0 && (
+                    <ul>
+                      {it.subs.map((s, k) => <li key={k}>{inline(s)}</li>)}
+                    </ul>
+                  )}
+                </li>
+              ))}
+            </Tag>
           );
         }
         return <p key={i}>{inline(b.text)}</p>;

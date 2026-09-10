@@ -4,7 +4,7 @@
 //   Section 大标题 / 作答说明 居中 14pt；题目逐段，分值以 [n] 置于句末；
 //   二选一槽以 EITHER / OR 分隔；statement 观点用弯引号；不含题源/ms 标注。
 import {
-  AlignmentType, Document, Packer, Paragraph, TextRun,
+  AlignmentType, Document, LevelFormat, Packer, Paragraph, TextRun,
 } from 'docx';
 import type { AssembleSlot, BankItem } from './grouper';
 
@@ -43,13 +43,19 @@ function questionText(it: BankItem): string {
   return stem;
 }
 
-// 一道“大题”的若干答题行（pair 与 q2a/q2b 会拆成 (a)(b) 两行）
+// 一道“大题”的若干答题行
+//  - plain：单问，一行
+//  - ab：q2a/q2b 合并为同一题 2 (a)/(b)
+//  - sp：观点题（statement-pair），陈述独占一行，其后为作答指令行（不再加 (a)/(b)）
 interface Line {
   sub?: string;      // 'a' | 'b'
   text: string;
   marks: number;
 }
-interface Unit { lines: Line[] }
+interface Unit {
+  kind: 'plain' | 'ab' | 'sp';
+  lines: Line[];
+}
 
 function slotToUnits(slots: AssembleSlot[], mergeAb = false): Unit[] {
   const units: Unit[] = [];
@@ -58,14 +64,17 @@ function slotToUnits(slots: AssembleSlot[], mergeAb = false): Unit[] {
       if (it.kind === 'statement-pair' && it.parts) {
         const a = it.parts.find((p) => p.part === 'a');
         const b = it.parts.find((p) => p.part === 'b');
+        // 陈述单独成行（不加分值），随后两条作答指令缩进排列
         units.push({
+          kind: 'sp',
           lines: [
-            { sub: 'a', text: `${quoted(it)} Explain this view.`, marks: a?.marks ?? 10 },
-            { sub: 'b', text: 'Using sociological material, give one argument against this view.', marks: b?.marks ?? 6 },
+            { text: quoted(it), marks: 0 },
+            { text: 'Explain this view.', marks: a?.marks ?? 10 },
+            { text: 'Using sociological material, give one argument against this view.', marks: b?.marks ?? 6 },
           ],
         });
       } else {
-        units.push({ lines: [{ text: questionText(it), marks: it.marksTotal }] });
+        units.push({ kind: 'plain', lines: [{ text: questionText(it), marks: it.marksTotal }] });
       }
     }
   };
@@ -77,6 +86,7 @@ function slotToUnits(slots: AssembleSlot[], mergeAb = false): Unit[] {
     const m = /^(.*)a$/.exec(s.spec.key ?? '');
     if (m && next && next.spec.key === `${m[1]}b` && s.items[0] && next.items[0]) {
       units.push({
+        kind: 'ab',
         lines: [
           { sub: 'a', text: questionText(s.items[0]), marks: s.items[0].marksTotal },
           { sub: 'b', text: questionText(next.items[0]), marks: next.items[0].marksTotal },
@@ -95,36 +105,43 @@ interface Block {
   center?: boolean;
   size?: number;
   gapBefore?: number;
+  numbered?: boolean;                                  // 用 Word 自动编号（题号由 Word 生成）
+  indent?: { left?: number; hanging?: number; firstLine?: number };
 }
 
 const plain = (text: string, size?: number): Block => ({ runs: [{ text }], size });
 
 const marksSuffix = (marks: number) => ` [${marks}]`;
 
-// 普通槽：逐题编号
-function numberedBlocks(units: Unit[], start: number): { blocks: Block[]; next: number } {
+// 普通槽：题号交给 Word 自动编号；子项/续行按层级缩进
+function numberedBlocks(units: Unit[]): Block[] {
   const blocks: Block[] = [];
-  let n = start;
   for (const u of units) {
-    if (u.lines.length === 1) {
-      blocks.push(plain(`${n} ${u.lines[0].text}${marksSuffix(u.lines[0].marks)}`));
+    if (u.kind === 'ab') {
+      u.lines.forEach((l, i) => {
+        const text = `(${l.sub}) ${l.text}${marksSuffix(l.marks)}`;
+        blocks.push(i === 0 ? { numbered: true, runs: [{ text }] } : { indent: { left: 420 }, runs: [{ text }] });
+      });
+    } else if (u.kind === 'sp') {
+      u.lines.forEach((l, i) => {
+        if (i === 0) blocks.push({ numbered: true, runs: [{ text: l.text }] });
+        else blocks.push({ indent: { left: 420 }, runs: [{ text: `${l.text}${marksSuffix(l.marks)}` }] });
+      });
     } else {
-      for (const l of u.lines) {
-        blocks.push(plain(`${n} (${l.sub}) ${l.text}${marksSuffix(l.marks)}`));
-      }
+      blocks.push({ numbered: true, runs: [{ text: `${u.lines[0].text}${marksSuffix(u.lines[0].marks)}` }] });
     }
-    n++;
   }
-  return { blocks, next: n };
+  return blocks;
 }
 
-// 二选一槽：EITHER / OR
+// 二选一槽：EITHER / OR 各占一行（加粗），题目紧随其后
 function eitherBlocks(slot: AssembleSlot): Block[] {
   const blocks: Block[] = [];
   for (let i = 0; i < slot.items.length; i++) {
     const it = slot.items[i];
     const word = i === 0 ? 'EITHER' : 'OR';
-    blocks.push({ runs: [{ text: `${word} `, bold: true }, { text: `${questionText(it)}${marksSuffix(it.marksTotal)}` }], gapBefore: i === 0 ? 1 : 0 });
+    blocks.push({ runs: [{ text: word, bold: true }], gapBefore: 1 });
+    blocks.push({ runs: [{ text: `${questionText(it)}${marksSuffix(it.marksTotal)}` }] });
   }
   return blocks;
 }
@@ -158,8 +175,7 @@ export function buildBlocks(o: ExportOpts): Block[] {
     // Section A：全部作答的小分题（q1..q3）
     addSectionHeader('Section A');
     blocks.push(plain('Answer all questions in this section.', HEAD));
-    const { blocks: qb } = numberedBlocks(slotToUnits(plainSlots, true), 1);
-    blocks.push(...qb);
+    blocks.push(...numberedBlocks(slotToUnits(plainSlots, true)));
     if (hasEither) {
       addSectionHeader('Section B');
       blocks.push(plain('Answer one question in this section.', HEAD));
@@ -171,14 +187,12 @@ export function buildBlocks(o: ExportOpts): Block[] {
   if (isTemplate && o.paper === 3) {
     // P3：全卷作答，无 Section 分节（对照 draft）
     blocks.push(plain('Answer all questions.', HEAD));
-    const { blocks: qb } = numberedBlocks(slotToUnits(plainSlots, true), 1);
-    blocks.push(...qb);
+    blocks.push(...numberedBlocks(slotToUnits(plainSlots, true)));
     return blocks;
   }
 
-  // 自由 / 目标凑分 / 单题：不加 Section，连续编号（pair 仍拆 a/b）
-  const { blocks: qb } = numberedBlocks(slotToUnits(o.slots, false), 1);
-  blocks.push(...qb);
+  // 自由 / 目标凑分 / 单题：不加 Section，从 1 连续编号
+  blocks.push(...numberedBlocks(slotToUnits(o.slots, false)));
   return blocks;
 }
 
@@ -189,6 +203,8 @@ export async function exportPaperToDocx(o: ExportOpts): Promise<void> {
   const paras = blocks.map((b) => new Paragraph({
     alignment: b.center ? AlignmentType.CENTER : AlignmentType.LEFT,
     spacing: { after: 60, before: b.gapBefore ? 120 : 0, line: 276 },
+    numbering: b.numbered ? { reference: 'qnum', level: 0 } : undefined,
+    indent: b.indent,
     children: b.runs.map((r) => new TextRun({
       text: r.text,
       bold: r.bold,
@@ -198,6 +214,22 @@ export async function exportPaperToDocx(o: ExportOpts): Promise<void> {
   }));
 
   const doc = new Document({
+    // 主问题号交给 Word 自动编号（对照 Mock Exam draft：decimal、加粗、left=420 hanging=420）
+    numbering: {
+      config: [{
+        reference: 'qnum',
+        levels: [{
+          level: 0,
+          format: LevelFormat.DECIMAL,
+          text: '%1',
+          alignment: AlignmentType.LEFT,
+          style: {
+            run: { bold: true },
+            paragraph: { indent: { left: 420, hanging: 420 } },
+          },
+        }],
+      }],
+    },
     styles: {
       default: { document: { run: { font: CALIBRI, size: BODY } } },
     },

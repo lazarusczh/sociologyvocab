@@ -154,9 +154,14 @@ button.ask-clear:disabled { opacity: .45; cursor: default; }
 .ask-a h5 { font-size: 14px; color: #2d6cae; }
 .ask-a h5::before { content: '▍'; color: #7fb0e0; margin-right: 4px; }
 .ask-a ul, .ask-a ol { margin: 8px 0; padding-left: 24px; }
-.ask-a ol { list-style: decimal; }
+/* 有序列表用「源编号」自绘，不再依赖 <ol> 自动计数 —— 即使模型把列表拆段，编号也不会重复成 1. */
+.ask-a ol { list-style: none; padding-left: 2px; }
+.ask-a ol > li { padding-left: 22px; position: relative; }
+.ask-a .md-num { position: absolute; left: 0; color: #2d6cae; font-weight: 600; }
 .ask-a ul { list-style: disc; }
 .ask-a li { margin: 4px 0; }
+.ask-a li > ul { margin: 4px 0 0; padding-left: 18px; }
+.ask-a li > ul > li { color: #46586b; font-size: 13.5px; }
 .ask-a code { background: #eef2f6; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
 .ask-src { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #d7e2ee; color: #8aa0b8; font-size: 12px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
 .ask-model { margin-left: auto; font-variant-numeric: tabular-nums; color: #7b93ad; display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
