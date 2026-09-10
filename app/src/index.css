@@ -129,9 +129,10 @@
    已由各按钮/卡片的 :active 样式提供按下反馈，故全局关闭（含 APK WebView 内） */
 * { -webkit-tap-highlight-color: transparent; }
 
-/* 底部留出安全区：APK edge-to-edge 下导航栏区域由页面底色铺满（不留白带），
-   内容也不会被手势条/导航栏压住 */
-body { margin: 0; min-height: 100vh; padding-bottom: env(safe-area-inset-bottom, 0px); }
+/* 底部不预留内容级安全区：手势条/导航栏悬浮在内容之上（内容一直延伸到底边，
+   滚动时从手势条下方滑过）。只有交互控件（底部按钮、固定输入框、版本横幅）
+   各自留安全区，避免被系统栏压住点不到。 */
+body { margin: 0; min-height: 100vh; }
 
 #root { min-height: 100vh; }
 

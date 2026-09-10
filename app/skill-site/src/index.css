@@ -341,8 +341,8 @@ button.ask-clear:disabled { opacity: .45; cursor: default; }
     padding-top: env(safe-area-inset-top, 0px);
   }
   .sidebar.open { transform: translateX(0); }
-  /* 底部留出导航栏安全区：页面底色铺到导航栏区域，内容不被压住 */
-  .content { padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)); }
+  /* 内容延伸到底边（手势条悬浮在内容之上）；只有问答输入框这类控件单独留安全区 */
+  .content { padding: 16px; }
   .ask { height: calc(100dvh - 130px); }
 }
 
