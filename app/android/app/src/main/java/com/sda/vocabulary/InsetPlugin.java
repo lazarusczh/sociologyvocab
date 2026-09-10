@@ -37,11 +37,13 @@ public class InsetPlugin extends Plugin {
         getActivity().runOnUiThread(() -> {
             WebView webView = getBridge().getWebView();
             if (webView != null) {
+                // 底部强制 0：内容一路铺到屏幕底边（手势条悬浮在内容之上）。
+                // 顶部按页面需要：主站避开状态栏，子站顶到状态栏由深蓝顶栏自绘。
                 webView.setPadding(
                         webView.getPaddingLeft(),
                         topPx,
                         webView.getPaddingRight(),
-                        webView.getPaddingBottom());
+                        0);
             }
         });
         JSObject ret = new JSObject();
