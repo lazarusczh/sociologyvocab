@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { SkillData } from './data';
-import type { PageIndexBook } from './retrieval';
+import type { PageIndexBook, ScaffoldRow } from './retrieval';
 
 // 与主站同一 Supabase 实例。同域下 supabase-js 默认把 session 存
 // localStorage（key = sb-<ref>-auth-token），因此主站登录后本子站自动共享登录态。
@@ -44,6 +44,13 @@ export async function fetchPageIndex(): Promise<PageIndexBook[]> {
     units: r.data?.units ?? {},
     chapters: r.data?.chapters ?? {},
   }));
+}
+
+/** 章节答题脚手架（按章注入 system 的教师口径）。 */
+export async function fetchScaffolds(): Promise<ScaffoldRow[]> {
+  const { data, error } = await supabase.from('skill_scaffolds').select('book, chapter, data');
+  if (error) throw error;
+  return (data ?? []) as ScaffoldRow[];
 }
 
 /** 按需拉取命中的页原文（一次查询取多页，避免逐页请求）。 */

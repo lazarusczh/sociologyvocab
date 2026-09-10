@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
-import { retrieve, retrievePages, expandPages, buildPageContext, type PageIndexBook } from './retrieval'
+import { retrieve, retrievePages, expandPages, buildPageContext, buildScaffoldText, type PageIndexBook, type ScaffoldRow } from './retrieval'
 import { askStream, fetchQueryTerms, type HistMsg } from './ask'
-import { fetchPageIndex, fetchPageTexts } from './supabase'
+import { fetchPageIndex, fetchPageTexts, fetchScaffolds } from './supabase'
 import { booksOf, type SkillData } from './data'
 
 // 页原文出处里显示的书名（与导入时的 book 代码对应）
@@ -63,11 +63,16 @@ export default function AskView({ skill }: { skill: SkillData }) {
 
   // 教材原文页索引（页级关键词 → 页码）：体积小，常驻前端；原文按需拉取
   const [pageIdx, setPageIdx] = useState<PageIndexBook[] | null>(null);
+  // 章节答题脚手架（蒸馏层的教师口径）：按命中的章注入 system
+  const [scaffolds, setScaffolds] = useState<ScaffoldRow[]>([]);
   useEffect(() => {
     let alive = true;
     fetchPageIndex()
       .then((d) => { if (alive) setPageIdx(d); })
       .catch(() => { if (alive) setPageIdx([]); });   // 取不到索引时静默降级
+    fetchScaffolds()
+      .then((d) => { if (alive) setScaffolds(d); })
+      .catch(() => { if (alive) setScaffolds([]); });
     return () => { alive = false; };
   }, []);
 
@@ -99,11 +104,14 @@ export default function AskView({ skill }: { skill: SkillData }) {
     // 补上蒸馏摘要丢掉的研究案例等正文细节（问不到就静默降级为纯蒸馏材料）。
     let finalContext = context;
     let finalSources = sources;
+    let finalSystem = system;
+    const chaptersHit: string[] = [];   // 命中的章（用于注入该章答题脚手架）
     if (pageIdx && pageIdx.length) {
       try {
         // 中文提问：先借模型把问题译成英文术语，补上索引只有英文关键词的短板
         const extraTerms = /[一-鿿]/.test(q) ? await fetchQueryTerms(q) : [];
         const hits = expandPages(retrievePages(pageIdx, q, extraTerms));
+        for (const h of hits) if (h.chapter) chaptersHit.push(h.chapter);
         const byBook = new Map<string, number[]>();
         for (const h of hits) byBook.set(h.book, [...(byBook.get(h.book) ?? []), h.page]);
         const texts: Record<string, string> = {};
@@ -118,10 +126,18 @@ export default function AskView({ skill }: { skill: SkillData }) {
         }
       } catch { /* ignore: 原文不可用时仍用蒸馏材料作答 */ }
     }
+    // 页没命中时，退一步用蒸馏来源里出现的章名，保证脚手架仍能注入
+    for (const r of scaffolds) {
+      if (sources.some((s) => s.toLowerCase().includes(r.chapter.toLowerCase()))) {
+        chaptersHit.push(r.chapter);
+      }
+    }
+    const scaffold = buildScaffoldText(scaffolds, chaptersHit);
+    if (scaffold) finalSystem = `${system}\n\n${scaffold}`;
 
     // 任何异常都必须收尾，否则 busy 永远为 true（界面卡在"思考中"）
     try {
-      const res = await askStream(q, system, finalContext, (delta) => {
+      const res = await askStream(q, finalSystem, finalContext, (delta) => {
         setMsgs((m) => {
           const copy = [...m];
           const last = copy[copy.length - 1];

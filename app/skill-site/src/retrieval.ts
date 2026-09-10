@@ -291,6 +291,32 @@ export function retrievePages(
   return hits;
 }
 
+// ===== 答题脚手架（蒸馏层的教学口径）=====
+// 按命中的章注入 system：给模型（尤其 8B 兜底档）一个结构模板，
+// 并带上教师的失分点提醒（如教育题必须 material → cultural → in-school 分层）。
+export interface ScaffoldRow {
+  book: string;
+  chapter: string;
+  data: {
+    'Mental Models'?: string;
+    'Anti-patterns'?: string;
+    'Key Takeaways'?: string;
+  };
+}
+
+export function buildScaffoldText(rows: ScaffoldRow[], chapters: string[]): string {
+  const ch = chapters.find((c) => c && rows.some((r) => r.chapter.toLowerCase() === c.toLowerCase()));
+  if (!ch) return '';
+  const row = rows.find((r) => r.chapter.toLowerCase() === ch.toLowerCase());
+  const d = row?.data ?? {};
+  const seg: string[] = [];
+  if (d['Mental Models']) seg.push(`答题思路：\n${d['Mental Models']}`);
+  if (d['Anti-patterns']) seg.push(`常见失分点（务必避免）：\n${d['Anti-patterns']}`);
+  if (d['Key Takeaways']) seg.push(`要点：\n${d['Key Takeaways']}`);
+  if (!seg.length) return '';
+  return `【${ch} · 本章答题脚手架（教师口径，优先遵循）】\n${seg.join('\n')}`;
+}
+
 /** 命中页 ±1：一页常把论点切在中间，带上前后页保证论据完整。 */
 export function expandPages(hits: PageHit[]): PageHit[] {
   const map = new Map<string, PageHit>();
