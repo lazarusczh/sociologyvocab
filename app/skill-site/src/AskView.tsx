@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { retrieve, retrievePages, expandPages, buildPageContext, buildScaffoldText, localTerms, type PageIndexBook, type ScaffoldRow } from './retrieval'
+import { parseBlocks } from './md'
 import { askStream, fetchQueryTerms, type HistMsg } from './ask'
 import { fetchPageIndex, fetchPageTexts, fetchScaffolds } from './supabase'
 import { booksOf, type SkillData } from './data'
@@ -271,38 +272,30 @@ export default function AskView({ skill }: { skill: SkillData }) {
   );
 }
 
-// —— 极简 markdown 渲染：支持标题/加粗/斜体/行内代码/列表/引用 ——
+// —— 极简 markdown 渲染：分块解析见 md.ts（列表跨空行合并、整行加粗识别为小标题）——
 function MdText({ text }: { text: string }) {
-  const blocks = text.split(/\n{2,}/);
   return (
     <>
-      {blocks.map((block, i) => {
-        const b = block.trim();
-        if (!b) return null;
-
-        if (/^#{1,4}\s/.test(b)) {
-          const level = b.match(/^#{1,4}/)![0].length;
-          const body = inline(b.replace(/^#{1,4}\s*/, ''));
-          const Tag = level <= 2 ? 'h3' : level === 3 ? 'h4' : 'h5';
-          return <Tag key={i}>{body}</Tag>;
+      {parseBlocks(text).map((b, i) => {
+        if (b.kind === 'heading') {
+          const Tag = b.level <= 2 ? 'h3' : b.level === 3 ? 'h4' : 'h5';
+          return <Tag key={i}>{inline(b.text)}</Tag>;
         }
-
-        const lines = b.split('\n');
-        if (lines.every((l) => /^\s*[-•*]\s+/.test(l))) {
+        if (b.kind === 'ul') {
           return (
             <ul key={i}>
-              {lines.map((l, j) => <li key={j}>{inline(l.replace(/^\s*[-•*]\s+/, ''))}</li>)}
+              {b.items.map((it, j) => <li key={j}>{inline(it)}</li>)}
             </ul>
           );
         }
-        if (lines.every((l) => /^\s*\d+[.)]\s+/.test(l))) {
+        if (b.kind === 'ol') {
           return (
             <ol key={i}>
-              {lines.map((l, j) => <li key={j}>{inline(l.replace(/^\s*\d+[.)]\s+/, ''))}</li>)}
+              {b.items.map((it, j) => <li key={j}>{inline(it)}</li>)}
             </ol>
           );
         }
-        return <p key={i}>{inline(b)}</p>;
+        return <p key={i}>{inline(b.text)}</p>;
       })}
     </>
   );
