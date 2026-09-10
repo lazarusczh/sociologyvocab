@@ -212,6 +212,28 @@ export interface PageIndexBook {
   units?: Record<string, { title: string; page: number }>;
   /** 章名 → 起始页（无 Unit 体系的教材用它做范围标注） */
   chapters?: Record<string, { page: number }>;
+  /** 离线中英术语桥：中文译名 → 英文术语（由蒸馏术语表生成，零运行时开销） */
+  terms?: { zh: string; en: string }[];
+}
+
+/**
+ * 中文提问先查本地术语桥（零延迟、零调用）。命中即得英文术语用于页检索；
+ * 覆盖不足时再由调用方补 /skill-api/terms 的模型翻译。
+ */
+export function localTerms(indexes: PageIndexBook[], question: string): string[] {
+  const q = question.toLowerCase();
+  const out = new Set<string>();
+  for (const bk of indexes) {
+    for (const t of bk.terms ?? []) {
+      if (t.zh && q.includes(t.zh)) {
+        for (const en of t.en.split(/[、,，/]/)) {
+          const s = en.trim().toLowerCase();
+          if (s.length >= 3) out.add(s);
+        }
+      }
+    }
+  }
+  return [...out].slice(0, 12);
 }
 export interface PageHit {
   book: string;

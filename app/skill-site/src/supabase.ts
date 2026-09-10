@@ -37,12 +37,14 @@ export async function fetchPageIndex(): Promise<PageIndexBook[]> {
       pages?: PageIndexBook['pages'];
       units?: PageIndexBook['units'];
       chapters?: PageIndexBook['chapters'];
+      terms?: PageIndexBook['terms'];
     };
   }[]).map((r) => ({
     book: r.book,
     pages: r.data?.pages ?? [],
     units: r.data?.units ?? {},
     chapters: r.data?.chapters ?? {},
+    terms: r.data?.terms ?? [],
   }));
 }
 

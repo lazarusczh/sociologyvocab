@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
-import { retrieve, retrievePages, expandPages, buildPageContext, buildScaffoldText, type PageIndexBook, type ScaffoldRow } from './retrieval'
+import { retrieve, retrievePages, expandPages, buildPageContext, buildScaffoldText, localTerms, type PageIndexBook, type ScaffoldRow } from './retrieval'
 import { askStream, fetchQueryTerms, type HistMsg } from './ask'
 import { fetchPageIndex, fetchPageTexts, fetchScaffolds } from './supabase'
 import { booksOf, type SkillData } from './data'
@@ -108,8 +108,11 @@ export default function AskView({ skill }: { skill: SkillData }) {
     const chaptersHit: string[] = [];   // 命中的章（用于注入该章答题脚手架）
     if (pageIdx && pageIdx.length) {
       try {
-        // 中文提问：先借模型把问题译成英文术语，补上索引只有英文关键词的短板
-        const extraTerms = /[一-鿿]/.test(q) ? await fetchQueryTerms(q) : [];
+        // 中文提问：先查离线术语桥（零延迟），覆盖不足再让模型翻译补足
+        let extraTerms = localTerms(pageIdx ?? [], q);
+        if (/[一-鿿]/.test(q) && extraTerms.length < 3) {
+          extraTerms = [...new Set([...extraTerms, ...(await fetchQueryTerms(q))])];
+        }
         const hits = expandPages(retrievePages(pageIdx, q, extraTerms));
         for (const h of hits) if (h.chapter) chaptersHit.push(h.chapter);
         const byBook = new Map<string, number[]>();

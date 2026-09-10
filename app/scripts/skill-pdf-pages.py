@@ -45,6 +45,31 @@ STOP_EN = set(
 
 CAP_WORD = re.compile(r"\b[A-Z][a-z]{2,}\b")
 UNIT_LINE = re.compile(r"^\s*Unit\s+(\d{1,2}\.\d{1,2}(?:\.\d{1,2})?)\s+(.+)$")
+TERM_LINE = re.compile(r"^\*\*(.+?)\*\*\s*[—–-]\s*(.+)$")
+
+# 蒸馏 skill 的术语表：`**English Term** — 中文释义 (Ch N)`。
+# 抽成「中文译名 → 英文术语」桥：中文提问先查本地词典（零延迟），查不到才调模型翻译。
+GLOSSARY = {
+    "tb1": Path("C:/Users/rebir/.agents/skills/9699textbook1/glossary.md"),
+    "tb2": Path("C:/Users/rebir/.agents/skills/9699textbook2/glossary.md"),
+}
+
+
+def parse_glossary_terms(path: Path):
+    """`**Term** — 中文释义` → [{zh, en}]，zh 取释义开头的中文译名（到首个分隔符为止）。"""
+    out = []
+    if not path.exists():
+        return out
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        m = TERM_LINE.match(raw.strip())
+        if not m:
+            continue
+        en = m.group(1).strip()
+        defn = re.sub(r"\((?:[^()]*Ch[^()]*)\)\s*$", "", m.group(2).strip()).strip()
+        zh = re.sub(r"[^\u4e00-\u9fff]", "", re.split(r"[：:，,；;（(]", defn)[0])
+        if 2 <= len(zh) <= 12:
+            out.append({"zh": zh, "en": en})
+    return out
 YEAR_REF = re.compile(r"\b([A-Z][\w'&-]+(?:\s+&\s+[A-Z][\w'&-]+)?)\s*\(\s*(\d{4})\s*\)")
 ACRONYM = re.compile(r"\b[A-Z]{2,6}\b")
 LOWER_WORD = re.compile(r"[a-z]{5,}")
@@ -113,11 +138,14 @@ def chapter_of(label: str, toc):
     return None
 
 
-def keywords(text: str, limit: int = 60):
-    """自动抽关键词：大写词 / 带年份引用 / 缩写 / 本页高频实词。"""
+def keywords(text: str, glossary_terms=(), limit: int = 60):
+    """自动抽关键词：大写词（去句首停用词）/ 带年份引用 / 缩写 / 本页高频实词 / 教材术语命中。"""
     kws = set()
+    low = text.lower()
     for w in CAP_WORD.findall(text):
-        kws.add(w.lower())
+        wl = w.lower()
+        if wl not in STOP_EN:          # 句首 This / They / How 这类词不该进索引
+            kws.add(wl)
     for name, year in YEAR_REF.findall(text):
         base = name.lower().strip()
         kws.add(base)
@@ -127,9 +155,14 @@ def keywords(text: str, limit: int = 60):
                 kws.add(part)
     for a in ACRONYM.findall(text):
         kws.add(a.lower())
-    freq = Counter(w for w in LOWER_WORD.findall(text.lower()) if w not in STOP_EN)
+    freq = Counter(w for w in LOWER_WORD.findall(low) if w not in STOP_EN)
     for w, _c in freq.most_common(12):
         kws.add(w)
+    # 教材术语表命中：低频概念（asceticism / attrition / catharsis…）靠这一步进索引，
+    # 否则它们只出现在正文一两处，进不了高频词，术语桥也召不回。
+    for t in glossary_terms:
+        if t and t in low:
+            kws.add(t)
     return sorted(kws)[:limit]
 
 
@@ -154,6 +187,12 @@ def main():
     total_pages = doc.page_count
     boiler = build_boilerplate(page_rows, total_pages)
     print(f"pages={total_pages} boilerplate_lines={len(boiler)}")
+
+    # 术语表先解析：既作为「中英术语桥」输出，也用于给页索引补低频概念关键词
+    terms = parse_glossary_terms(GLOSSARY.get(slug, Path("__missing__")))
+    glos_keys = sorted(
+        {p.strip().lower() for t in terms for p in re.split(r"[、,，/]", t["en"]) if len(p.strip()) >= 4}
+    )
 
     pages = []   # {p, chapter, section, text}
     index = []   # {p, c, s, k}
@@ -183,7 +222,7 @@ def main():
         if len(text) < 80:
             continue        # 空白页/图片页/分隔页
         pages.append({"p": pno, "chapter": cur_chapter, "section": section, "text": text})
-        index.append({"p": pno, "c": cur_chapter, "s": section, "k": keywords(text)})
+        index.append({"p": pno, "c": cur_chapter, "s": section, "k": keywords(text, glos_keys)})
 
     print(f"usable pages={len(pages)}")
 
@@ -226,8 +265,10 @@ def main():
         total_chars += len(blob)
         print(f"  {name}: {len(items)} pages, {len(blob)} chars")
 
+    print(f"term bridge: {len(terms)} entries")
+
     idx_blob = json.dumps(
-        {"book": slug, "pages": index, "units": units, "chapters": chapters_map},
+        {"book": slug, "pages": index, "units": units, "chapters": chapters_map, "terms": terms},
         ensure_ascii=False,
     )
     (out_dir / "index.json").write_text(idx_blob, encoding="utf-8")
