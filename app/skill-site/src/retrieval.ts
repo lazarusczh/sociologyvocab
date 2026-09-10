@@ -218,16 +218,24 @@ export interface PageHit {
 }
 
 // 原文材料预算：按调用次数计费（除兜底 8B），但窗口有限，故限制页数与总字数
-export const PAGE_CHAR_BUDGET = 8000;
-const PAGE_MAX_PER_BOOK = 5;
-const PAGE_CHAR_LIMIT = 2200;   // 单页截断（一页约 2500 字符）
+export const PAGE_CHAR_BUDGET = 12000;
+const PAGE_MAX_PER_BOOK = 3;     // 命中页数（±1 扩展后实际最多 9 页/本）
+const PAGE_GROUP_LIMIT = 4500;   // 合并块上限（约两页），避免一个连续大块吃光预算
 
 /**
  * 用页级索引给问题打分，返回候选页（每本最多 PAGE_MAX_PER_BOOK 页）。
  * 打分：命中索引关键词 +3；关键词前缀命中（长词）+1；命中章/节标签 +2。
+ * extraTerms：补充检索词（中文提问经模型翻译出的英文术语，弥补索引只有英文的问题）。
  */
-export function retrievePages(indexes: PageIndexBook[], question: string): PageHit[] {
-  const toks = tokenize(question);
+export function retrievePages(
+  indexes: PageIndexBook[],
+  question: string,
+  extraTerms: string[] = [],
+): PageHit[] {
+  const toks = [
+    ...tokenize(question),
+    ...extraTerms.map((t) => t.toLowerCase().trim()).filter(Boolean),
+  ];
   if (!toks.length) return [];
   const hits: PageHit[] = [];
   for (const bk of indexes) {
@@ -252,24 +260,76 @@ export function retrievePages(indexes: PageIndexBook[], question: string): PageH
   return hits;
 }
 
-/** 把拉取到的页原文组装成材料块（含书名/章/页码出处，便于回查原书）。 */
+/** 命中页 ±1：一页常把论点切在中间，带上前后页保证论据完整。 */
+export function expandPages(hits: PageHit[]): PageHit[] {
+  const map = new Map<string, PageHit>();
+  for (const h of hits) {
+    for (const d of [-1, 0, 1]) {
+      const p = h.page + d;
+      if (p < 1) continue;
+      const key = `${h.book}:${p}`;
+      const score = h.score + (d === 0 ? 1 : 0);   // 核心页略加权，优先占用预算
+      const prev = map.get(key);
+      if (!prev || score > prev.score) map.set(key, { ...h, page: p, score });
+    }
+  }
+  return [...map.values()].sort((a, b) => b.score - a.score);
+}
+
+interface PageGroup {
+  book: string;
+  pages: number[];
+  chapter: string;
+  section: string;
+  score: number;
+}
+
+/** 把拉取到的页原文组装成材料块：同章连续页合并为一块，出处给页码范围，便于回查原书。 */
 export function buildPageContext(
   hits: PageHit[],
   texts: Record<string, string>,   // `${book}:${page}` -> 原文
   bookLabel: Record<string, string>,
 ): { context: string; sources: string[] } {
+  // 1) 按本分组，页内按页码升序，把同章连续页合并（跨页论点不再被切断）
+  const groups: PageGroup[] = [];
+  const byBook = new Map<string, PageHit[]>();
+  for (const h of hits) byBook.set(h.book, [...(byBook.get(h.book) ?? []), h]);
+
+  for (const [book, list] of byBook) {
+    const avail = list
+      .filter((h) => texts[`${book}:${h.page}`])
+      .sort((a, b) => a.page - b.page);
+    for (const h of avail) {
+      const last = groups[groups.length - 1];
+      const contiguous =
+        last &&
+        last.book === book &&
+        last.chapter === h.chapter &&
+        h.page - last.pages[last.pages.length - 1] <= 1;
+      if (contiguous) {
+        last.pages.push(h.page);
+        last.score = Math.max(last.score, h.score);
+      } else {
+        groups.push({ book, pages: [h.page], chapter: h.chapter, section: h.section, score: h.score });
+      }
+    }
+  }
+
+  // 2) 按分数从高到低填入预算
+  groups.sort((a, b) => b.score - a.score);
   const blocks: string[] = [];
   const sources: string[] = [];
   let used = 0;
-  for (const h of hits) {
+  for (const g of groups) {
     if (used >= PAGE_CHAR_BUDGET) break;
-    const raw = texts[`${h.book}:${h.page}`];
-    if (!raw) continue;
-    const label = bookLabel[h.book] ?? h.book;
-    const where = [h.chapter, h.section].filter(Boolean).join(' › ') || '';
-    blocks.push(`【${label}${where ? ` › ${where}` : ''} › p.${h.page}】\n${raw.slice(0, PAGE_CHAR_LIMIT)}`);
-    sources.push(`${label} p.${h.page}`);
-    used += Math.min(raw.length, PAGE_CHAR_LIMIT);
+    const label = bookLabel[g.book] ?? g.book;
+    const where = [g.chapter, g.section].filter(Boolean).join(' › ');
+    const range = g.pages.length > 1 ? `p.${g.pages[0]}-${g.pages[g.pages.length - 1]}` : `p.${g.pages[0]}`;
+    const raw = g.pages.map((p) => texts[`${g.book}:${p}`]).join('\n');
+    const piece = raw.slice(0, Math.min(raw.length, PAGE_GROUP_LIMIT));
+    blocks.push(`【${label}${where ? ` › ${where}` : ''} › ${range}】\n${piece}`);
+    sources.push(`${label} ${range}`);
+    used += piece.length;
   }
   return { context: blocks.join('\n\n---\n\n'), sources };
 }

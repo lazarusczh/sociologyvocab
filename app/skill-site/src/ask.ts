@@ -25,6 +25,41 @@ function askUrl(): string {
   return onSite ? '/skill-api/ask' : `${REMOTE_ORIGIN}/skill-api/ask`;
 }
 
+function termsUrl(): string {
+  const o = typeof location !== 'undefined' ? location.origin : '';
+  const onSite = o.includes('9699vocab.cn') || o.includes('workers.dev');
+  return onSite ? '/skill-api/terms' : `${REMOTE_ORIGIN}/skill-api/terms`;
+}
+
+/**
+ * 中文提问 → 英文检索词（页级索引只有英文关键词，纯中文问题否则零命中）。
+ * 失败一律返回空数组，调用方静默降级为「只用原问题检索」。
+ */
+export async function fetchQueryTerms(question: string): Promise<string[]> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) return [];
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 10_000);
+  try {
+    const res = await fetch(termsUrl(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ question }),
+      signal: ctrl.signal,
+    });
+    if (!res.ok) return [];
+    const j = (await res.json()) as { terms?: unknown };
+    return Array.isArray(j.terms)
+      ? j.terms.filter((x): x is string => typeof x === 'string').slice(0, 12)
+      : [];
+  } catch {
+    return [];
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // 用 fetch 流式读取 SSE，逐块回调增量文本
 export async function askStream(
   question: string,

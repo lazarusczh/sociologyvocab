@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
-import { retrieve, retrievePages, buildPageContext, type PageIndexBook } from './retrieval'
-import { askStream, type HistMsg } from './ask'
+import { retrieve, retrievePages, expandPages, buildPageContext, type PageIndexBook } from './retrieval'
+import { askStream, fetchQueryTerms, type HistMsg } from './ask'
 import { fetchPageIndex, fetchPageTexts } from './supabase'
 import { booksOf, type SkillData } from './data'
 
@@ -101,7 +101,9 @@ export default function AskView({ skill }: { skill: SkillData }) {
     let finalSources = sources;
     if (pageIdx && pageIdx.length) {
       try {
-        const hits = retrievePages(pageIdx, q);
+        // 中文提问：先借模型把问题译成英文术语，补上索引只有英文关键词的短板
+        const extraTerms = /[一-鿿]/.test(q) ? await fetchQueryTerms(q) : [];
+        const hits = expandPages(retrievePages(pageIdx, q, extraTerms));
         const byBook = new Map<string, number[]>();
         for (const h of hits) byBook.set(h.book, [...(byBook.get(h.book) ?? []), h.page]);
         const texts: Record<string, string> = {};

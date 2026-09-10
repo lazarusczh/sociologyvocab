@@ -289,6 +289,57 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
   }
 }
 
+// 中文提问 → 英文检索词：教材原文页索引的关键词是英文，纯中文问题会零命中。
+// 用 Workers AI（免费额度、无需外部 key）把问题译成社会学英文术语，作为补充检索词；
+// 失败或纯英文提问都返回空数组，前端静默降级为「只按原问题检索」。
+async function handleTerms(request: Request, env: Env): Promise<Response> {
+  const auth = request.headers.get('Authorization') ?? '';
+  const token = auth.startsWith('Bearer ') ? auth.slice('Bearer '.length) : '';
+  if (!token) return json(401, { error: 'unauthorized' });
+  const userId = await verifyUser(token, env);
+  if (!userId) return json(401, { error: 'invalid session' });
+
+  let body: { question?: string };
+  try {
+    body = await request.json();
+  } catch {
+    return json(400, { error: 'bad json' });
+  }
+  const question = (body.question ?? '').trim();
+  if (!question) return json(400, { error: 'missing question' });
+  // 纯英文提问不需要翻译，避免浪费一次调用
+  if (!/[\u4e00-\u9fff]/.test(question)) return json(200, { terms: [] });
+
+  const sys =
+    'You translate A-level sociology questions into English search keywords. ' +
+    'Output ONLY a comma-separated list of 8-12 English keywords: sociological terms, concepts, ' +
+    'and theorist surnames that would appear in a textbook. No explanation, no Chinese, no numbers.';
+  try {
+    const r = (await env.AI.run(CHAT_MODEL, {
+      messages: [
+        { role: 'system', content: sys },
+        { role: 'user', content: question },
+      ],
+      max_tokens: 120,
+      temperature: 0.1,
+    })) as { response?: string };
+    const raw = (r?.response ?? '').replace(/\n/g, ' ');
+    const terms = [
+      ...new Set(
+        raw
+          .split(/[,，;；\s]+/)
+          .map((s) => s.replace(/[^\w'&-]/g, '').trim().toLowerCase())
+          .filter((s) => s.length >= 3),
+      ),
+    ].slice(0, 12);
+    return json(200, { terms });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error('[skill-api/terms] ai error:', msg);
+    return json(200, { terms: [] });
+  }
+}
+
 interface AiMessage { role: 'system' | 'user' | 'assistant'; content: string }
 
 // 调用 OpenAI 兼容端点（ModelScope / OpenRouter 通用）。非 200（429/限流/参数错）一律返回 null。
@@ -348,12 +399,15 @@ export default {
     const url = new URL(request.url);
 
     // 教材知识站 AI 问答（APK 内 origin 是 https://localhost，需处理预检并回 CORS 头）
-    if (url.pathname === '/skill-api/ask') {
+    if (url.pathname === '/skill-api/ask' || url.pathname === '/skill-api/terms') {
       if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: corsHeaders(request) });
       }
       if (request.method === 'POST') {
-        const res = await handleAsk(request, env);
+        const res =
+          url.pathname === '/skill-api/terms'
+            ? await handleTerms(request, env)
+            : await handleAsk(request, env);
         const withCors = new Response(res.body, res);
         for (const [k, v] of Object.entries(corsHeaders(request))) withCors.headers.set(k, v);
         return withCors;
