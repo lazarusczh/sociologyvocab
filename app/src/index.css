@@ -134,17 +134,6 @@
    各自留安全区，避免被系统栏压住点不到。 */
 body { margin: 0; min-height: 100vh; }
 
-/* ===== APK 内安全区兜底（部分 WebView 不上报 env(safe-area-inset-top)，返回 0）=====
-   顶栏取「env 实测值 与 24px 中较大者」，确保内容延伸到状态栏下时顶栏能铺满该区域。 */
-html.native .topbar {
-  padding-top: calc(0.6rem + max(env(safe-area-inset-top, 0px), 24px));
-}
-@media (max-width: 720px) {
-  html.native .topbar nav {
-    top: calc(var(--h-topbar-m, 52px) + max(env(safe-area-inset-top, 0px), 24px));
-  }
-}
-
 #root { min-height: 100vh; }
 
 h1, h2, h3, h4 { color: var(--text); font-weight: 600; line-height: 1.3; }
@@ -287,8 +276,9 @@ input:focus, textarea:focus, select:focus {
   border-bottom: 1px solid var(--border);
   /* 宽屏顶栏轻阴影：内容滚到下方时浮现一点层次，比卡片更克制 */
   box-shadow: 0 2px 8px rgba(16, 24, 40, 0.08);
-  /* 顶栏铺到状态栏区域（edge-to-edge），内容下移安全区高度 */
-  padding: calc(0.6rem + env(safe-area-inset-top, 0px)) 1rem 0.6rem;
+  /* 状态栏区域由原生 windowBackground 填 surface 色（与顶栏同色），
+     APK 内 WebView 顶部已整体避开状态栏，这里无需再留安全区 */
+  padding: 0.6rem 1rem;
   display: flex;
   align-items: center;
   gap: 0.8rem;
@@ -421,8 +411,7 @@ input:focus, textarea:focus, select:focus {
   .topbar nav {
     display: none;
     position: fixed;
-    /* 顶栏在 edge-to-edge 下多出安全区高度，抽屉起点要跟着下移 */
-    top: calc(var(--h-topbar-m, 52px) + env(safe-area-inset-top, 0px));
+    top: var(--h-topbar-m, 52px);
     left: 0;
     right: 0;
     z-index: 9;

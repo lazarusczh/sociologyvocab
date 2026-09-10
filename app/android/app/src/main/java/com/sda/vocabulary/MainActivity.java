@@ -14,6 +14,8 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        // 本地插件必须在 super.onCreate 之前注册
+        registerPlugin(InsetPlugin.class);
         super.onCreate(savedInstanceState);
         applyEdgeToEdge(true);
     }
