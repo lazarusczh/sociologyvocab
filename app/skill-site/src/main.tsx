@@ -12,11 +12,10 @@ import App from './App.tsx'
 if (Capacitor.isNativePlatform()) {
   void (async () => {
     try {
-      await StatusBar.setOverlaysWebView({ overlay: true })
-      await StatusBar.setStyle({ style: Style.Dark })
+      await StatusBar.setStyle({ style: Style.Dark })   // 深蓝顶栏 → 状态栏用浅色图标
     } catch { /* 插件不可用时静默降级 */ }
     try {
-      // Android 15+ 已废弃该 API；失败无妨，靠顶栏自绘铺色
+      // 老系统（非 edge-to-edge）兜底：状态栏取顶栏深蓝；Android 15+ 由顶栏自绘铺色，失败无妨
       await StatusBar.setBackgroundColor({ color: '#10243e' })
     } catch { /* ignore */ }
   })()

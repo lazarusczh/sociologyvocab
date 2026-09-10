@@ -5,15 +5,18 @@ import { StatusBar, Style } from '@capacitor/status-bar'
 import './index.css'
 import App from './App.tsx'
 
-// 从知识库子站返回主站时恢复状态栏设置：不延伸到状态栏（保持原生 windowBackground
-// 填色，与主站顶栏同色），图标明暗跟随系统主题。仅在 APK 内执行。
+// 从知识库子站返回主站时恢复状态栏图标明暗（子站临时改成了浅色图标）。
+// 内容是否延伸到系统栏已由原生 MainActivity 统一强制（edge-to-edge），此处不再切换 overlay。
 if (Capacitor.isNativePlatform()) {
   void (async () => {
+    const dark = window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
     try {
-      await StatusBar.setOverlaysWebView({ overlay: false })
-      const dark = window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
       await StatusBar.setStyle({ style: dark ? Style.Dark : Style.Light })
     } catch { /* 插件不可用时静默降级 */ }
+    try {
+      // 老系统（非 edge-to-edge）兜底：状态栏与主站顶栏同色
+      await StatusBar.setBackgroundColor({ color: dark ? '#161C24' : '#FFFFFF' })
+    } catch { /* ignore */ }
   })()
 }
 

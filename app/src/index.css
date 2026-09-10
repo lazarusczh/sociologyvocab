@@ -129,7 +129,9 @@
    已由各按钮/卡片的 :active 样式提供按下反馈，故全局关闭（含 APK WebView 内） */
 * { -webkit-tap-highlight-color: transparent; }
 
-body { margin: 0; min-height: 100vh; }
+/* 底部留出安全区：APK edge-to-edge 下导航栏区域由页面底色铺满（不留白带），
+   内容也不会被手势条/导航栏压住 */
+body { margin: 0; min-height: 100vh; padding-bottom: env(safe-area-inset-bottom, 0px); }
 
 #root { min-height: 100vh; }
 
@@ -273,7 +275,8 @@ input:focus, textarea:focus, select:focus {
   border-bottom: 1px solid var(--border);
   /* 宽屏顶栏轻阴影：内容滚到下方时浮现一点层次，比卡片更克制 */
   box-shadow: 0 2px 8px rgba(16, 24, 40, 0.08);
-  padding: 0.6rem 1rem;
+  /* 顶栏铺到状态栏区域（edge-to-edge），内容下移安全区高度 */
+  padding: calc(0.6rem + env(safe-area-inset-top, 0px)) 1rem 0.6rem;
   display: flex;
   align-items: center;
   gap: 0.8rem;
@@ -406,7 +409,8 @@ input:focus, textarea:focus, select:focus {
   .topbar nav {
     display: none;
     position: fixed;
-    top: var(--h-topbar-m, 52px);
+    /* 顶栏在 edge-to-edge 下多出安全区高度，抽屉起点要跟着下移 */
+    top: calc(var(--h-topbar-m, 52px) + env(safe-area-inset-top, 0px));
     left: 0;
     right: 0;
     z-index: 9;
