@@ -138,10 +138,20 @@ def chapter_of(label: str, toc):
     return None
 
 
-def keywords(text: str, glossary_terms=(), limit: int = 60):
-    """自动抽关键词：大写词（去句首停用词）/ 带年份引用 / 缩写 / 本页高频实词 / 教材术语命中。"""
+def keywords(text: str, glossary_terms=(), limit: int = 70):
+    """自动抽关键词：教材术语命中 / 大写词（去句首停用词）/ 带年份引用 / 缩写 / 本页高频实词。"""
     kws = set()
     low = text.lower()
+
+    # 1) 教材术语命中（优先，不被上限挤掉）：低频概念（asceticism / attrition / catharsis…）
+    #    只出现在正文一两处，进不了高频词；这里按术语候选做「词形宽松」查找，
+    #    并把正文里的实际形式（如 sociobiologists）收进索引，便于检索端做前缀匹配。
+    term_hits = []
+    for key in glossary_terms:
+        m = re.search(r"(?<![a-z])" + re.escape(key) + r"[a-z]*", low)
+        if m:
+            term_hits.append(m.group(0))
+
     for w in CAP_WORD.findall(text):
         wl = w.lower()
         if wl not in STOP_EN:          # 句首 This / They / How 这类词不该进索引
@@ -158,12 +168,10 @@ def keywords(text: str, glossary_terms=(), limit: int = 60):
     freq = Counter(w for w in LOWER_WORD.findall(low) if w not in STOP_EN)
     for w, _c in freq.most_common(12):
         kws.add(w)
-    # 教材术语表命中：低频概念（asceticism / attrition / catharsis…）靠这一步进索引，
-    # 否则它们只出现在正文一两处，进不了高频词，术语桥也召不回。
-    for t in glossary_terms:
-        if t and t in low:
-            kws.add(t)
-    return sorted(kws)[:limit]
+
+    term_set = set(term_hits)
+    ordered = sorted(term_set) + [w for w in sorted(kws) if w not in term_set]
+    return ordered[:limit]
 
 
 def slugify(s: str, limit: int = 40) -> str:
@@ -188,11 +196,26 @@ def main():
     boiler = build_boilerplate(page_rows, total_pages)
     print(f"pages={total_pages} boilerplate_lines={len(boiler)}")
 
-    # 术语表先解析：既作为「中英术语桥」输出，也用于给页索引补低频概念关键词
+    # 术语表先解析：既作为「中英术语桥」输出，也用于给页索引补低频概念关键词。
+    # glos_keys 里额外加入「去尾字母」的词干变体，用于发现词形变化
+    # （如术语表 sociobiology ↔ 正文 sociobiologists）。
     terms = parse_glossary_terms(GLOSSARY.get(slug, Path("__missing__")))
-    glos_keys = sorted(
-        {p.strip().lower() for t in terms for p in re.split(r"[、,，/]", t["en"]) if len(p.strip()) >= 4}
-    )
+    glos_keys = set()
+    for t in terms:
+        for part in re.split(r"[、,，/()（）]", t["en"]):
+            s = part.strip().lower()
+            if len(s) < 4 or s in {"vs", "and", "or", "the"}:
+                continue
+            glos_keys.add(s)
+            if "-" in s:                      # 术语表用连字符、正文常无（under-achievement ↔ underachievement）
+                glos_keys.add(s.replace("-", ""))
+            if " " not in s and len(s) >= 8:
+                glos_keys.add(s[:-1])
+            elif " " in s:
+                head = s.rsplit(" ", 1)[0]
+                if len(head) >= 6:
+                    glos_keys.add(head)
+    glos_keys = sorted(glos_keys)
 
     pages = []   # {p, chapter, section, text}
     index = []   # {p, c, s, k}

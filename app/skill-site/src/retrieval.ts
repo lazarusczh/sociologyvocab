@@ -249,6 +249,21 @@ const PAGE_MAX_PER_BOOK = 3;     // 命中页数（±1 扩展后实际最多 9 �
 const PAGE_GROUP_LIMIT = 4500;   // 合并块上限（约两页），避免一个连续大块吃光预算
 
 /**
+ * 词形宽松匹配：返回 0/1/2 分，解决「术语表 vs 正文词形」不一致。
+ * 例：sociobiology ↔ sociobiologists（尾部 2 字母差异）、ascetic ↔ asceticism（完全前缀）。
+ * 规则收紧点：只有较长词（>=8 字符）才允许尾部差异，否则 social 会和 sociobiology 误配。
+ */
+function prefixHit(k: string, t: string): number {
+  const n = Math.min(k.length, t.length);
+  if (n < 5) return 0;
+  let i = 0;
+  while (i < n && k[i] === t[i]) i++;
+  if (i === n) return 2;                 // 短词是长词的前缀（ascetic / asceticism）
+  if (n >= 8 && i >= n - 2) return 1;    // 长词允许词尾 2 字母差异（sociobiology / sociobiologists）
+  return 0;
+}
+
+/**
  * 用页级索引给问题打分，返回候选页（每本最多 PAGE_MAX_PER_BOOK 页）。
  * 打分：命中索引关键词 +3；关键词前缀命中（长词）+1；命中章/节标签 +2。
  * extraTerms：补充检索词（中文提问经模型翻译出的英文术语，弥补索引只有英文的问题）。
@@ -284,7 +299,7 @@ export function retrievePages(
       for (const t of toks) {
         if (t.length < 2) continue;
         if (kws.includes(t)) s += 3;
-        else if (t.length >= 4 && kws.some((k) => k.startsWith(t))) s += 1;
+        else if (t.length >= 4) s += kws.reduce((m, k) => Math.max(m, prefixHit(k, t)), 0);
         if (t.length >= 3 && label.includes(t)) s += 2;
       }
       if (s > 0) bump(e.p, s, e.c ?? '', e.s ?? '');

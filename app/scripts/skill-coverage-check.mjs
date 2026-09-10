@@ -13,10 +13,13 @@ import { pathToFileURL } from 'node:url';
 
 const args = process.argv.slice(2);
 const dirs = {};
+let FULL = false;
 for (let i = 0; i < args.length; i++) {
   if (args[i] === '--dir') {
     const [book, path] = args[++i].split('=');
     dirs[book] = path;
+  } else if (args[i] === '--full') {
+    FULL = true;   // 术语桥全量检查（不抽样），输出全部未命中
   }
 }
 if (!Object.keys(dirs).length) {
@@ -79,19 +82,21 @@ for (const bk of books) {
     umiss.forEach((m) => console.log('   MISS ' + m));
   }
 
-  // 3) 术语桥：中文译名 → en → 是否召回页
+  // 3) 术语桥：中文译名 → en → 是否召回页（--full 时全量检查，不看抽样）
   if (bk.terms.length) {
-    const sampleTerms = shuffle(bk.terms).slice(0, 60);
+    const sampleTerms = FULL ? bk.terms : shuffle(bk.terms).slice(0, 60);
     let tok = 0;
+    let checked = 0;
     const tmiss = [];
     for (const t of sampleTerms) {
       const ens = t.en.split(/[、,，/]/).map((s) => s.trim().toLowerCase()).filter((s) => s.length >= 4);
       if (!ens.length) continue;
+      checked++;
       const hits = expandPages(retrievePages([bk], ens.join(' ')));
       if (hits.length) tok++;
-      else if (tmiss.length < 6) tmiss.push(`${t.zh} -> ${ens.join('/')}`);
+      else if (tmiss.length < (FULL ? 40 : 6)) tmiss.push(`${t.zh} -> ${ens.join('/')}`);
     }
-    console.log(`\n[term bridge] ${tok}/${sampleTerms.length} 术语能召回到页`);
+    console.log(`\n[term bridge${FULL ? ' · full' : ''}] ${tok}/${checked} = ${((tok / Math.max(checked, 1)) * 100).toFixed(1)}% 术语能召回到页`);
     tmiss.forEach((m) => console.log('   NOT-FOUND ' + m));
   }
 
