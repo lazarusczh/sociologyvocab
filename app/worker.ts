@@ -356,14 +356,37 @@ function shrinkForLlama(messages: AiMessage[]): AiMessage[] {
     if (m.role === 'system') return { role: 'system', content: m.content + LLAMA_TAIL_NOTE };
     if (m.role !== 'user' || m.content.length <= LLAMA_CONTEXT_CHAR) return m;
     const content = m.content;
-    const marker = '学生提问：';
-    const i = content.indexOf(marker);
-    if (i === -1) return { role: 'user', content: content.slice(0, LLAMA_CONTEXT_CHAR) + '…' };
-    const tail = content.slice(i);                       // 提问与其后的作答要求必须保留
-    const headLen = Math.max(0, LLAMA_CONTEXT_CHAR - tail.length);
+    const qi = content.indexOf('学生提问：');
+    if (qi === -1) return { role: 'user', content: content.slice(0, LLAMA_CONTEXT_CHAR) + '…' };
+
+    const head = content.slice(0, qi);   // 材料区：导语 + 蒸馏材料 + 教材原文页
+    const tail = content.slice(qi);      // 提问与作答要求，必须原样保留
+    const budget = Math.max(0, LLAMA_CONTEXT_CHAR - tail.length);
+    const parts = head.split('\n\n---\n\n');
+    // 原文页块以「【…p.123…】」开头——细节最具体，弱模型兜底时优先保留
+    const isPage = (p: string) => /^【[^】]*p\.\d+/.test(p.trim());
+    const pageParts = parts.filter(isPage);
+    const otherParts = parts.filter((p) => !isPage(p));
+
+    let used = 0;
+    const keptOther: string[] = [];
+    for (const p of otherParts) {
+      if (keptOther.length >= 2) break;                  // 蒸馏材料留前两块做考点/结构提示
+      if (used + p.length > budget) break;
+      keptOther.push(p);
+      used += p.length;
+    }
+    const keptPage: string[] = [];
+    for (let i = pageParts.length - 1; i >= 0; i--) {     // 页块从后往前收（离提问近的先留）
+      const p = pageParts[i];
+      if (used + p.length > budget) continue;
+      keptPage.unshift(p);
+      used += p.length;
+    }
+    const merged = [...keptOther, ...keptPage].join('\n\n---\n\n');
     return {
       role: 'user',
-      content: `${content.slice(0, headLen)}\n\n（材料中段因兜底档容量已省略）\n\n${tail}`,
+      content: `${merged}\n\n（材料已按兜底档容量裁剪）\n\n${tail}`,
     };
   });
 }
