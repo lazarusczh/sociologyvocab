@@ -10,6 +10,9 @@ import App from './App.tsx'
 // 这样状态栏与顶栏始终同色（Android 15 强制 edge-to-edge 下也成立）。
 // 浏览器里不执行（没有原生状态栏）。
 if (Capacitor.isNativePlatform()) {
+  // 供 CSS 区分「APK 原生环境」：部分 WebView 不上报 env(safe-area-inset-*)，
+  // 需要按状态栏典型高度兜底，保证顶栏深蓝能铺到状态栏区域
+  document.documentElement.classList.add('native')
   void (async () => {
     try {
       await StatusBar.setStyle({ style: Style.Dark })   // 深蓝顶栏 → 状态栏用浅色图标

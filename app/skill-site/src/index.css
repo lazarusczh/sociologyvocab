@@ -390,3 +390,18 @@ button.ask-clear:disabled { opacity: .45; cursor: default; }
   }
   .content.ask-mode .ask-input { min-height: 44px; max-height: 120px; }
 }
+
+/* ===== APK（Capacitor）内的安全区兜底 =====
+   部分 Android WebView / 国产内核不上报 env(safe-area-inset-top)（返回 0），
+   此时内容虽然已延伸到状态栏下方，顶栏却拿不到 padding，状态栏区域会露出页面底色。
+   原生环境下取「env 实测值 与 24px 中较大者」，保证顶栏深蓝始终铺到状态栏。 */
+html.native .m-bar {
+  padding-top: calc(10px + max(env(safe-area-inset-top, 0px), 24px));
+  min-height: calc(var(--mbar-h) + max(env(safe-area-inset-top, 0px), 24px));
+}
+html.native .sidebar { padding-top: max(env(safe-area-inset-top, 0px), 24px); }
+@media (max-width: 720px) {
+  html.native .content.ask-mode {
+    height: calc(100dvh - var(--mbar-h) - max(env(safe-area-inset-top, 0px), 24px));
+  }
+}

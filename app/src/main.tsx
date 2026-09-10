@@ -8,6 +8,8 @@ import App from './App.tsx'
 // 从知识库子站返回主站时恢复状态栏图标明暗（子站临时改成了浅色图标）。
 // 内容是否延伸到系统栏已由原生 MainActivity 统一强制（edge-to-edge），此处不再切换 overlay。
 if (Capacitor.isNativePlatform()) {
+  // 供 CSS 区分「APK 原生环境」（部分 WebView 不上报 env(safe-area-inset-*)，需按典型值兜底）
+  document.documentElement.classList.add('native')
   void (async () => {
     const dark = window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
     try {
