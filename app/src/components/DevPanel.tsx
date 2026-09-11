@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useStore } from '../lib/store';
+import { supabase } from '../lib/supabase';
 import { isCorrectAnswer, getAcceptableForms } from '../lib/answers';
 import type { VocabItem } from '../lib/types';
 
@@ -31,6 +32,81 @@ export default function DevPanel() {
   }, [vocab, query]);
 
   const testResult = selected && testInput.trim() ? isCorrectAnswer(selected, testInput) : null;
+
+  // ===== Realtime 连通性自检（诊断用）=====
+  // 三项独立判定，因为它们在当前托管实例上的可用性并不一致（实测：连接 ✓ / Presence ✓ / Broadcast ✗）：
+  //   conn      能否订阅上频道（socket + join）
+  //   presence  在线状态：track 之后能否收到 sync
+  //   broadcast 发一条广播能否自己收回来（self:true）
+  // 若 broadcast 失败且伴随 socket 断开，多半是服务端 realtime.messages 表「RLS 开着但没有策略」
+  // （默认全拒，写入即内部错误 1011）。到控制台 Realtime Policies 建好策略后回来重测即可。
+  type ProbeVerdict = 'idle' | 'running' | 'ok' | 'fail';
+  const [probe, setProbe] = useState<{ conn: ProbeVerdict; presence: ProbeVerdict; broadcast: ProbeVerdict }>({
+    conn: 'idle',
+    presence: 'idle',
+    broadcast: 'idle',
+  });
+  const [probeLog, setProbeLog] = useState<string[]>([]);
+
+  const runRealtimeProbe = () => {
+    setProbe({ conn: 'running', presence: 'running', broadcast: 'running' });
+    setProbeLog([]);
+    const t0 = performance.now();
+    const log = (s: string) =>
+      setProbeLog((l) => [...l, `+${String(Math.round(performance.now() - t0)).padStart(5)}ms  ${s}`]);
+    // 只把仍处于 running 的项落定，避免覆盖已判定的结果
+    const settle = (k: 'conn' | 'presence' | 'broadcast', v: 'ok' | 'fail') =>
+      setProbe((p) => (p[k] === 'running' ? { ...p, [k]: v } : p));
+
+    const ch = supabase.channel('realtime-probe', { config: { broadcast: { self: true } } });
+    const timers: number[] = [];
+    let stopped = false;
+    const stop = () => {
+      if (stopped) return;
+      stopped = true;
+      timers.forEach((t) => clearTimeout(t));
+      settle('conn', 'fail');
+      settle('presence', 'fail');
+      settle('broadcast', 'fail');
+      void supabase.removeChannel(ch);
+    };
+    const later = (ms: number, fn: () => void) => { timers.push(window.setTimeout(fn, ms)); };
+
+    ch.on('presence', { event: 'sync' }, () => {
+      settle('presence', 'ok');
+      log('Presence ✓ 收到 sync');
+    });
+    ch.on('broadcast', { event: 'ping' }, () => {
+      settle('broadcast', 'ok');
+      log('Broadcast ✓ 收到自己的广播回环');
+      stop();
+    });
+
+    ch.subscribe((status) => {
+      const s = String(status);
+      log(`订阅状态：${s}`);
+      if (s === 'SUBSCRIBED') {
+        settle('conn', 'ok');
+        ch.track({ probe: 1, at: Date.now() });
+        log('已 track（测 Presence）');
+        // 2 秒后若还没收到 presence sync，判 Presence 不可用，接着测 Broadcast
+        later(2000, () => {
+          settle('presence', 'fail');
+          ch.send({ type: 'broadcast', event: 'ping', payload: { t: Date.now() } });
+          log('已发送广播（测 Broadcast）');
+        });
+        later(4500, () => { settle('broadcast', 'fail'); log('广播 2.5 秒内未回环'); });
+        later(5000, stop);
+        return;
+      }
+      if (s === 'CHANNEL_ERROR' || s === 'TIMED_OUT' || s === 'CLOSED') {
+        log(`服务端断开：${s}`);
+        stop();
+      }
+    });
+
+    later(12000, stop); // 总兜底
+  };
 
   return (
     <div>
@@ -133,6 +209,52 @@ export default function DevPanel() {
           </div>
         </div>
       )}
+
+      <div className="card" style={{ marginTop: '0.8rem' }}>
+        <h3 style={{ marginTop: 0 }}>Realtime 连通性自检</h3>
+        <p className="muted" style={{ fontSize: '0.8rem', marginTop: '0.25rem' }}>
+          课堂「多人同时在线」的选型前提。三项独立判定，因为它们在当前托管实例上并不一致
+          （实测：连接 ✓ / Presence ✓ / Broadcast ✗）。若 Broadcast 失败并伴随 socket 断开，
+          多半是服务端 <code>realtime.messages</code> 表「RLS 开着却没有策略」（默认全拒）——
+          到控制台 Realtime Policies 建好策略后回来重测。
+        </p>
+        <div className="row" style={{ marginTop: '0.6rem', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+          <button className="primary" disabled={probe.conn === 'running'} onClick={runRealtimeProbe}>
+            {probe.conn === 'running' ? '检测中…' : '开始检测'}
+          </button>
+          {(
+            [
+              ['conn', '连接'],
+              ['presence', 'Presence'],
+              ['broadcast', 'Broadcast'],
+            ] as const
+          ).map(([key, label]) => (
+            <span
+              key={key}
+              className={probe[key] === 'ok' ? 'badge success' : probe[key] === 'fail' ? 'badge danger' : 'badge'}
+            >
+              {label} {probe[key] === 'ok' ? '✓' : probe[key] === 'fail' ? '✗' : probe[key] === 'running' ? '…' : '—'}
+            </span>
+          ))}
+        </div>
+        {probeLog.length > 0 && (
+          <pre
+            style={{
+              marginTop: '0.5rem',
+              marginBottom: 0,
+              maxHeight: 190,
+              overflow: 'auto',
+              fontSize: '0.72rem',
+              lineHeight: 1.5,
+              background: 'var(--c-surface-soft)',
+              padding: '0.5rem',
+              borderRadius: 6,
+            }}
+          >
+            {probeLog.join('\n')}
+          </pre>
+        )}
+      </div>
     </div>
   );
 }
