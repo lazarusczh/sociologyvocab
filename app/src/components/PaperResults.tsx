@@ -5,6 +5,7 @@ import {
   type GrouperRunRow, type GrouperRunScore, type MsSectionRow,
 } from '../lib/cloud';
 import { bandLinear, buildRows, type RowSpec, type ThresholdRows } from '../lib/score';
+import { copyText } from '../lib/clipboard';
 import type { AssembleSlot, BankItem } from '../lib/grouper';
 
 const srcLabelFor = (it: BankItem) => `${it.source.session} QP${it.source.comp}${it.source.q ? ' Q' + it.source.q : ''}`;
@@ -24,6 +25,26 @@ function gradeOf(raw: number, t: ThresholdRows, aStar: number | null): string {
 }
 
 interface ClassRow { id: string; name: string }
+
+// 班级分组别名（A1 与 AS 同义：学校目前把 A1 班登记为 AS）
+const GROUP_ALIASES: Record<'A1' | 'A2', string[]> = { A1: ['A1', 'AS'], A2: ['A2'] };
+
+// 依「作业范围」与「卷名」推断目标班级 id（无匹配或该班无学生则返回 ''）
+// 规则：卷名里写了 AS/A1/A2 优先采信；否则 P1/P2 → A1、P3/P4 → A2（A1 学 Paper1-2、A2 学 Paper3-4）
+function inferClassId(run: GrouperRunRow, classList: ClassRow[], list: GrouperRunScore[]): string {
+  if (classList.length === 0) return '';
+  const t = (run.title || '').toUpperCase();
+  let group: 'A1' | 'A2';
+  if (/\bAS\b/.test(t) || /\bA\s*1\b/.test(t)) group = 'A1';
+  else if (/\bA\s*2\b/.test(t)) group = 'A2';
+  else group = run.paper <= 2 ? 'A1' : 'A2';
+  const names = GROUP_ALIASES[group];
+  const normName = (s: string) => s.replace(/\s+/g, '').toUpperCase();
+  const cls = classList.find((c) => names.includes(normName(c.name)))
+    ?? classList.find((c) => names.some((n) => normName(c.name).includes(n)));
+  if (!cls) return '';
+  return list.some((e) => (e.classId ?? '') === cls.id) ? cls.id : '';
+}
 
 export default function PaperResults() {
   // —— 列表 ——
@@ -45,6 +66,7 @@ export default function PaperResults() {
   const [msCache, setMsCache] = useState<Record<string, MsSectionRow[]>>({});
   const [msNote, setMsNote] = useState('');
   const [msKey, setMsKey] = useState('');
+  const [emailByKey, setEmailByKey] = useState<Record<string, string>>({}); // key → 邮箱（导出给 ManageBac 用）
 
   const refresh = useCallback(async () => {
     setLoadingList(true);
@@ -84,6 +106,12 @@ export default function PaperResults() {
       setClasses(classList);
       const classMap = new Map(classList.map((c) => [c.id, c.name]));
       const devIds = new Set(((devRes.data ?? []) as { user_id: string }[]).map((d) => d.user_id));
+      // 额外记住 key → 邮箱（成绩快照里不含邮箱，导出给 ManageBac 时要用）
+      const mailOf: Record<string, string> = {};
+      for (const r of ((stuRes.data ?? []) as { user_id: string; email: string | null }[])) {
+        if (r.email) mailOf[`account:${r.user_id}`] = r.email;
+      }
+      setEmailByKey(mailOf);
       const roster: GrouperRunScore[] = ((stuRes.data ?? []) as {
         user_id: string; email: string | null; data: { name?: string } | null; class_id?: string | null;
       }[])
@@ -107,6 +135,7 @@ export default function PaperResults() {
         }
       }
       setEntries(merged);
+      setClassFilter(inferClassId(run, classList, merged)); // 按作业范围/卷名自动选中 A1/A2 班
     } catch (e) {
       setError((e as Error).message || '加载学生名单失败');
       setEntries([]);
@@ -133,6 +162,34 @@ export default function PaperResults() {
     if (classFilter === 'none') return entries.filter((e) => !(e.classId ?? ''));
     return entries.filter((e) => (e.classId ?? '') === classFilter);
   }, [entries, classFilter]);
+
+  // 本次推断出的目标班级（用于高亮提示「已自动选中」）
+  const inferredClassId = useMemo(
+    () => (viewing ? inferClassId(viewing, classes, entries ?? []) : ''),
+    [viewing, classes, entries],
+  );
+
+  // 复制成绩（供 ManageBac 用户脚本导入）：每行「邮箱<Tab>原始分」
+  // 范围与当前筛选一致（切到某班则只复制该班）；手动添加的学生无邮箱，自动跳过
+  const copyGradesForManageBac = async () => {
+    if (!viewing || !entries) return;
+    setError('');
+    setMsg('');
+    const scored = shown.filter((e) => e.raw != null);
+    const rows = scored.filter((e) => emailByKey[e.key]);
+    const skipped = scored.length - rows.length;
+    if (rows.length === 0) {
+      setError('没有可复制的成绩（需已录入分数且能对上邮箱；手动添加的学生没有邮箱）');
+      return;
+    }
+    const text = rows.map((e) => `${emailByKey[e.key]}\t${e.raw}`).join('\n');
+    try {
+      await copyText(text);
+      setMsg(`已复制 ${rows.length} 条（邮箱 + 原始分，本卷满分 ${viewing.full_raw}）${skipped ? `；${skipped} 条无邮箱已跳过` : ''}`);
+    } catch (e) {
+      setError('复制失败：' + ((e as Error).message || String(e)));
+    }
+  };
 
   const convOf = (raw: number) => (rows.length ? bandLinear(raw, viewing!.full_raw, rows) : null);
 
@@ -243,6 +300,7 @@ export default function PaperResults() {
             <button className="ghost" onClick={closeRun}>← 返回</button>
             <h3 style={{ margin: 0 }}>{viewing.title}</h3>
             <span className="spacer" />
+            <button className="ghost" onClick={() => void copyGradesForManageBac()} disabled={entries === null}>复制成绩（ManageBac）</button>
             <button className="ghost danger" onClick={() => { if (confirmDel === viewing.id) { void doDelete(viewing.id); } else { setConfirmDel(viewing.id); } }}>
               {confirmDel === viewing.id ? '确认删除？' : '删除'}
             </button>
@@ -318,6 +376,9 @@ export default function PaperResults() {
               <button key={c.id} className={classFilter === c.id ? 'active' : ''} onClick={() => setClassFilter(c.id)}>{c.name}</button>
             ))}
             <button className={classFilter === 'none' ? 'active' : ''} onClick={() => setClassFilter('none')}>未分班</button>
+            {inferredClassId && classFilter === inferredClassId && (
+              <span className="muted" style={{ fontSize: '0.8rem', alignSelf: 'center' }}>（已按作业范围自动选中，可切换）</span>
+            )}
           </div>
 
           {entries === null ? (

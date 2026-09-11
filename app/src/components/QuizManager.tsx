@@ -5,6 +5,7 @@ import { buildQuizQuestions, sampleItems, TYPE_LABELS, KIND_LABELS, formatDurati
 import { PAPER_ORDER } from '../lib/storage';
 import { unitListFor } from '../lib/unitMapping';
 import { maskEmail } from '../lib/shuffle';
+import { copyText } from '../lib/clipboard';
 import { createQuiz, updateQuiz, updateQuizQuestions, listQuizzes, listQuizSubmissions, deleteQuiz, listDeveloperIds, deleteSubmission, countSubmittedByQuizzes, regradeQuizSubmissions } from '../lib/cloud';
 import QuizWrongBoard from './QuizWrongBoard';
 
@@ -433,6 +434,33 @@ export default function QuizManager() {
     }
   };
 
+  // 复制成绩，供 ManageBac 用户脚本导入：每行「邮箱<Tab>分数」
+  // - 只取已交卷、带邮箱、非 developer 测试账号的记录；同一学生多次交卷取最近一次
+  // - 分数用最终分（含迟交罚分/订正加分），无结算则为原始分
+  const copyGradesForManageBac = async () => {
+    if (!viewing) return;
+    setError('');
+    setMsg('');
+    const byUser = new Map<string, QuizSubmission>();
+    for (const s of subs) {
+      if (s.status !== 'submitted' || !s.email || devIds.has(s.user_id)) continue;
+      const prev = byUser.get(s.user_id);
+      if (!prev || (s.submitted_at ?? '') > (prev.submitted_at ?? '')) byUser.set(s.user_id, s);
+    }
+    const rows = [...byUser.values()];
+    if (rows.length === 0) { setError('没有可复制的成绩（需已交卷且有邮箱，且排除测试账号）'); return; }
+    const maxPts = totalPoints(viewing.questions);
+    const text = rows
+      .map((s) => `${s.email}\t${s.grading?.final_score != null ? s.grading.final_score : s.score}`)
+      .join('\n');
+    try {
+      await copyText(text);
+      setMsg(`已复制 ${rows.length} 条到剪贴板（邮箱 + 分数，本次满分 ${maxPts}）`);
+    } catch (e) {
+      setError('复制失败：' + ((e as Error).message || String(e)));
+    }
+  };
+
   if (analysisOpen) {
     return <QuizWrongBoard onBack={() => setAnalysisOpen(false)} />;
   }
@@ -446,6 +474,7 @@ export default function QuizManager() {
             <button className="ghost" onClick={() => setViewing(null)}>← 返回</button>
             <h3 style={{ margin: 0 }}>成绩：{viewing.title}</h3>
             <span className="spacer" />
+            <button className="ghost" onClick={() => void copyGradesForManageBac()}>复制成绩（ManageBac）</button>
             <button className="ghost" onClick={regrade} disabled={regrading}>
               {regrading ? '重判中…' : '重判'}
             </button>
