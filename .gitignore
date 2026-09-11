@@ -55,6 +55,9 @@ app/android/app/src/main/assets/
 # 教师工具脚本（含飞书 open_id 等个人身份信息，不纳入公开备份）
 app/scripts/send-apk.ps1
 
+# ManageBac 成绩填入油猴脚本（教师个人自用工具，且会写入真实学生姓名/邮箱，不纳入公开备份）
+managebac-grade-filler.user.js
+
 # 自动化诊断日志（本地临时产物）
 @AutomationLog.txt
 
