@@ -17,6 +17,7 @@ import {
 } from './checkin';
 import { parseExcelFiles, migrateVocabItems } from './excelImport';
 import { loadUnitOrder, saveUnitOrder } from './unitMapping';
+import { vocabSnapshotKey } from './vocabSnapshot';
 import { exportBackupJson, performImport } from './backup';
 import { supabase } from './supabase';
 import { pullCloudData, pushCloudData, mergeStudentData, type CloudStudentData, getLatestVocabVersion, pullLatestVocab } from './cloud';
@@ -290,30 +291,35 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     // 追加导入（按「类型 + 术语名 + 考卷 + 主题」去重，
     // 同名学者在不同单元有不同学术贡献时属于不同条目，不应合并）
     setConfigured();
+    const key = (i: VocabItem) =>
+      [i.type, i.term.trim().toLowerCase(), i.paper, i.category].join('||');
+    const existing = new Set(vocab.map(key));
+    const fresh = items.filter((i) => !existing.has(key(i)));
+    // 去重后一条都没有 = 内容没变：既不标脏也不写盘。
+    //（此前是无条件 setVocabDirty(true)，重复导入同一个 xlsx 会误报「有未发布的修改」）
+    if (fresh.length === 0) return;
     setVocabDirty(true);
-    setVocab((prev) => {
-      const key = (i: VocabItem) =>
-        [i.type, i.term.trim().toLowerCase(), i.paper, i.category].join('||');
-      const existing = new Set(prev.map(key));
-      const fresh = items.filter((i) => !existing.has(key(i)));
-      const next = [...prev, ...fresh];
-      saveVocab(next);
-      return next;
-    });
-  }, []);
+    persistVocab([...vocab, ...fresh]);
+  }, [vocab, persistVocab]);
 
   const replaceVocab = useCallback((items: VocabItem[]) => {
     setConfigured();
+    // 只有内容真的变了才标脏：编辑后原样保存、批量操作没命中任何条目、删除不存在的关系，
+    // 都不该报「有未发布的修改」。用内容指纹比对，键顺序差异不影响判断。
+    if (vocabSnapshotKey(items) === vocabSnapshotKey(vocab)) return;
     setVocabDirty(true);
     persistVocab(items);
-  }, [persistVocab]);
+  }, [vocab, persistVocab]);
 
   const markVocabDirty = useCallback(() => setVocabDirty(true), []);
   const clearVocabDirty = useCallback(() => setVocabDirty(false), []);
 
   // 单元分类管理（增删排序；变更存本地，随「发布词库」同步云端）
+  // 注意：unitOrder 也是发布内容的一部分（publishVocab 会一起上云），所以**增/删/改名/排序都要标脏**，
+  // 否则「加了单元但没发布」时学生端拿不到新单元，却不会收到任何提示。
   const addUnit = useCallback((paper: string, sub: string, name: string) => {
     const key = `${paper}|${sub}`;
+    if ((unitOrder[key] ?? []).includes(name)) return; // 已存在：内容没变，不标脏
     setUnitOrder((prev) => {
       const list = prev[key] ?? [];
       if (list.includes(name)) return prev;
@@ -321,7 +327,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       saveUnitOrder(next);
       return next;
     });
-  }, []);
+    setVocabDirty(true);
+  }, [unitOrder]);
 
   const removeUnit = useCallback((paper: string, sub: string, name: string) => {
     const key = `${paper}|${sub}`;
@@ -341,18 +348,25 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const moveUnit = useCallback((paper: string, sub: string, name: string, dir: -1 | 1) => {
     const key = `${paper}|${sub}`;
+    // 先做无副作用的有效性判断：移到边界外 = 没变化，不该标脏
+    const list = unitOrder[key] ?? [];
+    const idx = list.indexOf(name);
+    const target = idx + dir;
+    if (idx < 0 || target < 0 || target >= list.length) return;
     setUnitOrder((prev) => {
-      const list = [...(prev[key] ?? [])];
-      const idx = list.indexOf(name);
-      if (idx < 0) return prev;
-      const target = idx + dir;
-      if (target < 0 || target >= list.length) return prev;
-      [list[idx], list[target]] = [list[target], list[idx]];
-      const next = { ...prev, [key]: list };
+      const cur = [...(prev[key] ?? [])];
+      const i = cur.indexOf(name);
+      if (i < 0) return prev;
+      const t = i + dir;
+      if (t < 0 || t >= cur.length) return prev;
+      [cur[i], cur[t]] = [cur[t], cur[i]];
+      const next = { ...prev, [key]: cur };
       saveUnitOrder(next);
       return next;
     });
-  }, []);
+    // 单元顺序会随发布同步给学生，属于真实变更
+    setVocabDirty(true);
+  }, [unitOrder]);
 
   // 重命名单元：更新单元列表中的名字，并同步更新所有词条的 unit 引用
   const renameUnit = useCallback((paper: string, sub: string, oldName: string, newName: string) => {
