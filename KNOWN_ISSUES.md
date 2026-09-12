@@ -32,3 +32,20 @@
 - **另一个改名代价（更隐蔽，2026-09-12 查清）**：条目 id 由 `stableId(type, term, paper, category, units)` 计算（`app/src/lib/shuffle.ts:44`，**term 参与哈希**）→ **改词条名会换 id**；而学生的掌握度/错题本都按 id 关联，于是该词条的进度会断链（学生侧表现为「这条没学过」）。
   - **注意：「前端新建一个词条 + 删掉旧词条」与「改名」完全等价**（静态键失效、id 更换这两层代价一模一样），**不是**绕过办法；反而多一步、且旧条目删早了学生会直接看不到该词条。
 - **真正免疫的做法**：把要认的写法写进该词条自己的「额外可接受答案」（`item.aliases`）——随发布上云、与「词条名字符串」无关，改名不受影响。但 `surnameOverrides` 那一类（管「**不认**某个默认推导」+ 脱敏用的姓氏，如 bell hooks 不能认 `hooks`）**不能**用 aliases 替代，必须留在静态/覆盖表，故这类词条改名要格外小心。
+
+## 4. 平板网页端 / APK 登录报 `Failed to fetch`——根因：证书根为较新的 GlobalSign Root R46，老安卓信任库不含（2026-09-12 首次报，09-13 定位）
+
+- **现象**：① 安卓平板浏览器登录网页端（`https://9699vocab.cn`）弹 `Failed to fetch`，几分钟后"自行恢复"；② 09-13 复现：访问 `.../auth/v1/health` 时平板**提示证书有问题**，点「继续」后浏览器端登录立即恢复正常；③ 把最新 APK 装到同一台平板后，**App 内持续报 `Failed to fetch`**（WebView 没有"继续访问"这个选项，无法绕过）。
+- **报错来源**：`app/src/lib/store.tsx` 的 `signIn()` 把 `supabase.auth.signInWithPassword()` 返回的 `error.message` **原样显示**。该文案是浏览器对「**请求没拿到响应**」的统一表述（DNS 解析失败 / 连接超时 / TLS 校验失败 / **CORS 预检失败** / 被浏览器策略拦截），**不是密码错**——密码错会显示 `Invalid login credentials`。
+- **已排除**：① CORS——对 `.cn` 与 `workers.dev` 两个 Origin 的 `OPTIONS` 预检均返回 `Access-Control-Allow-Origin: *`（`auth/v1/token` 与 `auth/v1/health` 都测过）；② 域名与静态资源——`9699vocab.cn` 正常返回应用，且平板上「跳过登录·离线使用」可用（说明页面与脚本正常，只有到 Supabase 的跨站请求失败）；③ anon key 有效期（`exp` ≈ 2036）；④ 平板系统时间（教师确认正常）；⑤ 该主机无 AAAA（IPv6）记录，不存在"IPv6 黑洞导致偶发超时"的情况。
+- **根因（2026-09-13 定位，证据充分）**：`spb-olltk79n0rjrawe5.supabase.opentrust.net` 的证书链为 `CN=opentrust.net`（Alibaba China）← `GlobalSign GCC R46 OV TLS CA 2025` ← **`GlobalSign Root R46`**。服务器**已正确下发中间证书**（openssl `-showcerts` 实测 2 张链、`Verify return code: 0`），叶子证书有效期 2026-06-30 → 2027-01-15、TLS 1.3、sha256RSA，**证书本身完全正常**。问题在**信任库差异**：Windows 有 `GlobalSign Root R46`（PC 一切正常），而**较老的 Android 系统信任库没有这个较新的根** → 浏览器报证书错误（可手动"继续"），**WebView 无法继续** → APK 恒定失败。此前那次"自愈"其实是浏览器**记住了点过的证书例外**，并非网络抖动。
+- **未取的证据（下次发生时按此顺序抓，30 秒可定位）**：
+  1. 地址栏直接开 `https://spb-olltk79n0rjrawe5.supabase.opentrust.net/auth/v1/health` —— **首先看是否弹证书警告**：弹了 = 该设备信任库不认这个证书（即本条根因，只需看证书页里的报错码，通常是 `ERR_CERT_AUTHORITY_INVALID`）；不弹且看到 `{"message":"No API key found in request"}` = 网络与证书都正常；转圈/超时 = 网络或 DNS 问题；
+  2. **换另一个浏览器 / 无痕窗口**登录同一网址 —— 能登 = 原浏览器的拦截（省流、隐私保护、去广告、VPN 类 App）；不能 = 网络侧；
+  3. **换手机热点**再试 —— 能登 = 原 WiFi/局域网的 DNS 或网关问题；
+  4. 记录当时网络环境（校园网/热点/VPN/省流模式）与设备上装的加速、去广告类 App。
+- **对策（按推荐顺序）**：
+  - **A（✅ 2026-09-13 已实施，采用"直连优先 + 失败回退"变体 A′）**：把 Supabase 的 auth / REST 调用改为经 Cloudflare Worker **同源代理** `/sb/*` → 中招设备只依赖 `9699vocab.cn` 的 Cloudflare 证书（**任何安卓版本都受信**），网页端不再弹证书警告、APK 也能登录。选 A′ 而非"全量代理"的原因：全量会让**所有**学生请求绕道 Cloudflare 境外边缘再回国内阿里云（估每条 +100~300ms、首次拉整份词库更明显），而 A′ 只在直连失败时才切代理，正常设备零影响。
+  - **B（不由我们控制）**：请阿里云把该域名的证书链换成**根更老、Android 全版本受信**的 CA（例如 GlobalSign Root CA - R3 系）。
+  - **C（仅应急，且只在你自用的 APK 内）**：在 `MainActivity` 的 `WebViewClient.onReceivedSslError` 里对 `*.opentrust.net` 放行 —— ⚠️ **该域名在 App 内将失去证书校验（中间人风险）**，故**不应**用于会交给学生使用的构建。
+- **关联**：学生反馈池若出现同样症状（"登录失败/打不开"），优先按上面 4 步抓证据，而不是直接查库。
