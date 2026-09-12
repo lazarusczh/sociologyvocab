@@ -33,7 +33,11 @@
   - **注意：「前端新建一个词条 + 删掉旧词条」与「改名」完全等价**（静态键失效、id 更换这两层代价一模一样），**不是**绕过办法；反而多一步、且旧条目删早了学生会直接看不到该词条。
 - **真正免疫的做法**：把要认的写法写进该词条自己的「额外可接受答案」（`item.aliases`）——随发布上云、与「词条名字符串」无关，改名不受影响。但 `surnameOverrides` 那一类（管「**不认**某个默认推导」+ 脱敏用的姓氏，如 bell hooks 不能认 `hooks`）**不能**用 aliases 替代，必须留在静态/覆盖表，故这类词条改名要格外小心。
 
-## 4. 平板网页端 / APK 登录报 `Failed to fetch`——根因：证书根为较新的 GlobalSign Root R46，老安卓信任库不含（2026-09-12 首次报，09-13 定位）
+## 4. 平板网页端 / APK 登录报 `Failed to fetch`——根因：证书根为较新的 GlobalSign Root R46，老安卓信任库不含（2026-09-12 首次报，09-13 定位并修复，**同日 APK 实测通过**）
+
+- **✅ 修复与实测（2026-09-13）**：按 A′ 落地——前端 `app/src/lib/supabase.ts` 直连优先、网络层失败即回退；Worker `app/worker.ts` 提供白名单同源代理 `/sb/*`。**平板 APK 登录实测成功，且无需重装 APK**（两处修复都在 Worker 侧，APK 内前端产物不变）。修复过程中踩到两个坑，已一并堵掉：
+  1. **CORS 预检的允许头不能写死**：`/sb` 最初把 `Access-Control-Allow-Headers` 写成固定列表，而 supabase-js 不同版本会带额外头（如 `x-supabase-api-version`）→ **预检失败** → 浏览器/WebView 仍然只报 `Failed to fetch`。改为**回显** `Origin` 与 `Access-Control-Request-Headers`（转发给 Supabase 时仍只挑白名单头，多声明的头不会透传），并补 `Access-Control-Expose-Headers`（让跨域端能读到 `content-range` 等）。⚠️ **curl 不走 CORS 预检，"curl 测通"不等于浏览器可用**——本次就是被这一点误导过一次。
+  2. **带鉴权的代理响应必须显式禁缓存**：验证时发现某条响应命中了 Cloudflare 边缘缓存——而**边缘缓存按 URL 分键、不看 `Authorization`**，若缓存到 `/rest/v1/student_data` 这类 RLS 作用域内的查询，就会**把 A 用户的数据发给 B 用户**。已对 `/sb` 全部响应强制 `Cache-Control: no-store, private` + `CDN-Cache-Control: no-store`（当时实际只缓存到公开的 `vocab_releases`，未造成泄露）。
 
 - **现象**：① 安卓平板浏览器登录网页端（`https://9699vocab.cn`）弹 `Failed to fetch`，几分钟后"自行恢复"；② 09-13 复现：访问 `.../auth/v1/health` 时平板**提示证书有问题**，点「继续」后浏览器端登录立即恢复正常；③ 把最新 APK 装到同一台平板后，**App 内持续报 `Failed to fetch`**（WebView 没有"继续访问"这个选项，无法绕过）。
 - **报错来源**：`app/src/lib/store.tsx` 的 `signIn()` 把 `supabase.auth.signInWithPassword()` 返回的 `error.message` **原样显示**。该文案是浏览器对「**请求没拿到响应**」的统一表述（DNS 解析失败 / 连接超时 / TLS 校验失败 / **CORS 预检失败** / 被浏览器策略拦截），**不是密码错**——密码错会显示 `Invalid login credentials`。
