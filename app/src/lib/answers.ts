@@ -1,6 +1,6 @@
 // 答案判定与容错逻辑
 import type { VocabItem } from './types';
-import { loadSurnameOverrides } from './storage';
+import { loadSurnameOverrides, loadCloudSurnameOverrides } from './storage';
 import aliasData from './answer-aliases.json';
 
 // 归一化：忽略大小写、空格、连字符、标点、重音等，只保留小写字母与数字
@@ -26,9 +26,10 @@ const SCHOLAR_ALIASES: Record<string, string[]> = aliasData.scholarAliases;
 // 键为词库原文 term，值为应作为"姓氏"的完整写法（默写时只答此写法即算对）。
 const BUILTIN_SURNAME_OVERRIDES: Record<string, string> = aliasData.surnameOverrides;
 
-// 合并内置默认 + 用户手动指定的姓氏覆盖（用户覆盖优先）
+// 合并优先级：内置默认 < **云端发布**（教师配置，随词库下发）< 本机手工配置
+// 这样学生端也能用上教师指定的特殊姓氏；教师端本机尚未发布的改动仍然优先。
 function surnameOverrides(): Record<string, string> {
-  return { ...BUILTIN_SURNAME_OVERRIDES, ...loadSurnameOverrides() };
+  return { ...BUILTIN_SURNAME_OVERRIDES, ...loadCloudSurnameOverrides(), ...loadSurnameOverrides() };
 }
 
 // 机构/来源特征词：命中则视为非人名，不套用"只认姓氏"

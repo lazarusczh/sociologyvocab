@@ -42,6 +42,7 @@ const CONFIG_KEY = 'socio_vocab_configured';
 const CHECKIN_KEY = 'socio_vocab_checkin';
 const WRONG_KEY = 'socio_vocab_wrong';
 const SURNAME_OVERRIDES_KEY = 'socio_vocab_surname_overrides';
+const SURNAME_OVERRIDES_CLOUD_KEY = 'socio_vocab_surname_overrides_cloud';
 
 // 学习数据（进度 / 打卡 / 错题本）按用户隔离存储：
 // 未登录（guest）沿用原始 key，登录后切换为该用户的独立命名空间，
@@ -233,4 +234,20 @@ export function loadSurnameOverrides(): SurnameOverrides {
 
 export function saveSurnameOverrides(overrides: SurnameOverrides): void {
   localStorage.setItem(SURNAME_OVERRIDES_KEY, JSON.stringify(overrides));
+}
+
+// ---- 云端下发的特殊姓氏覆盖（随词库发布一起同步；本机手工配置优先级更高）----
+// 为什么需要它：判定逻辑（answers.ts）直接读本机存储，所以教师手工指定的覆盖
+// 过去只在自己机器上生效，学生端完全拿不到。现在随发布下发，判定口径才能统一。
+export function loadCloudSurnameOverrides(): SurnameOverrides {
+  try {
+    const raw = localStorage.getItem(SURNAME_OVERRIDES_CLOUD_KEY);
+    return raw ? (JSON.parse(raw) as SurnameOverrides) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function saveCloudSurnameOverrides(overrides: SurnameOverrides): void {
+  localStorage.setItem(SURNAME_OVERRIDES_CLOUD_KEY, JSON.stringify(overrides ?? {}));
 }

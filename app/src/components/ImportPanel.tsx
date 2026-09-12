@@ -32,7 +32,7 @@ function ConfirmModal({ open, title, body, confirmText = '确认', onCancel, onC
 }
 
 export default function ImportPanel() {
-  const { vocab, importFiles, appendVocab, replaceVocab, clearAll, surnameOverrides, setSurnameOverride, removeSurnameOverride, unitOrder, vocabDirty, clearVocabDirty } = useStore();
+  const { vocab, importFiles, appendVocab, replaceVocab, clearAll, surnameOverrides, setSurnameOverride, removeSurnameOverride, replaceSurnameOverrides, unitOrder, vocabDirty, clearVocabDirty } = useStore();
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [error, setError] = useState('');
@@ -52,8 +52,10 @@ export default function ImportPanel() {
     setPublishing(true);
     setPublishMsg('');
     try {
-      const v = await publishVocab(vocab, undefined, unitOrder);
-      setPublishMsg(`已发布 v${v}（${vocab.length} 条词条）`);
+      const v = await publishVocab(vocab, undefined, unitOrder, surnameOverrides);
+      setPublishMsg(
+        `已发布 v${v}（${vocab.length} 条词条，含特殊姓氏覆盖 ${Object.keys(surnameOverrides).length} 条）`,
+      );
       clearVocabDirty();
     } catch (e) {
       setPublishMsg(`发布失败：${(e as Error).message}`);
@@ -73,6 +75,9 @@ export default function ImportPanel() {
         return;
       }
       replaceVocab(pulled.data);
+      // 发布版本带特殊姓氏覆盖时一并覆盖本机（「恢复」的语义 = 回到云端发布状态）；
+      // 历史版本没有该字段时保持本机配置不动，避免误清。
+      if (pulled.surnameOverrides) replaceSurnameOverrides(pulled.surnameOverrides);
       clearVocabDirty();
       saveVocabVersion(pulled.version);
       setPublishMsg(`已从云端恢复 v${pulled.version}（${pulled.data.length} 条词条），本地词库已覆盖。`);
@@ -320,7 +325,7 @@ export default function ImportPanel() {
       <ConfirmModal
         open={restoreOpen}
         title="从云端恢复词库？"
-        body="将从云端最新发布版本拉取并覆盖本地词库（含逻辑关系）。发布之后在本地新增的内容会丢失，请确认。"
+        body="将从云端最新发布版本拉取并覆盖本地词库（含逻辑关系与特殊姓氏覆盖）。发布之后在本地新增的内容会丢失，请确认。"
         confirmText="确认恢复"
         onCancel={() => setRestoreOpen(false)}
         onConfirm={() => { setRestoreOpen(false); handleRestore(); }}

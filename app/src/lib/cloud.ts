@@ -1,6 +1,6 @@
 // 云同步层：登录后与 Supabase 的 student_data 表读写，及本地/云端数据合并
 import { supabase } from './supabase';
-import type { CheckInState, Progress, WrongBook, VocabItem, Quiz, QuizSubmission, CorrectionResult } from './types';
+import type { CheckInState, Progress, WrongBook, VocabItem, Quiz, QuizSubmission, CorrectionResult, SurnameOverrides } from './types';
 
 // 云端 student_data.data 里存储的 JSON 结构（checkin/progress/wrongBook 三块 + 姓名）
 export interface CloudStudentData {
@@ -121,28 +121,50 @@ export async function getLatestVocabVersion(): Promise<number> {
   return ((data as { version: number } | null)?.version ?? 0);
 }
 
-// 拉取最新词库（含整份词条 + 单元列表 + 版本号；无版本返回 null）
-export async function pullLatestVocab(): Promise<{ version: number; data: VocabItem[]; unitOrder: Record<string, string[]> | null } | null> {
+// 拉取最新词库（含整份词条 + 单元列表 + 特殊姓氏覆盖 + 版本号；无版本返回 null）
+// 注意 surname_overrides 是后加的列：历史发布该字段为 null，调用方需按「没有就用本机」降级。
+export async function pullLatestVocab(): Promise<{
+  version: number;
+  data: VocabItem[];
+  unitOrder: Record<string, string[]> | null;
+  surnameOverrides: SurnameOverrides | null;
+} | null> {
   const { data, error } = await supabase
     .from('vocab_releases')
-    .select('version, data, unit_order')
+    .select('version, data, unit_order, surname_overrides')
     .order('version', { ascending: false })
     .limit(1)
     .maybeSingle();
   if (error) throw error;
   if (!data) return null;
-  const row = data as { version: number; data: VocabItem[]; unit_order: Record<string, string[]> | null };
-  return { version: row.version, data: row.data ?? [], unitOrder: row.unit_order ?? null };
+  const row = data as {
+    version: number;
+    data: VocabItem[];
+    unit_order: Record<string, string[]> | null;
+    surname_overrides: SurnameOverrides | null;
+  };
+  return {
+    version: row.version,
+    data: row.data ?? [],
+    unitOrder: row.unit_order ?? null,
+    surnameOverrides: row.surname_overrides ?? null,
+  };
 }
 
-// 教师发布词库：插入新版本（version 自增），含词条与单元列表，返回新版本号
-export async function publishVocab(items: VocabItem[], note?: string, unitOrder?: Record<string, string[]>): Promise<number> {
+// 教师发布词库：插入新版本（version 自增），含词条、单元列表与特殊姓氏覆盖，返回新版本号
+export async function publishVocab(
+  items: VocabItem[],
+  note?: string,
+  unitOrder?: Record<string, string[]>,
+  surnameOverrides?: SurnameOverrides,
+): Promise<number> {
   const nextVersion = (await getLatestVocabVersion()) + 1;
   const { error } = await supabase.from('vocab_releases').insert({
     version: nextVersion,
     data: items,
     note: note ?? '',
     unit_order: unitOrder ?? null,
+    surname_overrides: surnameOverrides ?? null,
   });
   if (error) throw error;
   return nextVersion;

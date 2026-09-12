@@ -7,7 +7,7 @@ import {
   loadProgress, saveProgress, recordAnswer, resetMastery, PAPER_ORDER,
   loadContexts, saveContexts, isConfigured, setConfigured,
   loadCheckIn, saveCheckIn, loadWrongBook, saveWrongBook,
-  loadSurnameOverrides, saveSurnameOverrides, setDataScope,
+  loadSurnameOverrides, saveSurnameOverrides, saveCloudSurnameOverrides, setDataScope,
   migrateVocabStableIds, migrateAllProgressKeys,
   loadVocabVersion, saveVocabVersion,
 } from './storage';
@@ -54,6 +54,7 @@ interface StoreValue {
   clearAll: () => void;
   setSurnameOverride: (term: string, surname: string) => void;
   removeSurnameOverride: (term: string) => void;
+  replaceSurnameOverrides: (overrides: SurnameOverrides) => void;
   // 词库「有未发布修改」标记：本地编辑后为 true，发布成功后清除
   vocabDirty: boolean;
   markVocabDirty: () => void;
@@ -265,6 +266,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
               return next;
             });
           }
+          // 同步「特殊姓氏覆盖」：判定逻辑（answers.ts）直接读本机存储，
+          // 所以必须落到本地，学生端才能用上教师指定的覆盖。
+          // 历史发布没有该字段（null）时不动本机已有值，避免误清。
+          if (pulled.surnameOverrides) saveCloudSurnameOverrides(pulled.surnameOverrides);
           saveVocabVersion(pulled.version);
         }
       }
@@ -395,21 +400,33 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setSurnameOverride = useCallback((term: string, surname: string) => {
+    const v = surname.trim();
+    if ((surnameOverrides[term] ?? '') === v) return; // 值没变：不标脏、也不写盘
+    setVocabDirty(true); // 覆盖表已随发布上云，改动即「未发布的修改」
     setSurnameOverrides((prev) => {
-      const next = surname.trim()
-        ? { ...prev, [term]: surname.trim() }
+      const next = v
+        ? { ...prev, [term]: v }
         : (() => { const { [term]: _drop, ...rest } = prev; return rest; })();
       saveSurnameOverrides(next);
       return next;
     });
-  }, []);
+  }, [surnameOverrides]);
 
   const removeSurnameOverride = useCallback((term: string) => {
+    if (!(term in surnameOverrides)) return; // 本就没有：什么都不做
+    setVocabDirty(true);
     setSurnameOverrides((prev) => {
       const { [term]: _drop, ...rest } = prev;
       saveSurnameOverrides(rest);
       return rest;
     });
+  }, [surnameOverrides]);
+
+  // 「从云端恢复」时用云端发布内容整体替换本机覆盖（本机与云端副本一起更新）
+  const replaceSurnameOverrides = useCallback((overrides: SurnameOverrides) => {
+    saveSurnameOverrides(overrides);
+    saveCloudSurnameOverrides(overrides);
+    setSurnameOverrides(overrides);
   }, []);
 
   // 记录一次正式练习结果：同时更新掌握度（按模式权重）、当日打卡题数、错题本
@@ -556,6 +573,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     clearAll,
     setSurnameOverride,
     removeSurnameOverride,
+    replaceSurnameOverrides,
     vocabDirty,
     markVocabDirty,
     clearVocabDirty,
