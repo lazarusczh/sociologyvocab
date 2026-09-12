@@ -4,10 +4,15 @@ import type { PageIndexBook, ScaffoldRow } from './retrieval';
 
 // 与主站同一 Supabase 实例。同域下 supabase-js 默认把 session 存
 // localStorage（key = sb-<ref>-auth-token），因此主站登录后本子站自动共享登录态。
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+//
+// ⚠️ 必须复用主站的 `resilientFetch`（直连优先 + 同源代理兜底）：本子站原先自建了裸客户端，
+// 结果在"不信任 Supabase 主机证书"的设备上（信任库较旧的 Android）全部加载失败——
+// 主站有回退、子站没有，同一台设备上主站能用、子站一直转圈（2026-09-13 实测踩到）。
+import { SUPABASE_URL, SUPABASE_ANON_KEY, resilientFetch } from '../../src/lib/supabaseFetch';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  global: { fetch: resilientFetch },
+});
 
 export function getSession() {
   return supabase.auth.getSession();

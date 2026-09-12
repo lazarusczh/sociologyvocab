@@ -18,5 +18,7 @@ export default defineConfig({
   },
   server: {
     port: 5174,
+    // 允许读取 root 之外的文件：子站复用主站 app/src/lib 下的共享模块（如 supabaseFetch.ts）
+    fs: { allow: ['..'] },
   },
 })
