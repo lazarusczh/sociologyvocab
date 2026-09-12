@@ -79,6 +79,7 @@ interface StoreValue {
   saveContextList: (ctxs: ContextPassage[]) => void;
   // 离线备份
   skipped: boolean; // 本次会话是否跳过了登录（不持久化，刷新后重新弹登录）
+  authReady: boolean; // 登录会话是否已判定完成（false 时 UI 显示加载态，而不是登录页）
   skipIdentity: () => void;
   exitSkip: () => void; // 退出离线游客模式，回到登录/注册界面（供顶栏用户菜单「注册/登录」使用）
   exportBackup: () => Promise<string | null>;
@@ -108,6 +109,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [checkin, setCheckin] = useState<CheckInState>(emptyCheckIn());
   const [wrongBook, setWrongBook] = useState<WrongBook>({});
   const [skipped, setSkipped] = useState(false);
+  // 登录会话是否已判定完成。完成前 UI 必须显示加载态而不是登录页——否则"正在恢复登录"
+  //（在需要走同源代理回退的设备上会明显变慢）看起来就像被登出了。
+  const [authReady, setAuthReady] = useState(false);
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [isTeacher, setIsTeacher] = useState(false);
   const [isDeveloper, setIsDeveloper] = useState(false);
@@ -200,17 +204,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   // 恢复已有登录会话（刷新/重开 App 后自动登录并同步）
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      const session = data.session;
-      if (session?.user) {
-        const u: AuthUser = {
-          id: session.user.id,
-          email: session.user.email ?? '',
-          name: (session.user.user_metadata?.name as string) ?? '',
-        };
-        establishAuth(u);
-      }
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        const session = data.session;
+        if (session?.user) {
+          const u: AuthUser = {
+            id: session.user.id,
+            email: session.user.email ?? '',
+            name: (session.user.user_metadata?.name as string) ?? '',
+          };
+          establishAuth(u);
+        }
+      })
+      // 读取失败也按"已判定"处理（视作未登录），不能把用户永久卡在加载态
+      .catch(() => {})
+      .finally(() => setAuthReady(true));
   }, [establishAuth]);
 
   // 登录后：本地打卡/进度/错题本变化时，防抖上传云端
@@ -592,6 +601,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     dismissCelebration,
     saveContextList,
     skipped,
+    authReady,
     skipIdentity,
     exitSkip,
     exportBackup,

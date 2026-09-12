@@ -1107,6 +1107,21 @@ textarea { resize: vertical; min-height: 80px; }
 }
 .gate-tabs button.active { background: var(--accent); color: #fff; }
 
+/* 启动加载态：会话恢复期间替代登录页显示（避免"正在恢复登录"被误认为被登出）。
+   在需要走同源代理回退的设备上这段等待会明显变长，故给小转圈 + 延迟出现的说明文案。 */
+.boot-screen { text-align: center; align-items: center; }
+.boot-spinner {
+  display: block;
+  width: 26px;
+  height: 26px;
+  margin: 0 auto 0.7rem;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: boot-spin 0.8s linear infinite;
+}
+@keyframes boot-spin { to { transform: rotate(360deg); } }
+
 /* 词典 */
 .dict-list { display: flex; flex-direction: column; gap: 0.6rem; }
 .dict-row { cursor: pointer; transition: border-color 0.15s; }

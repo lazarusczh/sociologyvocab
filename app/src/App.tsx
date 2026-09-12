@@ -533,9 +533,35 @@ function AppBody() {
 }
 
 function Shell() {
-  const { authUser, skipped } = useStore();
+  const { authUser, skipped, authReady } = useStore();
+  // 会话尚未判定完成时先显示加载态：直接渲染 IdentityGate 会让"正在恢复登录"看起来像被登出
+  //（在需要走同源代理回退的设备上这段等待明显更长，误判尤其刺眼）
+  if (!authReady) return <BootScreen />;
   if (!authUser && !skipped) return <IdentityGate />;
   return <AppBody />;
+}
+
+// 启动加载态：会话恢复期间替代登录页显示，避免"掉登录"的错觉。
+// 超过 1.2s 才追加第二行说明，避免快路径（本机会话）也闪一段解释文字。
+function BootScreen() {
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setSlow(true), 1200);
+    return () => clearTimeout(t);
+  }, []);
+  return (
+    <div className="gate">
+      <div className="card gate-card boot-screen">
+        <span className="boot-spinner" />
+        <h1>正在加载</h1>
+        <p className="muted">
+          {slow
+            ? '网络较慢或正在切换备用通道，登录状态仍在校验中，请稍候（不必刷新）。'
+            : '正在恢复登录状态…'}
+        </p>
+      </div>
+    </div>
+  );
 }
 
 export default function App() {

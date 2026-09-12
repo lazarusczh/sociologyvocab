@@ -43,3 +43,23 @@ export const resilientFetch: typeof fetch = async (input, init) => {
     return fetch(toProxyUrl(urlOf(input)), init);
   }
 };
+
+/** 当前是否已确定要走同源代理（供 UI 提示用）。 */
+export function isUsingProxy(): boolean {
+  return viaProxy;
+}
+
+// ===== 启动预热：把"直连失败 → 改走代理"的代价与启动过程重叠 =====
+// 不预热的话，代价会落在**第一个真实业务请求**上：用户先等一次失败、再等一次回退成功的重试，
+// 首屏明显变慢，而且这段时间界面容易退化成"未登录/空白"的样子（会被误认为掉登录）。
+// 探测只判断**直连是否可达**：HTTP 4xx/5xx 属于"可达"，不会触发回退（只有请求拿不到响应才算失败）。
+let warmedUp = false;
+function warmUpSupabaseRoute(): void {
+  if (warmedUp) return;
+  warmedUp = true;
+  void fetch(`${SUPABASE_URL}/auth/v1/health`, { cache: 'no-store' }).catch(() => {
+    viaProxy = true;
+    console.warn('[supabase] 直连不可达（证书/网络），已在预热阶段切到同源代理 /sb');
+  });
+}
+warmUpSupabaseRoute();

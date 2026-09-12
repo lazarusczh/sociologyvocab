@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase, getSession, fetchSkillData } from './supabase'
+import { isUsingProxy } from '../../src/lib/supabaseFetch'
 import { booksOf, type Book, type Chapter, type GlossaryEntry, type Section, type SkillData } from './data'
 import AskView from './AskView'
 
@@ -44,24 +45,45 @@ export default function App() {
   // 1) 恢复主站共享的登录会话
   useEffect(() => {
     let alive = true;
-    getSession().then(({ data }) => {
+    // 会话恢复可能较慢：令牌刷新要走"直连失败 → 同源代理回退"这条慢路。
+    // 这段时间**不能急着判定为未登录**，否则用户会看到登录门禁一闪而过、误以为被登出；
+    // 因此首次读不到会话时宽限 1.5s 再读一次。
+    let initializing = true;
+    const settle = async () => {
+      let { data } = await getSession();
       if (!alive) return;
+      if (!data.session) {
+        await new Promise((r) => setTimeout(r, 1500));
+        if (!alive) return;
+        ({ data } = await getSession());
+        if (!alive) return;
+      }
       const s = data.session;
-      if (!s) { setStatus('guest'); return; }
+      if (!s) { initializing = false; setStatus('guest'); return; }
       setSession(s);
-      fetchSkillData()
-        .then((d) => {
-          if (!alive) return;
-          if (d) { setSkill(d); setStatus('ready'); }
-          else setStatus('error');
-        })
-        .catch(() => { if (alive) setStatus('error'); });
-    });
+      try {
+        const d = await fetchSkillData();
+        if (!alive) return;
+        initializing = false;
+        if (d) { setSkill(d); setStatus('ready'); }
+        else setStatus('error');
+      } catch {
+        if (!alive) return;
+        initializing = false;
+        setStatus('error');
+      }
+    };
+    void settle();
 
-    // 会话变化（另一标签页登录/登出）自动刷新
+    // 会话变化（另一标签页登录/登出）自动刷新；
+    // **初始加载期间的 null 忽略**——那是刷新令牌途中的中间态，不是真的登出
     const { data: sub } = supabase.auth.onAuthStateChange((_ev, s) => {
+      if (!s) {
+        if (initializing) return;
+        setSkill(null); setStatus('guest');
+        return;
+      }
       setSession(s);
-      if (!s) { setSkill(null); setStatus('guest'); }
     });
     return () => { alive = false; sub.subscription.unsubscribe(); };
   }, []);
@@ -78,7 +100,21 @@ export default function App() {
   // 回主站：Web 回 9699vocab.cn，Capacitor 回本地主站 index.html（同源会话自动恢复登录）
   const goHome = () => { window.location.href = '/'; };
 
-  if (status === 'loading') return <Centered>加载中…</Centered>;
+  if (status === 'loading') {
+    return (
+      <Centered>
+        <div className="gate">
+          <h1>📚 教材知识库</h1>
+          <p className="muted">正在加载内容…</p>
+          <p className="muted" style={{ fontSize: '0.85rem' }}>
+            {isUsingProxy()
+              ? '当前网络受限，已切换到备用通道，首次加载会慢一些——登录状态仍在校验中，请稍候。'
+              : '通常几秒内完成，请稍候。'}
+          </p>
+        </div>
+      </Centered>
+    );
+  }
 
   if (status === 'guest' || !session) {
     return (
