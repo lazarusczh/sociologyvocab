@@ -496,6 +496,11 @@ async function handleSbProxy(request: Request, env: Env): Promise<Response> {
       if (!SB_DROP_RESPONSE_HEADERS.has(k.toLowerCase())) outHeaders.set(k, v);
     }
     for (const [k, v] of Object.entries(sbCorsHeaders(request))) outHeaders.set(k, v);
+    // ⚠️ 绝不能进 CDN 缓存：Cloudflare 的边缘缓存**按 URL 分键、不看 Authorization**。
+    // 若缓存了带鉴权的响应，就可能把 A 用户的查询结果发给 B 用户（隐私事故）；
+    // 也会让登录后的数据读到陈旧副本。故一律显式禁缓存（同时覆盖上游可能带的缓存头）。
+    outHeaders.set('Cache-Control', 'no-store, private');
+    outHeaders.set('CDN-Cache-Control', 'no-store');
     return new Response(upstream.body, {
       status: upstream.status,
       statusText: upstream.statusText,
