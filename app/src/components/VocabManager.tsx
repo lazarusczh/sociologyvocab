@@ -418,8 +418,16 @@ export default function VocabManager() {
             </div>
           </div>
           <label style={{ display: 'block', marginTop: '0.6rem' }}>
-            <span className="muted" style={{ fontSize: '0.8rem' }}>额外可接受答案（除术语本身外，逗号分隔，可留空）</span>
-            <input value={draft.aliases} onChange={(e) => setDraft({ ...draft, aliases: e.target.value })} placeholder="例如：tripartite" />
+            <span className="muted" style={{ fontSize: '0.8rem' }}>
+              {draft.type === 'scholar'
+                ? '额外可接受答案（逗号分隔，可留空）。学者的自动判定始终生效（完整姓名 / 只答姓氏 / et al. / 合著姓氏 / 机构全名），这里填的是在此基础上追加的写法'
+                : '额外可接受答案（除术语本身外，逗号分隔，可留空）'}
+            </span>
+            <input
+              value={draft.aliases}
+              onChange={(e) => setDraft({ ...draft, aliases: e.target.value })}
+              placeholder={draft.type === 'scholar' ? '例如：Michael Young, Young' : '例如：tripartite'}
+            />
           </label>
           <div className="row" style={{ marginTop: '0.8rem' }}>
             <button className="primary" onClick={save}>保存</button>

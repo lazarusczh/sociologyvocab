@@ -192,39 +192,62 @@ function termAliasList(item: VocabItem): string[] {
   return [...bases];
 }
 
-// 获取某词条所有可接受写法的归一化键集合
+// 术语的可接受写法（原始写法，未归一化）：term + 内嵌 aliases（缺失时回退静态 termAliases）+ 单复数变体
+function termForms(item: VocabItem): string[] {
+  const out = new Set<string>();
+  termAliasList(item).forEach((base) => {
+    out.add(base);
+    singularPluralVariants(base).forEach((v) => out.add(v));
+  });
+  return [...out];
+}
+
+// 学者的可接受写法（原始写法，未归一化）：完整原文 + 自动规则推导一支 + 教师手工补充
+function scholarForms(item: VocabItem): string[] {
+  const out = new Set<string>();
+
+  // ① 完整原文（词库里显示的那个名字）永远算对。静态别名表只收简称
+  //    （如 `Michael (Dunlop) Young` → `["Michael Young","Young"]`），
+  //    没有这条兜底时，学生照着词库抄全名反而被判错。
+  out.add(item.term);
+
+  // ② 基础自动规则（互斥取其一，各自再推导出额外写法）：
+  if (SCHOLAR_ALIASES[item.term]) {
+    SCHOLAR_ALIASES[item.term].forEach((s) => out.add(s)); // 静态别名（如 "Beck"、"GUMG"）
+  } else if (surnameOverrides()[item.term]) {
+    out.add(surnameOverrides()[item.term]); // 特殊姓氏整体（如 "bell hooks"）
+  } else if (/et\s+al/i.test(item.term)) {
+    out.add(firstSurnameEtAl(item.term)); // 第一作者姓氏 + et al.
+  } else if (item.term.includes('&')) {
+    out.add(coAuthorSurnamesKey(item.term)); // 各作者姓氏（保留 & 与逗号分隔）
+  } else if (isSinglePersonName(item.term)) {
+    out.add(lastWord(item.term)); // 只认姓氏
+  }
+  // 其余（机构、长名称）不再推导——取「最后一个词」会错（如 "...of China" 会认 "China"）
+
+  // ③ 教师在前端「额外可接受答案」里手工补的写法，**叠加**在前两项之上（不取代它们）。
+  //    注：因为是叠加，「删掉」静态表里已有的写法并不会让它失效（删掉的只是叠加项）；
+  //    要纠正自动规则本身（如非常规笔名不该认最后一个词），仍走 surnameOverrides。
+  (item.aliases ?? []).forEach((s) => out.add(s));
+
+  return [...out];
+}
+
+// 某词条的全部可接受写法（原始写法，未归一化）。
+// **判分与展示共用这一份**：`getAcceptableKeys()` 就是对本函数结果做归一化去重，
+// 所以「开发者后台的可接受写法清单」与「真实判定」永远一致——此前两者各写一套，
+// 清单会漏掉自动推导出来的写法（学者的姓氏 / et al. / 术语的单复数变体）。
+export function getAcceptableForms(item: VocabItem): string[] {
+  return item.type === 'term' ? termForms(item) : scholarForms(item);
+}
+
+// 获取某词条所有可接受写法的归一化键集合（= getAcceptableForms() 归一化去重后的结果）
 export function getAcceptableKeys(item: VocabItem): string[] {
   const keys = new Set<string>();
-  const push = (s: string) => {
-    const k = normalizeKey(s);
+  getAcceptableForms(item).forEach((f) => {
+    const k = normalizeKey(f);
     if (k) keys.add(k);
-  };
-
-  if (item.type === 'term') {
-    termAliasList(item).forEach((base) => {
-      push(base);
-      singularPluralVariants(base).forEach(push);
-    });
-  } else {
-    if (SCHOLAR_ALIASES[item.term]) {
-      SCHOLAR_ALIASES[item.term].forEach(push);
-    } else if (surnameOverrides()[item.term]) {
-      push(item.term); // 完整原文（笔名 + 本名）
-      push(surnameOverrides()[item.term]); // 特殊姓氏整体（如 "bell hooks"）
-    } else if (/et\s+al/i.test(item.term)) {
-      push(item.term); // 完整原文
-      push(firstSurnameEtAl(item.term)); // 第一作者姓氏 + et al.
-    } else if (item.term.includes('&')) {
-      push(item.term); // 完整原文
-      push(coAuthorSurnamesKey(item.term)); // 姓氏（保留 & 与逗号分隔）
-    } else if (isSinglePersonName(item.term)) {
-      push(item.term); // 完整姓名
-      push(lastWord(item.term)); // 只认姓氏
-    } else {
-      push(item.term); // 机构：完整匹配
-    }
-  }
-
+  });
   return [...keys];
 }
 
@@ -285,7 +308,9 @@ function collectMaskForms(item: VocabItem): string[] {
       singularPluralVariants(base).forEach(add);
     });
   } else {
-    const list = SCHOLAR_ALIASES[item.term] ?? [item.term];
+    // 与判分同口径：静态别名（无则原文）+ 教师手工补充的别名 + 推导出的姓氏。
+    // 教师补的写法也是"答案"，不一起脱敏就会在释义提示里把答案露出来。
+    const list = [...(SCHOLAR_ALIASES[item.term] ?? [item.term]), ...(item.aliases ?? [])];
     list.forEach(add);
     scholarSurnames(item.term).forEach(add);
   }
@@ -319,6 +344,7 @@ export function getSearchableForms(item: VocabItem): string[] {
   } else {
     add(item.term);
     (SCHOLAR_ALIASES[item.term] ?? []).forEach(add);
+    (item.aliases ?? []).forEach(add); // 教师手工补充的别名同样可检索
     scholarSurnames(item.term).forEach(add);
     add(item.theory);
   }
@@ -335,8 +361,4 @@ export function attachAliases(items: VocabItem[]): VocabItem[] {
   });
 }
 
-// 获取词条的原始可接受写法（term + 额外别名/静态别名，不含单复数变体），用于开发后台展示
-export function getAcceptableForms(item: VocabItem): string[] {
-  if (item.type === 'term') return termAliasList(item);
-  return [item.term, ...(item.aliases ?? [])];
-}
+// 注：`getAcceptableForms()` 已上移到判分逻辑旁（与 getAcceptableKeys 同源），此处不再重复定义。
