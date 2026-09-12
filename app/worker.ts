@@ -443,6 +443,61 @@ async function msAsk(
   }
 }
 
+// ===== Supabase 同源代理 /sb/*（前端"直连失败自动回退"的目标，详见 KNOWN_ISSUES 第 4 条）=====
+// 为什么需要：部分设备（信任库较旧的 Android）不信任 Supabase 主机证书（链根是较新的
+// GlobalSign Root R46）——浏览器可手动"继续访问"，WebView 不能，于是登录/同步全部 Failed to fetch。
+// 由 Worker 直连 Supabase 代发请求后，客户端只需与 9699vocab.cn 通信，证书问题消失。
+// 安全约束：① 只放行 auth / rest 两个前缀（防止被当成开放代理）；② 方法限白名单；
+//           ③ apikey 由服务端注入（客户端不必携带，也无法伪造别的 key）。
+const SB_PREFIXES = ['/auth/v1/', '/rest/v1/'];
+const SB_METHODS = new Set(['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE']);
+// 只转发客户端真正需要的请求头，其余一律丢弃（避免意外透传敏感头）
+const SB_FORWARD_HEADERS = ['authorization', 'content-type', 'accept', 'prefer', 'range', 'x-client-info'];
+// 这两个头不能原样回传：Workers 的 fetch 会把上游 body 自动解压，原样带上会导致客户端解析失败
+const SB_DROP_RESPONSE_HEADERS = new Set(['content-encoding', 'content-length', 'transfer-encoding', 'connection']);
+
+function sbCorsHeaders(request: Request): Record<string, string> {
+  const origin = request.headers.get('Origin') ?? '';
+  const allow = CORS_ALLOWED.has(origin) ? origin : 'https://9699vocab.cn';
+  return {
+    'Access-Control-Allow-Origin': allow,
+    'Access-Control-Allow-Methods': 'GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'apikey, authorization, content-type, accept, prefer, range, x-client-info',
+    'Access-Control-Max-Age': '86400',
+    Vary: 'Origin',
+  };
+}
+
+async function handleSbProxy(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const path = url.pathname.slice('/sb'.length); // 保留 /auth/v1/... 原样
+  const headers = new Headers();
+  for (const h of SB_FORWARD_HEADERS) {
+    const v = request.headers.get(h);
+    if (v) headers.set(h, v);
+  }
+  headers.set('apikey', env.SUPABASE_ANON_KEY);
+  const init: RequestInit = { method: request.method, headers };
+  if (request.method !== 'GET' && request.method !== 'HEAD') init.body = request.body;
+  try {
+    const upstream = await fetch(`${env.SUPABASE_URL}${path}${url.search}`, init);
+    const outHeaders = new Headers();
+    for (const [k, v] of upstream.headers) {
+      if (!SB_DROP_RESPONSE_HEADERS.has(k.toLowerCase())) outHeaders.set(k, v);
+    }
+    for (const [k, v] of Object.entries(sbCorsHeaders(request))) outHeaders.set(k, v);
+    return new Response(upstream.body, {
+      status: upstream.status,
+      statusText: upstream.statusText,
+      headers: outHeaders,
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error('[sb] proxy error:', msg);
+    return json(502, { error: 'sb proxy failed', detail: msg.slice(0, 200) });
+  }
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -462,6 +517,17 @@ export default {
         return withCors;
       }
       return json(405, { error: 'method not allowed' });
+    }
+
+    // Supabase 同源代理（前端直连失败后的回退通道）
+    if (url.pathname === '/sb' || url.pathname.startsWith('/sb/')) {
+      if (request.method === 'OPTIONS') {
+        return new Response(null, { status: 204, headers: sbCorsHeaders(request) });
+      }
+      if (!SB_METHODS.has(request.method)) return json(405, { error: 'method not allowed' });
+      const sub = url.pathname.slice('/sb'.length);
+      if (!SB_PREFIXES.some((p) => sub.startsWith(p))) return json(403, { error: 'path not allowed' });
+      return handleSbProxy(request, env);
     }
 
     // 转发 World Bank 数据请求
