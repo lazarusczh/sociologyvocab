@@ -206,7 +206,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     supabase.auth
       .getSession()
-      .then(({ data }) => {
+      .then(async ({ data }) => {
         const session = data.session;
         if (session?.user) {
           const u: AuthUser = {
@@ -214,7 +214,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             email: session.user.email ?? '',
             name: (session.user.user_metadata?.name as string) ?? '',
           };
-          establishAuth(u);
+          // ⚠ 必须 await：establishAuth 内部要先 await 云端数据合并，之后才 setAuthUser。
+          // 若不等待，authReady 会先翻成 true 而 authUser 仍是 null → Shell 渲染登录页
+          //（表现为「从子站回主站时闪出/停留在登录界面」，在需要走同源代理回退的设备上尤其明显）。
+          await establishAuth(u);
         }
       })
       // 读取失败也按"已判定"处理（视作未登录），不能把用户永久卡在加载态
