@@ -457,12 +457,22 @@ const SB_FORWARD_HEADERS = ['authorization', 'content-type', 'accept', 'prefer',
 const SB_DROP_RESPONSE_HEADERS = new Set(['content-encoding', 'content-length', 'transfer-encoding', 'connection']);
 
 function sbCorsHeaders(request: Request): Record<string, string> {
-  const origin = request.headers.get('Origin') ?? '';
-  const allow = CORS_ALLOWED.has(origin) ? origin : 'https://9699vocab.cn';
+  // 代理是给自家客户端（网页 / APK / 本地 dev）用的：**回显请求的 Origin**、不回显白名单。
+  // 安全性不受影响——anon key 本就是公开密钥，数据可见性由 Supabase 的 RLS 决定，
+  // 这与"任何网站直接拿该 anon key 调 Supabase"完全等价。必须回显的原因：APK 的 origin 是
+  // `https://localhost`、本地 dev 是 `http://localhost:5173`，白名单方式极易漏掉某个来源，
+  // 而一旦漏掉，客户端就是 Failed to fetch（且 curl 不走 CORS 预检，测不出来）。
+  const origin = request.headers.get('Origin') ?? 'https://9699vocab.cn';
+  // 同理回显预检声明的请求头：supabase-js 不同版本会带不同头（如 `x-supabase-api-version`），
+  // 写死列表会漏 → 预检失败。转发时我们只挑白名单头给 Supabase，多声明的头不会真正透传。
+  const reqHeaders = (request.headers.get('Access-Control-Request-Headers') ?? '').trim();
   return {
-    'Access-Control-Allow-Origin': allow,
+    'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'apikey, authorization, content-type, accept, prefer, range, x-client-info',
+    'Access-Control-Allow-Headers':
+      reqHeaders || 'apikey, authorization, content-type, accept, prefer, range, x-client-info',
+    // 让跨域客户端也能读到计数/分页相关的响应头（否则 count 查询在 APK 里读到 null）
+    'Access-Control-Expose-Headers': 'content-range, content-profile, x-supabase-api-version, prefer',
     'Access-Control-Max-Age': '86400',
     Vary: 'Origin',
   };
