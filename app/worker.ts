@@ -1,7 +1,15 @@
 // Cloudflare Worker：静态资源 + /wb/* 代理 + /skill-api/ask（教材 AI 问答）
 // - /wb/*：转发到 https://api.worldbank.org/*（服务端转发，学生无需代理/无 CORS 问题）
 // - /skill-api/ask：教材知识站问答（校验 Supabase 登录 JWT → Workers AI 流式生成）
+// - /app-api/*：**主站 API（教师向，强制 teacher/developer）**，首个功能 = OCR 辅助阅卷
 // - 其余：由静态资产（ASSETS）提供
+//
+// 命名空间约定（2026-09-13 定，详见 project-memory.md）：/skill-api/* = 子站（学生向）、
+// /app-api/* = 主站（教师向）、/sb/* = Supabase 同源代理、/wb/* = World Bank 代理。
+// 两套命名空间**共用同一批模型**（同一魔搭账号、每日 ~250 魔粒不分池），区别在鉴权级别/档位/开关。
+
+import { handleAppApi } from './worker/appApi';
+import { verifyUser } from './worker/ai/auth';
 
 interface Env {
   ASSETS: Fetcher;
@@ -50,22 +58,8 @@ const HARD_RE =
 // 平时必须为 false。
 const MS_TEST_SKIP = false;
 
-// 校验 Supabase access token：调 auth/v1/user，返回用户 id；无效返回 null
-async function verifyUser(token: string, env: Env): Promise<string | null> {
-  try {
-    const r = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, {
-      headers: {
-        apikey: env.SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (!r.ok) return null;
-    const body = (await r.json()) as { id?: string };
-    return body.id ?? null;
-  } catch {
-    return null;
-  }
-}
+// 注：verifyUser / rolesOf / isTeacherOrDeveloper 已抽到 worker/ai/auth.ts（本文件改为 import），
+// 逻辑与原先完全一致；主站 /app-api/* 复用同一份，避免两套命名空间各写一遍鉴权。
 
 // AI 门禁：关闭期间仅 teacher/developer 可用。返回 null=放行；否则返回学生可见的提示语。
 // 读取失败/角色查询异常时不拦截（宁可放行，不让系统错误误伤学生）。
@@ -533,6 +527,10 @@ export default {
       }
       return json(405, { error: 'method not allowed' });
     }
+
+    // 主站 API（教师向）：/app-api/* —— 详见 worker/appApi.ts
+    const appApiRes = await handleAppApi(request, env, url);
+    if (appApiRes) return appApiRes;
 
     // Supabase 同源代理（前端直连失败后的回退通道）
     if (url.pathname === '/sb' || url.pathname.startsWith('/sb/')) {

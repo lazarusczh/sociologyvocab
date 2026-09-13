@@ -1,0 +1,164 @@
+/* OCR 辅助阅卷：原图 + 高亮文本（四档标记 + 核心/一般分级）
+   配色与实验室版一致：黄=术语、蓝=学者、淡绿点线=同词根变形、粉虚线+?=疑似笔误、
+   灰=一般词（高频通用词，可一键收起） */
+
+.ocrm-import {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.ocrm-queue {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.6rem;
+  margin-top: 0.7rem;
+}
+
+.ocrm-thumb {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.4rem;
+  background: var(--surface);
+}
+
+.ocrm-thumb img {
+  width: 100%;
+  border-radius: 5px;
+  display: block;
+}
+
+.ocrm-thumb .meta {
+  font-size: 0.75rem;
+  color: var(--muted, #68727f);
+  margin-top: 0.3rem;
+  word-break: break-all;
+}
+
+.ocrm-result {
+  display: grid;
+  grid-template-columns: minmax(240px, 34%) 1fr;
+  gap: 0.9rem;
+  align-items: start;
+  margin-top: 0.8rem;
+}
+
+.ocrm-result.noimg {
+  grid-template-columns: 1fr;
+}
+
+.ocrm-page {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.8rem 0.9rem;
+  margin-bottom: 0.9rem;
+  background: var(--surface);
+}
+
+.ocrm-page > img {
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.ocrm-text {
+  white-space: pre-wrap;
+  line-height: 1.85;
+  font-size: 0.95rem;
+}
+
+.ocrm-text mark {
+  padding: 0.04em 0.12em;
+  border-radius: 3px;
+  cursor: help;
+  background: #fff3b0;
+}
+
+.ocrm-text mark.sch { background: #cfe8ff; }
+.ocrm-text mark.gen { background: #eceff3; color: #5b6572; }
+.ocrm-text mark.var { background: #eef7e2; border-bottom: 1.5px dotted #7a9a4a; }
+.ocrm-text mark.fz { background: #ffd9d9; border-bottom: 1.5px dashed #c66; }
+.ocrm-text mark .qm { font-size: 0.7em; vertical-align: super; color: #a33; font-weight: 700; }
+
+.ocrm-tip {
+  position: fixed;
+  z-index: 60;
+  max-width: min(430px, 90vw);
+  background: #1f2733;
+  color: #fff;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  padding: 0.5rem 0.65rem;
+  border-radius: 7px;
+  pointer-events: none;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.ocrm-cam video {
+  width: 100%;
+  max-height: 62vh;
+  border-radius: 8px;
+  background: #000;
+}
+
+.ocrm-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  color: var(--muted, #68727f);
+  margin-top: 0.4rem;
+}
+
+.ocrm-legend i {
+  display: inline-block;
+  width: 0.85em;
+  height: 0.85em;
+  border-radius: 2px;
+  vertical-align: -0.1em;
+  margin-right: 0.25em;
+}
+
+/* 视图开关：复用全局 .switch（AI 门禁同款），只把尺寸收小、选中色改为主题色
+   —— 全局开关选中变红是"已暂停"的语义，用在这里不成立 */
+.ocrm-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem 1.5rem;
+  align-items: center;
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--border);
+}
+
+.ocrm-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.switch.ocrm-switch__ctl {
+  width: 40px;
+  height: 23px;
+}
+
+.switch.ocrm-switch__ctl .switch__thumb {
+  width: 17px;
+  height: 17px;
+}
+
+.ocrm-switch .switch input:checked + .switch__track {
+  background: var(--accent);
+}
+
+.ocrm-switch .switch input:checked + .switch__track .switch__thumb {
+  transform: translateX(17px);
+}
+
+@media (max-width: 720px) {
+  .ocrm-result { grid-template-columns: 1fr; }
+}

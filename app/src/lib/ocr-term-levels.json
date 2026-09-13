@@ -1,0 +1,29 @@
+{
+  "_note": "OCR 阅卷高亮用的「通用词分级」：general 里列出的词条按「一般词」淡化显示，其余（含全部学者）为「核心」。只影响阅卷高亮观感，不参与判分、不随词库发布。教师可直接增删本数组；词条名需与词库 term 完全一致（大小写一致）。",
+  "_counts": {
+    "general": 21
+  },
+  "general": [
+    "Adulthood",
+    "Age",
+    "Belief",
+    "Culture",
+    "Education",
+    "Family",
+    "Gender",
+    "Household",
+    "Income",
+    "Media",
+    "Migration",
+    "Nature",
+    "Norm",
+    "Power",
+    "Religion",
+    "Reward",
+    "Role",
+    "Scholarship",
+    "Unemployment",
+    "Value",
+    "Wealth"
+  ]
+}

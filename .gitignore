@@ -63,6 +63,7 @@ managebac-grade-filler.user.js
 
 # OCR 辅助阅卷实验室的临时脚本与产物（原型验证用，不入库）
 app/_ocrlab_*
+__pycache__/
 
 
 # 自动化诊断日志（本地临时产物）
