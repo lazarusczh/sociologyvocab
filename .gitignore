@@ -61,6 +61,10 @@ managebac-grade-filler.user.js
 # 用户分类管理方案（含"未来收费化 / 权益分层"等内部规划，仓库是公开的，不纳入；仅本机 + OneDrive 备份）
 用户分类管理方案.md
 
+# OCR 辅助阅卷实验室的临时脚本与产物（原型验证用，不入库）
+app/_ocrlab_*
+
+
 # 自动化诊断日志（本地临时产物）
 @AutomationLog.txt
 
