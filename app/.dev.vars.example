@@ -1,0 +1,11 @@
+# 本地密钥模板（可提交，只放占位符；真实值写进同目录的 .dev.vars，后者不入库）
+# 用途：wrangler dev 本地跑 Worker；以及本地实验室脚本读取模型 key。
+
+SUPABASE_URL="https://<project>.supabase.opentrust.net"
+SUPABASE_ANON_KEY="<anon key，公开只读>"
+
+# 视觉/文本大模型（魔搭 ModelScope，OpenAI 兼容）
+MODELSCOPE_API_KEY="ms-..."
+# 可选备用通道
+OPENROUTER_API_KEY="sk-or-..."
+AGNES_API_KEY="..."
