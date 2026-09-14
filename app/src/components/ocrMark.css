@@ -168,6 +168,41 @@
   transform: translateX(17px);
 }
 
+/* 录入记录列表 */
+.ocrm-records {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.ocrm-record {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
+}
+
+.ocrm-record__main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ocrm-record__main b {
+  font-size: 0.88rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ocrm-record__main .muted {
+  font-size: 0.75rem;
+}
+
 @media (max-width: 720px) {
   .ocrm-result { grid-template-columns: 1fr; }
   .ocrm-result > img { max-height: 46vh; }

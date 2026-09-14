@@ -13,6 +13,14 @@ import type { ReactElement } from 'react';
 import { supabase } from '../lib/supabase';
 import { useStore } from '../lib/store';
 import { buildFormTable, matchTranscript, summarize, type OcrHit } from '../lib/ocrHighlight';
+import {
+  deleteOcrRecord,
+  listOcrRecords,
+  saveOcrRecord,
+  updateOcrRecord,
+  updateOcrRecordLabel,
+  type OcrRecord,
+} from '../lib/ocrStore';
 import './ocrMark.css';
 
 const MAX_EDGE = 1800; // 长边上限：模型成本 ∝ 像素，1800 足够读手写
@@ -27,12 +35,15 @@ const MOBILE_CAM_UA =
 interface Page {
   id: string;
   name: string;
-  src: string; // data URL（本机内存，不落盘）
+  src: string; // data URL（本机内存，不落盘）；从历史记录载回的页面为空串，不显示原图
   text?: string;
   model?: string;
   ms?: number;
   busy?: boolean;
   error?: string;
+  label?: string; // 备注（如学生姓名），随记录入库
+  recordId?: string; // 已入库记录 id：重识别时覆盖，避免同页堆出多条
+  saveState?: 'saving' | 'ok' | 'fail'; // 入库状态，仅用于界面提示
 }
 
 const readAsDataUrl = (file: File): Promise<string> =>
@@ -71,7 +82,10 @@ export default function OcrMarkPanel() {
   const [busyAll, setBusyAll] = useState(false);
   const [err, setErr] = useState('');
   const [showGeneral, setShowGeneral] = useState(true); // 一般词（高频通用词）默认显示但淡化
-  const [onlyCorrected, setOnlyCorrected] = useState(false);
+  // 默认「只看文字」：拍照录入意味着教师手上必有纸质原件，先读文本更顺（2026-09-14 教师确认）
+  const [onlyCorrected, setOnlyCorrected] = useState(true);
+  const [recs, setRecs] = useState<OcrRecord[]>([]);
+  const [recsBusy, setRecsBusy] = useState(false);
   const [tip, setTip] = useState<{ x: number; y: number; text: string } | null>(null);
   const [camOn, setCamOn] = useState(false);
   const [camList, setCamList] = useState<MediaDeviceInfo[]>([]);
@@ -89,6 +103,45 @@ export default function OcrMarkPanel() {
     for (const it of dict) m.set(it.term, it.definition ?? '');
     return m;
   }, [vocab]);
+
+  // ---------- 录入记录（落库；刷新不丢，且不必为再看一眼而重复消耗模型额度） ----------
+  const loadRecs = useCallback(async () => {
+    setRecsBusy(true);
+    setRecs(await listOcrRecords());
+    setRecsBusy(false);
+  }, []);
+
+  useEffect(() => {
+    void loadRecs();
+  }, [loadRecs]);
+
+  const loadRecordIntoPanel = useCallback((r: OcrRecord) => {
+    const when = new Date(r.created_at).toLocaleString('zh-CN', {
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    setPages((ps) => [
+      ...ps,
+      {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        name: r.label?.trim() || `记录 ${when}`,
+        src: '', // 记录只含文本（隐私），载回后不显示原图
+        text: r.text,
+        model: r.model ?? undefined,
+        ms: r.elapsed_ms ?? undefined,
+        label: r.label ?? '',
+        recordId: r.id,
+        saveState: 'ok',
+      },
+    ]);
+  }, []);
+
+  const removeRecord = useCallback(async (id: string) => {
+    if (!(await deleteOcrRecord(id))) return;
+    setRecs((rs) => rs.filter((r) => r.id !== id));
+  }, []);
 
   // ---------- 导入 ----------
   const addFiles = useCallback(async (files: FileList | File[]) => {
@@ -237,14 +290,27 @@ export default function OcrMarkPanel() {
       });
       const body = (await res.json()) as { text?: string; model?: string; ms?: number; error?: string; detail?: string };
       if (!res.ok || !body.text) throw new Error(body.detail || body.error || `HTTP ${res.status}`);
+      const text = body.text;
       setPages((ps) =>
-        ps.map((p) => (p.id === page.id ? { ...p, busy: false, text: body.text, model: body.model, ms: body.ms } : p)),
+        ps.map((p) => (p.id === page.id ? { ...p, busy: false, text, model: body.model, ms: body.ms, saveState: 'saving' } : p)),
       );
+      // 立刻落库：以后刷新/换设备都能载回（高亮在前端重算，不再调用模型）。
+      // 入库失败只提示、绝不阻断识别结果展示。
+      const payload = { text, model: body.model, elapsedMs: body.ms };
+      const recId = page.recordId
+        ? (await updateOcrRecord(page.recordId, payload))
+          ? page.recordId
+          : null
+        : await saveOcrRecord({ label: page.label, pageName: page.name, ...payload });
+      setPages((ps) =>
+        ps.map((p) => (p.id === page.id ? { ...p, recordId: recId ?? p.recordId, saveState: recId ? 'ok' : 'fail' } : p)),
+      );
+      if (recId) void loadRecs();
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       setPages((ps) => ps.map((p) => (p.id === page.id ? { ...p, busy: false, error: msg } : p)));
     }
-  }, []);
+  }, [loadRecs]);
 
   const runAll = useCallback(async () => {
     setBusyAll(true);
@@ -396,7 +462,28 @@ export default function OcrMarkPanel() {
                     {p.name}
                     <br />
                     {p.busy ? '识别中…' : p.text ? `已识别 ${p.text.length} 字符` : p.error ? `失败：${p.error.slice(0, 40)}` : '待识别'}
+                    {p.text ? (
+                      <>
+                        {' · '}
+                        {p.saveState === 'saving'
+                          ? '存入记录…'
+                          : p.saveState === 'ok'
+                            ? '已存入记录'
+                            : p.saveState === 'fail'
+                              ? '⚠ 存库失败'
+                              : ''}
+                      </>
+                    ) : null}
                   </div>
+                  <input
+                    value={p.label ?? ''}
+                    placeholder="备注（如学生姓名）"
+                    onChange={(e) => setPages((ps) => ps.map((x) => (x.id === p.id ? { ...x, label: e.target.value } : x)))}
+                    onBlur={() => {
+                      if (p.recordId) void updateOcrRecordLabel(p.recordId, p.label ?? '');
+                    }}
+                    style={{ width: '100%', fontSize: '0.75rem', marginTop: '0.25rem' }}
+                  />
                   <div style={{ display: 'flex', gap: '0.3rem', marginTop: '0.3rem' }}>
                     <button className="ghost" style={{ fontSize: '0.75rem', padding: '0.1rem 0.4rem' }} disabled={p.busy} onClick={() => void transcribe(p)}>
                       重识别
@@ -423,6 +510,48 @@ export default function OcrMarkPanel() {
           <span><i style={{ background: '#eef7e2', borderBottom: '1.5px dotted #7a9a4a' }} />同词根变形（正常用法）</span>
           <span><i style={{ background: '#ffd9d9', borderBottom: '1.5px dashed #c66' }} />疑似笔误</span>
           <span>悬浮任意标记可看词库定义</span>
+        </div>
+      </div>
+
+      <div className="card" style={{ marginTop: '0.8rem' }}>
+        <div className="row" style={{ alignItems: 'center' }}>
+          <h3 style={{ margin: 0 }}>录入记录</h3>
+          <span className="spacer" />
+          <span className="muted" style={{ fontSize: '0.78rem' }}>
+            共 {recs.length} 条 · 刷新不丢，载回文本不再调用模型
+          </span>
+          <button className="ghost" onClick={() => void loadRecs()} disabled={recsBusy} style={{ marginLeft: '0.5rem' }}>
+            {recsBusy ? '加载中…' : '刷新'}
+          </button>
+        </div>
+        {recs.length === 0 && (
+          <p className="muted" style={{ fontSize: '0.85rem' }}>还没有记录 —— 识别成功的每一页会自动存入这里（只存文本，不存图片）。</p>
+        )}
+        <div className="ocrm-records">
+          {recs.map((r) => (
+            <div className="ocrm-record" key={r.id}>
+              <div className="ocrm-record__main">
+                <b>{r.label?.trim() || '（未填备注）'}</b>
+                <span className="muted">
+                  {new Date(r.created_at).toLocaleString('zh-CN', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}{' '}
+                  · {r.text.length} 字{r.model ? ` · ${r.model.split('/').pop()}` : ''}
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: '0.3rem' }}>
+                <button className="ghost" style={{ fontSize: '0.75rem', padding: '0.1rem 0.45rem' }} onClick={() => loadRecordIntoPanel(r)}>
+                  载入
+                </button>
+                <button className="ghost" style={{ fontSize: '0.75rem', padding: '0.1rem 0.45rem' }} onClick={() => void removeRecord(r.id)}>
+                  删除
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -489,8 +618,8 @@ export default function OcrMarkPanel() {
                   {p.model ? `${p.model.split('/').pop()} · ${Math.round((p.ms ?? 0) / 1000)}s` : ''}
                 </span>
               </div>
-              <div className={`ocrm-result${onlyCorrected ? ' noimg' : ''}`}>
-                {!onlyCorrected && <img src={p.src} alt={`${p.name} 原图`} />}
+              <div className={`ocrm-result${onlyCorrected || !p.src ? ' noimg' : ''}`}>
+                {!onlyCorrected && p.src && <img src={p.src} alt={`${p.name} 原图`} />}
                 <div className="ocrm-text">{renderHi(p.text ?? '', hits)}</div>
               </div>
             </div>
