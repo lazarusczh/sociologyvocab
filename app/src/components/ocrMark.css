@@ -56,16 +56,25 @@
   background: var(--surface);
 }
 
-.ocrm-page > img {
+/* ⚠ 选择器必须落在 .ocrm-result 的**直接子元素**上：
+   图片位于 grid 单元格内，若忘了限宽，会以原图固有宽度（长边 1800px）溢出单元格、
+   直接盖住右侧文字（表现为"文字与原图重叠、可读性差"，2026-09-14 实测踩到） */
+.ocrm-result > img {
   width: 100%;
+  height: auto;
+  max-height: 72vh;
+  object-fit: contain;
   border-radius: 6px;
   border: 1px solid var(--border);
+  background: #fff;
 }
 
 .ocrm-text {
   white-space: pre-wrap;
   line-height: 1.85;
   font-size: 0.95rem;
+  min-width: 0;            /* grid 子项默认 min-width:auto，长文本会把列撑开并溢出 */
+  overflow-wrap: anywhere; /* OCR 可能产出超长 token（连写、无空格），避免横向溢出 */
 }
 
 .ocrm-text mark {
@@ -161,4 +170,6 @@
 
 @media (max-width: 720px) {
   .ocrm-result { grid-template-columns: 1fr; }
+  .ocrm-result > img { max-height: 46vh; }
+  .ocrm-text { font-size: 0.92rem; }
 }
