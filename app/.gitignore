@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# 教材 Key terms 结构化定义（版权内容；由 scripts/skill-keyterms.py 生成，改用 Supabase 分发）
+data/ms-skill/keyterms/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
