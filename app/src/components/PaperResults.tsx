@@ -2,9 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import {
   listGrouperRuns, updateGrouperRun, deleteGrouperRun, listMsSections,
-  type GrouperRunRow, type GrouperRunScore, type MsSectionRow,
+  ensureRunShortCode, listMbTaskLinks, listMbRoster,
+  type GrouperRunRow, type GrouperRunScore, type MsSectionRow, type MbTaskLinkRow,
 } from '../lib/cloud';
 import { bandLinear, buildRows, type RowSpec, type ThresholdRows } from '../lib/score';
+import { inferGrade, type Grade } from '../lib/mbSync';
 import { copyText } from '../lib/clipboard';
 import type { AssembleSlot, BankItem } from '../lib/grouper';
 
@@ -24,7 +26,13 @@ function gradeOf(raw: number, t: ThresholdRows, aStar: number | null): string {
   return 'U';
 }
 
-interface ClassRow { id: string; name: string }
+interface ClassRow {
+  id: string;
+  name: string;
+  papers?: string[] | null;
+  mb_class_url?: string | null;   // ManageBac 成绩册链接（班级管理页绑定）
+  mb_class_id?: string | null;    // 从链接解析出的 ManageBac 班级号
+}
 
 // 班级分组别名（A1 与 AS 同义：学校目前把 A1 班登记为 AS）
 const GROUP_ALIASES: Record<'A1' | 'A2', string[]> = { A1: ['A1', 'AS'], A2: ['A2'] };
@@ -68,6 +76,15 @@ export default function PaperResults() {
   const [msKey, setMsKey] = useState('');
   const [emailByKey, setEmailByKey] = useState<Record<string, string>>({}); // key → 邮箱（导出给 ManageBac 用）
 
+  // —— ManageBac 同步（短码 / task 绑定 / 名单）——
+  const [shortCode, setShortCode] = useState<string | null>(null);
+  const [links, setLinks] = useState<MbTaskLinkRow[]>([]);
+  const [rosterCount, setRosterCount] = useState<number | null>(null);
+  const [mbBusy, setMbBusy] = useState(false);
+  const [manualCopy, setManualCopy] = useState('');   // 剪贴板被拒时，展示可手动 Ctrl+C 的文本
+  const [regenCode, setRegenCode] = useState(false);  // 点「修正」后，回到可重选年级位的状态
+  const [gradePick, setGradePick] = useState<Grade>('A1');
+
   const refresh = useCallback(async () => {
     setLoadingList(true);
     setError('');
@@ -92,10 +109,15 @@ export default function PaperResults() {
     setEntries(null);
     setClassFilter('all');
     setNewClass('');
+    setShortCode(run.mb_short_code ?? null);
+    setLinks([]);
+    setRosterCount(null);
+    setRegenCode(false);
+    setGradePick(inferGrade(run.title, run.paper));
     // 拉班级 + 已注册学生名单（与打卡核验同口径），与已存成绩合并
     try {
       const [clsRes, devRes, stuRes] = await Promise.all([
-        supabase.from('classes').select('id, name').order('name'),
+        supabase.from('classes').select('id, name, papers, mb_class_url, mb_class_id').order('name'),
         supabase.from('user_roles').select('user_id').eq('role', 'developer'),
         supabase
           .from('student_data')
@@ -136,6 +158,12 @@ export default function PaperResults() {
       }
       setEntries(merged);
       setClassFilter(inferClassId(run, classList, merged)); // 按作业范围/卷名自动选中 A1/A2 班
+      // ManageBac：已绑定的 task（名单人数由下方 effect 按当前班级加载，切换班级时会重查）
+      try {
+        setLinks(await listMbTaskLinks(run.id));
+      } catch {
+        setLinks([]);
+      }
     } catch (e) {
       setError((e as Error).message || '加载学生名单失败');
       setEntries([]);
@@ -169,6 +197,75 @@ export default function PaperResults() {
     [viewing, classes, entries],
   );
 
+  // 当前生效班级：优先用教师手动切换的班级，其次用推断出的班级
+  const activeMbClassId = classFilter !== 'all' && classFilter !== 'none' ? classFilter : inferredClassId;
+  const mbClass = classes.find((c) => c.id === activeMbClassId) ?? null;
+
+  // 该班已导入的 ManageBac 名单人数（切班级时重查；未导入则为 0）
+  useEffect(() => {
+    if (!activeMbClassId) {
+      setRosterCount(null);
+      return;
+    }
+    let alive = true;
+    void (async () => {
+      try {
+        const rows = await listMbRoster(activeMbClassId);
+        if (alive) setRosterCount(rows.length);
+      } catch {
+        if (alive) setRosterCount(null);
+      }
+    })();
+    return () => { alive = false; };
+  }, [activeMbClassId]);
+
+  // 生成 / 重算短码（旧记录没有短码时用；新记录在保存时已自动生成；regenCode = 修正模式）
+  const applyShortCode = async () => {
+    if (!viewing) return;
+    const forced = regenCode;
+    setMbBusy(true);
+    setError('');
+    setMsg('');
+    try {
+      const code = await ensureRunShortCode(viewing.id, viewing.title, viewing.paper, forced, gradePick);
+      setShortCode(code);
+      setRegenCode(false);
+      setViewing((v) => (v ? { ...v, mb_short_code: code } : v));
+      setRuns((rs) => rs.map((r) => (r.id === viewing.id ? { ...r, mb_short_code: code } : r)));
+      setMsg(forced
+        ? (code === shortCode ? `重算后仍是 [${code}]` : `已重算为 [${code}] —— 记得把 ManageBac 的 task 名同步改一下`)
+        : `已生成短码 [${code}]`);
+    } catch (e) {
+      setError('生成短码失败：' + ((e as Error).message || String(e)));
+    } finally {
+      setMbBusy(false);
+    }
+  };
+
+  const copyShortCode = async () => {
+    if (!shortCode) return;
+    setError('');
+    try {
+      const how = await copyText(`[${shortCode}]`);
+      if (how === 'failed') {
+        setManualCopy(`[${shortCode}]`);
+        setMsg('剪贴板被此环境拒绝：请在下方文本框里选中后按 Ctrl+C');
+      } else {
+        setMsg(`已复制 [${shortCode}] —— 粘到 ManageBac 的 task 名里即可`);
+      }
+    } catch (e) {
+      setError('复制失败：' + ((e as Error).message || String(e)));
+    }
+  };
+
+  // 进入「修正」模式：重选年级位后按它重算（默认取现码的年级位）
+  const fixShortCode = () => {
+    if (!shortCode) return;
+    const g = shortCode.split('-')[0];
+    setGradePick(g === 'A2' ? 'A2' : 'A1');
+    setRegenCode(true);
+  };
+
   // 复制成绩（供 ManageBac 用户脚本导入）：每行「邮箱<Tab>原始分」
   // 范围与当前筛选一致（切到某班则只复制该班）；手动添加的学生无邮箱，自动跳过
   const copyGradesForManageBac = async () => {
@@ -184,8 +281,13 @@ export default function PaperResults() {
     }
     const text = rows.map((e) => `${emailByKey[e.key]}\t${e.raw}`).join('\n');
     try {
-      await copyText(text);
-      setMsg(`已复制 ${rows.length} 条（邮箱 + 原始分，本卷满分 ${viewing.full_raw}）${skipped ? `；${skipped} 条无邮箱已跳过` : ''}`);
+      const how = await copyText(text);
+      if (how === 'failed') {
+        setManualCopy(text);
+        setMsg(`剪贴板被此环境拒绝：请在下方文本框里选中后按 Ctrl+C（共 ${rows.length} 条）`);
+      } else {
+        setMsg(`已复制 ${rows.length} 条（邮箱 + 原始分，本卷满分 ${viewing.full_raw}）${skipped ? `；${skipped} 条无邮箱已跳过` : ''}`);
+      }
     } catch (e) {
       setError('复制失败：' + ((e as Error).message || String(e)));
     }
@@ -300,7 +402,6 @@ export default function PaperResults() {
             <button className="ghost" onClick={closeRun}>← 返回</button>
             <h3 style={{ margin: 0 }}>{viewing.title}</h3>
             <span className="spacer" />
-            <button className="ghost" onClick={() => void copyGradesForManageBac()} disabled={entries === null}>复制成绩（ManageBac）</button>
             <button className="ghost danger" onClick={() => { if (confirmDel === viewing.id) { void doDelete(viewing.id); } else { setConfirmDel(viewing.id); } }}>
               {confirmDel === viewing.id ? '确认删除？' : '删除'}
             </button>
@@ -312,6 +413,104 @@ export default function PaperResults() {
           {error && <div className="card" style={{ marginTop: '0.6rem', padding: '0.5rem 0.7rem', background: 'var(--warn-bg)', borderColor: 'var(--warn)' }}>{error}</div>}
           {msg && <div className="card" style={{ marginTop: '0.6rem', padding: '0.5rem 0.7rem', background: 'var(--ok-bg)', borderColor: 'var(--ok)' }}>{msg}</div>}
         </div>
+
+        {/* ManageBac 同步：短码 / 班级绑定 / 名单 / task 绑定（设计见《分数同步到ManageBac方案.md》） */}
+        <div className="card" style={{ marginBottom: '0.8rem', padding: '0.8rem' }}>
+          <div className="row" style={{ alignItems: 'center', flexWrap: 'wrap', gap: '0.4rem' }}>
+            <strong>ManageBac 同步</strong>
+            <span className="badge">线上自动同步</span>
+            {shortCode && !regenCode ? (
+              <>
+                <code style={{ fontWeight: 700, fontSize: '1rem' }}>[{shortCode}]</code>
+                <button className="ghost" onClick={() => void copyShortCode()}>复制短码</button>
+                <button className="ppt-link" onClick={fixShortCode} disabled={mbBusy}>修正</button>
+              </>
+            ) : (
+              <>
+                <select value={gradePick} onChange={(e) => setGradePick(e.target.value as Grade)} style={{ width: '5rem' }}>
+                  <option value="A1">A1</option>
+                  <option value="A2">A2</option>
+                </select>
+                <button className="primary" onClick={() => void applyShortCode()} disabled={mbBusy}>
+                  {mbBusy ? '生成中…' : (regenCode ? '按此年级重算' : '生成短码')}
+                </button>
+                {regenCode && (
+                  <button className="ppt-link" onClick={() => setRegenCode(false)}>取消</button>
+                )}
+              </>
+            )}
+            <span className="spacer" />
+            <span className="muted" style={{ fontSize: '0.8rem' }}>当前班级：{mbClass ? mbClass.name : '未确定'}</span>
+          </div>
+
+          <p className="muted" style={{ margin: '0.45rem 0 0', fontSize: '0.85rem' }}>
+            {shortCode
+              ? <>把 <code>[{shortCode}]</code> 粘进 ManageBac 的 task 名（如 <code>[{shortCode}] AS Homework #4</code>），再回来绑定。</>
+              : '先点「生成短码」，把它粘进 ManageBac 的 task 名。'}
+          </p>
+
+          <ul className="muted" style={{ margin: '0.45rem 0 0', paddingLeft: '1.1rem', fontSize: '0.85rem' }}>
+            <li>
+              班级绑定：
+              {!mbClass
+                ? '未确定班级（该班需有已注册学生，或先在上方切到某班）'
+                : mbClass.mb_class_id
+                  ? `已绑定 ManageBac 班级 ${mbClass.mb_class_id}`
+                  : '未绑定 → 去「班级管理」贴一次该班的成绩册链接'}
+            </li>
+            <li>
+              名单：
+              {rosterCount === null
+                ? '—'
+                : rosterCount > 0
+                  ? `已导入 ${rosterCount} 人`
+                  : '未导入 → 去「班级管理」导入 ManageBac 导出的名单 xlsx'}
+            </li>
+            <li>
+              task 绑定：
+              {links.length === 0
+                ? '未绑定（下一步接入：按短码在该班 task 列表里精确匹配）'
+                : links.map((l) => `${l.mb_task_name ?? l.mb_task_id}${l.mb_class_id ? `（班级 ${l.mb_class_id}）` : ''}`).join('；')}
+            </li>
+          </ul>
+
+          <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '0.65rem 0 0' }} />
+
+          {/* 兜底通道：保持零凭证、零服务器；按钮与输出格式（邮箱<Tab>分数）为硬约束，不得改动 */}
+          <div className="row" style={{ alignItems: 'center', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.6rem' }}>
+            <strong style={{ fontSize: '0.9rem' }}>本地脚本同步</strong>
+            <span className="muted" style={{ fontSize: '0.8rem' }}>（兜底 · 零凭证、零服务器）</span>
+            <span className="spacer" />
+            <button className="ghost" onClick={() => void copyGradesForManageBac()} disabled={entries === null}>
+              本地脚本同步
+            </button>
+          </div>
+          <p className="muted" style={{ margin: '0.4rem 0 0', fontSize: '0.8rem' }}>
+            复制本页已录成绩（每行「邮箱 + 分数」），由油猴脚本在 ManageBac 页面粘贴。线上自动同步不可用时的退路。
+            {classFilter !== 'all' && classFilter !== 'none' ? '（只复制当前所选班级）' : ''}
+          </p>
+        </div>
+
+        {manualCopy && (
+          <div className="card" style={{ marginBottom: '0.8rem', padding: '0.6rem 0.7rem' }}>
+            <div className="row" style={{ alignItems: 'center', gap: '0.4rem' }}>
+              <strong style={{ fontSize: '0.9rem' }}>手动复制（剪贴板被此环境拒绝）</strong>
+              <span className="spacer" />
+              <button className="ppt-link" onClick={() => setManualCopy('')}>关闭</button>
+            </div>
+            <textarea
+              readOnly
+              value={manualCopy}
+              rows={5}
+              style={{ width: '100%', marginTop: '0.4rem', fontFamily: 'inherit' }}
+              onFocus={(e) => e.currentTarget.select()}
+              onClick={(e) => e.currentTarget.select()}
+            />
+            <p className="muted" style={{ margin: '0.3rem 0 0', fontSize: '0.78rem' }}>
+              点一下文本框会全选，再按 Ctrl+C 即可。
+            </p>
+          </div>
+        )}
 
         {/* 卷面回放（阅卷时对照题目查 ms） */}
         <div className="card" style={{ marginBottom: '0.8rem' }}>
@@ -483,6 +682,7 @@ export default function PaperResults() {
             <thead>
               <tr>
                 <th>标题</th>
+                <th>短码</th>
                 <th>卷种</th>
                 <th>满分</th>
                 <th>已录</th>
@@ -497,6 +697,7 @@ export default function PaperResults() {
                 return (
                   <tr key={r.id}>
                     <td style={{ fontWeight: 600 }}>{r.title}</td>
+                    <td>{r.mb_short_code ? <code>[{r.mb_short_code}]</code> : <span className="muted">—</span>}</td>
                     <td>{modeLabel(r)}<span className="muted" style={{ marginLeft: '0.3rem' }}>P{r.paper}</span></td>
                     <td>{r.full_raw}</td>
                     <td>{total > 0 ? `${rec}/${total}` : '—'}</td>

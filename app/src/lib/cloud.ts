@@ -1,6 +1,7 @@
 // 云同步层：登录后与 Supabase 的 student_data 表读写，及本地/云端数据合并
 import { supabase } from './supabase';
 import type { CheckInState, Progress, WrongBook, VocabItem, Quiz, QuizSubmission, CorrectionResult, SurnameOverrides } from './types';
+import { classMatchesGrade, firstPaperNumber, gradeFromPapers, inferGrade, pickShortCode, shortCodeBase, type Grade, type RosterEntry } from './mbSync';
 
 // 云端 student_data.data 里存储的 JSON 结构（checkin/progress/wrongBook 三块 + 姓名）
 export interface CloudStudentData {
@@ -488,6 +489,7 @@ export interface GrouperRunRow {
   thresholds: GrouperThreshold | null;
   a_star: number | null;
   scores: GrouperRunScore[];
+  mb_short_code: string | null;        // ManageBac 短码（形如 A1-0712）：创建时生成、之后固定不变
   created_by: string | null;
   created_at: string;
 }
@@ -510,7 +512,14 @@ export async function createGrouperRun(input: {
     .select('id')
     .single();
   if (error) throw error;
-  return (data as { id: string }).id;
+  const id = (data as { id: string }).id;
+  // 自动生成 ManageBac 短码（形如 A1-0712）。失败不阻塞创建 —— 详情页还有「生成短码」按钮可补。
+  try {
+    await ensureRunShortCode(id, input.title, input.paper);
+  } catch {
+    /* 忽略：短码可事后补生成 */
+  }
+  return id;
 }
 
 // 教师更新某次组卷：标题 / A* 门槛 / 成绩登记数组
@@ -534,5 +543,209 @@ export async function listGrouperRuns(): Promise<GrouperRunRow[]> {
 
 export async function deleteGrouperRun(runId: string): Promise<void> {
   const { error } = await supabase.from('grouper_runs').delete().eq('id', runId);
+  if (error) throw error;
+}
+
+// ---- ManageBac 分数同步（2026-09-15）----
+// 设计见《分数同步到ManageBac方案.md》；表结构见 db-migration-mb-sync.sql
+// 唯一性由应用层保证（迁移注释里说明了原因：本库对唯一/部分/表达式索引支持不确定）
+
+/** 班级 + ManageBac 绑定信息（班级管理页用） */
+export interface ClassMbRow {
+  id: string;
+  name: string;
+  papers: string[] | null;
+  mb_class_url: string | null;
+  mb_class_id: string | null;
+}
+
+export async function listClassesWithMb(): Promise<ClassMbRow[]> {
+  const { data, error } = await supabase
+    .from('classes')
+    .select('id, name, papers, mb_class_url, mb_class_id')
+    .order('name');
+  if (error) throw error;
+  return (data ?? []) as ClassMbRow[];
+}
+
+/** 绑定 / 解除某班的 ManageBac 成绩册（url 传 null 即解除） */
+export async function setClassMbBinding(
+  classId: string,
+  url: string | null,
+  mbClassId: string | null,
+): Promise<void> {
+  const { error } = await supabase
+    .from('classes')
+    .update({ mb_class_url: url, mb_class_id: mbClassId })
+    .eq('id', classId);
+  if (error) throw error;
+}
+
+/** 已占用的短码（生成时查重；同一次查重覆盖试卷成绩与测验两侧，避免撞码） */
+export async function listShortCodes(): Promise<string[]> {
+  const [a, b] = await Promise.all([
+    supabase.from('grouper_runs').select('mb_short_code').not('mb_short_code', 'is', null),
+    supabase.from('quizzes').select('mb_short_code').not('mb_short_code', 'is', null),
+  ]);
+  if (a.error) throw a.error;
+  if (b.error) throw b.error;
+  const pick = (rows: unknown[]) =>
+    (rows as { mb_short_code: string | null }[]).map((r) => r.mb_short_code ?? '');
+  return [...pick(a.data ?? []), ...pick(b.data ?? [])].filter(Boolean);
+}
+
+export async function setRunShortCode(runId: string, code: string): Promise<void> {
+  const { error } = await supabase.from('grouper_runs').update({ mb_short_code: code }).eq('id', runId);
+  if (error) throw error;
+}
+
+/** 年级位：优先用同名班级的 papers（P1/P2 → A1、P3/P4 → A2），否则按卷名/paper */
+async function gradeForRun(title: string, paper: number): Promise<Grade> {
+  const guess = inferGrade(title, paper);
+  try {
+    const { data } = await supabase.from('classes').select('name, papers');
+    const rows = (data ?? []) as { name: string; papers: string[] | null }[];
+    const hit = rows.find((c) => classMatchesGrade(c.name, guess));
+    return (hit ? gradeFromPapers(hit.papers) : null) ?? guess;
+  } catch {
+    return guess;
+  }
+}
+
+/** 生成并落库短码（幂等：已有则原样返回）。新记录在 createGrouperRun 里自动调用。 */
+export async function ensureRunShortCode(
+  runId: string,
+  title: string,
+  paper: number,
+  force = false,
+  gradeOverride: Grade | null = null,
+): Promise<string> {
+  const { data: cur } = await supabase
+    .from('grouper_runs')
+    .select('mb_short_code')
+    .eq('id', runId)
+    .single();
+  const existing = (cur as { mb_short_code: string | null } | null)?.mb_short_code ?? null;
+  if (existing && !force) return existing;
+  const grade = gradeOverride ?? await gradeForRun(title, paper);
+  const taken = await listShortCodes();
+  // force 时排除自己现用的码，避免查重把旧码算成冲突
+  const code = pickShortCode(shortCodeBase(grade), taken.filter((c) => c !== existing));
+  await setRunShortCode(runId, code);
+  return code;
+}
+
+/** 已绑定的 ManageBac task（一条作业可绑多个班 → 多行；run_id 与 quiz_id 二选一） */
+export interface MbTaskLinkRow {
+  id: string;
+  run_id: string | null;    // 试卷成绩侧
+  quiz_id: string | null;   // 随堂测验 / 作业侧
+  class_id: string;
+  mb_class_id: string | null;
+  mb_task_id: string;
+  mb_task_name: string | null;
+  bound_at: string | null;
+}
+
+export async function listMbTaskLinks(runId: string): Promise<MbTaskLinkRow[]> {
+  const { data, error } = await supabase
+    .from('mb_task_links')
+    .select('*')
+    .eq('run_id', runId)
+    .order('bound_at');
+  if (error) throw error;
+  return (data ?? []) as MbTaskLinkRow[];
+}
+
+/** 某个测验 / 作业已绑定的 ManageBac task */
+export async function listMbTaskLinksForQuiz(quizId: string): Promise<MbTaskLinkRow[]> {
+  const { data, error } = await supabase
+    .from('mb_task_links')
+    .select('*')
+    .eq('quiz_id', quizId)
+    .order('bound_at');
+  if (error) throw error;
+  return (data ?? []) as MbTaskLinkRow[];
+}
+
+export interface MbRosterRow {
+  email: string;
+  mb_name: string;
+}
+
+export async function listMbRoster(classId: string): Promise<MbRosterRow[]> {
+  const { data, error } = await supabase
+    .from('mb_rosters')
+    .select('email, mb_name')
+    .eq('class_id', classId)
+    .order('mb_name');
+  if (error) throw error;
+  return (data ?? []) as MbRosterRow[];
+}
+
+/** 各班名单条数（班级管理页一次拿全，避免 N 次查询） */
+export async function countMbRosterByClass(): Promise<Record<string, number>> {
+  const { data, error } = await supabase.from('mb_rosters').select('class_id');
+  if (error) throw error;
+  const out: Record<string, number> = {};
+  for (const r of (data ?? []) as { class_id: string }[]) out[r.class_id] = (out[r.class_id] ?? 0) + 1;
+  return out;
+}
+
+/** 整班替换名单（应用层保证唯一：先清空该班再整批写入） */
+export async function replaceMbRoster(
+  classId: string,
+  rows: RosterEntry[],
+  importedBy: string | null,
+): Promise<number> {
+  const { error: delErr } = await supabase.from('mb_rosters').delete().eq('class_id', classId);
+  if (delErr) throw delErr;
+  if (rows.length === 0) return 0;
+  const payload = rows.map((r) => ({
+    class_id: classId,
+    email: r.email.toLowerCase(),
+    mb_name: r.mbName,
+    imported_by: importedBy,
+  }));
+  const { error } = await supabase.from('mb_rosters').insert(payload);
+  if (error) throw error;
+  return payload.length;
+}
+
+/**
+ * 生成并落库测验 / 作业的短码（幂等：已有则原样返回）。
+ * 年级位由 quizzes.papers 推（P1/P2 → A1、P3/P4 → A2）；推不出时用 gradeOverride（教师在界面上选）。
+ */
+export async function ensureQuizShortCode(
+  quizId: string,
+  title: string,
+  papers: string[] | null | undefined,
+  gradeOverride?: Grade | null,
+  force = false,
+): Promise<string> {
+  const { data: cur } = await supabase
+    .from('quizzes')
+    .select('mb_short_code')
+    .eq('id', quizId)
+    .single();
+  const existing = (cur as { mb_short_code: string | null } | null)?.mb_short_code ?? null;
+  if (existing && !force) return existing;
+  // 年级位：**优先读作业名**（教师会在名字里写 AS / A2，2026-09-15 明确），其次 papers，最后 A1
+  const grade = gradeOverride ?? inferGrade(title, firstPaperNumber(papers));
+  const taken = await listShortCodes();
+  // force 时排除自己现用的码，避免查重把旧码算成冲突
+  const code = pickShortCode(shortCodeBase(grade), taken.filter((c) => c !== existing));
+  const { error } = await supabase.from('quizzes').update({ mb_short_code: code }).eq('id', quizId);
+  if (error) throw error;
+  return code;
+}
+
+/**
+ * 「不登 ManageBac 分」标记。
+ * 用途：学生不在 ManageBac 名单里（如自学学生），置 true 后名单缺口提示与同步预览都会跳过她，
+ * 不再当作"名单缺人"反复报警。
+ */
+export async function setStudentMbExempt(userId: string, exempt: boolean): Promise<void> {
+  const { error } = await supabase.from('student_data').update({ mb_exempt: exempt }).eq('user_id', userId);
   if (error) throw error;
 }

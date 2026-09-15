@@ -6,7 +6,8 @@ import { PAPER_ORDER } from '../lib/storage';
 import { unitListFor } from '../lib/unitMapping';
 import { maskEmail } from '../lib/shuffle';
 import { copyText } from '../lib/clipboard';
-import { createQuiz, updateQuiz, updateQuizQuestions, listQuizzes, listQuizSubmissions, deleteQuiz, listDeveloperIds, deleteSubmission, countSubmittedByQuizzes, regradeQuizSubmissions } from '../lib/cloud';
+import { createQuiz, updateQuiz, updateQuizQuestions, listQuizzes, listQuizSubmissions, deleteQuiz, listDeveloperIds, deleteSubmission, countSubmittedByQuizzes, regradeQuizSubmissions, ensureQuizShortCode, listMbTaskLinksForQuiz, listMbRoster, listClassesWithMb, type MbTaskLinkRow, type ClassMbRow } from '../lib/cloud';
+import { classMatchesGrade, firstPaperNumber, inferGrade, type Grade } from '../lib/mbSync';
 import QuizWrongBoard from './QuizWrongBoard';
 
 // 创建表单草稿
@@ -118,6 +119,16 @@ export default function QuizManager() {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // —— ManageBac 同步（短码 / task 绑定 / 名单）——
+  const [shortCode, setShortCode] = useState<string | null>(null);
+  const [mbLinks, setMbLinks] = useState<MbTaskLinkRow[]>([]);
+  const [mbClasses, setMbClasses] = useState<ClassMbRow[]>([]);
+  const [mbRosterCount, setMbRosterCount] = useState<number | null>(null);
+  const [mbGrade, setMbGrade] = useState<Grade>('A1');
+  const [mbBusy, setMbBusy] = useState(false);
+  const [manualCopy, setManualCopy] = useState('');   // 剪贴板被拒时，展示可手动 Ctrl+C 的文本
+  const [regenCode, setRegenCode] = useState(false);  // 点「修正」后，回到可重选年级位的状态
   const [msg, setMsg] = useState('');
   const [draft, setDraft] = useState<Draft | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -454,8 +465,87 @@ export default function QuizManager() {
       .map((s) => `${s.email}\t${s.grading?.final_score != null ? s.grading.final_score : s.score}`)
       .join('\n');
     try {
-      await copyText(text);
-      setMsg(`已复制 ${rows.length} 条到剪贴板（邮箱 + 分数，本次满分 ${maxPts}）`);
+      const how = await copyText(text);
+      if (how === 'failed') {
+        setManualCopy(text);
+        setMsg(`剪贴板被此环境拒绝：请在下方文本框里选中后按 Ctrl+C（共 ${rows.length} 条）`);
+      } else {
+        setMsg(`已复制 ${rows.length} 条到剪贴板（邮箱 + 分数，本次满分 ${maxPts}）`);
+      }
+    } catch (e) {
+      setError('复制失败：' + ((e as Error).message || String(e)));
+    }
+  };
+
+  // ManageBac：打开某份测验成绩时，载入班级绑定 / 名单人数 / 已绑定 task
+  const viewingId = viewing?.id ?? '';
+  useEffect(() => {
+    if (!viewing || !viewingId) {
+      setShortCode(null);
+      setMbLinks([]);
+      setMbRosterCount(null);
+      return;
+    }
+    const g = inferGrade(viewing.title, firstPaperNumber(viewing.papers));
+    setShortCode(viewing.mb_short_code ?? null);
+    setMbGrade(g);
+    setRegenCode(false);
+    let alive = true;
+    void (async () => {
+      try {
+        const [cls, links] = await Promise.all([
+          listClassesWithMb(),
+          listMbTaskLinksForQuiz(viewingId),
+        ]);
+        if (!alive) return;
+        setMbClasses(cls);
+        setMbLinks(links);
+        const clsHit = cls.find((c) => classMatchesGrade(c.name, g)) ?? null;
+        setMbRosterCount(clsHit ? (await listMbRoster(clsHit.id)).length : null);
+      } catch {
+        if (alive) { setMbLinks([]); setMbRosterCount(null); }
+      }
+    })();
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewingId]);
+
+  // 当前年级位对应的班级（班级名含 A1/AS 或 A2）
+  const mbClass = mbClasses.find((c) => classMatchesGrade(c.name, mbGrade)) ?? null;
+
+  const genShortCode = async () => {
+    if (!viewing) return;
+    setMbBusy(true);
+    setError('');
+    setMsg('');
+    try {
+      const forced = regenCode;
+      const code = await ensureQuizShortCode(viewing.id, viewing.title, viewing.papers, mbGrade, forced);
+      setShortCode(code);
+      setRegenCode(false);
+      setViewing((v) => (v ? { ...v, mb_short_code: code } : v));
+      setQuizzes((qs) => qs.map((q) => (q.id === viewing.id ? { ...q, mb_short_code: code } : q)));
+      setMsg(forced
+        ? `已重算为 [${code}] —— 记得把 ManageBac 的 task 名同步改一下`
+        : `已生成短码 [${code}]`);
+    } catch (e) {
+      setError('生成短码失败：' + ((e as Error).message || String(e)));
+    } finally {
+      setMbBusy(false);
+    }
+  };
+
+  const copyShortCode = async () => {
+    if (!shortCode) return;
+    setError('');
+    try {
+      const how = await copyText(`[${shortCode}]`);
+      if (how === 'failed') {
+        setManualCopy(`[${shortCode}]`);
+        setMsg('剪贴板被此环境拒绝：请在下方文本框里选中后按 Ctrl+C');
+      } else {
+        setMsg(`已复制 [${shortCode}] —— 粘到 ManageBac 的 task 名里即可`);
+      }
     } catch (e) {
       setError('复制失败：' + ((e as Error).message || String(e)));
     }
@@ -474,7 +564,6 @@ export default function QuizManager() {
             <button className="ghost" onClick={() => setViewing(null)}>← 返回</button>
             <h3 style={{ margin: 0 }}>成绩：{viewing.title}</h3>
             <span className="spacer" />
-            <button className="ghost" onClick={() => void copyGradesForManageBac()}>复制成绩（ManageBac）</button>
             <button className="ghost" onClick={regrade} disabled={regrading}>
               {regrading ? '重判中…' : '重判'}
             </button>
@@ -483,6 +572,106 @@ export default function QuizManager() {
         </div>
         {error && <div className="card" style={{ marginBottom: '0.8rem', background: 'var(--warn-bg)', borderColor: 'var(--warn)' }}>{error}</div>}
         {msg && <div className="card" style={{ marginBottom: '0.8rem', background: 'var(--ok-bg)', borderColor: 'var(--ok)' }}>{msg}</div>}
+
+        {/* ManageBac 同步：短码 / 班级绑定 / 名单 / task 绑定（设计见《分数同步到ManageBac方案.md》） */}
+        <div className="card" style={{ marginBottom: '0.8rem', padding: '0.8rem' }}>
+          <div className="row" style={{ alignItems: 'center', flexWrap: 'wrap', gap: '0.4rem' }}>
+            <strong>ManageBac 同步</strong>
+            <span className="badge">线上自动同步</span>
+            {shortCode && !regenCode ? (
+              <>
+                <code style={{ fontWeight: 700, fontSize: '1rem' }}>[{shortCode}]</code>
+                <button className="ghost" onClick={() => void copyShortCode()}>复制短码</button>
+                <button className="ppt-link" onClick={() => setRegenCode(true)}>修正</button>
+              </>
+            ) : (
+              <>
+                <select value={mbGrade} onChange={(e) => setMbGrade(e.target.value as Grade)} style={{ width: '5rem' }}>
+                  <option value="A1">A1</option>
+                  <option value="A2">A2</option>
+                </select>
+                <button className="primary" onClick={() => void genShortCode()} disabled={mbBusy}>
+                  {mbBusy ? '生成中…' : (regenCode ? '按此年级重算' : '生成短码')}
+                </button>
+                {regenCode && (
+                  <button className="ppt-link" onClick={() => setRegenCode(false)}>取消</button>
+                )}
+              </>
+            )}
+            <span className="spacer" />
+            <span className="muted" style={{ fontSize: '0.8rem' }}>当前班级：{mbClass ? mbClass.name : '未匹配'}</span>
+          </div>
+
+          <p className="muted" style={{ margin: '0.45rem 0 0', fontSize: '0.85rem' }}>
+            {viewing.papers.length > 0
+              ? `年级位由本卷 papers（${viewing.papers.join(' / ')}）推出，可手动改；`
+              : '本卷没有 paper 信息，请先在上面选对年级位；'}
+            {shortCode
+              ? <>把 <code>[{shortCode}]</code> 粘进 ManageBac 的 task 名，再回来绑定。</>
+              : '点「生成短码」后把它粘进 ManageBac 的 task 名。'}
+          </p>
+
+          <ul className="muted" style={{ margin: '0.45rem 0 0', paddingLeft: '1.1rem', fontSize: '0.85rem' }}>
+            <li>
+              班级绑定：
+              {!mbClass
+                ? '未匹配到班级（班级名需含 A1/AS 或 A2）'
+                : mbClass.mb_class_id
+                  ? `已绑定 ManageBac 班级 ${mbClass.mb_class_id}`
+                  : '未绑定 → 去「班级管理」贴一次该班成绩册链接'}
+            </li>
+            <li>
+              名单：
+              {mbRosterCount === null
+                ? '—'
+                : mbRosterCount > 0
+                  ? `已导入 ${mbRosterCount} 人`
+                  : '未导入 → 去「班级管理」导入 ManageBac 名单 xlsx'}
+            </li>
+            <li>
+              task 绑定：
+              {mbLinks.length === 0
+                ? '未绑定（下一步接入：按短码在该班 task 列表里精确匹配）'
+                : mbLinks.map((l) => `${l.mb_task_name ?? l.mb_task_id}${l.mb_class_id ? `（班级 ${l.mb_class_id}）` : ''}`).join('；')}
+            </li>
+          </ul>
+
+          <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '0.65rem 0 0' }} />
+
+          {/* 兜底通道：保持零凭证、零服务器；按钮与输出格式（邮箱<Tab>分数）为硬约束，不得改动 */}
+          <div className="row" style={{ alignItems: 'center', flexWrap: 'wrap', gap: '0.4rem', marginTop: '0.6rem' }}>
+            <strong style={{ fontSize: '0.9rem' }}>本地脚本同步</strong>
+            <span className="muted" style={{ fontSize: '0.8rem' }}>（兜底 · 零凭证、零服务器）</span>
+            <span className="spacer" />
+            <button className="ghost" onClick={() => void copyGradesForManageBac()}>
+              本地脚本同步
+            </button>
+          </div>
+          <p className="muted" style={{ margin: '0.4rem 0 0', fontSize: '0.8rem' }}>
+            复制本次已交卷成绩（每行「邮箱 + 分数」，取最终分），由油猴脚本在 ManageBac 页面粘贴。线上自动同步不可用时的退路。
+          </p>
+        </div>
+        {manualCopy && (
+          <div className="card" style={{ marginBottom: '0.8rem', padding: '0.6rem 0.7rem' }}>
+            <div className="row" style={{ alignItems: 'center', gap: '0.4rem' }}>
+              <strong style={{ fontSize: '0.9rem' }}>手动复制（剪贴板被此环境拒绝）</strong>
+              <span className="spacer" />
+              <button className="ppt-link" onClick={() => setManualCopy('')}>关闭</button>
+            </div>
+            <textarea
+              readOnly
+              value={manualCopy}
+              rows={5}
+              style={{ width: '100%', marginTop: '0.4rem', fontFamily: 'inherit' }}
+              onFocus={(e) => e.currentTarget.select()}
+              onClick={(e) => e.currentTarget.select()}
+            />
+            <p className="muted" style={{ margin: '0.3rem 0 0', fontSize: '0.78rem' }}>
+              点一下文本框会全选，再按 Ctrl+C 即可。
+            </p>
+          </div>
+        )}
+
         {subs.length === 0 ? (
           <div className="card"><div className="empty-state"><p className="muted">暂无学生交卷。</p></div></div>
         ) : (

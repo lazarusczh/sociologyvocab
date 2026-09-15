@@ -1,11 +1,16 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { maskEmail } from '../lib/shuffle';
+import { countMbRosterByClass, listClassesWithMb, replaceMbRoster, setClassMbBinding, setStudentMbExempt } from '../lib/cloud';
+import { parseMbClassUrl, parseRosterSheet } from '../lib/mbSync';
 
-// 班级
+// 班级（含 ManageBac 绑定：成绩册 URL 与解析出的班级号）
 interface ClassRow {
   id: string;
   name: string;
+  papers: string[] | null;
+  mb_class_url: string | null;
+  mb_class_id: string | null;
 }
 
 // 云端 student_data 表的完整行（含 user_id / email / data / class_id）
@@ -14,6 +19,7 @@ interface StudentRow {
   email: string;
   name?: string;
   class_id?: string | null;
+  mb_exempt?: boolean;   // true = 不登 ManageBac 分（不在 ManageBac 名单里的学生）
 }
 
 // 班级管理 + 学生分班：教师创建/重命名/删除班级，并为每个学生指定所属班级
@@ -29,21 +35,32 @@ export default function ClassManager() {
   // 重命名草稿：{ id -> 名称 }
   const [editingName, setEditingName] = useState<{ id: string; name: string } | null>(null);
 
+  // —— ManageBac 绑定与名单 ——
+  const [mbDraft, setMbDraft] = useState<Record<string, string>>({});   // 班级 id → 输入框里的 URL
+  const [mbBusy, setMbBusy] = useState('');
+  const [rosterCount, setRosterCount] = useState<Record<string, number>>({});
+  const [rosterNote, setRosterNote] = useState<Record<string, string>>({});
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const pendingClassRef = useRef<string>('');   // 点「导入名单」时记住是哪个班
+
   const load = useCallback(async () => {
     setLoading(true);
     setError('');
     setMsg('');
-    // 班级列表
-    const { data: classRows, error: classErr } = await supabase
-      .from('classes')
-      .select('id, name')
-      .order('name');
-    if (classErr) {
-      setError(classErr.message);
+    // 班级列表（含 ManageBac 绑定信息）
+    try {
+      setClasses(await listClassesWithMb());
+    } catch (e) {
+      setError((e as Error).message || '加载班级失败');
       setLoading(false);
       return;
     }
-    setClasses((classRows ?? []) as ClassRow[]);
+    // ManageBac 名单条数（一次拿全，避免逐班查询）
+    try {
+      setRosterCount(await countMbRosterByClass());
+    } catch {
+      setRosterCount({});
+    }
 
     // 学生列表（排除 developer 测试账号，与打卡核验一致）
     const { data: devRows } = await supabase
@@ -54,7 +71,7 @@ export default function ClassManager() {
 
     const { data: stuRows, error: stuErr } = await supabase
       .from('student_data')
-      .select('user_id, email, data, class_id')
+      .select('user_id, email, data, class_id, mb_exempt')
       .order('email', { ascending: true });
     if (stuErr) {
       setError(stuErr.message);
@@ -63,7 +80,13 @@ export default function ClassManager() {
     }
     const list = ((stuRows ?? []) as (StudentRow & { data: { name?: string } })[])
       .filter((r) => !devIds.has(r.user_id))
-      .map((r) => ({ user_id: r.user_id, email: r.email, name: r.data?.name ?? '', class_id: r.class_id ?? null }));
+      .map((r) => ({
+        user_id: r.user_id,
+        email: r.email,
+        name: r.data?.name ?? '',
+        class_id: r.class_id ?? null,
+        mb_exempt: r.mb_exempt ?? false,
+      }));
     setStudents(list);
     setLoading(false);
   }, []);
@@ -137,6 +160,101 @@ export default function ClassManager() {
     setMsg('已更新分班');
   };
 
+  // 「不登 ManageBac 分」开关（不在 ManageBac 名单里的学生，如自学学生）
+  const toggleExempt = async (userId: string, exempt: boolean) => {
+    setError('');
+    setMsg('');
+    try {
+      await setStudentMbExempt(userId, exempt);
+      setStudents((prev) => prev.map((s) => (s.user_id === userId ? { ...s, mb_exempt: exempt } : s)));
+      setMsg(exempt ? '已标记为「不登 ManageBac 分」' : '已恢复「需登 ManageBac 分」');
+    } catch (e) {
+      setError((e as Error).message || '更新失败');
+    }
+  };
+
+  // —— ManageBac：绑定 / 解除 / 导入名单 ——
+
+  const bindMb = async (c: ClassRow) => {
+    const parsed = parseMbClassUrl(mbDraft[c.id] ?? '');
+    setError('');
+    setMsg('');
+    if (!parsed.ok) {
+      setError(parsed.reason);
+      return;
+    }
+    setMbBusy(c.id);
+    try {
+      await setClassMbBinding(c.id, (mbDraft[c.id] ?? '').trim(), parsed.classId);
+      setMbDraft((d) => ({ ...d, [c.id]: '' }));
+      setMsg(`「${c.name}」已绑定 ManageBac 班级 ${parsed.classId}`);
+      load();
+    } catch (e) {
+      setError((e as Error).message || '绑定失败');
+    } finally {
+      setMbBusy('');
+    }
+  };
+
+  const unbindMb = async (c: ClassRow) => {
+    if (!confirm(`解除「${c.name}」的 ManageBac 绑定？（已导入的名单会保留）`)) return;
+    setError('');
+    setMsg('');
+    try {
+      await setClassMbBinding(c.id, null, null);
+      setMsg(`已解除「${c.name}」的 ManageBac 绑定`);
+      load();
+    } catch (e) {
+      setError((e as Error).message || '解除失败');
+    }
+  };
+
+  const pickRoster = (classId: string) => {
+    pendingClassRef.current = classId;
+    fileRef.current?.click();
+  };
+
+  const onRosterFile = async (file: File) => {
+    const classId = pendingClassRef.current;
+    const cls = classes.find((c) => c.id === classId);
+    if (!classId || !cls) return;
+    setError('');
+    setMsg('');
+    setMbBusy(classId);
+    try {
+      const parsed = parseRosterSheet(await file.arrayBuffer());
+      if (parsed.entries.length === 0) {
+        setError(`没从「${file.name}」里认出「姓名 + 邮箱」行（识别到的邮箱列：${parsed.emailHeader || '未识别'}）。请确认导出的是班级名单。`);
+        return;
+      }
+      const { data: auth } = await supabase.auth.getUser();
+      const n = await replaceMbRoster(classId, parsed.entries, auth?.user?.id ?? null);
+      // 与站内该班学生邮箱比对：有缺口就说明名单需要重新导出
+      // 标了「不登分」的学生（如不进 ManageBac 名单的自学学生）不计入缺口，避免每次导入都报警
+      const mine = new Set(
+        students
+          .filter((s) => (s.class_id ?? '') === classId && !s.mb_exempt)
+          .map((s) => s.email.toLowerCase()),
+      );
+      const rosterEmails = new Set(parsed.entries.map((e) => e.email));
+      const missing = [...mine].filter((e) => !rosterEmails.has(e)).length;
+      const matched = mine.size - missing;
+      setRosterNote((m) => ({
+        ...m,
+        [classId]: `已导入 ${n} 人${parsed.skipped ? `（跳过 ${parsed.skipped} 行缺姓名）` : ''}；`
+          + `与本班站内学生邮箱匹配 ${matched}/${mine.size} 人`
+          + (missing > 0 ? ` —— 有 ${missing} 名站内学生不在名单里，建议重新导出名单` : ''),
+      }));
+      setMsg(`「${cls.name}」名单已导入`);
+      load();
+    } catch (e) {
+      setError('导入失败：' + ((e as Error).message || String(e)));
+    } finally {
+      setMbBusy('');
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
   // 按班级分组显示（未分班在最前）
   const sortedClasses = [...classes].sort((a, b) => a.name.localeCompare(b.name, 'zh'));
   const studentsByClass = (classId: string | null) =>
@@ -208,6 +326,84 @@ export default function ClassManager() {
         )}
       </div>
 
+      {/* ManageBac 绑定与名单（设计见《分数同步到ManageBac方案.md》） */}
+      <div className="card" style={{ marginBottom: '0.8rem' }}>
+        <h3 style={{ margin: 0 }}>ManageBac 绑定与名单</h3>
+        <p className="muted" style={{ marginTop: '0.4rem', fontSize: '0.85rem' }}>
+          每个班绑定一次成绩册链接（浏览器地址栏里带 <code>/gradebook/</code> 的那条即可），并导入一次 ManageBac 导出的班级名单（含姓名与邮箱）。
+          名单不必每学期重导；但若下面提示「有站内学生不在名单里」，就需要重新导出一次。
+        </p>
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".xlsx,.xls"
+          style={{ display: 'none' }}
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) void onRosterFile(f); }}
+        />
+        {sortedClasses.length === 0 ? (
+          <div className="empty-state" style={{ marginTop: '0.6rem' }}>
+            <p className="muted">还没有班级。先在上面创建班级，再回来绑定 ManageBac。</p>
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table className="check-table" style={{ marginTop: '0.6rem' }}>
+              <thead>
+                <tr>
+                  <th>班级</th>
+                  <th style={{ minWidth: '20rem' }}>ManageBac 成绩册链接</th>
+                  <th>名单</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedClasses.map((c) => (
+                  <tr key={c.id}>
+                    <td style={{ fontWeight: 600 }}>{c.name}</td>
+                    <td>
+                      {c.mb_class_id ? (
+                        <div className="row" style={{ gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                          <span className="badge">已绑定 · 班级 {c.mb_class_id}</span>
+                          <button className="ppt-link" onClick={() => void unbindMb(c)}>解除</button>
+                        </div>
+                      ) : (
+                        <div className="row" style={{ gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                          <input
+                            type="text"
+                            placeholder="粘贴 https://…/teacher/classes/…/gradebook/…"
+                            value={mbDraft[c.id] ?? ''}
+                            onChange={(e) => setMbDraft((d) => ({ ...d, [c.id]: e.target.value }))}
+                            style={{ flex: 1, minWidth: '16rem' }}
+                          />
+                          <button
+                            className="primary"
+                            onClick={() => void bindMb(c)}
+                            disabled={mbBusy === c.id || !(mbDraft[c.id] ?? '').trim()}
+                          >
+                            {mbBusy === c.id ? '绑定中…' : '绑定'}
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                    <td>
+                      <div className="row" style={{ gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <span className={rosterCount[c.id] ? 'badge' : 'badge todo'}>
+                          {rosterCount[c.id] ? `${rosterCount[c.id]} 人` : '未导入'}
+                        </span>
+                        <button className="ppt-link" onClick={() => pickRoster(c.id)} disabled={mbBusy === c.id}>
+                          {mbBusy === c.id ? '导入中…' : '导入名单 xlsx'}
+                        </button>
+                      </div>
+                      {rosterNote[c.id] && (
+                        <div className="muted" style={{ fontSize: '0.78rem', marginTop: '0.25rem' }}>{rosterNote[c.id]}</div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
       {/* 学生分班 */}
       <div className="card" style={{ marginBottom: '0.8rem' }}>
         <h3 style={{ margin: 0 }}>学生分班</h3>
@@ -229,6 +425,7 @@ export default function ClassManager() {
                   <th>姓名</th>
                   <th>邮箱</th>
                   <th>班级</th>
+                  <th>ManageBac 登分</th>
                 </tr>
               </thead>
               <tbody>
@@ -247,6 +444,18 @@ export default function ClassManager() {
                           <option key={c.id} value={c.id}>{c.name}</option>
                         ))}
                       </select>
+                    </td>
+                    <td>
+                      <label className="row" style={{ gap: '0.3rem', alignItems: 'center', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={!!s.mb_exempt}
+                          onChange={(e) => void toggleExempt(s.user_id, e.target.checked)}
+                        />
+                        <span className="muted" style={{ fontSize: '0.8rem' }}>
+                          {s.mb_exempt ? '不登分' : '需登分'}
+                        </span>
+                      </label>
                     </td>
                   </tr>
                 ))}

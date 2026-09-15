@@ -176,6 +176,7 @@ export interface Quiz {
       percent?: number; // 默认 10（满分百分比）
     };
   } | null; // 评分规则快照（创建作业时固定；测验为 null）
+  mb_short_code?: string | null; // ManageBac 短码（形如 A1-0915）：生成后固定不变
   created_by: string | null;
   created_at: string;
 }
