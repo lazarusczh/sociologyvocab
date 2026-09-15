@@ -23,6 +23,9 @@ const ALLOW_HOSTS = [
   'www.example.com',
   'managebac.com',
   'www.managebac.com',
+  // ManageBac 也有 .cn 顶级域（本校用的是 dtd.managebac.cn）
+  'managebac.cn',
+  'www.managebac.cn',
 ];
 
 function allowed(url: string): { ok: true; url: string } | { ok: false; reason: string } {
