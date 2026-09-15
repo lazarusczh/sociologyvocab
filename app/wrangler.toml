@@ -1,11 +1,20 @@
 name = "sociologyvocab"
 compatibility_date = "2026-08-28"
+# nodejs_compat：Browser Rendering（@cloudflare/puppeteer）的前置条件
+compatibility_flags = ["nodejs_compat"]
 main = "worker.ts"
 assets = { directory = "./dist", binding = "ASSETS", run_worker_first = true }
 
 # Workers AI：/skill-api/ask 问答（教材知识站）
 [ai]
 binding = "AI"
+
+# Browser Rendering / Browser Run：主站「一键同步分数」的云端浏览器（见 app/worker/labBrowser.ts）
+# remote = true：浏览器只能跑在 Cloudflare 网络上，本地 `wrangler dev` 必须显式走远程，
+# 否则 binding 会以 local 模式注册、请求直接挂住（2026-09-15 实测：120s 无响应）。
+[browser]
+binding = "BROWSER"
+remote = true
 
 # Supabase：/skill-api/ask 校验登录 JWT（anon key 为公开只读凭据）
 [vars]

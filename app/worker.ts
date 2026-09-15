@@ -9,6 +9,7 @@
 // 两套命名空间**共用同一批模型**（同一魔搭账号、每日 ~250 魔粒不分池），区别在鉴权级别/档位/开关。
 
 import { handleAppApi } from './worker/appApi';
+import { handleLabBrowser } from './worker/labBrowser';
 import { aiGateForbidden, verifyUser } from './worker/ai/auth';
 
 interface Env {
@@ -498,7 +499,11 @@ export default {
       return json(405, { error: 'method not allowed' });
     }
 
-    // 主站 API（教师向）：/app-api/* —— 详见 worker/appApi.ts
+    // 实验路由（Browser Run 验证）：/app-api/lab/* —— 令牌门禁 + 目标白名单，详见 worker/labBrowser.ts
+    const labRes = await handleLabBrowser(request, env as never, url);
+    if (labRes) return labRes;
+
+    // 主站 API：/app-api/* —— 详见 worker/appApi.ts
     const appApiRes = await handleAppApi(request, env, url);
     if (appApiRes) return appApiRes;
 
