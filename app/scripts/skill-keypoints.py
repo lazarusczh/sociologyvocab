@@ -26,6 +26,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]                 # app/
 MS_URL = "https://api-inference.modelscope.cn/v1/chat/completions"
 MS_MODEL = "Qwen/Qwen3-235B-A22B"
+OR_URL = "https://openrouter.ai/api/v1/chat/completions"
+OR_MODEL = "nvidia/nemotron-3-super-120b-a12b:free"
+AG_URL = "https://apihub.agnes-ai.com/v1/chat/completions"
+AG_MODEL = "agnes-2.5-flash"
+# provider → (端点, 模型, key 变量名)。默认走 openrouter（免费池，不消耗魔搭额度）
+PROVIDERS = {
+    "openrouter": (OR_URL, OR_MODEL, "OPENROUTER_API_KEY"),
+    "agnes": (AG_URL, AG_MODEL, "AGNES_API_KEY"),
+    "ms": (MS_URL, MS_MODEL, "MODELSCOPE_API_KEY"),
+}
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/128.0 Safari/537.36")
 
@@ -37,31 +47,36 @@ SOURCES = {                                                # name → (权重, �
 }
 STOP = {"the", "a", "an", "of", "and", "in", "for", "to", "on", "with", "by", "as", "is", "are"}
 
-PROMPT = """你是剑桥 9699 A Level 社会学的阅卷官。下面给出同一个术语的多份权威定义，请归纳成可独立得分的「踩分要素」。
-
-规则：
-1. 一个要素 = 一个能独立给分的意思单元（不是词语复制，也不要罗列同义词）；
-2. 多份定义表达同一意思时合并为一个要素，并列出支持它的来源 key；
-3. 排序依据：来源权重之和（加权票）与支持广度（有几个来源强调）；
-4. 只输出 2–4 个核心要素 core（定义确实简单时可以 1–2 个）；
-5. 仅出现在单一来源、或过于细碎的点，放入 variants（不计分）；
-6. sources 只能使用下列来源 key，不得编造：{keys}；
-7. 严格只输出 JSON，不要解释、不要 markdown 代码块。
+PROMPT = """你是剑桥 9699 A Level 社会学的阅卷官。下面同一个术语给了多份来源定义，请**按来源分别拆要素**，再选出一个「参考来源」作为判分基准。
 
 术语：{term}
 
-来源定义（括号内为权重）：
+来源定义：
 {defs}
 
-输出 JSON（sources 用 key：main / tb1 / tb2 / igcse0495）：
-{{"term":"{term}","keypoints":[{{"text":"用中文写的要素","type":"core","sources":["main","tb1"],"breadth":2}}],"variants":[{{"text":"","sources":[]}}],"note":""}}"""
+要求：
+1. 先为每个来源单独列出它自己定义里的要素（**不要跨来源合并**），每来源 1–4 条；
+2. 选出一个「参考来源」作为判分必踩点，优先级：
+   a) 优先选 main（学生日常练习所用，exposure 最高，判分应与所学口径一致）；
+   b) 只有当 main 明显不完整或不准确时，才改选与 main 方向一致的权威来源（教材 tb1 > 官方 igcse0495），并在 reference_reason 里说明原因；
+3. keypoints = 参考来源的那些要素（学生把这些答全即为满分，通常 2–4 条），每条注明 source；
+4. bonus = 其他来源**独有**、而参考来源没有覆盖的要素（只作加分 / 可接受变体，不要求必答），注明 sources；
+5. 来源 key 只能用：{keys}；
+6. 严格只输出 JSON，不要解释、不要 markdown 代码块。
+
+输出 JSON：
+{{"reference":"main|tb1|igcse0495","reference_reason":"一句话说明为什么选它",
+  "keypoints":[{{"text":"中文写的要素","source":"main"}}],
+  "bonus":[{{"text":"中文写的要素","sources":["igcse0495"]}}],
+  "source_notes":{{"main":"该来源要点一句话","tb1":"...","igcse0495":"..."}},
+  "note":""}}"""
 
 
-def load_key() -> str:
+def load_key(var: str) -> str:
     for line in (ROOT / ".dev.vars").read_text(encoding="utf-8", errors="ignore").splitlines():
-        if line.startswith("MODELSCOPE_API_KEY="):
+        if line.startswith(f"{var}="):
             return line.split("=", 1)[1].strip().strip('"').strip("'")
-    raise SystemExit("no MODELSCOPE_API_KEY in .dev.vars")
+    raise SystemExit(f"no {var} in .dev.vars")
 
 
 def stem(w: str) -> str:
@@ -78,17 +93,20 @@ def toks(s: str):
     return {stem(w) for w in re.findall(r"[a-z][a-z\-]{2,}", s) if w not in STOP}
 
 
-def call_llm(prompt: str, key: str, max_tokens=1600, retries=3, verbose=True):
-    body = {"model": MS_MODEL, "messages": [{"role": "user", "content": prompt}],
-            "stream": False, "max_tokens": max_tokens, "temperature": 0.2,
-            "enable_thinking": False}
+def call_llm(prompt: str, key: str, provider: str = "openrouter", max_tokens=1600,
+             retries=3, verbose=True):
+    url, model, _ = PROVIDERS[provider]
+    body: dict = {"model": model, "messages": [{"role": "user", "content": prompt}],
+                  "stream": False, "max_tokens": max_tokens, "temperature": 0.2}
+    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {key}", "User-Agent": UA}
+    if provider == "openrouter":
+        body["reasoning"] = {"enabled": False}     # nemotron 默认吐推理，关掉只留答案
+        headers.update({"HTTP-Referer": "https://9699vocab.cn", "X-Title": "9699-skill"})
+    elif provider == "ms":
+        body["enable_thinking"] = False
     data = json.dumps(body).encode("utf-8")
     for attempt in range(retries):
-        req = urllib.request.Request(MS_URL, data=data, method="POST", headers={
-            "Content-Type": "application/json", "Authorization": f"Bearer {key}", "User-Agent": UA})
-        if verbose and attempt == 0:
-            print("  DEBUG headers:", {k: repr(v)[:50] for k, v in req.headers.items()})
-            print("  DEBUG data:", type(data).__name__, len(data), "selector:", repr(req.selector))
+        req = urllib.request.Request(url, data=data, method="POST", headers=headers)
         try:
             with urllib.request.urlopen(req, timeout=180) as r:
                 payload = json.loads(r.read().decode("utf-8"))
@@ -142,9 +160,13 @@ def main():
                     help="按 paper/unit 分层轮流抽样，避免样本全落在一个单元")
     ap.add_argument("--retry-failed", action="store_true", help="重跑上次解析失败的条目")
     ap.add_argument("--max-tokens", type=int, default=1600)
+    ap.add_argument("--provider", default="openrouter", choices=sorted(PROVIDERS),
+                    help="直连哪家：openrouter（免费池，默认）/ agnes（本地可用、Worker 出口被封）/ ms（烧魔粒）")
     args = ap.parse_args()
 
-    api_key = load_key()
+    _url, _model, _keyvar = PROVIDERS[args.provider]
+    api_key = load_key(_keyvar)
+    print(f"provider={args.provider}  model={_model}")
     vocab = json.loads((ROOT / "public/vocab-data.json").read_text(encoding="utf-8"))
     items = vocab if isinstance(vocab, list) else (vocab.get("items") or [])
     main_terms = [it for it in items if it.get("type") == "term"]
@@ -229,24 +251,27 @@ def main():
         if args.probe:
             print("\n=== PROMPT ===")
             print(prompt[:1500])
-        txt = call_llm(prompt, api_key, max_tokens=args.max_tokens)
+        txt = call_llm(prompt, api_key, provider=args.provider, max_tokens=args.max_tokens)
         if args.probe:
             print("\n=== RAW RESPONSE ===")
             print(txt)
-        parsed = parse_json(txt)
+        parsed = parse_json(txt) or {}
         rec = {"term": t["term"], "chinese": t["chinese"], "paper": t["paper"], "unit": t["unit"],
                "sources": {k: v[:400] for k, v in t["external"].items()} | {"main": t["main_def"][:400]},
-               "keypoints": (parsed or {}).get("keypoints", []),
-               "variants": (parsed or {}).get("variants", []),
-               "note": (parsed or {}).get("note", ""),
+               "reference": parsed.get("reference", ""),
+               "reference_reason": parsed.get("reference_reason", ""),
+               "keypoints": parsed.get("keypoints", []),
+               "bonus": parsed.get("bonus", []),
+               "source_notes": parsed.get("source_notes", {}),
+               "note": parsed.get("note", ""),
                "raw": (txt or "")[:500],
-               "parse_ok": parsed is not None}
+               "parse_ok": bool(parsed.get("keypoints"))}
         results.append(rec)
         with jsonl.open("a", encoding="utf-8") as f:
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
-        kps = rec["keypoints"]
-        print(f"[{i}/{len(target)}] {t['term']}  -> {len(kps)} core"
-              f"{' (parse failed)' if parsed is None else ''}")
+        print(f"[{i}/{len(target)}] {t['term']}  -> ref={rec['reference'] or '?'} "
+              f"keypoints={len(rec['keypoints'])} bonus={len(rec['bonus'])}"
+              f"{' (parse failed)' if not rec['parse_ok'] else ''}")
         if args.probe:
             break
         time.sleep(args.sleep)
@@ -255,17 +280,19 @@ def main():
     ok = sum(1 for r in results if r["parse_ok"])
     print(f"\n完成 {len(results)} 条（解析成功 {ok}），写入 {out_path}")
 
-    print("\n=== 抽检（每条 2–4 个踩分要素）===")
+    print("\n=== 抽检（参考来源 + 必踩点 + 加分点）===")
     for r in results[:30]:
-        print(f"\n[{r['term']}]  ({r.get('paper','')} {r.get('unit','')})")
-        print(f"   主站定义: {r['sources'].get('main','')[:90]}")
+        print(f"\n[{r['term']}]  ref={r.get('reference') or '?'}"
+              f"  （{r.get('reference_reason','')[:60]}）")
+        print(f"   主站定义: {r['sources'].get('main','')[:95]}")
         for n in ("tb1", "tb2", "igcse0495"):
-            if n in r["sources"]:
-                print(f"   {n:9s}: {r['sources'][n][:90]}")
+            if r["sources"].get(n):
+                print(f"   {n:9s}: {r['sources'][n][:95]}")
         for kp in r["keypoints"]:
-            print(f"   ● [{kp.get('type','')}] {kp.get('text','')}"
-                  f"   <- {','.join(kp.get('sources', []))} (breadth={kp.get('breadth','')})")
-        if r["note"]:
+            print(f"   ✓ 必踩 [{kp.get('source','?')}] {kp.get('text','')}")
+        for b in r.get("bonus", []):
+            print(f"   + 加分 [{','.join(b.get('sources', []))}] {b.get('text','')}")
+        if r.get("note"):
             print(f"   note: {r['note'][:110]}")
 
 

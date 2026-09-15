@@ -1,58 +1,1269 @@
 [
  {
+  "term": "Non-Governmental Organisation",
+  "chinese": "非政府组织",
+  "paper": "Paper 4",
+  "unit": [
+   "人权、发展与全球治理"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "abbr. NGO",
+    "source": "main"
+   },
+   {
+    "text": "local and global organisations",
+    "source": "main"
+   },
+   {
+    "text": "often of charity nature",
+    "source": "main"
+   },
+   {
+    "text": "run by volunteers",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "A non-profit organisation",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "operates independently of any government",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "Non-government, non-profit making bodies",
+    "sources": [
+     "igcse0495"
+    ]
+   },
+   {
+    "text": "address social and political issues",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "定义了NGO的缩写、规模、性质和运作方式",
+   "tb1": "强调非营利和独立于政府的特点",
+   "igcse0495": "突出非政府、非营利及其关注的社会政治议题"
+  }
+ },
+ {
+  "term": "Moral panics",
+  "chinese": "道德恐慌",
+  "paper": "Paper 4",
+  "unit": [
+   "全球犯罪与不平等"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "公众对某社会群体的（通常是不必要的）恐惧",
+    "source": "main"
+   },
+   {
+    "text": "由媒体的夸张报道引发",
+    "source": "main"
+   },
+   {
+    "text": "公众无法理解该群体不同的价值观和行为规范",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "对偏差行为的夸张社会反应",
+    "sources": [
+     "igcse0495"
+    ]
+   },
+   {
+    "text": "通常由媒体煽动",
+    "sources": [
+     "igcse0495"
+    ]
+   },
+   {
+    "text": "引发对行动的需求",
+    "sources": [
+     "igcse0495"
+    ]
+   },
+   {
+    "text": "广泛的恐慌，认为某事在道德上出错",
+    "sources": [
+     "tb1"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调媒体夸张导致公众对群体价值观不理解的恐惧",
+   "tb1": "仅概括为广泛的道德恐慌，缺少媒体作用和群体具体描述",
+   "igcse0495": "聚焦对偏差的夸张反应及行动需求，媒体作用明确但未提价值观冲突"
+  }
+ },
+ {
+  "term": "Urbanisation",
+  "chinese": "城市化",
+  "paper": "Paper 2",
+  "unit": [
+   "家庭功能"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "社会人口多数向城市地区迁移居住",
+    "source": "main"
+   },
+   {
+    "text": "城市地区指城市（cities）",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "城市和城镇人口增加，相对于农村地区",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "城市增长；更高比例人口居住在城市",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调多数人口向城市（cities）迁移的过程",
+   "tb1": "强调城市和城镇人口相对农村的增加",
+   "igcse0495": "强调城市增长和人口比例提升"
+  }
+ },
+ {
+  "term": "Arranged marriage",
+  "chinese": "包办婚姻",
+  "paper": "Paper 2",
+  "unit": [
+   "家庭多样性"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "父母或其他家庭成员决定子女的婚姻对象",
+    "source": "main"
+   },
+   {
+    "text": "可在子女同意的前提下提供有限的选择范围",
+    "source": "main"
+   },
+   {
+    "text": "可视为某些群体的文化特色，如印度人",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "由父母和/或媒人组织或安排的婚姻类型",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "婚姻伙伴由年长的家庭成员选择，而非个人自行选择",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调家庭决策、子女同意及文化特色",
+   "tb1": "聚焦父母和媒人的组织作用",
+   "igcse0495": "突出年长家庭成员的选择权与个人自主选择的对比"
+  }
+ },
+ {
+  "term": "Boomerang family",
+  "chinese": "“回巢”家庭",
+  "paper": "Paper 2",
+  "unit": [
+   "家庭多样性"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "成年子女返回原生家庭居住",
+    "source": "main"
+   },
+   {
+    "text": "继续依赖父母经济或生活支持",
+    "source": "main"
+   },
+   {
+    "text": "因无法独立生活而返回（如离婚、失业等原因）",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "子女曾离开家庭后再返回",
+    "sources": [
+     "tb1",
+     "igcse0495"
+    ]
+   },
+   {
+    "text": "返回时为年轻成年阶段",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "返回原因超出个人控制范围",
+    "sources": [
+     "tb1"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调成年子女因独立失败而返回并继续依赖父母",
+   "tb1": "强调子女曾离家后因不可控情况被迫返回作为年轻成年人",
+   "igcse0495": "仅描述成年子女返回家庭与父母同住，未提依赖或返回原因"
+  }
+ },
+ {
+  "term": "Cohabitation",
+  "chinese": "同居",
+  "paper": "Paper 2",
+  "unit": [
+   "家庭多样性"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "两人具有浪漫关系",
+    "source": "main"
+   },
+   {
+    "text": "共同居住",
+    "source": "main"
+   },
+   {
+    "text": "未获得任何形式的法律承认或登记",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "具有亲密关系",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "发生性关系",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调浪漫关系、同居及无法律承认",
+   "tb1": "强调同居及亲密关系，未婚状态",
+   "igcse0495": "强调未婚且发生性关系的同居状态"
+  }
+ },
+ {
+  "term": "Empty-shell marriage",
+  "chinese": "空壳婚姻",
+  "paper": "Paper 2",
+  "unit": [
+   "家庭多样性"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "夫妻仍然保持婚姻关系",
+    "source": "main"
+   },
+   {
+    "text": "夫妻之间没有爱或感情",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "夫妻因财务、宗教或为子女而继续同居",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "夫妻在同一屋檐下基本过着独立的生活",
+    "sources": [
+     "tb1"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调婚姻关系存续但情感消失",
+   "tb1": "补充说明维持婚姻的实际原因和分居状态",
+   "igcse0495": "与 main 类似，但未提及维持原因或分居生活"
+  }
+ },
+ {
+  "term": "Horizontally extended family",
+  "chinese": "横向扩张家庭",
+  "paper": "Paper 2",
+  "unit": [
+   "家庭多样性"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，定义完整且准确，无需改选",
+  "keypoints": [
+   {
+    "text": "核心家庭（nuclear family）向外延伸",
+    "source": "main"
+   },
+   {
+    "text": "包括叔伯、姑姑（uncles and aunts）",
+    "source": "main"
+   },
+   {
+    "text": "包括堂表兄弟姐妹（cousins）",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "可能同住或居住在附近，保持规律频繁的联系",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "可能包括祖父母或姑姑叔伯等其他亲属",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "核心家庭向外延伸至叔伯姑姑和堂表兄弟姐妹",
+   "tb1": "核心家庭加上可能同住或临近的其他亲属，保持规律联系",
+   "igcse0495": "父母和子女与祖父母或姑姑叔伯等亲属同住或居住附近"
+  }
+ },
+ {
+  "term": "Modified extended family",
+  "chinese": "改良式扩张家庭",
+  "paper": "Paper 2",
+  "unit": [
+   "家庭多样性"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "扩展家庭成员不一定同住或居住在附近",
+    "source": "main"
+   },
+   {
+    "text": "通过现代技术（如互联网）保持联系",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "包括核心家庭及其他亲属（如祖父母、姑姑、叔叔等）",
+    "sources": [
+     "tb1",
+     "igcse0495"
+    ]
+   },
+   {
+    "text": "亲属可能同住或居住在近距离以保持频繁接触",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "亲属可能居住在同一屋檐下或附近",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调非同住但通过技术维持联系的扩展家庭形式",
+   "tb1": "强调核心家庭加其他亲属同住或近距离居住以保持频繁接触",
+   "igcse0495": "强调父母和子女与其他亲属（如祖父母、姑姑叔叔）同住或居住在附近"
+  }
+ },
+ {
+  "term": "Monogamy",
+  "chinese": "一夫一妻制（专偶制）",
+  "paper": "Paper 2",
+  "unit": [
+   "家庭多样性"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "一个人在同一时间只能与一个伴侣结婚",
+    "source": "main"
+   }
+  ],
+  "bonus": [],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调同一时间只能有一个婚姻伴侣",
+   "tb1": "与 main 表述一致，仅用词略有不同",
+   "igcse0495": "与 main 表述一致，仅用词略有不同"
+  }
+ },
+ {
+  "term": "Nuclear family",
+  "chinese": "核（心）家庭",
+  "paper": "Paper 2",
+  "unit": [
+   "家庭多样性"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "社会的最基本单位",
+    "source": "main"
+   },
+   {
+    "text": "由一男一女已婚夫妇组成",
+    "source": "main"
+   },
+   {
+    "text": "包含他们的生物学和受抚养子女，子女数量可为任意数量",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "子女可以是亲生的或收养的",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "夫妻可以是已婚或处于稳定关系中，并共同居住",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调为社会基本单位，明确夫妻性别异且子女为受抚养的生物学子女，数量不限",
+   "tb1": "定义更简洁，包含父母及其自然或收养子女，未提婚姻状态或子女受抚养性",
+   "igcse0495": "强调夫妻为成年男女，婚姻或稳定关系，同居并抚养受抚养子女"
+  }
+ },
+ {
+  "term": "Polygamy",
+  "chinese": "非专偶制",
+  "paper": "Paper 2",
+  "unit": [
+   "家庭多样性"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "一个人可以同时与多个伴侣结婚",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "允许配偶拥有多于一位丈夫或妻子的文化规范",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "例如，一个男人有几个妻子或一个女人有几个丈夫",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "定义为一夫多妻或一妻多夫的共同特征：同时拥有多个婚姻对象",
+   "tb1": "强调文化规范层面，指出允许配偶有多于一位丈夫或妻子",
+   "igcse0495": "给出明确例子，说明男性可有多妻、女性可有多夫的具体形式"
+  }
+ },
+ {
+  "term": "Reconstituted family",
+  "chinese": "重组家庭",
+  "paper": "Paper 2",
+  "unit": [
+   "家庭多样性"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "由再婚形成的家庭",
+    "source": "main"
+   },
+   {
+    "text": "至少有一个孩子是父母从之前婚姻中带来的",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "也称为 blended family 或 stepfamily",
+    "sources": [
+     "main"
+    ]
+   },
+   {
+    "text": "一方或双方父母有来自之前关系的孩子，共同组成新家庭",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "在离婚或伴侣死亡后再婚而形成的新家庭",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调再婚形成且有孩子从前婚带入，等同于 blended family 和 stepfamily",
+   "tb1": "指出一方或双方父母有前关系子女，合并形成新家庭，称为 step-family",
+   "igcse0495": "定义为离婚或伴侣死亡后再婚所创建的新家庭"
+  }
+ },
+ {
+  "term": "Serial monogamy",
+  "chinese": "连续的一夫一妻婚姻",
+  "paper": "Paper 2",
+  "unit": [
+   "家庭多样性"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，定义完整且准确，无需改选",
+  "keypoints": [
+   {
+    "text": "同一时间只能有一个婚姻伴侣",
+    "source": "main"
+   },
+   {
+    "text": "可以在一生中多次结婚和离婚",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "关系形式包括同居或婚姻",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "强调一生中多次婚姻伴侣但同一时间仅一个",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调同一时间单一伴侣及终身可多次婚姻离婚",
+   "tb1": "强调一系列一夫一妻的同居或婚姻关系",
+   "igcse0495": "强调一生中多次婚姻伴侣但同一时间仅一个"
+  }
+ },
+ {
+  "term": "Vertically extended family",
+  "chinese": "垂直扩张家庭",
+  "paper": "Paper 2",
+  "unit": [
+   "家庭多样性"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "从核心家庭扩展，包含超过两代人",
+    "source": "main"
+   },
+   {
+    "text": "包括祖父母 + 父母 + 子女",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "其他亲戚可能住在同一屋檐下或近距离，以便保持规律频繁的联系",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "亲戚可以是祖父母、姑姑、叔叔等",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调代数延伸（超过两代），明确列出祖父母、父母、子女的组合",
+   "tb1": "强调核心家庭加其他亲戚，同住或近距离，联系规律频繁",
+   "igcse0495": "强调父母和子女与其他亲戚（祖父母、姑姑、叔叔等）同住或近距离"
+  }
+ },
+ {
+  "term": "Single-parent / Lone-parent family",
+  "chinese": "单亲家庭",
+  "paper": "Paper 2",
+  "unit": [
+   "家庭多样性"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "只有一位父亲或母亲及其受抚养子女共同生活",
+    "source": "main"
+   },
+   {
+    "text": "可能由离婚、配偶死亡导致",
+    "source": "main"
+   },
+   {
+    "text": "少数情况下为自愿选择（如未婚单亲）",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "子女年龄通常在18岁以下",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "父母未再婚（离婚或丧偶后未再婚）",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "父母可能从未结婚",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "与 one-parent family 含义相同",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调单亲家庭由一方父母及其受抚养子女组成，成因包括离婚、死亡或自愿选择",
+   "tb1": "聚焦于未再婚的离婚、丧偶或从未婚父母，子女年龄限定在18岁以下",
+   "igcse0495": "简洁定义为一方父母及其受抚养子女共同生活，并指出与 one-parent family 同义"
+  }
+ },
+ {
+  "term": "Conjugal role",
+  "chinese": "婚内角色",
+  "paper": "Paper 2",
+  "unit": [
+   "性别平等"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "丈夫和妻子在婚姻中所扮演的家庭角色",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "角色由男性和女性伴侣在婚姻或同居关系中扮演",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "角色来源于家庭内部的劳动分工，通常由丈夫和妻子承担",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "定义丈夫和妻子在婚姻中的家庭角色",
+   "tb1": "强调角色适用于婚姻或同居关系中的男女伴侣",
+   "igcse0495": "指出角色源于家庭劳动分工，通常指丈夫和妻子"
+  }
+ },
+ {
+  "term": "Domestic violence",
+  "chinese": "家庭暴力",
+  "paper": "Paper 2",
+  "unit": [
+   "性别平等"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "家庭内部的身体虐待",
+    "source": "main"
+   },
+   {
+    "text": "家庭内部的情感虐待",
+    "source": "main"
+   },
+   {
+    "text": "家庭内部的性虐待",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "通常由男性配偶对女性伴侣及/或子女实施",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "不仅指身体暴力，还包括控制行为模式，如情感操纵",
+    "sources": [
+     "igcse0495"
+    ]
+   },
+   {
+    "text": "通常但不总是由男性对女性实施",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "定义了家庭内部的三种虐待形式：身体、情感、性",
+   "tb1": "强调施暴者通常为男性配偶，对象为女性伴侣及/或子女",
+   "igcse0495": "指出暴力通常但不总是由男性对女性实施，并扩展至控制行为和情感操纵"
+  }
+ },
+ {
+  "term": "Dual burden",
+  "chinese": "双重负担",
+  "paper": "Paper 2",
+  "unit": [
+   "性别平等"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，定义完整且准确，无需改选",
+  "keypoints": [
+   {
+    "text": "女性需要在公共领域（工作场所）从事有偿工作",
+    "source": "main"
+   },
+   {
+    "text": "女性需要在私人领域（家庭）承担无偿家务劳动",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "另一种说法为“第二班次”（second shift）",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "从事有偿工作同时照顾家庭和家庭成员的人被认为承担双重负担，这通常适用于女性",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "指出女性在公共和私人领域分别承担有偿工作和无偿家务",
+   "tb1": "将 dual burden 等同于“第二班次”概念",
+   "igcse0495": "强调从事有偿工作并照顾家庭的人承担双重负担，多见于女性"
+  }
+ },
+ {
+  "term": "Joint conjugal roles",
+  "chinese": "联合的婚内角色",
+  "paper": "Paper 2",
+  "unit": [
+   "性别平等"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "丈夫和妻子平等分担所有家务事项",
+    "source": "main"
+   },
+   {
+    "text": "没有任何家务任务仅由一方单独承担",
+    "source": "main"
+   },
+   {
+    "text": "不再存在他们之间的配偶角色区分",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "角色由婚姻或同居关系中的男性和女性伴侣所扮演",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "角色来源于家庭内部的劳动分工",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调家务完全平等分担且无角色区分",
+   "tb1": "仅描述婚姻或同居中男女伴侣的角色，未涉及分担程度",
+   "igcse0495": "指出角色源于家庭劳动分工，但未说明是否平等"
+  }
+ },
+ {
+  "term": "Segregated conjugal roles",
+  "chinese": "分开的婚内角色",
+  "paper": "Paper 2",
+  "unit": [
+   "性别平等"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "丈夫和妻子之间的劳动分工非常明确",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "男性和女性伴侣在婚姻或同居关系中所扮演的角色",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "家庭内部伙伴（通常是丈夫和妻子）所承担的角色，源于家庭内部的劳动分工",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调劳动分工的明确性",
+   "tb1": "定义角色归属于婚姻或同居关系中的男女伴侣",
+   "igcse0495": "将角色与家庭内部劳动分工的结果联系起来"
+  }
+ },
+ {
+  "term": "Symmetrical family",
+  "chinese": "对称家庭",
+  "paper": "Paper 2",
+  "unit": [
+   "性别平等"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "父母平均分担所有家务劳动",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "丈夫和妻子分担家务劳动、决策和休闲时间",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "伙伴角色平等",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调父母在所有家务上的平均分担",
+   "tb1": "指出这是 Young 和 Willmott 识别的核心家庭类型，涵盖家务、决策和休闲的共享",
+   "igcse0495": "概括为伙伴角色平等，表述最简洁"
+  }
+ },
+ {
+  "term": "Triple shift",
+  "chinese": "“三班倒”",
+  "paper": "Paper 2",
+  "unit": [
+   "性别平等"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，定义完整且与教学口径一致",
+  "keypoints": [
+   {
+    "text": "女性需要在公共领域从事有偿工作",
+    "source": "main"
+   },
+   {
+    "text": "女性需要承担无偿的家务劳动",
+    "source": "main"
+   },
+   {
+    "text": "女性需要在私人领域进行情感劳动",
+    "source": "main"
+   }
+  ],
+  "bonus": [],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "女性需同时承担有偿工作、无偿家务和情感劳动",
+   "tb1": "女性时间面临三重压力：有偿工作、无偿家务劳动和情感工作",
+   "igcse0495": "除了有偿工作和家务，女性还需承担家庭中的情感工作，支持其他成员"
+  }
+ },
+ {
   "term": "Patriarchy",
   "chinese": "父权社会",
   "paper": "Paper 1",
   "unit": [
    "性别认同"
   ],
-  "tier": "high",
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "社会由男性统治",
+    "source": "main"
+   },
+   {
+    "text": "有利于男性权利",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "男性对社会及其组成的社会制度的统治",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "男性在社会中占主导地位，女性从属",
+    "sources": [
+     "igcse0495"
+    ]
+   },
+   {
+    "text": "男性对妇女和儿童在社会中的统治",
+    "sources": [
+     "igcse0495"
+    ]
+   },
+   {
+    "text": "包括家庭在内的组织中男性占主导地位",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
   "sources": [
    "igcse0495",
    "main",
    "tb1"
   ],
+  "source_notes": {
+   "main": "强调男性统治和对男性权利的偏好",
+   "tb1": "聚焦男性对社会及其制度的统治",
+   "igcse0495": "明确指出男性主导、女性从属，并扩展到家庭和儿童"
+  }
+ },
+ {
+  "term": "Compensatory education",
+  "chinese": "补偿教育",
+  "paper": "Paper 3",
+  "unit": [
+   "教育与不平等"
+  ],
+  "reference": "main",
+  "reference_reason": "主站词库为学生日常练习所用，exposure 最高，判分应与所学口径一致",
   "keypoints": [
    {
-    "text": "男性在社会中占据主导地位，女性处于从属地位",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
+    "text": "对传统上处于弱势社会经济背景的学生提供额外教育和辅导",
+    "source": "main"
    },
    {
-    "text": "男性对社会及其制度的控制和支配",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
+    "text": "与积极歧视（positive discrimination）相关",
+    "source": "main"
    }
   ],
-  "variants": [
+  "bonus": [
    {
-    "text": "包括家庭在内的组织中男性主导、女性从属的结构",
+    "text": "旨在弥补所谓文化匮乏群体的所谓不足",
     "sources": [
-     "igcse0495"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
+     "tb1"
+    ]
    },
    {
-    "text": "偏向男性权利和利益的社会体系",
+    "text": "包括财政援助、额外课程和辅导，旨在支持来自弱势背景的儿童并缩小工薪阶层与中产阶级学习者之间的成就差距",
     "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
+     "igcse0495"
+    ]
    }
-  ]
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调对弱势社会经济背景学生的额外教育支持及其与积极歧视的关联",
+   "tb1": "聚焦于补偿所谓文化匮乏群体的不足",
+   "igcse0495": "具体列出政策手段（财政援助、额外课程、辅导）及其目标（缩小成就差距）"
+  }
+ },
+ {
+  "term": "Streaming",
+  "chinese": "分流",
+  "paper": "Paper 3",
+  "unit": [
+   "教育功能"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "把学生分到不同的路线，无论是学术还是职业",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "将学生安排在某一特定群体中学习所有科目，整个班级成为一个能力分组",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "儿童在所有科目中与能力相近的其他儿童同班授课",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调按学术或职业路线分流学生",
+   "tb1": "强调按能力将全班学生分组学习所有科目",
+   "igcse0495": "强调按相近能力分班教授所有科目"
+  }
+ },
+ {
+  "term": "Vocationalism",
+  "chinese": "职业教育",
+  "paper": "Paper 3",
+  "unit": [
+   "教育功能"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "一种教育类型和途径",
+    "source": "main"
+   },
+   {
+    "text": "为学生特定工作、职业和职业生涯做准备",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "教育和培训旨在为年轻人就业做准备",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "教授工作技能以满足工业需求",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "培训人们从事特定工作或职业",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调教育类型和路径，针对特定职业准备",
+   "tb1": "侧重就业准备和工业需求的技能培训",
+   "igcse0495": "概括为职业教育，培训特定工作或职业"
+  }
  },
  {
   "term": "Interpretivism",
@@ -61,52 +1272,156 @@
   "unit": [
    "方法论取向"
   ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
   "keypoints": [
    {
-    "text": "强调研究个体的主观经验及其赋予行为的意义",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
+    "text": "认为存在多种主观的现实接受和解释版本",
+    "source": "main"
    },
    {
-    "text": "倾向于使用质性研究方法",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
+    "text": "属于认识论（哲学思想）的一种",
+    "source": "main"
    }
   ],
-  "variants": [
+  "bonus": [
    {
-    "text": "一种认识论，认为现实存在多种主观的解释和理解方式",
+    "text": "探索人们的生活经验及其对行为所赋予的意义",
     "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
+     "tb1"
+    ]
+   },
+   {
+    "text": "偏好使用定性数据",
+    "sources": [
+     "tb1"
+    ]
    },
    {
     "text": "从个体层面出发，关注小规模互动",
     "sources": [
      "igcse0495"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
+    ]
+   },
+   {
+    "text": "通常倾向于采用定性方法",
+    "sources": [
+     "igcse0495"
+    ]
    }
-  ]
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调主观解释的多元性及其认识论属性",
+   "tb1": "聚焦生活经验与意义建构，偏好定性数据",
+   "igcse0495": "从个体层面出发，关注小规模互动，倾向定性方法"
+  }
+ },
+ {
+  "term": "Positivism",
+  "chinese": "实证主义",
+  "paper": "Paper 1",
+  "unit": [
+   "方法论取向"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "相信科学方法可以证明社会事实的客观存在",
+    "source": "main"
+   },
+   {
+    "text": "属于认识论（哲学思想）",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "部分基于自然科学的方法",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "偏好使用定量数据",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "采取宏观（大规模）视角研究社会",
+    "sources": [
+     "igcse0495"
+    ]
+   },
+   {
+    "text": "以科学方式研究社会",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调科学方法证明社会事实客观存在及其认识论性质",
+   "tb1": "侧重方法论：部分借鉴自然科学，偏好定量数据",
+   "igcse0495": "强调宏观视角、科学研究方式及定量方法的使用"
+  }
+ },
+ {
+  "term": "Verstehen",
+  "chinese": "（德语）理解",
+  "paper": "Paper 1",
+  "unit": [
+   "方法论取向"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "理解，共情，'To walk a mile in another man's shoes'",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "用于解释指导个体行动的意义和动机的方法",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "理解研究参与者的情况，正如他们自己所理解的那样",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "识别与另一个人或群体产生共鸣，并从他们的角度看待事物",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调共情和换位思考的日常表达",
+   "tb1": "聚焦韦伯方法论中的意义解释与动机理解",
+   "igcse0495": "概述为识别与共鸣并从他人角度看问题"
+  }
  },
  {
   "term": "Ethnocentrism",
@@ -115,34 +1430,661 @@
   "unit": [
    "族裔认同"
   ],
-  "tier": "low",
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "错误地认为自己的文化实践和规范在世界上是普遍的",
+    "source": "main"
+   },
+   {
+    "text": "认为其他文化是错误的和低劣的",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "认为自己的文化或民族群体优于其他文化",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "认为自己种族或国家的人、习俗和传统优于其他种族或国家",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
   "sources": [
    "igcse0495",
    "main",
    "tb1"
   ],
+  "source_notes": {
+   "main": "强调错误普遍性假设及对其他文化的负面评价",
+   "tb1": "简洁定义为自身文化优越感",
+   "igcse0495": "明确指出种族或国家层面的优越感"
+  }
+ },
+ {
+  "term": "Institutional racism",
+  "chinese": "制度化的种族主义",
+  "paper": "Paper 1",
+  "unit": [
+   "族裔认同"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
   "keypoints": [
    {
-    "text": "认为自己的文化或族群优于其他文化或族群",
+    "text": "组织未能向个人提供适当服务",
+    "source": "main"
+   },
+   {
+    "text": "原因是个人的民族/种族出身",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "种族偏见或歧视在社会或组织中成为常态行为",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "机构的运作涉及导致对民族群体歧视的系统和期望",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调组织未能提供服务，因种族出身导致服务缺失",
+   "tb1": "强调种族偏见/歧视制度化为社会或组织的常态行为",
+   "igcse0495": "强调机构运作中的系统和期望导致对民族群体的歧视"
+  }
+ },
+ {
+  "term": "Fatalism",
+  "chinese": "宿命论",
+  "paper": "Paper 4",
+  "unit": [
+   "理论视角与核心概念"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习练习所用，曝光度最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "人们在较贫穷的国家放弃通过自身努力改善生活，接受命运安排",
+    "source": "main"
+   },
+   {
+    "text": "这是落后文化的一个因素",
+    "source": "main"
+   },
+   {
+    "text": "现代化理论认为它阻碍发展",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "接受现状而不努力改善",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "个体相信自己无法控制发生在自己身上的事情",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调贫穷国家人们放弃自我改善、接受命运，并指出其为落后文化因素、现代化理论认为阻碍发展",
+   "tb1": "仅指出接受现状而不努力改善",
+   "igcse0495": "仅指出个体相信自己无法控制发生在自己身上的事情"
+  }
+ },
+ {
+  "term": "Colonialism",
+  "chinese": "殖民主义",
+  "paper": "Paper 4",
+  "unit": [
+   "理论视角与核心概念"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "西方帝国通过军事征服发现并占领殖民地",
+    "source": "main"
+   },
+   {
+    "text": "目的是获取原材料、廉价劳动力（甚至奴隶）和更大的产品市场",
+    "source": "main"
+   },
+   {
+    "text": "殖民地的统治是直接的",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "通过控制较弱国家来增加自身权力和财富",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "以定居者形式占领被控制的国家",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调西方帝国、军事征服、经济剥削和直接统治",
+   "tb1": "聚焦强国通过武力直接控制弱国并利用其资源增强自身实力",
+   "igcse0495": "指出一国通过政策或实践控制另一国，伴随剥削和定居者占领"
+  }
+ },
+ {
+  "term": "Covert observation",
+  "chinese": "隐藏身份的观察",
+  "paper": "Paper 1",
+  "unit": [
+   "研究方法"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "研究者隐藏自己的身份",
+    "source": "main"
+   },
+   {
+    "text": "参与者不知道自己正在被观察",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "观察者的真实身份和研究目的都被隐藏",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "被研究的群体 unaware of the research；covert 意为 'hidden'",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调研究者隐藏身份，参与者不知被观察",
+   "tb1": "补充说明研究目的也被隐藏，更完整",
+   "igcse0495": "概括群体 unaware 并解释 covert 含义"
+  }
+ },
+ {
+  "term": "Group interview",
+  "chinese": "小组访谈",
+  "paper": "Paper 1",
+  "unit": [
+   "研究方法"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "多个人同时接受访谈",
+    "source": "main"
+   },
+   {
+    "text": "效率高于一对一访谈",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "访谈覆盖多个主题或话题",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "研究者提问并从多人处收集数据",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "访谈在同一时间进行",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调同时访谈多人及效率优势",
+   "tb1": "强调覆盖多主题及研究者主动提问收集数据",
+   "igcse0495": "强调同一时间共同访谈的核心特征"
+  }
+ },
+ {
+  "term": "Longitudinal study",
+  "chinese": "纵向研究",
+  "paper": "Paper 1",
+  "unit": [
+   "研究方法"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "一种定量研究方法",
+    "source": "main"
+   },
+   {
+    "text": "需要很长的时间段",
+    "source": "main"
+   },
+   {
+    "text": "涉及大规模样本",
+    "source": "main"
+   },
+   {
+    "text": "定期用调查重新访问样本",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "研究同一群人随时间的变化",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "在较长时间内以间隔进行研究",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调定量、长时段、大样本和定期调查",
+   "tb1": "聚焦于同一群人随时间的追踪研究",
+   "igcse0495": "指出研究在较长时间内以间隔进行"
+  }
+ },
+ {
+  "term": "Non-participant observation",
+  "chinese": "非参与式的观察",
+  "paper": "Paper 1",
+  "unit": [
+   "研究方法"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "研究者不参与目标群体的活动",
+    "source": "main"
+   },
+   {
+    "text": "从外部观察群体的行为和行动",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "研究者研究群体但不参与群体正在进行的活动",
+    "sources": [
+     "igcse0495"
+    ]
+   },
+   {
+    "text": "基于观察的研究方法",
+    "sources": [
+     "tb1"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "定义了非参与观察为研究者不参与并从外部观察群体行为",
+   "tb1": "强调研究者不加入被研究者所在的群体",
+   "igcse0495": "指出研究者研究群体但不参与群体正在进行的活动"
+  }
+ },
+ {
+  "term": "Open question",
+  "chinese": "开放式问题",
+  "paper": "Paper 1",
+  "unit": [
+   "研究方法"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "没有预设选项",
+    "source": "main"
+   },
+   {
+    "text": "允许受访者自由表达自己的想法",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "受访者可以用自己的话回答",
     "sources": [
      "tb1",
      "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
+    ]
    }
   ],
-  "variants": [
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调无预设选项和自由表达思想",
+   "tb1": "仅说明可用自己的话回答，未提无预设选项",
+   "igcse0495": "与 tb1 类似，仅提自由用自己的话回答"
+  }
+ },
+ {
+  "term": "Overt observation",
+  "chinese": "表明自己身份的观察",
+  "paper": "Paper 1",
+  "unit": [
+   "研究方法"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
    {
-    "text": "将自身文化规范视为普世标准，并贬低其他文化的价值",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
+    "text": "研究者向参与者展示自己作为研究者的身份",
+    "source": "main"
    }
-  ]
+  ],
+  "bonus": [
+   {
+    "text": "研究的目的也被向参与者揭示",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "被研究群体知道研究正在进行",
+    "sources": [
+     "igcse0495"
+    ]
+   },
+   {
+    "text": "被研究群体知道研究者是谁",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "仅强调研究者身份被展示",
+   "tb1": "强调研究者真实身份和研究目的均被揭示",
+   "igcse0495": "强调群体知晓研究进行及研究者身份"
+  }
+ },
+ {
+  "term": "Participant observation",
+  "chinese": "参与式的观察",
+  "paper": "Paper 1",
+  "unit": [
+   "研究方法"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "研究者加入参与者的日常活动和仪式中进行观察",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "研究者通过加入群体并参与其活动来收集数据",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "研究者通过加入群体并像他们一样生活来研究群体",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调研究者参与日常活动和仪式",
+   "tb1": "定义为定性方法，侧重数据收集方式",
+   "igcse0495": "强调以群体成员身份生活进行研究"
+  }
+ },
+ {
+  "term": "Semi-structured interview",
+  "chinese": "半结构化访谈",
+  "paper": "Paper 1",
+  "unit": [
+   "研究方法"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "有问题提纲但不要求严格按提纲提问",
+    "source": "main"
+   },
+   {
+    "text": "允许面试者即兴发挥",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "类似结构化访谈但面试者会追问额外问题",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "包含一些标准化问题但允许研究者在提问内容和顺序上有灵活性",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "定义了半结构化访谈具有提纲但不严格遵循，允许即兴发挥",
+   "tb1": "强调与结构化访谈的相似性及追问额外问题的特点",
+   "igcse0495": "指出含有标准化问题但允许提问内容和顺序的灵活性"
+  }
+ },
+ {
+  "term": "Structured interview",
+  "chinese": "结构化访谈",
+  "paper": "Paper 1",
+  "unit": [
+   "研究方法"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "访谈严格受限于一套封闭式问题列表",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "访谈者朗读问卷并填写答案",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "问题标准化（相同顺序提问），回答组织以产生定量数据",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调访谈由封闭式问题严格限定",
+   "tb1": "描述为访谈者朗读并填写的问卷",
+   "igcse0495": "强调问题标准化及定量数据输出"
+  }
+ },
+ {
+  "term": "Triangulation",
+  "chinese": "三角定位",
+  "paper": "Paper 1",
+  "unit": [
+   "研究方法"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "使用两种不同的研究方法来检验研究结果的有效性",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "例如使用混合方法进行交叉检验",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "在同一研究项目中使用两种或以上的方法",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调用两种不同方法检验有效性",
+   "tb1": "强调交叉检验并举例混合方法",
+   "igcse0495": "强调同一项目中使用两种或以上方法"
+  }
+ },
+ {
+  "term": "Unstructured interview",
+  "chinese": "非结构化访谈",
+  "paper": "Paper 1",
+  "unit": [
+   "研究方法"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "访谈没有限制且完全开放",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "访谈中几乎没有预设问题，但研究者通常有某些希望涵盖的主题",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "访谈没有设定问题，通常涉及情感和态度的探讨，导致定性数据",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调访谈完全开放且无限制",
+   "tb1": "指出几乎没有预设问题但有研究主题",
+   "igcse0495": "强调无设定问题、探索情感态度并产生定性数据"
+  }
  },
  {
   "term": "Closed question",
@@ -151,43 +2093,46 @@
   "unit": [
    "研究方法"
   ],
-  "tier": "high",
+  "reference": "main",
+  "reference_reason": "主站词库为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "问题具有预先编码的选项",
+    "source": "main"
+   },
+   {
+    "text": "选项数量有限",
+    "source": "main"
+   },
+   {
+    "text": "选项提供给受访者作答",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "回答范围由研究者固定",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "允许有限或固定的答案",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
   "sources": [
    "igcse0495",
    "main",
    "tb1"
   ],
-  "keypoints": [
-   {
-    "text": "由研究者预设固定选项，受访者从中选择答案",
-    "sources": [
-     "main",
-     "tb1"
-    ],
-    "breadth": 2,
-    "type": "core"
-   },
-   {
-    "text": "限制回答的范围和形式，答案选项数量有限",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "问题设计中已编码好可能的答案",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
+  "source_notes": {
+   "main": "强调预编码选项、数量有限并提供给受访者",
+   "tb1": "指出回答范围由研究者固定",
+   "igcse0495": "说明问题允许有限或固定的答案"
+  }
  },
  {
   "term": "Hawthorne effect (observer effect)",
@@ -196,43 +2141,132 @@
   "unit": [
    "研究议题"
   ],
-  "tier": "low",
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "以西方电气公司霍桑工厂命名",
+    "source": "main"
+   },
+   {
+    "text": "研究参与者在意识到被观察和研究时会改变行为",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "参与者行为改变源于他们意识到自己正在参与实验",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "研究者的存在对被研究者行为或反应产生的非预期影响",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
   "sources": [
    "igcse0495",
    "main",
    "tb1"
   ],
+  "source_notes": {
+   "main": "强调命名来源及参与者因被观察而改变行为",
+   "tb1": "聚焦参与者因知晓参与实验而产生的行为改变",
+   "igcse0495": "突出研究者存在导致的非预期影响，并关联 observer effect"
+  }
+ },
+ {
+  "term": "Reliability",
+  "chinese": "信度（可靠度）",
+  "paper": "Paper 1",
+  "unit": [
+   "研究议题"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
   "keypoints": [
    {
-    "text": "研究对象因意识到自己正在被观察或研究而改变行为",
-    "sources": [
-     "main",
-     "tb1"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "这种行为变化是无意识或非故意的，属于研究过程中的意外影响",
-    "sources": [
-     "igcse0495"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
+    "text": "研究程序易于重复",
+    "source": "main"
    },
    {
-    "text": "名称来源于西方电气公司的霍桑工厂实验",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
+    "text": "重复后可得到相同或相似的结果",
+    "source": "main"
    }
-  ]
+  ],
+  "bonus": [
+   {
+    "text": "不同研究者使用相同方法",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "获得相同结果",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "研究可被重复以产生类似反应",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调程序可重复性及结果一致性",
+   "tb1": "聚焦不同研究者使用相同方法得出相同结果",
+   "igcse0495": "强调研究可重复以产生类似反应"
+  }
+ },
+ {
+  "term": "Validity",
+  "chinese": "效度（准确度）",
+  "paper": "Paper 1",
+  "unit": [
+   "研究议题"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "研究结果的准确性",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "数据代表真实或准确的测量",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "研究结果反映现实并给出真实画面的程度",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调研究结果的准确性",
+   "tb1": "强调数据代表真实或准确的测量",
+   "igcse0495": "强调研究结果反映现实并给出真实画面的程度"
+  }
  },
  {
   "term": "Hypothesis",
@@ -241,43 +2275,294 @@
   "unit": [
    "研究设计"
   ],
-  "tier": "high",
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "一个导致研究旨在证明或 falsify（证伪）它的陈述",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "关于两个或多个变量之间关系的可检验陈述",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "研究旨在检验的预测或陈述",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
   "sources": [
    "igcse0495",
    "main",
    "tb1"
   ],
+  "source_notes": {
+   "main": "强调研究目的：证明或 falsify 假设",
+   "tb1": "强调可检验性和变量关系",
+   "igcse0495": "强调研究设计中的预测性陈述"
+  }
+ },
+ {
+  "term": "Pilot study",
+  "chinese": "试点研究",
+  "paper": "Paper 1",
+  "unit": [
+   "研究设计"
+  ],
+  "reference": "main",
+  "reference_reason": "主站词库为学生日常练习所用，exposure 最高，判分应与所学口径一致",
   "keypoints": [
    {
-    "text": "一个可被研究验证的陈述",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
+    "text": "规模小于最终研究的测试研究",
+    "source": "main"
    },
    {
-    "text": "研究旨在证明或证伪的预测性陈述",
-    "sources": [
-     "main",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
+    "text": "用于发现研究设计中可能存在的缺陷",
+    "source": "main"
+   },
+   {
+    "text": "用于发现可能提出的新问题",
+    "source": "main"
    }
   ],
-  "variants": [
+  "bonus": [
    {
-    "text": "涉及两个或多个变量之间关系的陈述",
+    "text": "检验主要研究中所用方法的适用性",
     "sources": [
      "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
+    ]
+   },
+   {
+    "text": "在主要研究进行前对研究方法的小规模测试",
+    "sources": [
+     "igcse0495"
+    ]
    }
-  ]
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调发现设计缺陷和新问题，是探索性预演",
+   "tb1": "侧重于方法适用性检查，是方法验证性预演",
+   "igcse0495": "概括为方法的小规模测试，侧重程序性准备"
+  }
+ },
+ {
+  "term": "Quota sampling",
+  "chinese": "定额抽样",
+  "paper": "Paper 1",
+  "unit": [
+   "研究设计"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "研究者通过简单方法（如在街头拦人）确定需要达到的参与者人数",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "属于分层抽样的一种类型，但从各层中选择参与者时不采用随机方法",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "研究者事先决定具有特定特征的人数，然后寻找符合条件的个体参与研究",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调通过简单方法（如街头拦人）来达到预设人数",
+   "tb1": "指出为分层抽样的一种，但层内选择非随机",
+   "igcse0495": "强调事先设定特征人数后再寻找符合者"
+  }
+ },
+ {
+  "term": "Random sampling",
+  "chinese": "随机取样",
+  "paper": "Paper 1",
+  "unit": [
+   "研究设计"
+  ],
+  "reference": "main",
+  "reference_reason": "主站词库为学生日常练习所用，定义完整且准确，符合教学口径",
+  "keypoints": [
+   {
+    "text": "抽样方法中样本是随机选择的",
+    "source": "main"
+   },
+   {
+    "text": "目标人群中的每个人都有平等的机会被选中",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "抽样框架中的每个成员都有被选中的已知概率",
+    "sources": [
+     "tb1"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调随机选择和平等机会，是核心定义",
+   "tb1": "侧重抽样框架和已知概率，比主站更技术化",
+   "igcse0495": "仅提及平等机会，表述最简洁但缺少抽样框架概念"
+  }
+ },
+ {
+  "term": "Sampling frame",
+  "chinese": "抽样范围（框架）",
+  "paper": "Paper 1",
+  "unit": [
+   "研究设计"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "目标人群的所有成员的完整名单",
+    "source": "main"
+   },
+   {
+    "text": "用于抽样的来源",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "名单应包含目标人群的全部或大多数成员",
+    "sources": [
+     "igcse0495"
+    ]
+   },
+   {
+    "text": "研究人群成员的列表",
+    "sources": [
+     "tb1"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调完整列表和抽样来源",
+   "tb1": "仅列出研究人群成员，未说明完整性或抽样用途",
+   "igcse0495": "补充全部或大多数成员，更精准但非主学习来源"
+  }
+ },
+ {
+  "term": "Snowball sampling",
+  "chinese": "滚雪球式抽样",
+  "paper": "Paper 1",
+  "unit": [
+   "研究设计"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "该抽样方法要求已有参与者介绍进一步的潜在参与者",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "样本中的成员相互选择彼此",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "一名受访者将研究者引荐给其他人",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调现有参与者主动介绍未来潜在参与者的链式发展过程",
+   "tb1": "描述样本成员之间相互选择的互动机制",
+   "igcse0495": "突出受访者在将研究者与其他人联系起来中的桥梁作用"
+  }
+ },
+ {
+  "term": "Stratified sampling",
+  "chinese": "分层抽样",
+  "paper": "Paper 1",
+  "unit": [
+   "研究设计"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "将样本分成小组，使不同社会群体的比例与总体人口的比例相称",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "将总体分层（strata），从每层随机抽取样本",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "旨在反映总体的特定特征，如年龄和性别",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "例如按性别或年龄划分抽样框",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调样本中各社会群体比例与总体保持一致",
+   "tb1": "强调分层后从每层随机抽样以反映人口特征",
+   "igcse0495": "仅指出按性别或年龄等划分抽样框"
+  }
  },
  {
   "term": "Coercion",
@@ -286,44 +2571,811 @@
   "unit": [
    "社会化和社会控制"
   ],
-  "tier": "high",
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "使用或威胁使用武力或暴力",
+    "source": "main"
+   },
+   {
+    "text": "是社会控制的一部分",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "通过使用武力或威胁说服他人做某事",
+    "sources": [
+     "tb1"
+    ]
+   }
+  ],
   "sources": [
    "igcse0495",
    "main",
    "tb1"
   ],
+  "source_notes": {
+   "main": "定义了胁迫的核心行为及其在社会控制中的作用",
+   "tb1": "强调通过武力或威胁说服他人，侧重于说服过程",
+   "igcse0495": "仅列出使用或威胁武力或暴力，未提及社会控制或说服层面"
+  }
+ },
+ {
+  "term": "Conformity",
+  "chinese": "服从",
+  "paper": "Paper 1",
+  "unit": [
+   "社会化和社会控制"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
   "keypoints": [
    {
-    "text": "使用或威胁使用武力或暴力以迫使他人行动",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
+    "text": "服从",
+    "source": "main"
    },
    {
-    "text": "作为社会控制的一种手段",
-    "sources": [
-     "main",
-     "tb1"
-    ],
-    "breadth": 2,
-    "type": "core"
+    "text": "顺从",
+    "source": "main"
    }
   ],
-  "variants": [
+  "bonus": [
    {
-    "text": "通过威胁来说服某人做某事",
+    "text": "遵守或遵循社会规范、规则和法律",
     "sources": [
      "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
+    ]
+   },
+   {
+    "text": "行为符合群体或社会通常期望的标准",
+    "sources": [
+     "igcse0495"
+    ]
    }
-  ]
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "定义为服从和顺从，简洁但覆盖核心概念",
+   "tb1": "强调遵守社会规范、规则和法律，更侧重外部规则",
+   "igcse0495": "侧重行为符合群体或社会期望的标准，更强调社会压力"
+  }
+ },
+ {
+  "term": "Culture",
+  "chinese": "文化",
+  "paper": "Paper 1",
+  "unit": [
+   "社会化和社会控制"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "A way of living shared by a social group",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "The way of life of a particular group or society",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "The way of life of a society",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调社会群体共享的生活方式",
+   "tb1": "特指特定群体或社会的生活方式",
+   "igcse0495": "概括为社会的生活方式"
+  }
+ },
+ {
+  "term": "Custom",
+  "chinese": "习俗",
+  "paper": "Paper 1",
+  "unit": [
+   "社会化和社会控制"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "传统的生活方式或庆祝方式",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "被接受为常规规范的行为模式",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "在特定社会中被广泛接受并随时间延续的规范",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调传统的生活或庆祝方式",
+   "tb1": "定义为被接受为常规规范的行为模式，并举例说明",
+   "igcse0495": "强调规范在特定社会中被广泛接受并延续过时间"
+  }
+ },
+ {
+  "term": "Deviance",
+  "chinese": "叛逆",
+  "paper": "Paper 1",
+  "unit": [
+   "社会化和社会控制"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，定义完整且与教学口径一致",
+  "keypoints": [
+   {
+    "text": "行为不符合主流价值观",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "行为被视为冒犯或古怪，需要正式或非正式规制",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "行为违背群体的规范或价值观",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调行为不符合主流价值观",
+   "tb1": "强调行为被视为冒犯或古怪并需规制",
+   "igcse0495": "强调行为违背群体规范或价值观"
+  }
+ },
+ {
+  "term": "Feral children",
+  "chinese": "“野孩子”",
+  "paper": "Paper 1",
+  "unit": [
+   "社会化和社会控制"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "儿童未接受任何初级社会化",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "儿童因被遗弃到野外而失去与他人互动",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "在某些情况下，据称被动物抚养长大",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "儿童被关在孤立环境中",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "‘野生’儿童未经社会化",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "该来源指出儿童完全未接受初级社会化",
+   "tb1": "该来源强调儿童因被遗弃或隔离而失去人际互动，可能被动物抚养",
+   "igcse0495": "该来源简要定义为未经社会化的‘野生’儿童"
+  }
+ },
+ {
+  "term": "Norm",
+  "chinese": "规范",
+  "paper": "Paper 1",
+  "unit": [
+   "社会化和社会控制"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "具体行动",
+    "source": "main"
+   },
+   {
+    "text": "实现价值",
+    "source": "main"
+   },
+   {
+    "text": "伴随角色的价值",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "规则",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "规定何种行为在特定社会情境下是正常的",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "社会对其成员在特定情境下的期望行为",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调规范是实现角色价值的具体行动",
+   "tb1": "定义规范为规范行为的规则，侧重社会情境中的正常行为标准",
+   "igcse0495": "定义规范为社会对成员在特定情境下的期望行为，侧重期望层面"
+  }
+ },
+ {
+  "term": "Power",
+  "chinese": "权力",
+  "paper": "Paper 1",
+  "unit": [
+   "社会化和社会控制"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "能够在他人尽管有抵抗的情况下行使自己的意志",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "能够指导或影响他人的行为",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "能够影响人们的行为",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调意志在面对阻力时的行使能力",
+   "tb1": "侧重于对他人行为的指导或影响能力",
+   "igcse0495": "聚焦于对人们行为的影响能力"
+  }
+ },
+ {
+  "term": "Primary socialisation",
+  "chinese": "初级社会化",
+  "paper": "Paper 1",
+  "unit": [
+   "社会化和社会控制"
+  ],
+  "reference": "main",
+  "reference_reason": "主站词库为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "社会化的最早阶段",
+    "source": "main"
+   },
+   {
+    "text": "教授儿童最基本的规范和价值观",
+    "source": "main"
+   },
+   {
+    "text": "以及语言和其他生活技能",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "通常发生在家庭中",
+    "sources": [
+     "tb1",
+     "igcse0495"
+    ]
+   },
+   {
+    "text": "是社会化过程中最重要的部分",
+    "sources": [
+     "tb1",
+     "igcse0495"
+    ]
+   },
+   {
+    "text": "婴儿和幼儿吸收文化的基本规范和价值观的过程",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "定义了primary socialisation为最早阶段，教授基本规范、价值观、语言和生活技能",
+   "tb1": "强调是社会化过程中最早且可能最重要的部分，通常发生在家庭中",
+   "igcse0495": "明确指出是婴儿和幼儿吸收文化基本规范和价值观的过程，是第一且最重要的社会化阶段，通常在早期儿童时期家庭中发生"
+  }
+ },
+ {
+  "term": "Role",
+  "chinese": "角色",
+  "paper": "Paper 1",
+  "unit": [
+   "社会化和社会控制"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "我们在社会制度中所扮演的部分",
+    "source": "main"
+   },
+   {
+    "text": "角色不会单独出现",
+    "source": "main"
+   },
+   {
+    "text": "伴随社会期望（价值观）",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "特定地位所应表现的行为",
+    "sources": [
+     "tb1",
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调角色在社会制度中的表现及其伴随的社会期望",
+   "tb1": "聚焦于特定地位所期望的行为",
+   "igcse0495": "描述因社会地位而产生的行为模式"
+  }
+ },
+ {
+  "term": "Role model",
+  "chinese": "榜样",
+  "paper": "Paper 1",
+  "unit": [
+   "社会化和社会控制"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "被他人钦佩和模仿的人",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "地位较低者（如儿童）所尊重的重要他人",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "其行为树立可被模仿的榜样",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "某人所仰慕并努力效仿的人",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "仅指出被钦佩和模仿的对象",
+   "tb1": "强调地位较低者的尊重与行为榜样作用",
+   "igcse0495": "描述为被仰慕并效仿的对象"
+  }
+ },
+ {
+  "term": "Sanction",
+  "chinese": "制约（制裁）",
+  "paper": "Paper 1",
+  "unit": [
+   "社会化和社会控制"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "确保人们遵守社会规则的措施",
+    "source": "main"
+   },
+   {
+    "text": "可分为正向（奖励）和负向（惩罚）",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "负向制裁是对违反法律或规则行为的威胁性惩罚",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "正向制裁可表现为批准或奖励",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "通常用于惩罚（负向制裁）的意义上",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "定义制裁为确保遵守社会规则的措施，区分正向和负向两种形式",
+   "tb1": "区分负向制裁为威胁性惩罚，正向制裁为批准或奖励",
+   "igcse0495": "将制裁定义为奖励或惩罚可接受或不可接受行为的方式，强调其通常指惩罚"
+  }
+ },
+ {
+  "term": "Secondary socialisation",
+  "chinese": "次级社会化",
+  "paper": "Paper 1",
+  "unit": [
+   "社会化和社会控制"
+  ],
+  "reference": "main",
+  "reference_reason": "主站词库为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "继续进行的社会化过程",
+    "source": "main"
+   },
+   {
+    "text": "发生在初级社会化之后",
+    "source": "main"
+   },
+   {
+    "text": "持续一生",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "发生在学校和工作场所等特定场合",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "学习特定身份和角色的具体规范",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调社会化的持续性和终身性",
+   "tb1": "聚焦于后期生活中的具体社会化场景",
+   "igcse0495": "突出学习特定身份角色的规范性内容"
+  }
+ },
+ {
+  "term": "Secularisation",
+  "chinese": "世俗化",
+  "paper": "Paper 1",
+  "unit": [
+   "社会化和社会控制"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "宗教对日常生活的影响下降",
+    "source": "main"
+   },
+   {
+    "text": "宗教对社会的影响下降",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "对上帝的宗教信仰一般下降",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "如定期去教堂等宗教实践的下降",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "在现代工业社会中，许多人日常生活中宗教变得不那么重要",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调宗教在日常生活和社会中的影响下降",
+   "tb1": "聚焦于对上帝的信仰和宗教实践（如上教堂）的一般下降",
+   "igcse0495": "指出在现代工业社会中，许多人日常生活中宗教重要性下降的过程"
+  }
+ },
+ {
+  "term": "Subculture",
+  "chinese": "亚文化",
+  "paper": "Paper 1",
+  "unit": [
+   "社会化和社会控制"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "小文化在大文化之内/之下，拥有自己的一套价值观",
+    "source": "main"
+   },
+   {
+    "text": "其价值观有时与主流价值观相冲突",
+    "source": "main"
+   },
+   {
+    "text": "过去被视为导致偏差行为的原因；如今被视为正常现象",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "具有独特的规范和价值观",
+    "sources": [
+     "tb1",
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调子文化与主流文化的关系及其态度转变（从偏差到正常）",
+   "tb1": "仅概括为特殊社会群体的规范和价值观，缺少与主流的关系描述",
+   "igcse0495": "与 tb1 类似，仅描述群体内部特征，未提及价值观冲突或社会态度变化"
+  }
+ },
+ {
+  "term": "Canalisation",
+  "chinese": "引导",
+  "paper": "Paper 1",
+  "unit": [
+   "社会化和社会控制"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "在性别社会化过程中，父母会在孩子表现出与其生物性别不符的行为和偏好时进行'纠正'",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "父母引导或渠道化孩子的兴趣和活动到性别适当的领域",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "例如玩具常被分类为仅适合男孩或女孩",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "将孩子引导向被认为适合他们的活动（例如基于性别）",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调父母对非性别规范行为的纠正",
+   "tb1": "强调父母主动引导孩子兴趣至性别适当领域，并举例玩具分类",
+   "igcse0495": "概括为将孩子引向性别适当活动，未提纠正或具体举例"
+  }
+ },
+ {
+  "term": "Birth rate",
+  "chinese": "出生率",
+  "paper": "Paper 2",
+  "unit": [
+   "社会政策与家庭变迁"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，定义完整准确，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "活产婴儿数量",
+    "source": "main"
+   },
+   {
+    "text": "每年统计",
+    "source": "main"
+   },
+   {
+    "text": "按每 1000 人口计算",
+    "source": "main"
+   }
+  ],
+  "bonus": [],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "定义为每年每 1000 人口中的活产婴儿数",
+   "tb1": "与 main 定义完全一致，强调每年每 1000 人口的活产数",
+   "igcse0495": "与 main 定义一致，指一年内每 1000 人口的活产婴儿数"
+  }
+ },
+ {
+  "term": "Fertility rate",
+  "chinese": "生育率",
+  "paper": "Paper 2",
+  "unit": [
+   "社会政策与家庭变迁"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "活产婴儿数量",
+    "source": "main"
+   },
+   {
+    "text": "每 1000 名妇女",
+    "source": "main"
+   },
+   {
+    "text": "年龄在 15-44 岁之间",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "在一年内",
+    "sources": [
+     "igcse0495"
+    ]
+   },
+   {
+    "text": "育龄妇女",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "定义了活产婴儿数量、每1000名妇女、15-44岁年龄范围",
+   "tb1": "与main定义一致，仅数字格式略有差异（1 5 vs 15）",
+   "igcse0495": "强调了‘在一年内’和‘育龄妇女’的表述，更具时间和人群限定性"
+  }
  },
  {
   "term": "Consensus",
@@ -333,828 +3385,38 @@
    "社会理论",
    "社会化和社会控制"
   ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
+  "reference": "main",
+  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
   "keypoints": [
    {
-    "text": "社会成员普遍共享的价值观或意见的一致性",
-    "sources": [
-     "main",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   },
-   {
-    "text": "对某一观点或立场的共同同意",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
+    "text": "社会中所有成员普遍同意的一套价值观",
+    "source": "main"
    }
   ],
-  "variants": [
+  "bonus": [
    {
-    "text": "所有人一致同意的一组价值",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Achieved status",
-  "chinese": "获得的社会地位",
-  "paper": "Paper 1",
-  "unit": [
-   "社会认同基础"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "通过个人努力或才能获得的社会地位",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   }
-  ],
-  "variants": []
- },
- {
-  "term": "Bourgeoisie",
-  "chinese": "资产阶级",
-  "paper": "Paper 1",
-  "unit": [
-   "阶级认同"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "在马克思主义理论中，资产阶级是拥有财富和生产资料的阶级",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   },
-   {
-    "text": "该阶级通过雇佣劳动者来创造财富，并在资本主义体系中占据主导地位",
-    "sources": [
-     "main",
-     "tb1"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "他们不从事体力劳动，而是通过剥削工人获取利益",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Urbanisation",
-  "chinese": "城市化",
-  "paper": "Paper 2",
-  "unit": [
-   "家庭功能"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "城市人口比例上升的过程，表现为社会中更多人居住在城市地区。",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   },
-   {
-    "text": "城市规模扩大或城市数量增加的过程，反映城市在人口分布中的重要性提升。",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": []
- },
- {
-  "term": "Arranged marriage",
-  "chinese": "包办婚姻",
-  "paper": "Paper 2",
-  "unit": [
-   "家庭多样性"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "婚姻由父母或其他家庭成员安排或选择配偶",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "子女通常在安排过程中同意或接受家庭的选择",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   },
-   {
-    "text": "可被视为某些文化群体的特色，如印度",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Conjugal role",
-  "chinese": "婚内角色",
-  "paper": "Paper 2",
-  "unit": [
-   "性别平等"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "指婚姻或同居关系中夫妻双方所扮演的角色",
-    "sources": [
-     "tb1",
-     "main"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "这些角色通常源于家庭内部劳动的分工",
-    "sources": [
-     "igcse0495"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   }
-  ]
- },
- {
-  "term": "Birth rate",
-  "chinese": "出生率",
-  "paper": "Paper 2",
-  "unit": [
-   "社会政策与家庭变迁"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "指每年每1000人中出生的活婴数量",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   }
-  ],
-  "variants": []
- },
- {
-  "term": "Compensatory education",
-  "chinese": "补偿教育",
-  "paper": "Paper 3",
-  "unit": [
-   "教育与不平等"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "为弥补社会经济弱势群体在文化或教育资源上的不足而提供的额外教育支持",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   },
-   {
-    "text": "通过额外辅导、经济援助等教育政策帮助弱势背景学生缩小与中产阶级学生之间的学业差距",
-    "sources": [
-     "main",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "与积极歧视相关，旨在通过特殊教育干预来纠正结构性不平等",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Streaming",
-  "chinese": "分流",
-  "paper": "Paper 3",
-  "unit": [
-   "教育功能"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "根据学生能力将其分到不同班级，进行所有科目的学习",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "将学生分为学术或职业等不同教育路径",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   }
-  ]
- },
- {
-  "term": "Institutional racism",
-  "chinese": "制度化的种族主义",
-  "paper": "Paper 1",
-  "unit": [
-   "族裔认同"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "制度性种族主义是指一个组织或社会中的系统性做法导致对特定族群的歧视。",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   },
-   {
-    "text": "这种歧视表现为组织无法为不同族群的个体提供适当的服务或公平待遇。",
-    "sources": [
-     "main",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "种族偏见或歧视已成为社会或组织中被接受的常态行为。",
+    "text": "共识",
     "sources": [
      "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Fatalism",
-  "chinese": "宿命论",
-  "paper": "Paper 4",
-  "unit": [
-   "理论视角与核心概念"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "一种认为个人无法掌控自身命运的信念，导致不采取行动改变现状。",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
+    ]
    },
    {
-    "text": "这种观念阻碍社会发展，被认为是某些文化中放弃自我改善的表现。",
+    "text": "用于描述一种社会视角，该视角假设人们普遍共享价值观",
     "sources": [
-     "main",
-     "tb1"
-    ],
-    "breadth": 2,
-    "type": "core"
+     "igcse0495"
+    ]
    }
   ],
-  "variants": [
-   {
-    "text": "被现代化理论视为发展障碍。",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Hidden curriculum",
-  "chinese": "隐性课程",
-  "paper": "Paper 3",
-  "unit": [
-   "课程影响"
-  ],
-  "tier": "high",
   "sources": [
    "igcse0495",
    "main",
    "tb1"
   ],
-  "keypoints": [
-   {
-    "text": "学校中非正式传递的教育内容，不包含在正式课程中。",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   },
-   {
-    "text": "学生在学校课堂之外学到的社会规范、集体认同和合作精神等。",
-    "sources": [
-     "main",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "这些内容通常对教师和学生来说是隐性的。",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Non-Governmental Organisation",
-  "chinese": "非政府组织",
-  "paper": "Paper 4",
-  "unit": [
-   "人权、发展与全球治理"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "非政府组织，独立于政府运作",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   },
-   {
-    "text": "非营利性质的组织",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "关注社会或政治议题",
-    "sources": [
-     "igcse0495"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   },
-   {
-    "text": "通常具有慈善性质，由志愿者运营",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Moral panics",
-  "chinese": "道德恐慌",
-  "paper": "Paper 4",
-  "unit": [
-   "全球犯罪与不平等"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "公众对某种社会偏差现象产生夸张的道德恐慌，这种反应通常被媒体所推动。",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "恐慌导致社会要求采取行动以应对被夸大的威胁。",
-    "sources": [
-     "igcse0495"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   },
-   {
-    "text": "公众因无法理解某些群体的价值观和规范而产生的不必要的恐惧。",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Colonialism",
-  "chinese": "殖民主义",
-  "paper": "Paper 4",
-  "unit": [
-   "理论视角与核心概念"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "一个强国通过武力直接控制较弱的国家或地区，以获取资源和增强自身权力与财富。",
-    "sources": [
-     "tb1",
-     "main"
-    ],
-    "breadth": 2,
-    "type": "core"
-   },
-   {
-    "text": "控制国通常通过占领、剥削资源和移民定居的方式来实现对被控制地区的统治。",
-    "sources": [
-     "igcse0495",
-     "main"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "殖民过程常涉及对原材料的掠夺、廉价劳动力的使用，甚至奴隶制，并建立产品倾销市场。",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Positivism",
-  "chinese": "实证主义",
-  "paper": "Paper 1",
-  "unit": [
-   "方法论取向"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "主张采用自然科学的方法研究社会现象，强调科学性和客观性",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   },
-   {
-    "text": "倾向于使用定量数据进行社会研究",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "认为社会事实具有客观存在性，可通过科学方法加以验证",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Covert observation",
-  "chinese": "隐藏身份的观察",
-  "paper": "Paper 1",
-  "unit": [
-   "研究方法"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "研究者隐藏自己的真实身份和研究目的，使被观察者不知情",
-    "sources": [
-     "main",
-     "tb1"
-    ],
-    "breadth": 2,
-    "type": "core"
-   },
-   {
-    "text": "被研究的群体对研究的存在完全不知晓",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "强调研究者在不暴露身份的情况下进行观察",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Reliability",
-  "chinese": "信度（可靠度）",
-  "paper": "Paper 1",
-  "unit": [
-   "研究议题"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "研究过程可重复并获得相同或相似结果的程度",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "不同研究者使用相同方法都能获得一致的数据结果",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   },
-   {
-    "text": "强调重复研究产生相似反应",
-    "sources": [
-     "igcse0495"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Pilot study",
-  "chinese": "试点研究",
-  "paper": "Paper 1",
-  "unit": [
-   "研究设计"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "小规模的前期研究，用于测试主要研究方法的适用性",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "旨在发现研究设计中的潜在问题并识别可能的新问题",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   }
-  ]
- },
- {
-  "term": "Conformity",
-  "chinese": "服从",
-  "paper": "Paper 1",
-  "unit": [
-   "社会化和社会控制"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "遵循社会或群体所期望的规范、规则或标准",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "表现出与群体一致的行为或态度",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   }
-  ]
+  "source_notes": {
+   "main": "强调普遍同意的一套价值观",
+   "tb1": "仅给出‘共同同意’的简短定义",
+   "igcse0495": "将共识定义为协议，并关联到功能主义视角"
+  }
  },
  {
   "term": "Value consensus",
@@ -1164,34 +3426,78 @@
    "社会理论",
    "社会化和社会控制"
   ],
-  "tier": "low",
+  "reference": "main",
+  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "社会基于一套普遍同意的价值观而顺利运作",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "对社会主要价值观的同意",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "对价值观的广泛一致",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
   "sources": [
    "igcse0495",
    "main",
    "tb1"
   ],
+  "source_notes": {
+   "main": "功能主义认为社会基于普遍同意的价值观而顺利运作",
+   "tb1": "对社会主要价值观的同意",
+   "igcse0495": "对价值观的广泛一致"
+  }
+ },
+ {
+  "term": "Achieved status",
+  "chinese": "获得的社会地位",
+  "paper": "Paper 1",
+  "unit": [
+   "社会认同基础"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
   "keypoints": [
    {
-    "text": "社会成员普遍认同一套核心价值观",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
+    "text": "社会地位是通过个人努力和辛勤工作获得的",
+    "source": "main"
    }
   ],
-  "variants": [
+  "bonus": [
    {
-    "text": "这种共识使社会运作顺畅，是社会整合的基础",
+    "text": "社会地位是基于个人才能或功绩获得的",
     "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
+     "tb1"
+    ]
+   },
+   {
+    "text": "社会地位是个人通过自身努力获得的",
+    "sources": [
+     "igcse0495"
+    ]
    }
-  ]
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调通过努力和辛勤工作获得地位",
+   "tb1": "强调基于个人才能或功绩获得地位",
+   "igcse0495": "强调通过自身努力获得社会地位"
+  }
  },
  {
   "term": "Ascribed status",
@@ -1200,537 +3506,48 @@
   "unit": [
    "社会认同基础"
   ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
   "keypoints": [
    {
-    "text": "社会地位是出生时被赋予的，个人无法选择或控制",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "这种地位通常是固定不变的，与家族背景或血缘关系相关",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
+    "text": "社会地位是由出生决定的",
+    "source": "main"
    },
    {
-    "text": "包括世袭头衔如国王或公主，或家庭中子女的身份",
+    "text": "获得该地位不需要个人付出努力",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "该地位在一生中通常保持不变",
     "sources": [
      "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Cultural capital",
-  "chinese": "文化资本",
-  "paper": "Paper 1",
-  "unit": [
-   "阶级认同"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "非经济性的文化资源，如知识、品味、价值观和技能，有助于提升个人的社会地位或教育成就",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
+    ]
    },
    {
-    "text": "这些文化资产可以转化为经济利益、权力或声望",
-    "sources": [
-     "main",
-     "tb1"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "例如懂得如何‘穿着得体’以获得社会成功",
+    "text": "包括与家族背景相关的世袭头衔（如国王、公主）",
     "sources": [
      "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Boomerang family",
-  "chinese": "“回巢”家庭",
-  "paper": "Paper 2",
-  "unit": [
-   "家庭多样性"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "成年子女因某些原因返回原生家庭居住",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
+    ]
    },
    {
-    "text": "返回家庭是出于非自愿因素，如失业、离婚等不可控原因",
+    "text": "个体对该地位通常几乎没有控制力",
     "sources": [
-     "main",
-     "tb1"
-    ],
-    "breadth": 2,
-    "type": "core"
+     "igcse0495"
+    ]
    }
   ],
-  "variants": [
-   {
-    "text": "强调子女曾尝试独立生活但失败",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Domestic violence",
-  "chinese": "家庭暴力",
-  "paper": "Paper 2",
-  "unit": [
-   "性别平等"
-  ],
-  "tier": "high",
   "sources": [
    "igcse0495",
    "main",
    "tb1"
   ],
-  "keypoints": [
-   {
-    "text": "家庭内部发生的暴力行为，通常但不仅限于男性对女性的暴力",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   },
-   {
-    "text": "包括身体暴力、情感操控和性虐待等多种形式",
-    "sources": [
-     "main",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "通常由配偶中的一方施加于另一方，可能涉及子女",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Fertility rate",
-  "chinese": "生育率",
-  "paper": "Paper 2",
-  "unit": [
-   "社会政策与家庭变迁"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "每1000名育龄女性中的活产婴儿数",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   },
-   {
-    "text": "通常指15至44岁女性的生育情况",
-    "sources": [
-     "main",
-     "tb1"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "统计通常以一年为周期进行计算",
-    "sources": [
-     "igcse0495"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Vocationalism",
-  "chinese": "职业教育",
-  "paper": "Paper 3",
-  "unit": [
-   "教育功能"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "一种教育类型或路径，旨在为特定工作、职业或事业做准备",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   },
-   {
-    "text": "提供与就业相关的技能培训，以满足产业或劳动力市场的需求",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "强调为年轻人进入职场做准备的教育形式",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Self-fulfilling prophecy",
-  "chinese": "自我实现的预言",
-  "paper": "Paper 3",
-  "unit": [
-   "社会阶层与学业成就"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "一种预测或期望通过影响行为而最终使自身成真",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   },
-   {
-    "text": "与互动论和标签理论相关，指他人给予的标签会影响个体行为",
-    "sources": [
-     "main",
-     "tb1"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "强调标签如何塑造个体行为倾向",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Verstehen",
-  "chinese": "（德语）理解",
-  "paper": "Paper 1",
-  "unit": [
-   "方法论取向"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "设身处地从他人角度理解其处境和观点",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "由韦伯提出，强调理解个体行为背后的意义和动机",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   },
-   {
-    "text": "体现同理心，如同穿别人的鞋子走一英里",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Group interview",
-  "chinese": "小组访谈",
-  "paper": "Paper 1",
-  "unit": [
-   "研究方法"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "一种访谈形式，研究者在同一时间对多个受访者进行提问并收集数据",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "相较于一对一访谈，具有更高的效率",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   },
-   {
-    "text": "访谈内容通常涉及多个主题或范围",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Validity",
-  "chinese": "效度（准确度）",
-  "paper": "Paper 1",
-  "unit": [
-   "研究议题"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "研究结果反映现实的准确性",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   },
-   {
-    "text": "数据真实且准确地测量了所要测量的内容",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "研究发现的正确性",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Quota sampling",
-  "chinese": "定额抽样",
-  "paper": "Paper 1",
-  "unit": [
-   "研究设计"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "研究者预先决定具有特定特征的受访者数量并据此寻找样本",
-    "sources": [
-     "igcse0495",
-     "main"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "属于分层抽样的一种，但层内选择不是随机的",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   },
-   {
-    "text": "样本通过简单方式获取，例如在街上拦截受访者",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Culture",
-  "chinese": "文化",
-  "paper": "Paper 1",
-  "unit": [
-   "社会化和社会控制"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "特定群体或社会的生活方式",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "由社会群体共同享有的生活方式",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   }
-  ]
+  "source_notes": {
+   "main": "强调出生决定且无需努力获得",
+   "tb1": "补充说明地位固定不变并举例世袭头衔",
+   "igcse0495": "强调社会或群体赋予且个体控制力小"
+  }
  },
  {
   "term": "Division of labour",
@@ -1739,306 +3556,38 @@
   "unit": [
    "社会认同基础"
   ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
   "keypoints": [
    {
-    "text": "将整体任务分解为多个具体任务",
+    "text": "把任务分解并分配给不同类型的人",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "劳动力中存在大量专业化职业",
     "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
+     "tb1"
+    ]
    },
    {
-    "text": "根据专业或性别等标准将任务分配给不同群体",
+    "text": "家庭任务（如做饭、清洁、育儿、维修）在男女之间的分配方式",
     "sources": [
-     "main",
      "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
+    ]
    }
   ],
-  "variants": [
-   {
-    "text": "强调劳动队伍中存在大量专业化职业",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Dependency culture",
-  "chinese": "依赖性文化",
-  "paper": "Paper 1",
-  "unit": [
-   "阶级认同"
-  ],
-  "tier": "high",
   "sources": [
    "igcse0495",
    "main",
    "tb1"
   ],
-  "keypoints": [
-   {
-    "text": "一种生活方式或价值观，使人失去自我照顾的能力或意愿，转而依赖政府福利。",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   },
-   {
-    "text": "这种文化通常与底层阶级相关，长期依赖国家提供的福利和救济。",
-    "sources": [
-     "main",
-     "tb1"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "新右派社会学家强调这种依赖状态可能导致个人责任感的丧失。",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Cohabitation",
-  "chinese": "同居",
-  "paper": "Paper 2",
-  "unit": [
-   "家庭多样性"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "两人以非婚姻形式共同生活并保持亲密关系",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   },
-   {
-    "text": "这种关系未经过任何形式的法律认可或注册",
-    "sources": [
-     "main",
-     "tb1"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "两人处于性关系中",
-    "sources": [
-     "igcse0495"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Dual burden",
-  "chinese": "双重负担",
-  "paper": "Paper 2",
-  "unit": [
-   "性别平等"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "指女性在公共领域从事有薪工作的同时，在私人领域承担无薪家务和照顾家庭的责任。",
-    "sources": [
-     "main",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "又称为第二轮班（second shift）。",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   }
-  ]
- },
- {
-  "term": "Longitudinal study",
-  "chinese": "纵向研究",
-  "paper": "Paper 1",
-  "unit": [
-   "研究方法"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "对同一群体进行持续一段时间的研究",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   },
-   {
-    "text": "研究过程中会多次重新调查或收集数据",
-    "sources": [
-     "main",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "通常使用大样本并采用定量方法",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Random sampling",
-  "chinese": "随机取样",
-  "paper": "Paper 1",
-  "unit": [
-   "研究设计"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "每个成员被选中的机会均等",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "样本通过随机方式选取",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   },
-   {
-    "text": "抽样框架中每个成员被选中的概率是已知的",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Custom",
-  "chinese": "习俗",
-  "paper": "Paper 1",
-  "unit": [
-   "社会化和社会控制"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "被特定社会广泛接受的行为规范",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   },
-   {
-    "text": "长期延续的传统行为方式或庆祝方式",
-    "sources": [
-     "main",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "例如见面时握手这样的日常惯例",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
+  "source_notes": {
+   "main": "强调任务分解与分配给不同人群",
+   "tb1": "侧重劳动力中专业职业的数量多少",
+   "igcse0495": "聚焦家庭劳动中的性别分工"
+  }
  },
  {
   "term": "Globalisation",
@@ -2047,225 +3596,42 @@
   "unit": [
    "社会认同基础"
   ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
+  "reference": "main",
+  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
   "keypoints": [
    {
-    "text": "全球各地国家、社会、文化及经济之间联系和相互依赖日益增强的过程。",
-    "sources": [
-     "main",
-     "tb1"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "不同文化之间日益增强的互动、认知与相互影响的复杂过程。",
-    "sources": [
-     "igcse0495"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
+    "text": "国家和人民在全球范围内日益相互连接",
+    "source": "main"
    },
    {
-    "text": "全球化强调全球范围内的互联性与相互依存关系。",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Empty-shell marriage",
-  "chinese": "空壳婚姻",
-  "paper": "Paper 2",
-  "unit": [
-   "家庭多样性"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "夫妻虽然仍处于婚姻关系中，但彼此之间已没有任何爱情或感情",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
+    "text": "国家和人民在全球范围内日益相互依赖",
+    "source": "main"
    }
   ],
-  "variants": [
+  "bonus": [
    {
-    "text": "夫妻为了经济、宗教原因或为了孩子而继续共同生活，但实际上各自过着分开的生活",
+    "text": "社会、文化和经济日益相互连接",
     "sources": [
      "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   }
-  ]
- },
- {
-  "term": "Joint conjugal roles",
-  "chinese": "联合的婚内角色",
-  "paper": "Paper 2",
-  "unit": [
-   "性别平等"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "夫妻在婚姻或同居关系中所扮演的角色，没有明确区分性别分工",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "夫妻共同承担家务，没有家务任务仅由一方单独完成",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
+    ]
    },
    {
-    "text": "角色来源于家庭内部的劳动分工",
+    "text": "世界各地不同文化日益增强相互认识、互动和相互影响",
     "sources": [
      "igcse0495"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
+    ]
    }
-  ]
- },
- {
-  "term": "Non-participant observation",
-  "chinese": "非参与式的观察",
-  "paper": "Paper 1",
-  "unit": [
-   "研究方法"
   ],
-  "tier": "low",
   "sources": [
    "igcse0495",
    "main",
    "tb1"
   ],
-  "keypoints": [
-   {
-    "text": "一种观察性研究方法，研究者不参与被研究群体的活动，而是从外部进行观察",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   }
-  ],
-  "variants": []
- },
- {
-  "term": "Sampling frame",
-  "chinese": "抽样范围（框架）",
-  "paper": "Paper 1",
-  "unit": [
-   "研究设计"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "抽样框架是目标总体成员的完整或接近完整的名单，用于从中选取样本",
-    "sources": [
-     "main",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "抽样框架是研究总体中所有或大部分成员的列表",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   }
-  ]
- },
- {
-  "term": "Deviance",
-  "chinese": "叛逆",
-  "paper": "Paper 1",
-  "unit": [
-   "社会化和社会控制"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "偏离社会或群体主流规范或价值观的行为",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "该行为通常被视为需要正式或非正式的社会控制",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   }
-  ]
+  "source_notes": {
+   "main": "强调国家与人民的相互连接和相互依赖",
+   "tb1": "侧重社会、文化和经济的相互连接",
+   "igcse0495": "突出文化层面的认识、互动和影响过程"
+  }
  },
  {
   "term": "Intersectionality",
@@ -2274,278 +3640,42 @@
   "unit": [
    "社会认同基础"
   ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [],
-  "variants": [
+  "reference": "main",
+  "reference_reason": "main 为校本手写词库，学生日常练习所用，曝光度最高，判分应与所学口径一致",
+  "keypoints": [
    {
-    "text": "不同社会身份（如阶级、性别、种族）之间的相互作用共同塑造个体的身份与经历",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
+    "text": "两个或两个以上的弱势社会身份之间的重叠",
+    "source": "main"
    },
    {
-    "text": "多种不利社会身份之间的重叠导致复合性劣势",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   },
-   {
-    "text": "不同形式的分层与不平等之间的相互影响",
-    "sources": [
-     "igcse0495"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Material deprivation",
-  "chinese": "物质条件匮乏",
-  "paper": "Paper 1",
-  "unit": [
-   "阶级认同"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "缺乏物质资源或条件",
-    "sources": [
-     "main",
-     "tb1"
-    ],
-    "breadth": 2,
-    "type": "core"
+    "text": "这些重叠导致劣势的叠加或交叉",
+    "source": "main"
    }
   ],
-  "variants": [
+  "bonus": [
    {
-    "text": "无法负担社会普遍认为是必需的物质商品",
-    "sources": [
-     "igcse0495"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   }
-  ]
- },
- {
-  "term": "Horizontally extended family",
-  "chinese": "横向扩张家庭",
-  "paper": "Paper 2",
-  "unit": [
-   "家庭多样性"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "包括核心家庭以外的旁系亲属，如叔叔、阿姨和堂表兄弟姐妹",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   },
-   {
-    "text": "这些亲属可能同住或住在附近，保持频繁接触",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "家庭结构横向扩展而非纵向包含祖父母等直系亲属",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Segregated conjugal roles",
-  "chinese": "分开的婚内角色",
-  "paper": "Paper 2",
-  "unit": [
-   "性别平等"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "夫妻在婚姻或同居关系中承担明确区分的家庭角色，通常丈夫负责经济支持，妻子负责家务和育儿",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   },
-   {
-    "text": "这种角色分工基于性别，通常缺乏重叠或共同承担的责任",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "强调角色的分离性，而非仅仅是分工",
+    "text": "诸如阶级、性别和种族等因素相互作用并共同塑造个体的身份和经历",
     "sources": [
      "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Open question",
-  "chinese": "开放式问题",
-  "paper": "Paper 1",
-  "unit": [
-   "研究方法"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "允许受访者用自己的语言进行回答",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "没有预设选项，允许受访者自由表达观点的问题形式",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   }
-  ]
- },
- {
-  "term": "Snowball sampling",
-  "chinese": "滚雪球式抽样",
-  "paper": "Paper 1",
-  "unit": [
-   "研究设计"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "一种抽样方法，依靠现有参与者推荐或介绍其他潜在参与者加入研究",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   }
-  ],
-  "variants": []
- },
- {
-  "term": "Feral children",
-  "chinese": "“野孩子”",
-  "paper": "Paper 1",
-  "unit": [
-   "社会化和社会控制"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "从未接受过初级社会化过程的儿童",
-    "sources": [
-     "main",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "因被遗弃在野外或长期隔离而缺乏与人类互动的经历",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
+    ]
    },
    {
-    "text": "某些情况下被动物抚养长大的儿童",
+    "text": "不同形式的分层和不平等相互作用的方式",
     "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
+     "igcse0495"
+    ]
    }
-  ]
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调弱势身份的重叠及其导致的劣势叠加",
+   "tb1": "指出阶级、性别、种族等因素的相互作用如何塑造身份和经历",
+   "igcse0495": "描述不同形式的分层和不平等如何相互作用"
+  }
  },
  {
   "term": "Social construction",
@@ -2554,43 +3684,334 @@
   "unit": [
    "社会认同基础"
   ],
-  "tier": "high",
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "人类社会创造一个概念以服务于社会目的",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "信念、特征或一套行为和假设是由社会成员或强大社会群体的行为所产生或制造的",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "社会情境和事件是由社会构建的；它们在自然中不以独立事物的形式存在",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
   "sources": [
    "igcse0495",
    "main",
    "tb1"
   ],
+  "source_notes": {
+   "main": "强调社会通过创造概念来满足社会需求的过程",
+   "tb1": "指出社会建构是由社会成员或权力群体的行为所产生的信念、特征或行为模式",
+   "igcse0495": "认为社会情境和事件是社会建构的产物，而非自然独立存在的事物"
+  }
+ },
+ {
+  "term": "Self-fulfilling prophecy",
+  "chinese": "自我实现的预言",
+  "paper": "Paper 3",
+  "unit": [
+   "社会阶层与学业成就"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
   "keypoints": [
    {
-    "text": "社会通过集体行动或特定群体的互动创造出某种观念、特征或行为模式",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
+    "text": "通过做出预测，可以实现该预测",
+    "source": "main"
    },
    {
-    "text": "这种建构服务于特定的社会目的或功能",
-    "sources": [
-     "main",
-     "tb1"
-    ],
-    "breadth": 2,
-    "type": "core"
+    "text": "在社会学中，这是一种互动主义思想，即人们会根据他人给予他们的标签而行事",
+    "source": "main"
+   },
+   {
+    "text": "与标签理论相关",
+    "source": "main"
    }
   ],
-  "variants": [
+  "bonus": [
    {
-    "text": "这些概念并非自然存在的独立实体，而是由社会情境所塑造",
+    "text": "人们对某些期望有所认识，因而以使这些期望成为现实的方式行事",
     "sources": [
      "igcse0495"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
+    ]
+   },
+   {
+    "text": "人们被贴标签的方式倾向于塑造他们的行为",
+    "sources": [
+     "tb1"
+    ]
    }
-  ]
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调预测的自我实现、互动主义视角及其与标签理论的关联",
+   "tb1": "概括为标签对行为的塑造倾向，表述简洁但未涉及机制或理论背景",
+   "igcse0495": "聚焦于期望的感知与行为实现，未提及互动主义或标签理论"
+  }
+ },
+ {
+  "term": "Hidden curriculum",
+  "chinese": "隐性课程",
+  "paper": "Paper 3",
+  "unit": [
+   "课程影响"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "学生在学校学到的但课堂外的内容，如与同学相处",
+    "source": "main"
+   },
+   {
+    "text": "组织学生社团",
+    "source": "main"
+   },
+   {
+    "text": "参与学生会选举或被选为学生会成员",
+    "source": "main"
+   },
+   {
+    "text": "培养集体身份认同和社会团结感",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "学校传递的未纳入正式课程的信息， largely hidden from teachers and students",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "学习遵守规则的重要性及不遵守规则的后果",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调非课堂学习中的社交与组织经验",
+   "tb1": "指出学校隐性传递的信息，教师和学生常未察觉",
+   "igcse0495": "聚焦规则遵守及其后果作为隐性课程内容"
+  }
+ },
+ {
+  "term": "Bourgeoisie",
+  "chinese": "资产阶级",
+  "paper": "Paper 1",
+  "unit": [
+   "阶级认同"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，定义较为完整且与教学口径一致",
+  "keypoints": [
+   {
+    "text": "拥有资本和生产资料",
+    "source": "main"
+   },
+   {
+    "text": "不亲自从事体力劳动",
+    "source": "main"
+   },
+   {
+    "text": "雇佣并剥削工人以再生产财富",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "负责组织资本主义",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "有时被称为统治阶级",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调资产阶级拥有生产资料、不劳动且剥削工人",
+   "tb1": "突出资产阶级作为拥有生产资料的群体及其在资本主义中的组织角色",
+   "igcse0495": "从马克思主义理论角度定义资产阶级为财产所有者，有时等同于统治阶级"
+  }
+ },
+ {
+  "term": "Cultural capital",
+  "chinese": "文化资本",
+  "paper": "Paper 1",
+  "unit": [
+   "阶级认同"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "文化经历、品味和技能",
+    "source": "main"
+   },
+   {
+    "text": "可转化为财富、收入、权力和声望",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "社会、智力和文化资产，有助于教育成功或社会流动",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "例如知道如何‘为成功而着装’",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "与上层阶级相关联的知识、品味和价值观",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "强调文化经历、品味和技能可转化为经济和社会资本",
+   "tb1": "侧重文化资产对教育成功和社会流动的贡献，举例具体行为",
+   "igcse0495": "聚焦上层阶级的知识、品味和价值观作为文化资本的核心"
+  }
+ },
+ {
+  "term": "Dependency culture",
+  "chinese": "依赖性文化",
+  "paper": "Paper 1",
+  "unit": [
+   "阶级认同"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "文化特指底层人群",
+    "source": "main"
+   },
+   {
+    "text": "高度依赖政府提供的福利和救济",
+    "source": "main"
+   },
+   {
+    "text": "丧失自我照顾的能力",
+    "source": "main"
+   },
+   {
+    "text": "丧失自我照顾的意识",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "新右派社会学家的观点",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "导致人们失去自我照顾欲望或能力的价值观集合",
+    "sources": [
+     "igcse0495"
+    ]
+   },
+   {
+    "text": "例如依赖福利救济",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "定义底层人群对福利依赖导致能力和意识丧失",
+   "tb1": "新右派视角下的州福利依赖生活方式",
+   "igcse0495": "价值观导致失去自我照顾能力而依赖福利"
+  }
+ },
+ {
+  "term": "Material deprivation",
+  "chinese": "物质条件匮乏",
+  "paper": "Paper 1",
+  "unit": [
+   "阶级认同"
+  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，定义虽简洁但未出现错误，足以作为判分基准",
+  "keypoints": [
+   {
+    "text": "缺乏物质条件",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "缺乏物质资源",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "无法负担该社会中大多数人视为必需的物质商品",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
+  "sources": [
+   "igcse0495",
+   "main",
+   "tb1"
+  ],
+  "source_notes": {
+   "main": "概括指出物质条件的缺失",
+   "tb1": "强调物质资源的不足",
+   "igcse0495": "聚焦于无法负担社会普遍认为的必需品"
+  }
  },
  {
   "term": "Proletariat",
@@ -2599,243 +4020,42 @@
   "unit": [
    "阶级认同"
   ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
   "keypoints": [
    {
-    "text": "在马克思主义理论中，指必须通过劳动谋生的工人阶级群体。",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "不拥有资本或生产资料，只能靠出卖劳动力维生的阶级。",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   }
-  ]
- },
- {
-  "term": "Modified extended family",
-  "chinese": "改良式扩张家庭",
-  "paper": "Paper 2",
-  "unit": [
-   "家庭多样性"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "家庭成员包括父母和子女与祖父母、姑姑、叔叔等其他亲属共同生活或住在附近，保持经常联系",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "核心家庭与其他亲属组成，虽不共同居住或邻近居住，但通过现代科技保持联系",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   }
-  ]
- },
- {
-  "term": "Symmetrical family",
-  "chinese": "对称家庭",
-  "paper": "Paper 2",
-  "unit": [
-   "性别平等"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "夫妻平等分担家务劳动",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "夫妻在家庭决策和休闲时间上享有平等角色",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
+    "text": "不拥有任何资本或生产资料",
+    "source": "main"
    },
    {
-    "text": "指核心家庭的一种形式",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
+    "text": "只能通过出售劳动力来维持生存",
+    "source": "main"
    }
-  ]
- },
- {
-  "term": "Overt observation",
-  "chinese": "表明自己身份的观察",
-  "paper": "Paper 1",
-  "unit": [
-   "研究方法"
   ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
+  "bonus": [
    {
-    "text": "研究者向被研究群体表明自己的研究者身份",
+    "text": "在马克思主义理论中属于工人阶级",
     "sources": [
-     "main",
-     "tb1",
      "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
+    ]
    },
    {
-    "text": "研究的目的被公开告知参与者",
+    "text": "劳动或工作阶级",
     "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "参与者知道研究正在进行",
-    "sources": [
-     "igcse0495"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Stratified sampling",
-  "chinese": "分层抽样",
-  "paper": "Paper 1",
-  "unit": [
-   "研究设计"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "将总体按特定社会特征（如年龄、性别）划分为不同层（strata）",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   },
-   {
-    "text": "从每一层中随机抽取样本，以反映总体中这些特征的比例",
-    "sources": [
-     "main",
      "tb1"
-    ],
-    "breadth": 2,
-    "type": "core"
+    ]
    }
   ],
-  "variants": [
-   {
-    "text": "样本中不同社会群体的比例与总体成比例",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Norm",
-  "chinese": "规范",
-  "paper": "Paper 1",
-  "unit": [
-   "社会化和社会控制"
-  ],
-  "tier": "low",
   "sources": [
    "igcse0495",
    "main",
    "tb1"
   ],
-  "keypoints": [
-   {
-    "text": "规范是社会对特定情境下行为的期望",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "规范通过角色体现社会价值的具体行为",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   }
-  ]
+  "source_notes": {
+   "main": "强调无资本且靠卖劳动力生存",
+   "tb1": "简洁定义为劳动或工作阶级",
+   "igcse0495": "明确置于马克思主义理论框架并强调为生存而工作"
+  }
  },
  {
   "term": "Social class",
@@ -2844,189 +4064,42 @@
   "unit": [
    "阶级认同"
   ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
+  "reference": "main",
+  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
   "keypoints": [
    {
-    "text": "社会分层的一种方式，基于收入、财富和职业类型（脑力或体力劳动）",
-    "sources": [
-     "main",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
+    "text": "社会身份的一个维度",
+    "source": "main"
+   },
+   {
+    "text": "按收入、财富和工作性质（脑力或体力劳动）将人类社会分层的方式",
+    "source": "main"
    }
   ],
-  "variants": [
+  "bonus": [
    {
-    "text": "体现社会不平等，涉及收入、财富、政治权力、教育、健康和生活机会等方面的差异",
+    "text": "政治权力、生活机会、教育水平、健康等方面的不平等",
     "sources": [
      "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
+    ]
    },
    {
-    "text": "具有共同经济和社会地位的群体分类，如工人阶级、中产阶级或上层阶级",
+    "text": "共享的经济和社会地位，例如工人阶级、中产阶级或上层阶级",
     "sources": [
      "igcse0495"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
+    ]
    }
-  ]
- },
- {
-  "term": "Monogamy",
-  "chinese": "一夫一妻制（专偶制）",
-  "paper": "Paper 2",
-  "unit": [
-   "家庭多样性"
   ],
-  "tier": "low",
   "sources": [
    "igcse0495",
    "main",
    "tb1"
   ],
-  "keypoints": [
-   {
-    "text": "个体在某一时间内仅能与一个伴侣保持婚姻关系",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   }
-  ],
-  "variants": []
- },
- {
-  "term": "Triple shift",
-  "chinese": "“三班倒”",
-  "paper": "Paper 2",
-  "unit": [
-   "性别平等"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "女性除了从事有薪工作外，还需承担无薪家务劳动",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   },
-   {
-    "text": "女性还需在家庭中承担情感劳动，如支持家庭成员的情绪需求",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   }
-  ],
-  "variants": []
- },
- {
-  "term": "Participant observation",
-  "chinese": "参与式的观察",
-  "paper": "Paper 1",
-  "unit": [
-   "研究方法"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "研究者加入群体并参与其日常活动以收集资料",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "属于一种质性研究方法",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   },
-   {
-    "text": "研究者通过与群体共同生活进行研究",
-    "sources": [
-     "igcse0495"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Power",
-  "chinese": "权力",
-  "paper": "Paper 1",
-  "unit": [
-   "社会化和社会控制"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "对他人行为产生影响的能力",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "即使面对抵抗，也能贯彻自身意志的能力",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   }
-  ]
+  "source_notes": {
+   "main": "强调社会身份维度和按收入、财富、工作性质分层",
+   "tb1": "聚焦资本主义社会中富裕与贫困群体在多维度上的不平等",
+   "igcse0495": "定义为共享的经济和社会地位，举出阶级举例"
+  }
  },
  {
   "term": "Social stratification",
@@ -3035,180 +4108,44 @@
   "unit": [
    "阶级认同"
   ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
   "keypoints": [
    {
-    "text": "社会被划分为具有不同地位和特权的层级结构",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
+    "text": "社会可以被划分为等级制度",
+    "source": "main"
    }
   ],
-  "variants": [
+  "bonus": [
    {
-    "text": "分层体现为从最特权到最无特权的等级排列",
+    "text": "社会被结构化或划分为层级层或 strata，最特权群体位于顶端，最不特权群体位于底端",
     "sources": [
      "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
+    ]
    },
    {
-    "text": "分层形式包括种姓制度和社会阶级等具体表现",
+    "text": "例如种姓制度和社会阶级",
     "sources": [
      "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
+    ]
+   },
+   {
+    "text": "群体具有不同的地位和不同程度的特权",
+    "sources": [
+     "igcse0495"
+    ]
    }
-  ]
- },
- {
-  "term": "Nuclear family",
-  "chinese": "核（心）家庭",
-  "paper": "Paper 2",
-  "unit": [
-   "家庭多样性"
   ],
-  "tier": "high",
   "sources": [
    "igcse0495",
    "main",
    "tb1"
   ],
-  "keypoints": [
-   {
-    "text": "由一对成年异性伴侣（婚姻或伴侣关系）与他们的受抚养子女组成的家庭单位",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   },
-   {
-    "text": "子女可以是亲生或收养的",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "这是社会最基本的单位",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Semi-structured interview",
-  "chinese": "半结构化访谈",
-  "paper": "Paper 1",
-  "unit": [
-   "研究方法"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "包含大致的提问提纲或标准化问题，但不强制严格遵循",
-    "sources": [
-     "main",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   },
-   {
-    "text": "允许访问者根据情况灵活调整问题顺序或加入追问",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "属于质性研究方法的一种",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Primary socialisation",
-  "chinese": "初级社会化",
-  "paper": "Paper 1",
-  "unit": [
-   "社会化和社会控制"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "这是社会化过程的最初阶段，通常发生在家庭中",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   },
-   {
-    "text": "儿童在此阶段学习最基本的文化规范、价值观、语言和其他生活技能",
-    "sources": [
-     "main",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "这是社会化过程中最重要的一部分",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
+  "source_notes": {
+   "main": "定义社会分层为社会被划分为等级制度的方式",
+   "tb1": "强调社会结构为层级层，并举例说明种姓和社会阶级",
+   "igcse0495": "定义为群体具有不同地位和特权水平的等级制度"
+  }
  },
  {
   "term": "Underclass",
@@ -3217,180 +4154,52 @@
   "unit": [
    "阶级认同"
   ],
-  "tier": "high",
+  "reference": "main",
+  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
+  "keypoints": [
+   {
+    "text": "是 New Right 的观点，认为存在一个处于上层-中产-工人三阶层体系之下的群体",
+    "source": "main"
+   },
+   {
+    "text": "该群体的价值观与主流价值观完全不同",
+    "source": "main"
+   },
+   {
+    "text": "该群体对自身贫困负有责任",
+    "source": "main"
+   }
+  ],
+  "bonus": [
+   {
+    "text": "是一个国家或社区中最底层的社会阶层，由穷人和失业者组成",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "New Right 声称该群体最可能依赖福利并具有犯罪倾向",
+    "sources": [
+     "tb1"
+    ]
+   },
+   {
+    "text": "该群体实际上被切断与社会其他部分的联系",
+    "sources": [
+     "igcse0495"
+    ]
+   }
+  ],
   "sources": [
    "igcse0495",
    "main",
    "tb1"
   ],
-  "keypoints": [
-   {
-    "text": "被主流社会隔离的底层群体，处于工人阶级以下",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   },
-   {
-    "text": "新右派观点认为其成员具有与主流价值观不同的价值观，且对其自身贫困负有责任",
-    "sources": [
-     "main",
-     "tb1"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "该群体常依赖福利并可能涉及犯罪",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Polygamy",
-  "chinese": "非专偶制",
-  "paper": "Paper 2",
-  "unit": [
-   "家庭多样性"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "一个人同时与多个伴侣保持婚姻关系",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "这种婚姻形式是一种文化规范，允许配偶拥有多个丈夫或妻子",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   }
-  ]
- },
- {
-  "term": "Structured interview",
-  "chinese": "结构化访谈",
-  "paper": "Paper 1",
-  "unit": [
-   "研究方法"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "采用标准化的问题列表，按固定顺序提问",
-    "sources": [
-     "main",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   },
-   {
-    "text": "以封闭式问题为主，便于收集量化数据",
-    "sources": [
-     "main",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "由访问者朗读问题并填写答案",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   },
-   {
-    "text": "访谈过程受到严格限制",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Role",
-  "chinese": "角色",
-  "paper": "Paper 1",
-  "unit": [
-   "社会化和社会控制"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "与特定社会地位相联系的被期待的行为模式",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "角色存在于社会制度中，伴随社会对行为的期待",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   },
-   {
-    "text": "角色从不单独存在，总是与其它角色相关联",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
+  "source_notes": {
+   "main": "强调 New Right 视角下 underclass 的价值观差异及个人责任论",
+   "tb1": "侧重描述 underclass 的社会地位及 New Right 对其行为的归因（福利依赖、犯罪）",
+   "igcse0495": "突出 underclass 相对于工人阶级的下层位置及其社会切断状态"
+  }
  },
  {
   "term": "Welfare state",
@@ -3399,582 +4208,37 @@
   "unit": [
    "阶级认同"
   ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
+  "reference": "main",
+  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
   "keypoints": [
    {
-    "text": "国家通过津贴、养老金和其他福利，保障公民特别是弱势群体的健康与福祉",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   },
-   {
-    "text": "政府提供公共服务（如免费教育和医疗）并给予经济支持，资金来源于税收",
-    "sources": [
-     "main",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
+    "text": "政府系统向社会中处于不利地位的人分配福利和救济",
+    "source": "main"
    }
   ],
-  "variants": [
+  "bonus": [
    {
-    "text": "政府系统向社会中的弱势群体分配福利和补助",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Reconstituted family",
-  "chinese": "重组家庭",
-  "paper": "Paper 2",
-  "unit": [
-   "家庭多样性"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "一个由再婚组成的家庭单位，其中至少有一方父母带来前一段关系中的子女",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   },
-   {
-    "text": "该家庭结构形成于离婚或伴侣去世后的一方再次结婚",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "也被称为混合家庭或继亲家庭",
-    "sources": [
-     "main",
-     "tb1"
-    ],
-    "breadth": 2,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Triangulation",
-  "chinese": "三角定位",
-  "paper": "Paper 1",
-  "unit": [
-   "研究方法"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "通过使用两种或以上的研究方法来验证研究结果的有效性",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "采用混合方法进行交叉验证",
+    "text": "国家承诺通过补助金、养老金和其他福利保护公民健康和福祉，特别是有经济或社会需求的人",
     "sources": [
      "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
+    ]
    },
    {
-    "text": "检查研究结果真实性的方法",
+    "text": "政府提供服务（如免费教育和医疗）并给予需要经济支持的人财政援助（如失业者和长期病患），由税收资助",
     "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
+     "igcse0495"
+    ]
    }
-  ]
- },
- {
-  "term": "Role model",
-  "chinese": "榜样",
-  "paper": "Paper 1",
-  "unit": [
-   "社会化和社会控制"
   ],
-  "tier": "low",
   "sources": [
    "igcse0495",
    "main",
    "tb1"
   ],
-  "keypoints": [
-   {
-    "text": "被他人钦佩并效仿的人",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "具有较高地位或影响力的人，其行为为他人提供模仿的榜样",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   }
-  ]
- },
- {
-  "term": "Serial monogamy",
-  "chinese": "连续的一夫一妻婚姻",
-  "paper": "Paper 2",
-  "unit": [
-   "家庭多样性"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "在不同时间段内与多个伴侣先后进入专一的婚姻或同居关系",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   },
-   {
-    "text": "每次婚姻关系终止后（如离婚）才进入下一段婚姻或同居关系",
-    "sources": [
-     "main",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "强调一生中可以多次结婚与离婚",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Unstructured interview",
-  "chinese": "非结构化访谈",
-  "paper": "Paper 1",
-  "unit": [
-   "研究方法"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "没有预设问题或问题限制，具有高度开放性的访谈形式",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   },
-   {
-    "text": "通常用于探索受访者的情感和态度，产生定性数据",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "研究者通常有希望涵盖的主题，但不强制遵循特定问题",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Sanction",
-  "chinese": "制约（制裁）",
-  "paper": "Paper 1",
-  "unit": [
-   "社会化和社会控制"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "社会规则的执行手段，包括奖励和惩罚两种形式",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   },
-   {
-    "text": "负向制裁是对违反规则行为的惩罚，正向制裁是对遵守规则行为的奖励或认可",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "制裁通常被用来确保人们遵守社会规范",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Single-parent / Lone-parent family",
-  "chinese": "单亲家庭",
-  "paper": "Paper 2",
-  "unit": [
-   "家庭多样性"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "由一位父亲或母亲与他们抚养的子女共同组成的家庭单位",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   },
-   {
-    "text": "该家长未再婚，可能因离婚、丧偶或从未结婚而单独抚养子女",
-    "sources": [
-     "main",
-     "tb1"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "在少数情况下，可能是出于自愿选择单独抚养子女",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Secondary socialisation",
-  "chinese": "次级社会化",
-  "paper": "Paper 1",
-  "unit": [
-   "社会化和社会控制"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "发生在生命后期的社会化过程，持续终生",
-    "sources": [
-     "main",
-     "tb1"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "通过学校、职场等机构进行的社会化",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   },
-   {
-    "text": "学习特定身份和角色所对应的规范",
-    "sources": [
-     "igcse0495"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   }
-  ]
- },
- {
-  "term": "Vertically extended family",
-  "chinese": "垂直扩张家庭",
-  "paper": "Paper 2",
-  "unit": [
-   "家庭多样性"
-  ],
-  "tier": "high",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "包含核心家庭以及至少两个世代的亲属，例如祖父母、父母和子女共同生活或保持密切联系。",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   },
-   {
-    "text": "家庭成员可能同住或住在附近，使得日常互动频繁。",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "强调家庭结构从核心家庭向上延伸，涵盖更多直系亲属。",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Secularisation",
-  "chinese": "世俗化",
-  "paper": "Paper 1",
-  "unit": [
-   "社会化和社会控制"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "宗教在日常生活和社会中的影响力逐渐减弱",
-    "sources": [
-     "main",
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 3,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "宗教信仰和实践（如去教堂）的普遍减少",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   },
-   {
-    "text": "宗教重要性在现代社会中的下降过程",
-    "sources": [
-     "igcse0495"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Subculture",
-  "chinese": "亚文化",
-  "paper": "Paper 1",
-  "unit": [
-   "社会化和社会控制"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "一个较大文化内部具有自身独特规范和价值观的较小文化群体",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "可能与主流文化的价值观存在冲突或差异",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   },
-   {
-    "text": "过去被视为导致越轨行为，如今被视为正常现象",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
- },
- {
-  "term": "Canalisation",
-  "chinese": "引导",
-  "paper": "Paper 1",
-  "unit": [
-   "社会化和社会控制"
-  ],
-  "tier": "low",
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "keypoints": [
-   {
-    "text": "在性别角色社会化中，父母引导或限制孩子的兴趣和活动，使其符合社会对性别适当性的期待",
-    "sources": [
-     "tb1",
-     "igcse0495"
-    ],
-    "breadth": 2,
-    "type": "core"
-   }
-  ],
-  "variants": [
-   {
-    "text": "父母会纠正孩子的行为与偏好，若这些表现不符合其生理性别所对应的社会期待",
-    "sources": [
-     "main"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "single-source"
-   },
-   {
-    "text": "例如玩具常被区分为适合男孩或女孩的类型",
-    "sources": [
-     "tb1"
-    ],
-    "breadth": 1,
-    "type": "variant",
-    "reason": "model-variant"
-   }
-  ]
+  "source_notes": {
+   "main": "强调政府向弱势群体分配福利和救济",
+   "tb1": "强调国家通过具体福利手段保护公民健康和福祉，尤其针对有需求群体",
+   "igcse0495": "强调政府提供公共服务和财政援助，由税收资助，针对失业者和长期病患等群体"
+  }
  }
 ]

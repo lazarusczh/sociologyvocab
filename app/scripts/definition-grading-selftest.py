@@ -95,7 +95,13 @@ def call_llm(prompt: str, base: str, model: str, key: str, max_tokens=500, retri
         try:
             with urllib.request.urlopen(req, timeout=180) as r:
                 payload = json.loads(r.read().decode("utf-8"))
-            return payload["choices"][0]["message"]["content"]
+            choices = payload.get("choices") or []
+            if not choices:                                     # OpenRouter 偶发返回无 choices
+                if verbose:
+                    print(f"  BAD PAYLOAD: {str(payload)[:160]}")
+                time.sleep(3 * (attempt + 1))
+                continue
+            return (choices[0].get("message") or {}).get("content", "")
         except urllib.error.HTTPError as e:
             print(f"    HTTP {e.code}: {e.read().decode('utf-8', 'ignore')[:150]}")
             time.sleep(3 * (attempt + 1))
@@ -165,19 +171,20 @@ def parse_verdict(txt: str):
 
 
 def verdict_from_coverage(coverage: list, listing_only: bool) -> str:
-    """档位由确定性规则算出（可复现、可审计）。用连续覆盖度，1 个要素的术语同样适用。"""
+    """档位由确定性规则算出（可复现、可审计）。用连续覆盖度，1 个要素的术语同样适用。
+
+    口径对齐 ms 的"2 分/条"：答到任一要素即拿部分分，只有完全没答到才判 wrong。
+    """
     try:
         vals = [float(x) for x in (coverage or [])]
     except (TypeError, ValueError):
         return "PARSE_FAIL"
-    if not vals:
+    if not vals or max(vals) <= 0:
         return "wrong"
     score = sum(vals) / len(vals)
     if score >= 0.75 and not listing_only:
         return "correct"
-    if score >= 0.35:
-        return "partial"
-    return "wrong"
+    return "partial"          # 覆盖不足 / 只有罗列 → 部分正确
 
 
 def partial_excerpt(text: str) -> str:
@@ -240,21 +247,22 @@ def main():
             ext[name] = [(toks(e.get("term")), (e.get("definition") or e.get("def") or ""))
                          for e in json.loads(p.read_text(encoding="utf-8"))]
 
-    def ref_definition(term: str) -> str:
-        """取该术语最完整的一条权威定义（tb1 > igcse0495 > 主站）——用于构造 full 样本。"""
+    def ref_definition(term: str, prefer: str) -> str:
+        """按术语的「参考来源」取定义原文：main → 主站词库；tb1/tb2/igcse0495 → 教材 Key terms / 官方 glossary。
+        判分基准应与学生所学口径一致（方案 13.3 的修正方向）。"""
+        if prefer in ("", "main"):
+            return main_def.get(term, "")
         mt = toks(term)
-        best = ""
-        for name in ("tb1", "igcse0495", "tb2"):
-            for st, d in ext.get(name, []):
-                if not st:
-                    continue
-                inter, union = len(mt & st), len(mt | st)
-                jac = (inter / union) if union else 0
-                subset = ((mt <= st and len(mt) >= 2 and len(st) - len(mt) <= 1)
-                          or (st <= mt and len(st) >= 2 and len(mt) - len(st) <= 1))
-                if (jac >= 0.6 or subset) and len(d) > len(best):
-                    best = d
-        return best or main_def.get(term, "")
+        for st, d in ext.get(prefer, []):
+            if not st:
+                continue
+            inter, union = len(mt & st), len(mt | st)
+            jac = (inter / union) if union else 0
+            subset = ((mt <= st and len(mt) >= 2 and len(st) - len(mt) <= 1)
+                      or (st <= mt and len(st) >= 2 and len(mt) - len(st) <= 1))
+            if jac >= 0.6 or subset:
+                return d
+        return main_def.get(term, "")
 
     # 分层抽样：按 unit 轮流取
     groups = defaultdict(list)
@@ -272,26 +280,29 @@ def main():
     pool = [r for r in kps if r not in picked]
     samples = []
     for r in picked:
-        ref = ref_definition(r["term"])
+        prefer = r.get("reference") or "main"
+        ref = ref_definition(r["term"], prefer)
         if len(ref) < 20:
             continue
         wrong_ref = next((x for x in pool if x.get("paper") == r.get("paper")), None)
-        wrong_def = ref_definition(wrong_ref["term"]) if wrong_ref else "This term is not defined here."
+        wrong_def = (ref_definition(wrong_ref["term"], wrong_ref.get("reference") or "main")
+                     if wrong_ref else "This term is not defined here.")
         samples.append((r, "full", ref, "correct"))
-        samples.append((r, "partial", partial_excerpt(ref), "partial"))
+        # partial：只覆盖清单里的第 1 个要素（对 1 要素术语无法构造"半对"，跳过）。
+        # 早前用"定义首分句"当半对，遇到 main 定义只有一句话时与 full 完全相同，导致指标虚低。
+        kp_texts = [k.get("text", "") for k in r.get("keypoints", []) if k.get("text")]
+        if len(kp_texts) >= 2:
+            samples.append((r, "partial", f"该术语指：{kp_texts[0]}。", "partial"))
         samples.append((r, "wrong", wrong_def[:300], "wrong"))
 
     print(f"术语 {len(picked)} 个 → 样本 {len(samples)} 个 × repeat {args.repeat}\n")
     results, correct_cnt = [], 0
     for idx, (rec, kind, ans, expect) in enumerate(samples, 1):
-        # 判分清单：只取「教材 / 官方 glossary 支持」的核心要素 —— 它们是权威定义本身承载的要点。
-        # 只被主站支持的单源要素降为加分项，避免拿"多源并集"当必踩点而误杀教材式答案。
-        cores_all = [k for k in rec["keypoints"] if k.get("type") == "core"]
-        cores = [k for k in cores_all
-                 if set(k.get("sources", [])) & {"tb1", "tb2", "igcse0495"}] or cores_all
+        # 判分清单 = 参考来源的必踩点（方案 13.3 修正后：以参考来源为中心，其他来源独有内容进 bonus）
+        cores = rec["keypoints"]
         kp_lines = "\n".join(f"{j+1}. {k.get('text')}" for j, k in enumerate(cores))
-        vari = [v.get("text") for v in rec.get("variants", []) if v.get("text")]
-        extra = f"可接受的其他表述：{'; '.join(vari)}\n\n" if vari else ""
+        vari = [b.get("text") for b in rec.get("bonus", []) if b.get("text")]
+        extra = f"其他来源的独有表述（学生答出可作加分，不作必答要求）：{'; '.join(vari[:6])}\n\n" if vari else ""
         prompt = PROMPT.format(term=rec["term"], n=len(cores), keypoints=kp_lines,
                                extra=extra, answer=ans)
         verdicts, rec_coverage, rec_reason, rec_conf = [], [], "", ""
