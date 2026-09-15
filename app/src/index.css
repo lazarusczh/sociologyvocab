@@ -586,6 +586,52 @@ input:focus, textarea:focus, select:focus {
 .check-table th { color: var(--text-muted); font-weight: 600; font-size: 0.8rem; background: var(--bg); }
 .check-table tbody tr:hover { background: var(--bg); }
 
+/* 横向滚动表格「首列冻结」（2026-09-15 教师要求）：
+   所有宽表都是 .check-table（词条管理 / 打卡核验 / 错题本 / 测验管理 ×2 / 试卷成绩 ×2 / 班级管理 ×2），
+   故一处生效；.grp-score-table 不横滚，不需要。三个要点：
+     ① sticky 单元格必须有**不透明底色**，否则横向滚动时下面的内容会透过来；
+     ② border-collapse: collapse 下 sticky 单元格的 border 会失效 ⇒ 右侧分隔线改用 inset box-shadow；
+     ③ hover 行背景会"跳过"首列 ⇒ 单独补一条 :hover 规则让首列跟着变（否则鼠标悬停时首列不亮）。 */
+.check-table th:first-child,
+.check-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--surface);
+}
+.check-table th:first-child { background: var(--bg); z-index: 3; }
+.check-table tbody tr:hover td:first-child { background: var(--bg); }
+
+/* 冻结列右缘的"浮起"暗示（2026-09-15 教师反馈：硬分隔线存在感太强）：
+   不用 border/实线，改用 **10px 渐变投影**（从同一套阴影色 rgba(16,24,40,…) 渐隐到透明），
+   与卡片阴影同一色系、同样"只画在外侧、不占布局"，视觉上表达"首列浮在滚动内容之上"。
+   深色模式换成黑色渐变（与深色下的 --shadow 用黑一致）。 */
+.check-table th:first-child::after,
+.check-table td:first-child::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: -10px;
+  width: 10px;
+  pointer-events: none;
+  /* 默认完全隐藏：静止时首列就是普通一列（教师 2026-09-15 要求"只在真正横滑时才投影"）。
+     显示与否由 .is-scrolled 类决定 —— 该类由 lib/tableFreeze.ts 在横滑时打上、滑回最左时摘掉。 */
+  opacity: 0;
+  transition: opacity 140ms var(--ease, ease);
+  background: linear-gradient(to right, rgba(16, 24, 40, 0.16), rgba(16, 24, 40, 0));
+}
+
+.check-table.is-scrolled th:first-child::after,
+.check-table.is-scrolled td:first-child::after { opacity: 1; }
+
+@media (prefers-color-scheme: dark) {
+  .check-table th:first-child::after,
+  .check-table td:first-child::after {
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0));
+  }
+}
+
 /* 可折叠卡片标题 */
 .collapse-head {
   width: 100%;
@@ -1053,6 +1099,66 @@ button.goal-card__cta:active {
 .tag-filter { display: flex; flex-wrap: wrap; gap: 0.3rem; }
 .tag-filter button { font-size: 0.8rem; padding: 0.25rem 0.6rem; }
 .tag-filter button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* 教师后台两级导航（2026-09-15）：
+   一级 = 实心主色（当前所属分组）；二级 = 浅底 + 主色文字与描边（当前页面）。
+   依据 ui-refs/tokens.css：--c-primary-bg 本就标注为「导航激活底」的用途；
+   本设计系统只有蓝一个品牌色相，二级若借绿/黄/红（语义色）会带来错误语义，
+   故只在同一色系内以「实心 / 浅底」区分层级。深色模式走同一 token，自动适配。 */
+.admin-subnav button.active {
+  background: var(--c-primary-bg);
+  color: var(--c-primary);
+  border-color: var(--c-primary);
+}
+
+/* 一二级导航之间的分割线：细（1px）、淡（hairline-soft）、不横贯整屏（限宽 22rem，随窄屏自然收缩） */
+.admin-nav-divider {
+  height: 1px;
+  max-width: 22rem;
+  margin: 0.45rem 0 0.55rem;
+  background: var(--c-hairline-soft);
+  border-radius: 1px;
+}
+
+/* 班级管理「ManageBac 登分」开关（2026-09-15）：
+   复用全局 .switch（checkbox 视觉化），不用原生复选框 —— 原生控件在本站样式体系里非常突兀；
+   ① 尺寸收小以适配表格行；② 选中色改为警示色：全局"选中=红"是"已暂停"的语义，这里不成立
+   （同 OcrMarkPanel 对 .switch 的处理思路）。选中 = 不登分（例外状态，值得被注意到）。 */
+.mb-exempt-switch { display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; }
+.mb-exempt-switch .switch { width: 40px; height: 23px; }
+.mb-exempt-switch .switch__thumb { width: 17px; height: 17px; }
+.mb-exempt-switch .switch input:checked + .switch__track { background: var(--c-warning); }
+.mb-exempt-switch .switch input:checked + .switch__track .switch__thumb { transform: translateX(17px); }
+
+/* 教师后台宽屏侧栏（≥1100px，切换逻辑在 AdminPanel.tsx 的 useWideNav）：
+   组名当分区标题（不可点，仅作标签），组内页平铺列出、当前页用主色浅底。
+   侧栏约 190px ⇒ 内容区从 920 降到 ≈700px（正文/表单足够；宽表格本就有横向滚动）。 */
+.admin-shell { display: flex; gap: 0.7rem; align-items: flex-start; }
+.admin-side {
+  /* 宽度按实际最长标签定：中文最长的「测验/作业」「OCR 阅卷」≈70px，
+     加上子项缩进 ≈18px、右侧留白 ≈7px ⇒ 150px 足够，多给内容约 52px。
+     间距与右内距也一并收紧（原先 190px + 1.1rem 间距共吃掉约 208px）。 */
+  width: 150px; flex: none; padding-right: 0.45rem;
+  border-right: 1px solid var(--c-hairline-soft);
+  position: sticky; top: calc(var(--h-topbar, 64px) + 1rem);
+}
+.admin-side__group {
+  font-size: 0.8rem; font-weight: 600; letter-spacing: 0.02em;
+  color: var(--c-steel); padding: 0.55rem 0.5rem 0.2rem;
+}
+.admin-side__group.on { color: var(--c-primary); }
+.admin-side__page {
+  display: block; width: 100%; text-align: left; cursor: pointer;
+  font-size: 0.82rem; color: var(--c-ink); background: transparent; border: 0;
+  /* 左内距比组标题（0.5rem）多约 18px：子项整体内缩，与组标题拉开层级。
+     选中背景仍通栏（同 VS Code 资源管理器的做法：背景整行、文字缩进）。
+     缩进量就是这一条里的左内距，单独调它即可（1.6rem ≈ 25.6px）。 */
+  padding: 0.32rem 0.5rem 0.32rem 1.6rem;
+  border-radius: var(--r-ctrl);
+}
+.admin-side__page:hover { background: var(--c-surface-soft); }
+.admin-side__page.active { background: var(--c-primary-bg); color: var(--c-primary); font-weight: 600; }
+.admin-main { flex: 1; min-width: 0; }
 
 .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
 .empty-state .big { font-size: 2.5rem; margin-bottom: 0.5rem; }

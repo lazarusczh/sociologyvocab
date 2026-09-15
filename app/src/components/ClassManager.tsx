@@ -446,14 +446,24 @@ export default function ClassManager() {
                       </select>
                     </td>
                     <td>
-                      <label className="row" style={{ gap: '0.3rem', alignItems: 'center', cursor: 'pointer' }}>
-                        <input
-                          type="checkbox"
-                          checked={!!s.mb_exempt}
-                          onChange={(e) => void toggleExempt(s.user_id, e.target.checked)}
-                        />
+                      {/* 复用全局 .switch（checkbox 视觉化，AI 门禁/OCR 工具条同款），
+                          尺寸与选中色见 index.css 的 .mb-exempt-switch（选中=不登分，用警示色） */}
+                      <label
+                        className="mb-exempt-switch"
+                        title="打开表示该生不在 ManageBac 名单里、不需要登分（同步时也会跳过她）"
+                      >
+                        <span className="switch">
+                          <input
+                            type="checkbox"
+                            checked={!!s.mb_exempt}
+                            onChange={(e) => void toggleExempt(s.user_id, e.target.checked)}
+                          />
+                          <span className="switch__track">
+                            <span className="switch__thumb" />
+                          </span>
+                        </span>
                         <span className="muted" style={{ fontSize: '0.8rem' }}>
-                          {s.mb_exempt ? '不登分' : '需登分'}
+                          {s.mb_exempt ? '不登分' : '登分'}
                         </span>
                       </label>
                     </td>

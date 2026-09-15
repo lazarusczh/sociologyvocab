@@ -82,7 +82,11 @@ export default function AiGatePanel() {
       </p>
 
       <div className="gate-switch-row">
-        <label className="switch" title="暂停学生 AI 问答">
+        {/* tooltip 才写"动作"，且随状态给相反动作（该打开还是该关掉，一眼可读） */}
+        <label
+          className="switch"
+          title={disabled ? '恢复：学生可正常使用 AI 问答' : '暂停：学生提问将被拦截'}
+        >
           <input
             type="checkbox"
             checked={disabled}
@@ -92,7 +96,9 @@ export default function AiGatePanel() {
           <span className="switch__track"><span className="switch__thumb" /></span>
         </label>
         <div className="gate-switch-meta">
-          <div className="gate-switch-title">暂停学生 AI 问答</div>
+          {/* 标题只写「被控制的对象」，不写动作 —— 否则与右侧状态徽章（运行中/已暂停）语义错位，
+              读起来像"一个叫『暂停学生问答』的东西正在运行"（2026-09-15 教师指出）。 */}
+          <div className="gate-switch-title">学生 AI 问答</div>
           <div className="row tight">
             <span className={disabled ? 'badge danger' : 'badge success'}>
               {disabled ? '已暂停' : '运行中'}

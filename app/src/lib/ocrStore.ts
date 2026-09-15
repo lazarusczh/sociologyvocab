@@ -7,14 +7,20 @@
 
 import { supabase } from './supabase';
 
-export interface OcrRecord {
+/** 列表用：**不含转写正文**。正文动辄数千字，60 条一起拉会让「载入记录 / 刷新」明显变慢 */
+export interface OcrRecordMeta {
   id: string;
   label: string | null;
   page_name: string | null;
-  text: string;
+  text_len: number | null;   // 正文字数（库内触发器维护，列表用它显示「N 字」）
   model: string | null;
   elapsed_ms: number | null;
   created_at: string;
+}
+
+/** 完整记录（含正文）：只在点「载入」取单条时用 */
+export interface OcrRecord extends OcrRecordMeta {
+  text: string;
 }
 
 const TABLE = 'ocr_pages';
@@ -24,15 +30,22 @@ async function currentUserId(): Promise<string | null> {
   return data.user?.id ?? null;
 }
 
-/** 最近若干条记录（默认 60 条，按时间倒序） */
-export async function listOcrRecords(limit = 60): Promise<OcrRecord[]> {
+/** 最近若干条记录（默认 60 条，按时间倒序）—— **只取元信息，不含正文**（2026-09-15 提速） */
+export async function listOcrRecordMetas(limit = 60): Promise<OcrRecordMeta[]> {
   const { data, error } = await supabase
     .from(TABLE)
-    .select('id, label, page_name, text, model, elapsed_ms, created_at')
+    .select('id, label, page_name, text_len, model, elapsed_ms, created_at')
     .order('created_at', { ascending: false })
     .limit(limit);
   if (error || !data) return [];
-  return data as OcrRecord[];
+  return data as OcrRecordMeta[];
+}
+
+/** 取单条正文（点「载入」时才调用，避免列表把全文都拉回来） */
+export async function getOcrRecordText(id: string): Promise<string | null> {
+  const { data, error } = await supabase.from(TABLE).select('text').eq('id', id).single();
+  if (error || !data) return null;
+  return (data as { text: string }).text;
 }
 
 /** 新增一条记录，返回记录 id；失败返回 null（UI 只提示，不阻断识别） */

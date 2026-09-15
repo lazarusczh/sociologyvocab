@@ -27,6 +27,29 @@
   width: 100%;
   border-radius: 5px;
   display: block;
+  cursor: zoom-in;   /* 点缩略图即看原图（2026-09-15） */
+}
+
+/* 缩略图占位：历史记录只存文本、没有原图，与其放一个空 <img>，不如写明原因 */
+.ocrm-noshot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  height: 96px;
+  border: 1px dashed var(--border);
+  border-radius: 5px;
+  font-size: 0.78rem;
+  color: var(--muted, #68727f);
+}
+
+.ocrm-noshot span { font-size: 0.7rem; opacity: 0.8; }
+
+/* 本该有图却没有（刚拍/刚导入的页）：用告警色，与「历史记录本就没有」区分开 */
+.ocrm-noshot--warn {
+  border-color: var(--danger, #c33);
+  color: var(--danger, #c33);
 }
 
 .ocrm-thumb .meta {
@@ -56,18 +79,52 @@
   background: var(--surface);
 }
 
-/* ⚠ 选择器必须落在 .ocrm-result 的**直接子元素**上：
-   图片位于 grid 单元格内，若忘了限宽，会以原图固有宽度（长边 1800px）溢出单元格、
-   直接盖住右侧文字（表现为"文字与原图重叠、可读性差"，2026-09-14 实测踩到） */
-.ocrm-result > img {
-  width: 100%;
-  height: auto;
-  max-height: 72vh;
-  object-fit: contain;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: #fff;
+/* 原图不再与文本并排（2026-09-15 教师决定）：改为下面的 .ocrm-overlay 覆盖查看，
+   文本独占整宽 —— 教师后台加了侧栏，并排会把两栏都挤窄。
+   ⚠ 历史教训（2026-09-14 实测踩到，若将来恢复并排务必先看）：图片放进 grid 单元格时，
+   限宽规则必须落在 **直接子元素** 上；否则图片会以固有宽度（长边 1800px）溢出单元格、
+   直接盖住右侧文字，表现为"文字与原图重叠、可读性差"。 */
+
+/* 原图覆盖层：点每页右上角「查看原图」后，全屏覆盖在文字之上。
+   点遮罩 / 点「关闭」 / 按 ESC 都可退出；条栏 sticky，长扫描件向下滚时按钮仍在。 */
+.ocrm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120; /* 挂到 body 后需高于顶部导航(10)/侧栏等，取 120 与全局模态(110)同档以上 */
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.8rem;
+  overflow: auto;
+  background: rgba(10, 19, 23, 0.74);
+  cursor: zoom-out;
 }
+
+.ocrm-overlay__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: none;
+  position: sticky;
+  top: 0;
+  padding: 0.4rem 0.7rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  cursor: default;
+}
+
+.ocrm-overlay img {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  background: #fff;
+  cursor: default;
+}
+
+.ocrm-overlay img.actual { max-width: none; }
 
 .ocrm-text {
   white-space: pre-wrap;
@@ -204,7 +261,6 @@
 }
 
 @media (max-width: 720px) {
-  .ocrm-result { grid-template-columns: 1fr; }
-  .ocrm-result > img { max-height: 46vh; }
   .ocrm-text { font-size: 0.92rem; }
+  .ocrm-overlay { padding: 0.5rem; gap: 0.4rem; }
 }

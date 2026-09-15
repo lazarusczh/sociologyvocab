@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { StoreProvider, useStore } from './lib/store';
+import { installTableFreeze } from './lib/tableFreeze';
 import IdentityGate from './components/IdentityGate';
 import Home from './components/Home';
 import Dictionary from './components/Dictionary';
@@ -203,6 +204,9 @@ function AppBody() {
       window.removeEventListener('resize', setVv);
     };
   }, []);
+
+  // 横向滚动表格的「首列冻结投影」：只在真正横滑时出现（scroll 不冒泡 ⇒ 全局捕获监听一次即可）
+  useEffect(() => installTableFreeze(), []);
 
   // Android 硬件/手势返回键：非首页时先回首页，首页时退出应用
   useEffect(() => {
