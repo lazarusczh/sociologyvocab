@@ -9,7 +9,7 @@
 // 两套命名空间**共用同一批模型**（同一魔搭账号、每日 ~250 魔粒不分池），区别在鉴权级别/档位/开关。
 
 import { handleAppApi } from './worker/appApi';
-import { verifyUser } from './worker/ai/auth';
+import { aiGateForbidden, verifyUser } from './worker/ai/auth';
 
 interface Env {
   ASSETS: Fetcher;
@@ -58,38 +58,8 @@ const HARD_RE =
 // 平时必须为 false。
 const MS_TEST_SKIP = false;
 
-// 注：verifyUser / rolesOf / isTeacherOrDeveloper 已抽到 worker/ai/auth.ts（本文件改为 import），
-// 逻辑与原先完全一致；主站 /app-api/* 复用同一份，避免两套命名空间各写一遍鉴权。
-
-// AI 门禁：关闭期间仅 teacher/developer 可用。返回 null=放行；否则返回学生可见的提示语。
-// 读取失败/角色查询异常时不拦截（宁可放行，不让系统错误误伤学生）。
-// simulateStudent=true：跳过角色豁免，让 teacher/developer 以"学生身份"被判定（自测用）。
-async function aiGateForbidden(
-  userId: string,
-  token: string,
-  env: Env,
-  simulateStudent = false,
-): Promise<string | null> {
-  const headers = { apikey: env.SUPABASE_ANON_KEY, Authorization: `Bearer ${token}` };
-  try {
-    if (!simulateStudent) {
-      const rolesRes = await fetch(`${env.SUPABASE_URL}/rest/v1/user_roles?select=role&user_id=eq.${userId}`, {
-        headers,
-      });
-      if (!rolesRes.ok) return null;
-      const roles = (await rolesRes.json()) as { role?: string }[];
-      if (roles.some((r) => r.role === 'teacher' || r.role === 'developer')) return null;
-    }
-    const gateRes = await fetch(`${env.SUPABASE_URL}/rest/v1/ai_gate?select=disabled_at,note&id=eq.1`, { headers });
-    if (!gateRes.ok) return null;
-    const gate = (await gateRes.json()) as { disabled_at?: string | null; note?: string }[];
-    const row = gate[0];
-    if (row && row.disabled_at) return row.note?.trim() || 'AI 问答已由老师暂时关闭。';
-    return null;
-  } catch {
-    return null;
-  }
-}
+// 注：verifyUser / rolesOf / isTeacherOrDeveloper / aiGateForbidden 均已抽到 worker/ai/auth.ts，
+// 本文件改为 import（逻辑与原先完全一致）；主站 /app-api/* 复用同一份，两套命名空间不再各写一遍。
 
 const json = (status: number, obj: unknown) =>
   new Response(JSON.stringify(obj), {

@@ -53,3 +53,37 @@ export async function isTeacherOrDeveloper(userId: string, token: string, env: A
   const roles = await rolesOf(userId, token, env);
   return roles.includes('teacher') || roles.includes('developer');
 }
+
+/**
+ * AI 门禁：教师临时关闭期间，**学生**不可用（teacher/developer 不受影响）。
+ * 返回 null = 放行；否则返回学生可见的提示语。
+ * 读取失败/角色查询异常时**不拦截**（宁可放行，不让系统错误误伤学生）。
+ * 两套命名空间共用：/skill-api/*（子站问答）与 /app-api/*（主站 AI）。
+ * simulateStudent=true：跳过角色豁免，让 teacher/developer 以"学生身份"被判定（自测用）。
+ */
+export async function aiGateForbidden(
+  userId: string,
+  token: string,
+  env: AuthEnv,
+  simulateStudent = false,
+): Promise<string | null> {
+  const headers = { apikey: env.SUPABASE_ANON_KEY, Authorization: `Bearer ${token}` };
+  try {
+    if (!simulateStudent) {
+      const rolesRes = await fetch(`${env.SUPABASE_URL}/rest/v1/user_roles?select=role&user_id=eq.${userId}`, {
+        headers,
+      });
+      if (!rolesRes.ok) return null;
+      const roles = (await rolesRes.json()) as { role?: string }[];
+      if (roles.some((r) => r.role === 'teacher' || r.role === 'developer')) return null;
+    }
+    const gateRes = await fetch(`${env.SUPABASE_URL}/rest/v1/ai_gate?select=disabled_at,note&id=eq.1`, { headers });
+    if (!gateRes.ok) return null;
+    const gate = (await gateRes.json()) as { disabled_at?: string | null; note?: string }[];
+    const row = gate[0];
+    if (row && row.disabled_at) return row.note?.trim() || 'AI 问答已由老师暂时关闭。';
+    return null;
+  } catch {
+    return null;
+  }
+}

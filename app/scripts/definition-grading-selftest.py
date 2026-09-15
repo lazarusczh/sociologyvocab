@@ -105,6 +105,48 @@ def call_llm(prompt: str, base: str, model: str, key: str, max_tokens=500, retri
     return None
 
 
+# ===== 主站 AI 通路（/app-api/ai/complete）：走线上 secret，不占用本地/魔搭 key =====
+BASE_URL = "https://9699vocab.cn"
+BROWSER_HEADERS = {
+    # Cloudflare 拦数据中心 UA（实测 403 error code: 1010），必须带浏览器 UA
+    "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                   "(KHTML, like Gecko) Chrome/128.0 Safari/537.36"),
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+}
+
+
+def supabase_login(email: str, password: str) -> str:
+    url = f"{load_key('SUPABASE_URL') or ''}/auth/v1/token?grant_type=password"
+    body = json.dumps({"email": email, "password": password}).encode()
+    req = urllib.request.Request(url, data=body, method="POST", headers={
+        **BROWSER_HEADERS, "Content-Type": "application/json",
+        "apikey": load_key("SUPABASE_ANON_KEY") or ""})
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            return json.loads(r.read().decode()).get("access_token", "")
+    except urllib.error.HTTPError as e:
+        print("登录失败:", e.code, e.read().decode()[:200])
+        return ""
+
+
+def call_via_api(prompt: str, token: str, tier: str = "nemotron", max_tokens: int = 600,
+                 fallback: bool = False, endpoint: str = f"{BASE_URL}/app-api/ai/complete"):
+    body = json.dumps({"prompt": prompt, "tier": tier, "maxTokens": max_tokens,
+                       "fallback": fallback}).encode()
+    req = urllib.request.Request(endpoint, data=body, method="POST", headers={
+        **BROWSER_HEADERS, "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}"})
+    try:
+        with urllib.request.urlopen(req, timeout=180) as r:
+            return json.loads(r.read().decode()).get("text", "")
+    except urllib.error.HTTPError as e:
+        print(f"    HTTP {e.code}: {e.read().decode('utf-8', 'ignore')[:150]}")
+    except Exception as e:                                    # noqa: BLE001
+        print(f"    ERR {type(e).__name__}: {e}")
+    return None
+
+
 def parse_verdict(txt: str):
     if not txt:
         return None
@@ -147,6 +189,14 @@ def partial_excerpt(text: str) -> str:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int, default=10, help="抽多少个术语（每个术语 3 个样本）")
+    ap.add_argument("--via", default="api", choices=["api", "direct"],
+                    help="api=走线上主站通路（推荐，不烧本地 key）；direct=本地直连各家 API")
+    ap.add_argument("--token", default="", help="教师 access token（浏览器登录后可从会话里取）")
+    ap.add_argument("--email", default="")
+    ap.add_argument("--password", default="")
+    ap.add_argument("--api-tier", default="nemotron", choices=["nemotron", "agnes", "ms", "auto"])
+    ap.add_argument("--fallback", action="store_true", help="允许跨档降级（默认关，便于观测单档表现）")
+    ap.add_argument("--max-tokens", type=int, default=600)
     ap.add_argument("--provider", default="auto", choices=["auto", "ms", "openrouter"])
     ap.add_argument("--repeat", type=int, default=1, help="同一答案重复判几次（测一致性）")
     ap.add_argument("--model", default="", help="覆盖默认模型 id")
@@ -155,16 +205,25 @@ def main():
                     help="只测高置信术语（core ≥2 个且多源互证），或全部")
     args = ap.parse_args()
 
-    prov = args.provider
-    if prov == "auto":
-        prov = "openrouter" if load_key("OPENROUTER_API_KEY") else "ms"
-    base, model, keyvar = PROVIDERS[prov]
-    if args.model:
-        model = args.model
-    key = load_key(keyvar)
-    if not key:
-        raise SystemExit(f"{keyvar} 未在 app/.dev.vars 中配置；可先用 --provider ms（魔搭）跑通流程")
-    print(f"provider={prov} model={model}")
+    # ---- 提供者选择：默认走线上主站通路（/app-api/ai/complete），不烧本地魔搭 key ----
+    if args.via == "api":
+        token = args.token or (supabase_login(args.email, args.password) if args.email else "")
+        if not token:
+            raise SystemExit("api 模式需要 --token <access_token>，或 --email/--password 登录换取")
+        complete = lambda p: call_via_api(p, token, args.api_tier, args.max_tokens, args.fallback)  # noqa: E731
+        print(f"via=api  endpoint=/app-api/ai/complete  tier={args.api_tier}  fallback={args.fallback}")
+    else:
+        prov = args.provider
+        if prov == "auto":
+            prov = "openrouter" if load_key("OPENROUTER_API_KEY") else "ms"
+        base, model, keyvar = PROVIDERS[prov]
+        if args.model:
+            model = args.model
+        key = load_key(keyvar)
+        if not key:
+            raise SystemExit(f"{keyvar} 未在 app/.dev.vars 中配置")
+        complete = lambda p: call_llm(p, base, model, key)                                     # noqa: E731
+        print(f"via=direct  provider={prov} model={model}")
 
     kps = json.loads(KEYPOINTS.read_text(encoding="utf-8"))
     if args.tier != "all":
@@ -237,7 +296,7 @@ def main():
                                extra=extra, answer=ans)
         verdicts, rec_coverage, rec_reason, rec_conf = [], [], "", ""
         for _ in range(args.repeat):
-            v = parse_verdict(call_llm(prompt, base, model, key))
+            v = parse_verdict(complete(prompt))
             if v:
                 verdicts.append(verdict_from_coverage(v.get("coverage"), bool(v.get("listing_only"))))
                 rec_reason = v.get("reason", "")
