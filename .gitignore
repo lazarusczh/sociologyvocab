@@ -120,6 +120,9 @@ m1.yaml
 14258f93-ade4-4e34-9ff7-54fca2daa11d.png
 ScreenShot_2026-09-05_215554_347.png
 
+# 写作练习位置标签取证产物（含真题 ms 蒸馏与教材片段，属教师知识产权，不入库）
+app/scripts/out/
+
 # 知识站语料清单（含本机绝对路径）与导入中间产物
 app/scripts/skill-sources.local.json
 app/scripts/skill-content*.json

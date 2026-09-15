@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PDF = ROOT.parent / "Materials/04952251 Glossary (for examination from 2025).pdf"
 LEFT_MAX = 150.0                       # 术语列 x0 上限（释义列从 ~201 开始）
 SKIP = re.compile(r"^(terms|definition|glossary|\d{1,3})$", re.I)
+FOOTER = re.compile(r"(cambridgeinternational|back to contents|© cambridge|copyright)", re.I)
 
 
 def parse_pdf(pdf: Path):
@@ -29,13 +30,18 @@ def parse_pdf(pdf: Path):
                 continue
             for ln in blk.get("lines", []):
                 txt = "".join(s.get("text", "") for s in ln.get("spans", [])).strip()
-                if not txt or SKIP.match(txt):
+                if not txt or SKIP.match(txt) or FOOTER.search(txt):
                     continue
                 x0, y0 = ln["bbox"][0], ln["bbox"][1]
                 rows.append((y0, x0, txt))
         rows.sort(key=lambda r: (r[0], r[1]))          # 先按 y，再按 x（同行左列先出）
         for _y, x0, txt in rows:
             if x0 < LEFT_MAX:
+                first = txt[:1]
+                # 术语也可能跨行（"Gendered division of" + "labour"）：以小写/数字开头的左列行并入上一条术语
+                if cur is not None and (first.islower() or first.isdigit()):
+                    cur["term"] = f"{cur['term']} {re.sub(r'\\s+', ' ', txt)}".strip()
+                    continue
                 if cur:
                     entries.append(cur)
                 cur = {"term": re.sub(r"\s+", " ", txt), "definition": "", "page": pno}
