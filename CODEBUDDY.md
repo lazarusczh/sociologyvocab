@@ -25,9 +25,14 @@
 
 ## 二、云端数据库（psql 直连）
 
+**连接串不在本文件明文写出**（本仓库公开）。主机、端口、库名、用户名都在 `%USERPROFILE%\.pgpass` 的**唯一一条**里，格式 `host:port:database:user:password`；密码由 `PGPASSFILE` 自动读取，**不要写进命令**。
+
 ```powershell
-$env:PGPASSFILE="$env:USERPROFILE\.pgpass"
-psql "postgresql://postgres@spb-olltk79n0rjrawe5.supabase.opentrust.net:5432/postgres" -w -v ON_ERROR_STOP=1 -f db-migration-xxx.sql
+# 现场拼连接串：取 .pgpass 唯一一条的前四段（不显示密码）
+$env:PGPASSFILE = "$env:USERPROFILE\.pgpass"
+$e = (Get-Content $env:PGPASSFILE | Where-Object { $_.Trim() -and -not $_.StartsWith('#') })[0] -split ':'
+$conn = "postgresql://$($e[3])@$($e[0]):$($e[1])/$($e[2])"
+psql $conn -w -v ON_ERROR_STOP=1 -f db-migration-xxx.sql
 ```
 
 - **`PGPASSFILE` 与 `-w` 都不能省。** 漏了的话 psql 会停在密码提示上，终端表现是"命令无响应"（已踩三次；psql 本身就在 PATH 里，`C:\Program Files\PostgreSQL\17\bin\psql.exe`，不是路径问题）。只读自查也要带上 `-w`。
