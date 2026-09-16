@@ -17,6 +17,9 @@ buildscript {
 
 apply from: "variables.gradle"
 
+// 根项目的构建产物同样挪出 OneDrive（理由见 app/build.gradle 顶部注释）
+layout.buildDirectory.set(file('C:/vocab-build/root'))
+
 allprojects {
     repositories {
         google()
