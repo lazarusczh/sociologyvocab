@@ -226,10 +226,18 @@ async function main() {
   await cdp.send('Page.navigate', { url: TARGET });
 
   // 任务列是前端异步渲染的：轮询等待出现 core_tasks 链接（最多 60 秒）
+  // 同时**先看是否落在登录页**：cookie 过期时立即退出。
+  // （2026-09-16 实测：原来的写法会白等满 60 秒才发现是登录页，白烧掉一天额度的 10%）
   let ready = 0;
+  let landedLogin = '';
   for (let i = 0; i < 30; i++) {
     await sleep(2000);
     try {
+      const href = String((await cdp.eval('location.href')) ?? '');
+      if (/\/login/i.test(href)) {
+        landedLogin = href;
+        break;
+      }
       ready = Number(await cdp.eval('document.querySelectorAll(\'a[href*="core_tasks/"]\').length')) || 0;
     } catch {
       ready = 0;
@@ -238,10 +246,10 @@ async function main() {
     if (ready > 0) break;
   }
 
-  const href = await cdp.eval('location.href');
-  if (/\/login/i.test(href)) {
-    log(`⚠️ 落到了登录页（cookie 可能已过期）：${href}`);
-    log('   解决：重跑 node scripts/cf-managebac-login.mjs 手动登录一次，再回来跑本脚本。');
+  if (landedLogin) {
+    log(`⚠️ 落到了登录页（cookie 已过期）：${landedLogin}`);
+    log('   解决：在 app/ 下跑 node scripts/cf-managebac-login.mjs，在它打印的 Live View 里手动登录一次，');
+    log('         cookie 会写回 _ocrlab_out/mb-cookies.json，再回来跑本脚本。');
     await closeSession();
     process.exit(3);
   }

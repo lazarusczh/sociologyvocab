@@ -668,6 +668,76 @@ export async function listMbTaskLinksForQuiz(quizId: string): Promise<MbTaskLink
   return (data ?? []) as MbTaskLinkRow[];
 }
 
+/**
+ * 调 Worker 抓该班 task 列表并按短码精确匹配（**只读**，Worker 侧不写任何数据）。
+ * 拿到唯一命中的 task 后，由前端再调 replaceMbTaskLink 落库。
+ */
+export interface MbTaskMatchResult {
+  ok: boolean;
+  target?: string;
+  term?: string;
+  taskCount?: number;
+  tasks?: { id: string; name: string }[];
+  match: { id: string; name: string } | null;
+  matchCount?: number;
+  reason?: string | null;
+  error?: string;
+  hint?: string;
+  elapsedMs?: number;
+}
+
+export async function matchMbTask(mbClassId: string, code: string): Promise<MbTaskMatchResult> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token ?? '';
+  if (!token) throw new Error('未登录');
+  const res = await fetch('/app-api/mb/tasks', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ classId: mbClassId, code }),
+  });
+  const body = (await res.json()) as MbTaskMatchResult;
+  if (!res.ok) {
+    throw new Error([body.error, body.hint].filter(Boolean).join(' —— ') || `HTTP ${res.status}`);
+  }
+  return body;
+}
+
+/**
+ * 绑定：同一作业在同一班级只保留一条（先按 run|quiz + class_id 清旧行，再写新行）。
+ * runId 与 quizId 二选一 —— 试卷成绩用 runId，随堂测验/作业用 quizId。
+ */
+export async function replaceMbTaskLink(input: {
+  runId?: string;
+  quizId?: string;
+  classId: string;
+  mbClassId: string | null;
+  mbTaskId: string;
+  mbTaskName: string;
+}): Promise<void> {
+  let del = supabase.from('mb_task_links').delete().eq('class_id', input.classId);
+  del = input.runId ? del.eq('run_id', input.runId) : del.eq('quiz_id', input.quizId ?? '');
+  const { error: delErr } = await del;
+  if (delErr) throw delErr;
+
+  const { data: auth } = await supabase.auth.getUser();
+  const { error } = await supabase.from('mb_task_links').insert({
+    run_id: input.runId ?? null,
+    quiz_id: input.quizId ?? null,
+    class_id: input.classId,
+    mb_class_id: input.mbClassId,
+    mb_task_id: input.mbTaskId,
+    mb_task_name: input.mbTaskName,
+    bound_by: auth?.user?.id ?? null,
+  });
+  if (error) throw error;
+}
+
+/** 解绑 */
+export async function deleteMbTaskLink(id: string): Promise<void> {
+  const { error } = await supabase.from('mb_task_links').delete().eq('id', id);
+  if (error) throw error;
+}
+
 export interface MbRosterRow {
   email: string;
   mb_name: string;

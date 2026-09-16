@@ -37,7 +37,7 @@ const CORS_ALLOWED = new Set([
   'http://localhost:8787',
 ]);
 
-function cors(request: Request): Record<string, string> {
+export function cors(request: Request): Record<string, string> {
   const origin = request.headers.get('Origin') ?? '';
   const allow = CORS_ALLOWED.has(origin) ? origin : 'https://9699vocab.cn';
   return {

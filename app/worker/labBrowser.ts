@@ -12,10 +12,15 @@
 //     "http://127.0.0.1:8787/app-api/lab/browser-check?url=https://example.com"
 
 import puppeteer from '@cloudflare/puppeteer';
+import { cdpSelfCheck, type MbApiEnv } from './mbApi';
 
 export interface LabBrowserEnv {
   BROWSER: Fetcher;
   LAB_TOKEN?: string;
+  BROWSER_ACCOUNT_ID?: string;
+  BROWSER_API_TOKEN?: string;
+  CF_ACCOUNT_ID?: string;
+  CF_API_TOKEN?: string;
 }
 
 const ALLOW_HOSTS = [
@@ -106,6 +111,23 @@ export async function handleLabBrowser(
       keys: Object.keys(b),
       methods: Object.keys(b).filter((k) => typeof b[k] === 'function'),
     });
+  }
+
+  // 通路自检：**REST + CDP**（另一条通路，见 mbApi.ts 顶部说明）
+  // 背景（2026-09-16 实测）：本账号下 puppeteer binding 创建浏览器会失败
+  //   `Unable to create new browser: code: 500: internal error`，
+  // 而 REST + CDP 稳定可用 —— ManageBac 抓取因此走这条。这个端点用来单独确认通路本身是否通。
+  if (url.pathname === '/app-api/lab/cdp-check') {
+    const target = url.searchParams.get('url') ?? 'https://example.com';
+    const gate = allowed(target);
+    if (!gate.ok) return json(400, { error: 'target not allowed', detail: gate.reason });
+    try {
+      const r = await cdpSelfCheck(env as unknown as MbApiEnv, gate.url);
+      return json(200, { ok: true, target: gate.url, ...r });
+    } catch (e) {
+      const msg = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
+      return json(502, { error: 'cdp check failed', detail: msg.slice(0, 400) });
+    }
   }
 
   if (url.pathname === '/app-api/lab/browser-quick') {

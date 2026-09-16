@@ -10,6 +10,7 @@
 
 import { handleAppApi } from './worker/appApi';
 import { handleLabBrowser } from './worker/labBrowser';
+import { handleMbApi } from './worker/mbApi';
 import { aiGateForbidden, verifyUser } from './worker/ai/auth';
 
 interface Env {
@@ -502,6 +503,11 @@ export default {
     // 实验路由（Browser Run 验证）：/app-api/lab/* —— 令牌门禁 + 目标白名单，详见 worker/labBrowser.ts
     const labRes = await handleLabBrowser(request, env as never, url);
     if (labRes) return labRes;
+
+    // ManageBac 同步（教师专用，只读抓取）：/app-api/mb/* —— 详见 worker/mbApi.ts
+    // 必须在 handleAppApi 之前：后者会接管整个 /app-api/ 前缀
+    const mbRes = await handleMbApi(request, env as never, url);
+    if (mbRes) return mbRes;
 
     // 主站 API：/app-api/* —— 详见 worker/appApi.ts
     const appApiRes = await handleAppApi(request, env, url);

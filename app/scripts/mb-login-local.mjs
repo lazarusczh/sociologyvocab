@@ -23,7 +23,7 @@
  */
 
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import path from 'node:path';
 import process from 'node:process';
 
@@ -41,6 +41,9 @@ const MB_HOST = argOf('--host', 'dtd.managebac.cn');
 const START_URL = argOf('--url', `https://${MB_HOST}/`);
 const GRAB_NOW = args.includes('--now');
 const CHECK_ONLY = args.includes('--check');
+const PUSH_ONLY = args.includes('--push-only'); // 不启动浏览器，只把现有 cookie 同步到云端
+const NO_PUSH = args.includes('--no-push');     // 抓完不同步到云端（只更新本机文件）
+const TEACHER_ID = argOf('--teacher', '');      // 教师 user id；留空则自动从 teacher_roles 取
 
 const log = (...a) => console.log(...a);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -65,6 +68,16 @@ function cookieStatus() {
 if (CHECK_ONLY) {
   cookieStatus();
   process.exit(0);
+}
+
+if (PUSH_ONLY) {
+  const n = cookieStatus();
+  if (n <= 0) {
+    log('没有可用的 cookie 文件 —— 先正常跑一次本脚本完成登录。');
+    process.exit(2);
+  }
+  const ok = await pushToCloud(JSON.parse(readFileSync(COOKIE_FILE, 'utf-8')));
+  process.exit(ok ? 0 : 1);
 }
 
 // ---- 找本机浏览器（Chrome 优先，其次 Edge；可用 --chrome 指定）----
@@ -239,4 +252,67 @@ log(`  cookie 名（只列名字，不打印值）：${cookies.map((c) => c.name
 log('\n接下来：');
 log('  1) 可以关掉那个 Chrome 窗口了（profile 保留，下次通常免登录）');
 log('  2) 抓任务列表：node scripts/mb-tasks.mjs --class 11420931');
-log('  3) 本脚本不消耗任何 Cloudflare 浏览器额度 ✓');
+log('  3) 本脚本不消耗任何 Cloudflare 浏览器额度');
+
+if (!NO_PUSH) await pushToCloud(cookies);
+
+// ---- 同步到云端（2026-09-16 方案 (a)）----
+// 线上 Worker 在 Cloudflare 云端**没有 ManageBac 登录态**，打不开成绩册。
+// 所以把本机登录得到的 cookie 同步一份到 Supabase 的 mb_sessions（RLS 仅教师本人可读），
+// Worker 用**请求自带的教师 JWT**读出后注入浏览器，只做只读抓取。
+// 这里走本机 psql 直连（凭 %USERPROFILE%\.pgpass），SQL 经 stdin 传入，不落临时文件。
+function pgConn() {
+  const pgpass = path.join(process.env.USERPROFILE || '', '.pgpass');
+  if (!existsSync(pgpass)) return null;
+  const line = readFileSync(pgpass, 'utf-8')
+    .split(/\r?\n/)
+    .find((l) => l.trim() && !l.trim().startsWith('#'));
+  if (!line) return null;
+  const [host, port, db, user] = line.split(':');
+  if (!host || !user) return null;
+  return { conn: `postgresql://${user}@${host}:${port}/${db}`, pgpass };
+}
+
+function psqlRun(pg, sql) {
+  const r = spawnSync('psql', [pg.conn, '-w', '-v', 'ON_ERROR_STOP=1', '-At', '-f', '-'], {
+    input: sql,
+    encoding: 'utf-8',
+    env: { ...process.env, PGPASSFILE: pg.pgpass },
+  });
+  return { ok: r.status === 0, out: (r.stdout || '').trim(), err: (r.stderr || '').trim() };
+}
+
+async function pushToCloud(cookies) {
+  const pg = pgConn();
+  if (!pg) {
+    log('\n⚠ 没找到 %USERPROFILE%\\.pgpass，跳过云端同步 —— 线上「绑定」会因缺少登录态而不可用。');
+    return false;
+  }
+  let teacherId = TEACHER_ID;
+  if (!teacherId) {
+    const q = psqlRun(pg, 'select user_id from public.teacher_roles');
+    if (!q.ok) {
+      log('\n⚠ 读取 teacher_roles 失败：' + (q.err || q.out));
+      return false;
+    }
+    const ids = q.out.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+    if (ids.length !== 1) {
+      log(`\n⚠ teacher_roles 里有 ${ids.length} 个教师，请用 --teacher <user_id> 指定。`);
+      return false;
+    }
+    teacherId = ids[0];
+  }
+  const sql =
+    'insert into public.mb_sessions (teacher_id, cookies, domain, captured_at, updated_at)\n' +
+    `values ('${teacherId.replace(/'/g, "''")}', $mbc$${JSON.stringify(cookies)}$mbc$::jsonb, '${MB_HOST}', now(), now())\n` +
+    'on conflict (teacher_id) do update\n' +
+    '  set cookies = excluded.cookies, domain = excluded.domain, captured_at = excluded.captured_at, updated_at = now();\n';
+  const r = psqlRun(pg, sql);
+  if (!r.ok) {
+    log('\n⚠ 云端同步失败：' + (r.err || r.out || '未知错误'));
+    return false;
+  }
+  log(`\n✔ 已同步到云端 mb_sessions（教师 ${teacherId.slice(0, 8)}…，${cookies.length} 条 cookie，目标域 ${MB_HOST}）`);
+  log('  线上「绑定」即可用它抓取；写入方始终是本机脚本，Worker 只读。');
+  return true;
+}

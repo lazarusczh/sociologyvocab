@@ -187,12 +187,17 @@ RLS 一律「仅 teacher / developer」（沿用 `db-migration-grouper-runs.sql`
 - [x] ~~名单 xlsx 导入（姓名 + 邮箱）→ `mb_rosters`~~ → 已完成（自动认姓名/邮箱列；与站内邮箱比对并提示缺口）
 - [x] ~~随堂测验 / 作业也接入~~ → 已完成（`quizzes.mb_short_code` + 测验成绩页同款区块）
 - [x] ~~「不登分」例外学生~~ → 已完成（班级管理「学生分班」勾选框；名单缺口提示与同步都会跳过）
-- [ ] Worker：抓班级 task 列表 → 短码匹配 → 绑定（`/app-api/*`）
+- [x] ~~**第 4 步原型验证**（2026-09-16 完成，全程只读）~~ → `mb-tasks.mjs` 两个班均跑通：
+  - AS `11496547` First Term 4 个 task：`27502945` Aug30 #1、`27539422` Sep6 #2、`27553287` Sep8 #3、`27568440` Sep13 #4（**均无短码**）
+  - A2 `11420931` First Term 4 个 task：`27501860` Aug30 #1、`27539423` Sep6 #2、**`27568457` `[A2-0915]` #4**、**`27568449` `[A2-0915b]` #3**
+  - **短码匹配实测通过**：`--code A2-0915` → 唯一命中 `27568457`；同一页上的 `[A2-0915b]` **没有被误命中** ⇒ 方括号包裹的必要性由此验证；短码出现在名字**中间**（`Sep13` 之后）也照样命中，不必非贴在开头
+- [x] ~~实测：`core_tasks` 视图是否含全部 term 的 task~~ → **不含**：默认只列 current term（`select.term-picker-select` 当前值 `109300` = First Term），Second Term 需下拉切换。AS 班该下拉 2 项、A2 班 4 项（说明页面上可能有不止一个切换器，抓取时取第一个或按 class 精确定位）
+- [x] ~~实测：横向滑动下 DOM 是否完整~~ → 4 列时 `.grid-table` 的 `clientWidth === scrollWidth === 640`（无溢出，列全在 DOM 中）。列更多时待再验；CSS grid 的列都是真实节点，横滑只影响视觉
+- [ ] **下一步：把逻辑搬进 Worker + UI 的「绑定」按钮** —— 卡在一个待定问题：**Worker 在云端没有 cookie，如何取得 ManageBac 登录态？**
+      - (a) 教师登录后把 cookie 存进 Supabase 专用表（RLS 仅教师本人可读写），Worker 用请求里的教师 JWT 读出并注入浏览器 —— 代价是「账号会话凭证落库」
+      - (b) 不走 Worker，改成「本机脚本抓取 + 网页只做展示」—— 稳，但就不是「一键」了
 - [ ] Worker：差异预览 → 确认写入 → 回读校验
-- [ ] **第 4 步进度（2026-09-15）**：原型脚本 `app/scripts/mb-tasks.mjs` 已写好（只读：抓某班 task 列表 → 按 `[短码]` 精确匹配 → 报告命中/未命中/多条，并顺带报告 term 下拉与横向滚动 DOM 情况）；**当天浏览器额度已用尽（429，按天重置、不扣费）** ⇒ 次日先跑
-      `node scripts/mb-tasks.mjs --class 11420931`（A2）/ `--class 11496547`（AS）验证读取与匹配，通过后再把这段逻辑搬进 Worker + UI 的「绑定」按钮
 - [ ] 班级号备查：**AS = `11496547`**（站内班名 `AS Sociology`）、**A2 = `11420931`**（`A2 Sociology`）
-- [ ] 若次日 cookie 过期：脚本会提示重跑 `node scripts/cf-managebac-login.mjs` 手动登录一次（cookie 存 `app/_ocrlab_out/mb-cookies.json`，不入库）
-- [ ] 实测：`core_tasks` 视图是否含全部 term 的 task、横向滑动下 DOM 是否完整
+- [ ] ⚠️ **刷新 ManageBac cookie 请用 `app/scripts/mb-login-local.mjs`**（本机 Chrome/Edge、独立 profile `%LOCALAPPDATA%\mb-login-profile`：快、**不消耗 CF 额度**、profile 复用通常免登录）。**不要再用 `cf-managebac-login.mjs`**（远端投屏很卡且烧额度）—— 2026-09-16 又踩了一次
 - [ ] 实测：managebac 登录 cookie 的有效期（决定教师多久需重新登录一次）
 - [x] ~~决定：随堂测验（`QuizManager`）是否也接入同一套同步~~ → **已定：要接入**（教师 2026-09-15）

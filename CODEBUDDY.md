@@ -61,7 +61,16 @@ psql $conn -w -v ON_ERROR_STOP=1 -f db-migration-xxx.sql
 - 学生端看不到教师功能；开关由云端 `isTeacher` 控制，不用本机 `IS_ADMIN`。
 - 教师后台：宽屏（≥1100px）左侧栏，窄屏两级药丸导航，两种宽度共用同一份位置记忆。
 - 横向滚动表格统一用 `.check-table`：首列冻结，投影**只在真正横滑时**出现（`app/src/lib/tableFreeze.ts` 用捕获阶段监听，一处管全站）。
-- 信息流里的删除/清空类操作，不要用 `✓` / `✗` 之类的符号当强调符；正常写句子。
+- **不要用对勾、叉号之类的符号当强调**：回答文字、思考过程、代码注释、文档全都不要用。需要表达判断时正常写"可行 / 不可行"、"是 / 否"、"已过期"。
+  项目早期文档里残留了一些这类符号（如 `定义题方案.md`、`DevPanel.tsx` 等）：**不要模仿，也不必为了对齐它们而使用**。
+
+## 七、ManageBac 相关（同步功能的基建）
+
+- **刷新 ManageBac 登录 cookie：用 `app/scripts/mb-login-local.mjs`**（调本机已装 Chrome/Edge，独立 profile `%LOCALAPPDATA%\mb-login-profile`，刻意不放工作区以避开 OneDrive）。快、**不消耗 Cloudflare 浏览器额度**、profile 复用后通常免登录。
+  **不要用 `cf-managebac-login.mjs`**：那是远端投屏（浏览器在 CF 机房，键鼠往返很卡）且**消耗额度**（2026-09-16 又踩一次）。
+- 只读排查/抓取：`node scripts/mb-tasks.mjs --class <班级号> [--code <短码>]`。班级号：**AS = `11496547`**、**A2 = `11420931`**。
+- Cloudflare Browser Run 免费额度 **10 分钟/天**（按天重置，不额外扣费）；一轮"建会话+开页+读结构+关闭"约 8~15 秒。**脚本必须显式关闭会话**，否则会一直占额度。
+- 抓取只做只读：不读取、不输出任何学生姓名与分数（学生定位另有名单桥接方案）。cookie 与勘探产物都在 `app/_ocrlab_out/`（已 gitignore），不要外发。
 
 ---
 

@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import {
   listGrouperRuns, updateGrouperRun, deleteGrouperRun, listMsSections,
   ensureRunShortCode, listMbTaskLinks, listMbRoster,
+  matchMbTask, replaceMbTaskLink, deleteMbTaskLink,
   type GrouperRunRow, type GrouperRunScore, type MsSectionRow, type MbTaskLinkRow,
 } from '../lib/cloud';
 import { bandLinear, buildRows, type RowSpec, type ThresholdRows } from '../lib/score';
@@ -201,6 +202,9 @@ export default function PaperResults() {
   const activeMbClassId = classFilter !== 'all' && classFilter !== 'none' ? classFilter : inferredClassId;
   const mbClass = classes.find((c) => c.id === activeMbClassId) ?? null;
 
+  // 当前班已绑定的那条 task（一条作业在每个班只保留一条）
+  const curLink = links.find((l) => l.class_id === mbClass?.id) ?? null;
+
   // 该班已导入的 ManageBac 名单人数（切班级时重查；未导入则为 0）
   useEffect(() => {
     if (!activeMbClassId) {
@@ -264,6 +268,61 @@ export default function PaperResults() {
     const g = shortCode.split('-')[0];
     setGradePick(g === 'A2' ? 'A2' : 'A1');
     setRegenCode(true);
+  };
+
+  // —— ManageBac task 绑定 ——
+  // Worker 侧只读抓取；**匹配不到或多条一律停下报告，绝不猜、不写**（设计见《分数同步到ManageBac方案.md》）
+  const bindTask = async () => {
+    if (!viewing) return;
+    if (!mbClass?.mb_class_id) {
+      setError('该班还没绑定 ManageBac 成绩册：去「班级管理」贴一次该班的成绩册链接');
+      return;
+    }
+    if (!shortCode) {
+      setError('先生成短码，并把它粘进 ManageBac 的 task 名');
+      return;
+    }
+    if (curLink && !confirm(`「${mbClass.name}」现绑定的是「${curLink.mb_task_name ?? curLink.mb_task_id}」，改成新匹配到的 task？`)) return;
+    setMbBusy(true);
+    setError('');
+    setMsg('');
+    try {
+      const r = await matchMbTask(mbClass.mb_class_id, shortCode);
+      if (!r.match) {
+        const n = typeof r.taskCount === 'number' ? `（该班当前学期共 ${r.taskCount} 个 task）` : '';
+        setError(
+          `没有唯一匹配到 task：${r.reason ?? '未命中'}${n}。请检查 ManageBac 里那个 task 名是否含 [${shortCode}]（含方括号），或它是否在另一个学期。`,
+        );
+        return;
+      }
+      await replaceMbTaskLink({
+        runId: viewing.id,
+        classId: mbClass.id,
+        mbClassId: mbClass.mb_class_id,
+        mbTaskId: r.match.id,
+        mbTaskName: r.match.name,
+      });
+      setLinks(await listMbTaskLinks(viewing.id));
+      setMsg(`已绑定：${r.match.name}`);
+    } catch (e) {
+      setError('绑定失败：' + ((e as Error).message || String(e)));
+    } finally {
+      setMbBusy(false);
+    }
+  };
+
+  const unbindTask = async (id: string) => {
+    if (!viewing) return;
+    if (!confirm('解除这条 task 绑定？')) return;
+    setError('');
+    setMsg('');
+    try {
+      await deleteMbTaskLink(id);
+      setLinks(await listMbTaskLinks(viewing.id));
+      setMsg('已解除 task 绑定');
+    } catch (e) {
+      setError('解除失败：' + ((e as Error).message || String(e)));
+    }
   };
 
   // 复制成绩（供 ManageBac 用户脚本导入）：每行「邮箱<Tab>原始分」
@@ -468,9 +527,27 @@ export default function PaperResults() {
             </li>
             <li>
               task 绑定：
-              {links.length === 0
-                ? '未绑定（下一步接入：按短码在该班 task 列表里精确匹配）'
-                : links.map((l) => `${l.mb_task_name ?? l.mb_task_id}${l.mb_class_id ? `（班级 ${l.mb_class_id}）` : ''}`).join('；')}
+              {curLink ? curLink.mb_task_name ?? curLink.mb_task_id : '未绑定'}
+              {curLink && (
+                <button className="ppt-link" style={{ marginLeft: '0.4rem' }} onClick={() => void unbindTask(curLink.id)}>
+                  解绑
+                </button>
+              )}
+              <button
+                className="primary"
+                style={{ marginLeft: '0.4rem', fontSize: '0.8rem', padding: '0.1rem 0.5rem' }}
+                onClick={() => void bindTask()}
+                disabled={mbBusy || !shortCode || !mbClass?.mb_class_id}
+                title={
+                  !mbClass?.mb_class_id
+                    ? '该班还没绑定 ManageBac 成绩册（去「班级管理」贴链接）'
+                    : !shortCode
+                      ? '先生成短码'
+                      : '按短码在该班 task 列表里精确匹配'
+                }
+              >
+                {mbBusy ? '匹配中…' : curLink ? '重新匹配' : '绑定'}
+              </button>
             </li>
           </ul>
 
