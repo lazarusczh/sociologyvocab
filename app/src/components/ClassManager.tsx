@@ -224,7 +224,10 @@ export default function ClassManager() {
     try {
       const parsed = parseRosterSheet(await file.arrayBuffer());
       if (parsed.entries.length === 0) {
-        setError(`没从「${file.name}」里认出「姓名 + 邮箱」行（识别到的邮箱列：${parsed.emailHeader || '未识别'}）。请确认导出的是班级名单。`);
+        setError(
+          `没从「${file.name}」里认出「姓名 + 邮箱」行（识别到邮箱列：${parsed.emailHeader || '未识别'}；`
+          + `姓名列：${parsed.nameHeader || '未识别'}）。请确认导出的是班级名单。`,
+        );
         return;
       }
       const { data: auth } = await supabase.auth.getUser();
@@ -241,7 +244,8 @@ export default function ClassManager() {
       const matched = mine.size - missing;
       setRosterNote((m) => ({
         ...m,
-        [classId]: `已导入 ${n} 人${parsed.skipped ? `（跳过 ${parsed.skipped} 行缺姓名）` : ''}；`
+        [classId]: `已导入 ${n} 人${parsed.skipped ? `（跳过 ${parsed.skipped} 行缺姓名）` : ''}`
+          + `（姓名列：${parsed.nameHeader || '未识别'}；邮箱列：${parsed.emailHeader || '未识别'}）；`
           + `与本班站内学生邮箱匹配 ${matched}/${mine.size} 人`
           + (missing > 0 ? ` —— 有 ${missing} 名站内学生不在名单里，建议重新导出名单` : ''),
       }));

@@ -6,9 +6,37 @@ import { PAPER_ORDER } from '../lib/storage';
 import { unitListFor } from '../lib/unitMapping';
 import { maskEmail } from '../lib/shuffle';
 import { copyText } from '../lib/clipboard';
-import { createQuiz, updateQuiz, updateQuizQuestions, listQuizzes, listQuizSubmissions, deleteQuiz, listDeveloperIds, deleteSubmission, countSubmittedByQuizzes, regradeQuizSubmissions, ensureQuizShortCode, listMbTaskLinksForQuiz, listMbRoster, listClassesWithMb, matchMbTask, replaceMbTaskLink, deleteMbTaskLink, type MbTaskLinkRow, type ClassMbRow } from '../lib/cloud';
+import { createQuiz, updateQuiz, updateQuizQuestions, listQuizzes, listQuizSubmissions, deleteQuiz, listDeveloperIds, deleteSubmission, countSubmittedByQuizzes, regradeQuizSubmissions, ensureQuizShortCode, listMbTaskLinksForQuiz, listMbRoster, listClassesWithMb, matchMbTask, replaceMbTaskLink, deleteMbTaskLink, fetchMbMarks, writeMbMarks, type MbTaskLinkRow, type ClassMbRow } from '../lib/cloud';
 import { classMatchesGrade, firstPaperNumber, inferGrade, type Grade } from '../lib/mbSync';
 import QuizWrongBoard from './QuizWrongBoard';
+
+// —— ManageBac 同步预览（测验/作业）——
+// 与试卷成绩那边同一套视角：以成绩册的行为主，逐行往站内对应。
+// 分数口径：测验/作业是标准答案作业 → **写原始分**（取最终分，含迟交罚分/订正加分，与「复制成绩」一致）。
+type QuizMbStatus = 'same' | 'diff' | 'empty' | 'noscore' | 'unlinked';
+
+interface QuizMbLine {
+  mbName: string;         // 成绩册行上的名字
+  mbAlt: string;          // 该行学生列完整文本
+  mbScore: string;        // ManageBac 当前值
+  email: string | null;   // 由名单反查到的邮箱
+  stName: string | null;  // 对应的站内学生
+  finalScore: number | null; // 要写入的值（最终分）
+  rawScore: number | null;   // 卷面原始分（仅供参考）
+  penalty: number;           // 迟交罚分（非 0 时提示）
+  status: QuizMbStatus;
+  checked: boolean;          // 是否写入（默认只勾"需要写"的行）
+}
+
+interface QuizMbPreview {
+  lines: QuizMbLine[];
+  orphans: { name: string; score: number }[]; // 站内已交卷、但成绩册里找不到对应行
+  rosterCount: number;
+  taskName: string;
+  maxPts: number;
+  at: string;
+  elapsedMs?: number;
+}
 
 // 创建表单草稿
 interface Draft {
@@ -127,6 +155,9 @@ export default function QuizManager() {
   const [mbRosterCount, setMbRosterCount] = useState<number | null>(null);
   const [mbGrade, setMbGrade] = useState<Grade>('A1');
   const [mbBusy, setMbBusy] = useState(false);
+  const [mbPreview, setMbPreview] = useState<QuizMbPreview | null>(null); // 同步预览（只读）
+  // 未确认成功的行：ok=false 是「没能写入」（定位不到行/没有分数框），ok=true 而没 saved 是「写进去了但回读还没看到」
+  const [writeReport, setWriteReport] = useState<{ row: string; ok: boolean; want: string; actual: string; reason?: string }[]>([]);
   const [manualCopy, setManualCopy] = useState('');   // 剪贴板被拒时，展示可手动 Ctrl+C 的文本
   const [regenCode, setRegenCode] = useState(false);  // 点「修正」后，回到可重选年级位的状态
   const [msg, setMsg] = useState('');
@@ -609,6 +640,172 @@ export default function QuizManager() {
     }
   };
 
+  // —— 读取差异（只读）——
+  // 视角与试卷成绩一致：以成绩册的行为主；分数取「最终分」（含迟交罚分/订正加分，与「复制成绩」同口径）。
+  const previewSync = async () => {
+    if (!viewing) return;
+    if (!mbClass?.mb_class_id) {
+      setError('该班还没绑定 ManageBac 成绩册：去「班级管理」贴一次该班的成绩册链接');
+      return;
+    }
+    if (!curLink) {
+      setError('先点「绑定」，把这份测验和 ManageBac 的 task 对上');
+      return;
+    }
+    setMbBusy(true);
+    setError('');
+    setMsg('');
+    try {
+      const [marks, roster] = await Promise.all([
+        fetchMbMarks(mbClass.mb_class_id, curLink.mb_task_id),
+        listMbRoster(mbClass.id),
+      ]);
+      const norm = (s: string) => s.replace(/\s+/g, '').toLowerCase();
+      const rosterNames = roster
+        .map((r) => ({ key: norm(r.mb_name), email: r.email.toLowerCase() }))
+        .filter((x) => x.key);
+
+      // 站内：同一学生多次交卷取最近一次（排除测试账号），分数用最终分
+      const byUser = new Map<string, QuizSubmission>();
+      for (const s of subs) {
+        if (s.status !== 'submitted' || !s.email || devIds.has(s.user_id)) continue;
+        const prev = byUser.get(s.user_id);
+        if (!prev || (s.submitted_at ?? '') > (prev.submitted_at ?? '')) byUser.set(s.user_id, s);
+      }
+      const byEmail = new Map<string, QuizSubmission>();
+      for (const s of byUser.values()) byEmail.set((s.email ?? '').toLowerCase(), s);
+
+      const linked = new Set<string>();
+      const lines: QuizMbLine[] = (marks.rows ?? []).map((r) => {
+        const hay = `${norm(r.name)}|${norm(r.alt)}`;
+        const hits = rosterNames.filter((x) => x.key && hay.includes(x.key));
+        const email: string | null = hits.length === 1 ? hits[0].email : null;
+        const sub = email ? byEmail.get(email) ?? null : null;
+        if (email && sub) linked.add(email);
+        const finalScore = sub ? (sub.grading?.final_score != null ? sub.grading.final_score : sub.score) : null;
+        let status: QuizMbStatus;
+        if (!email || !sub) status = email ? 'noscore' : 'unlinked';
+        else if (r.score === '') status = 'empty';
+        else if (finalScore != null && Number(r.score) === finalScore) status = 'same';
+        else status = 'diff';
+        return {
+          mbName: r.name,
+          mbAlt: r.alt,
+          mbScore: r.score,
+          email,
+          stName: sub?.name ?? null,
+          finalScore,
+          rawScore: sub ? sub.score : null,
+          penalty: sub?.grading?.penalty ?? 0,
+          status,
+          checked: status === 'diff' || status === 'empty', // 默认只勾需要写的行
+        };
+      });
+
+      const orphans = [...byUser.values()]
+        .filter((s) => !linked.has((s.email ?? '').toLowerCase()))
+        .map((s) => ({
+          name: s.name || (s.email ?? ''),
+          score: s.grading?.final_score != null ? s.grading.final_score : s.score,
+        }));
+
+      setWriteReport([]);
+      setMbPreview({
+        lines,
+        orphans,
+        rosterCount: roster.length,
+        taskName: curLink.mb_task_name ?? curLink.mb_task_id,
+        maxPts: totalPoints(viewing.questions),
+        at: new Date().toLocaleTimeString('zh-CN'),
+        elapsedMs: marks.elapsedMs,
+      });
+    } catch (e) {
+      setError('读取差异失败：' + ((e as Error).message || String(e)));
+    } finally {
+      setMbBusy(false);
+    }
+  };
+
+  const toggleLine = (mbName: string) => {
+    setMbPreview((p) =>
+      p ? { ...p, lines: p.lines.map((l) => (l.mbName === mbName ? { ...l, checked: !l.checked } : l)) } : p,
+    );
+  };
+
+  // —— 写入（破坏性：真的改线上成绩册；只改分数框）——
+  const writeSync = async () => {
+    if (!viewing || !mbPreview || !mbClass?.mb_class_id || !curLink) return;
+    const todo = mbPreview.lines.filter((l) => l.checked && (l.status === 'diff' || l.status === 'empty'));
+    if (todo.length === 0) {
+      setError('没有勾选要写入的行');
+      return;
+    }
+    const go = confirm(
+      `将把 ${todo.length} 行分数写入 ManageBac 的「${mbPreview.taskName}」。\n\n`
+      + '这是对线上成绩册的实际改动（只改分数框，不动姓名与备注）。确认继续？',
+    );
+    if (!go) return;
+    setMbBusy(true);
+    setError('');
+    setMsg('');
+    try {
+      const res = await writeMbMarks(
+        mbClass.mb_class_id,
+        curLink.mb_task_id,
+        todo.map((l) => ({ row: l.mbName, score: String(l.finalScore ?? '') })),
+      );
+      const verified = res.verified ?? [];
+      // 三种结果分开说（2026-09-16）：没能写入 / 写了但未回读到 / 已确认。
+      // 混成一句「未确认落库」，教师会把"还在保存"读成"失败"（这次就是这么误判的）。
+      const failed = verified.filter((v) => !v.ok);
+      const unconfirmed = verified.filter((v) => v.ok && !v.saved);
+      const done = verified.length - failed.length - unconfirmed.length;
+      const extra = [
+        failed.length ? `${failed.length} 行没能写入` : '',
+        unconfirmed.length ? `${unconfirmed.length} 行已提交但暂未回读到（ManageBac 可能还在保存）` : '',
+      ].filter(Boolean).join('；');
+      setMsg(`已写入并确认 ${done} 行${extra ? `；${extra}` : ''}`);
+      // 用云端回读的结果更新表格，不再多跑一次（省额度）
+      setMbPreview((p) =>
+        p
+          ? {
+              ...p,
+              lines: p.lines.map((l) => {
+                const v = verified.find((x) => x.row === l.mbName);
+                // 定位失败的行原样不动：那时 actual 是空串，照写会把表格里本来的分数抹成空白
+                if (!v || !v.ok) return l;
+                return { ...l, mbScore: v.actual, status: v.saved ? 'same' : l.status, checked: !v.saved };
+              }),
+            }
+          : p,
+      );
+      setWriteReport(
+        verified
+          .filter((v) => !v.saved)
+          .map((v) => ({ row: v.row, ok: v.ok, want: v.want, actual: v.actual, reason: v.reason })),
+      );
+    } catch (e) {
+      setError('写入失败：' + ((e as Error).message || String(e)));
+    } finally {
+      setMbBusy(false);
+    }
+  };
+
+  const mbStatusText = (s: QuizMbStatus): string => {
+    switch (s) {
+      case 'same':
+        return '一致';
+      case 'diff':
+        return '需更新';
+      case 'empty':
+        return 'ManageBac 里为空';
+      case 'noscore':
+        return '站内未交卷';
+      default:
+        return '站内没有对应学生';
+    }
+  };
+
   if (analysisOpen) {
     return <QuizWrongBoard onBack={() => setAnalysisOpen(false)} />;
   }
@@ -687,30 +884,147 @@ export default function QuizManager() {
                   : '未导入 → 去「班级管理」导入 ManageBac 名单 xlsx'}
             </li>
             <li>
-              task 绑定：
-              {curLink ? curLink.mb_task_name ?? curLink.mb_task_id : '未绑定'}
-              {curLink && (
-                <button className="ppt-link" style={{ marginLeft: '0.4rem' }} onClick={() => void unbindTask(curLink.id)}>
-                  解绑
+              <div className="row" style={{ alignItems: 'center', gap: '0.35rem' }}>
+                <span>task 绑定：{!curLink && '未绑定'}</span>
+                <span className="spacer" />
+                {curLink && (
+                  <button className="ppt-link" onClick={() => void unbindTask(curLink.id)}>
+                    解绑
+                  </button>
+                )}
+                <button
+                  className="primary"
+                  style={{ fontSize: '0.8rem', padding: '0.1rem 0.5rem' }}
+                  onClick={() => void bindTask()}
+                  disabled={mbBusy || !shortCode || !mbClass?.mb_class_id}
+                  title={
+                    !mbClass?.mb_class_id
+                      ? '该班还没绑定 ManageBac 成绩册（去「班级管理」贴链接）'
+                      : !shortCode
+                        ? '先生成短码'
+                        : '按短码在该班 task 列表里精确匹配'
+                  }
+                >
+                  {mbBusy ? '匹配中…' : curLink ? '重新匹配' : '绑定'}
                 </button>
+              </div>
+              {curLink && (
+                <div className="muted" style={{ fontSize: '0.76rem', marginTop: '0.15rem' }}>
+                  {curLink.mb_task_name ?? curLink.mb_task_id}
+                </div>
               )}
-              <button
-                className="primary"
-                style={{ marginLeft: '0.4rem', fontSize: '0.8rem', padding: '0.1rem 0.5rem' }}
-                onClick={() => void bindTask()}
-                disabled={mbBusy || !shortCode || !mbClass?.mb_class_id}
-                title={
-                  !mbClass?.mb_class_id
-                    ? '该班还没绑定 ManageBac 成绩册（去「班级管理」贴链接）'
-                    : !shortCode
-                      ? '先生成短码'
-                      : '按短码在该班 task 列表里精确匹配'
-                }
-              >
-                {mbBusy ? '匹配中…' : curLink ? '重新匹配' : '绑定'}
-              </button>
             </li>
           </ul>
+
+          {curLink && (
+            <div style={{ marginTop: '0.6rem' }}>
+              <div className="row" style={{ alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                <strong style={{ fontSize: '0.9rem' }}>同步预览</strong>
+                <span className="muted" style={{ fontSize: '0.8rem' }}>
+                  （测验/作业写原始分；写入只改 ManageBac 的分数框）
+                </span>
+                <span className="spacer" />
+                {mbPreview && (
+                  <button className="ppt-link" onClick={() => setMbPreview(null)}>
+                    收起
+                  </button>
+                )}
+                <button className="primary" onClick={() => void previewSync()} disabled={mbBusy}>
+                  {mbBusy ? '处理中…' : '读取差异'}
+                </button>
+              </div>
+
+              {mbPreview && (
+                <>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table className="check-table" style={{ fontSize: '0.82rem', marginTop: '0.4rem' }}>
+                      <thead>
+                        <tr>
+                          <th style={{ width: '2.2rem' }}>写</th>
+                          <th>成绩册里的学生</th>
+                          <th>MB 当前</th>
+                          <th>站内对应</th>
+                          <th>最终分</th>
+                          <th>原始分</th>
+                          <th>结论</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {mbPreview.lines.map((l, i) => (
+                          <tr key={`${l.mbName}-${i}`}>
+                            <td>
+                              <input
+                                type="checkbox"
+                                checked={l.checked}
+                                disabled={l.status !== 'diff' && l.status !== 'empty'}
+                                onChange={() => toggleLine(l.mbName)}
+                              />
+                            </td>
+                            <td>
+                              {l.mbName || <span className="muted">（空）</span>}
+                              {l.email && (
+                                <span className="muted" style={{ fontSize: '0.72rem' }}> · {maskEmail(l.email)}</span>
+                              )}
+                            </td>
+                            <td>{l.mbScore || '—'}</td>
+                            <td>{l.stName ?? <span className="muted">—</span>}</td>
+                            <td>{l.finalScore ?? '—'}</td>
+                            <td className="muted">
+                              {l.rawScore ?? '—'}
+                              {l.penalty > 0 ? `（罚 ${l.penalty}）` : ''}
+                            </td>
+                            <td className={l.status === 'same' ? 'muted' : ''}>{mbStatusText(l.status)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="muted" style={{ margin: '0.35rem 0 0', fontSize: '0.78rem' }}>
+                    读取于 {mbPreview.at}
+                    {mbPreview.elapsedMs ? ` · 云端用时 ${Math.round(mbPreview.elapsedMs / 1000)} 秒` : ''}
+                    {' · '}
+                    task：{mbPreview.taskName}
+                  </p>
+                  <p className="muted" style={{ margin: '0.25rem 0 0', fontSize: '0.78rem' }}>
+                    成绩册 {mbPreview.lines.length} 行 · 名单 {mbPreview.rosterCount} 人 · 一致{' '}
+                    {mbPreview.lines.filter((l) => l.status === 'same').length}、需更新{' '}
+                    {mbPreview.lines.filter((l) => l.status === 'diff').length}、站内未交卷{' '}
+                    {mbPreview.lines.filter((l) => l.status === 'noscore').length}、对不上站内{' '}
+                    {mbPreview.lines.filter((l) => l.status === 'unlinked').length}
+                  </p>
+                  {mbPreview.orphans.length > 0 && (
+                    <p className="muted" style={{ margin: '0.25rem 0 0', fontSize: '0.78rem' }}>
+                      站内已交卷、但成绩册里找不到对应行：
+                      {mbPreview.orphans.map((o) => `${o.name}(${o.score})`).join('、')}
+                    </p>
+                  )}
+                  <div className="row" style={{ alignItems: 'center', gap: '0.4rem', marginTop: '0.5rem' }}>
+                    <span className="muted" style={{ fontSize: '0.8rem' }}>
+                      将写入 {mbPreview.lines.filter((l) => l.checked).length} 行 · 本卷满分 {mbPreview.maxPts}
+                    </span>
+                    <span className="spacer" />
+                    <button
+                      className="primary"
+                      onClick={() => void writeSync()}
+                      disabled={mbBusy || !mbPreview.lines.some((l) => l.checked)}
+                    >
+                      {mbBusy ? '写入中…' : '写入 ManageBac'}
+                    </button>
+                  </div>
+                  {writeReport.length > 0 && (
+                    <p className="muted" style={{ margin: '0.3rem 0 0', fontSize: '0.78rem', color: 'var(--warn, #a07a3a)' }}>
+                      以下几行没有确认成功：
+                      {writeReport
+                        .map((w) => (w.ok
+                          ? `${w.row}（写了 ${w.want}，读到 ${w.actual || '空'}${w.reason ? `，${w.reason}` : ''}）`
+                          : `${w.row}（没能写入${w.reason ? `：${w.reason}` : ''}）`))
+                        .join('；')}
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+          )}
 
           <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '0.65rem 0 0' }} />
 

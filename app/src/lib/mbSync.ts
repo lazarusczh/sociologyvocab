@@ -148,7 +148,15 @@ const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 /**
  * 解析 ManageBac 导出的班级名单 xlsx（姓名 + 邮箱）。
- * 列识别：先按表头找 email/邮箱、name/姓名；表头缺失时按内容猜（含 @ 的列当邮箱、同行的文本列当姓名）。
+ *
+ * 两个已踩过的坑（2026-09-16 教师给出真实表头后修正）：
+ *   ① **表头不在第一行** —— 导出文件前面有几行标题，真实表头在第 5 行左右。原先固定取第 1 行，
+ *      读到的是标题行，邮箱列与姓名列都认不出来；兜底规则又取了第一列，于是把 Student ID 当成了姓名。
+ *   ② **姓名是拆开的** —— 表头形如 `Student ID | First Name | Middle Name | Last Name |
+ *      Preferred Name | … | E-mail Address | …`，没有单独的 Name 列；而成绩册页面上显示的是
+ *      `Last, First (Preferred) | 中文名`。所以这里按同样格式拼名字，才能与页面上的行对上。
+ *
+ * 认不出姓名列时**宁可跳过并计数，也不猜**——猜错会让整份名单静默错位（就是上面那个坑）。
  * 多个 sheet 会合并并按邮箱去重（同一邮箱只留第一次出现的姓名）。
  */
 export function parseRosterSheet(buf: ArrayBuffer): RosterParse {
@@ -158,44 +166,76 @@ export function parseRosterSheet(buf: ArrayBuffer): RosterParse {
   let skipped = 0;
   let emailHeader = '';
   let nameHeader = '';
-
-  const widthOf = (rows: string[][]) => rows.slice(0, 20).reduce((w, r) => Math.max(w, (r ?? []).length), 0);
+  const clean = (v: unknown) => String(v ?? '').replace(/\s+/g, ' ').trim();
 
   for (const sheetName of wb.SheetNames) {
     const ws = wb.Sheets[sheetName];
     if (!ws) continue;
-    const rows = XLSX.utils.sheet_to_json<string[]>(ws, { header: 1, defval: '' });
-    if (rows.length === 0) continue;
+    const raw = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, defval: '' });
+    if (raw.length === 0) continue;
+    const rows = raw.map((r) => (r ?? []).map(clean));
 
-    const head = (rows[0] ?? []).map((c) => String(c ?? '').trim());
-    let ei = head.findIndex((h) => /e-?mail|邮箱|电子邮件/i.test(h));
-    let ni = head.findIndex((h) => /^(student\s*)?name$|姓名|学生姓名|full\s*name/i.test(h));
-    const body = (ei >= 0 ? rows.slice(1) : rows).map((r) => (r ?? []).map((c) => String(c ?? '').trim()));
-
-    if (ei < 0) {
-      const w = widthOf(body);
-      for (let c = 0; c < w; c++) {
-        if (body.some((r) => EMAIL_RE.test(r[c] ?? ''))) { ei = c; break; }
+    // ① 在前 20 行里定位表头行：优先「含邮箱字样」的行；找不到再退一步用「含 @ 单元格」的行
+    let hi = -1;
+    let headerIsHeader = true;
+    for (let i = 0; i < Math.min(rows.length, 20); i++) {
+      if (rows[i].some((c) => /e-?mail|邮箱|电子邮件/i.test(c))) {
+        hi = i;
+        break;
       }
     }
-    if (ei < 0) continue; // 这个 sheet 里没有邮箱列，跳过
-
-    if (ni < 0) {
-      const w = widthOf(body);
-      for (let c = 0; c < w; c++) {
-        if (c === ei) continue;
-        if (body.some((r) => { const v = r[c] ?? ''; return !!v && !EMAIL_RE.test(v); })) { ni = c; break; }
+    if (hi < 0) {
+      for (let i = 0; i < Math.min(rows.length, 20); i++) {
+        if (rows[i].some((c) => EMAIL_RE.test(c))) {
+          hi = i;
+          headerIsHeader = false;
+          break;
+        }
       }
     }
+    if (hi < 0) continue; // 这个 sheet 里没有邮箱
 
-    if (head[ei]) emailHeader = emailHeader || head[ei];
-    if (ni >= 0 && head[ni]) nameHeader = nameHeader || head[ni];
+    const head = rows[hi];
+    const body = headerIsHeader ? rows.slice(hi + 1) : rows.slice(hi);
+    const ei = headerIsHeader
+      ? head.findIndex((h) => /e-?mail|邮箱|电子邮件/i.test(h))
+      : head.findIndex((c) => EMAIL_RE.test(c));
+    if (ei < 0) continue;
+
+    // ② 姓名：Last + First（+ Preferred）拼成与成绩册一致的 `Last, First (Preferred)`
+    const li = head.findIndex((h) => /^last\s*name$|^surname$|^family\s*name$|^姓$/i.test(h));
+    const fi = head.findIndex((h) => /^first\s*name$|^given\s*name$|^名$/i.test(h));
+    const pi = head.findIndex((h) => /^preferred\s*name$|^preferred$/i.test(h));
+    const ni = head.findIndex((h) => /^(student\s*)?name$|姓名|学生姓名|full\s*name/i.test(h));
+
+    if (headerIsHeader) {
+      if (li >= 0 && fi >= 0) {
+        nameHeader = nameHeader || [head[li], head[fi], pi >= 0 ? head[pi] : ''].filter(Boolean).join(' + ');
+      } else if (ni >= 0) {
+        nameHeader = nameHeader || head[ni];
+      }
+      if (head[ei]) emailHeader = emailHeader || head[ei];
+    }
+
+    const nameOf = (r: string[]): string => {
+      if (li >= 0 && fi >= 0) {
+        const last = r[li] ?? '';
+        const first = r[fi] ?? '';
+        const pref = pi >= 0 ? r[pi] ?? '' : '';
+        if (last && first) return `${last}, ${first}${pref ? ` (${pref})` : ''}`;
+      }
+      if (ni >= 0) return r[ni] ?? '';
+      return '';
+    };
 
     for (const r of body) {
       const email = (r[ei] ?? '').toLowerCase();
-      const mbName = ni >= 0 ? (r[ni] ?? '') : '';
       if (!EMAIL_RE.test(email)) continue;
-      if (!mbName) { skipped++; continue; }
+      const mbName = nameOf(r);
+      if (!mbName) {
+        skipped++;
+        continue;
+      }
       if (seen.has(email)) continue;
       seen.add(email);
       entries.push({ email, mbName });

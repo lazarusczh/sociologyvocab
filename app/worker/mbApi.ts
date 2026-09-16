@@ -60,6 +60,32 @@ const TASKS_EXPR = `(() => {
   return JSON.stringify({ url: location.href, title: document.title, tasks: out });
 })()`;
 
+/**
+ * 页面内提取成绩册行（**只读**：学生名与分数框的当前值，一个字段都不写）。
+ * 结构依据 2026-09-15 的行级勘探（app/_ocrlab_out/mb-rows-*.json）：
+ *   行 = div.grid-table-row.student-grade；第一个 div.column 是学生列（名字在 <a title="… | 显示名">），
+ *   分数框 = input[name="core_task[grades][score]"]（其 id 是成绩记录 id，不是学生 id）。
+ */
+const MARKS_EXPR = `(() => {
+  const clean = (s) => (s || '').replace(/\\s+/g, ' ').trim();
+  const rows = [];
+  for (const r of document.querySelectorAll('div.grid-table-row.student-grade')) {
+    const cols = r.querySelectorAll(':scope > div.column');
+    const nameCol = cols[0] || null;
+    const a = nameCol ? nameCol.querySelector('a') : null;
+    const title = a ? (a.getAttribute('title') || '') : '';
+    const tail = clean((title.split('|').pop() || ''));
+    const scoreEl = r.querySelector('input[name="core_task[grades][score]"]');
+    rows.push({
+      name: tail || clean(nameCol ? nameCol.textContent : ''),
+      alt: clean(nameCol ? nameCol.textContent : '').slice(0, 80),
+      score: scoreEl ? clean(String(scoreEl.value == null ? '' : scoreEl.value)) : '',
+      scoreBox: !!scoreEl,
+    });
+  }
+  return JSON.stringify({ url: location.href, title: document.title, count: rows.length, rows });
+})()`;
+
 interface MbCookie {
   name: string;
   value: string;
@@ -229,7 +255,10 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
     return out;
   };
 
-  if (url.pathname !== '/app-api/mb/tasks') return withCors(json(404, { error: 'not found' }));
+  const route = url.pathname;
+  if (route !== '/app-api/mb/tasks' && route !== '/app-api/mb/marks' && route !== '/app-api/mb/write') {
+    return withCors(json(404, { error: 'not found' }));
+  }
   if (request.method !== 'POST') return withCors(json(405, { error: 'method not allowed' }));
 
   const token = bearer(request);
@@ -240,16 +269,22 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
     return withCors(json(403, { error: '仅教师可用' }));
   }
 
-  let body: { classId?: string; code?: string } = {};
+  let body: { classId?: string; code?: string; taskId?: string; updates?: unknown } = {};
   try {
     body = (await request.json()) as typeof body;
   } catch {
     /* 空 body → 下面按缺参处理 */
   }
   const mbClassId = String(body.classId ?? '').replace(/\D/g, '');
-  const code = String(body.code ?? '').trim();
   if (!mbClassId) return withCors(json(400, { error: '缺少 classId（ManageBac 班级号）' }));
-  if (!code) return withCors(json(400, { error: '缺少 code（短码）' }));
+  const code = String(body.code ?? '').trim();
+  const taskId = String(body.taskId ?? '').replace(/\D/g, '');
+  if (route === '/app-api/mb/tasks' && !code) {
+    return withCors(json(400, { error: '缺少 code（短码）' }));
+  }
+  if (route === '/app-api/mb/marks' && !taskId) {
+    return withCors(json(400, { error: '缺少 taskId' }));
+  }
 
   const cookies = await readSession(userId, token, env);
   if (!cookies) {
@@ -261,21 +296,134 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
     );
   }
 
+  // cookie 转成 CDP 需要的形态（两个端点共用）
+  const cookieParams = cookies.map((c) => ({
+    name: c.name,
+    value: c.value,
+    domain: c.domain,
+    path: c.path || '/',
+    secure: !!c.secure,
+    httpOnly: !!c.httpOnly,
+    ...(typeof c.expires === 'number' && c.expires > 0 ? { expires: c.expires } : {}),
+  }));
+
+  // ---- 只读：读该 task 的成绩册行（供前端做差异预览，一个字段都不写）----
+  if (route === '/app-api/mb/marks') {
+    const t0 = Date.now();
+    try {
+      const info = await withCloudBrowser(env, async (cdp) => {
+        await cdp.send('Network.setCookies', { cookies: cookieParams });
+        return openTaskGradebook(cdp, mbClassId, taskId);
+      });
+      return withCors(
+        json(200, { ok: true, target: info.url, count: info.count, rows: info.rows, elapsedMs: Date.now() - t0 }),
+      );
+    } catch (e) {
+      return withCors(marksError(e, t0));
+    }
+  }
+
+  // ---- 写入：把分数写进该 task 的成绩册（破坏性操作；写完立即回读校验）----
+  // 只写 `core_task[grades][score]` 这一个输入框，不动姓名/备注等任何其它字段。
+  // 写什么值由调用方决定：试卷成绩传折算分，测验/作业传原始分（教师 2026-09-16 定）。
+  if (route === '/app-api/mb/write') {
+    const t0 = Date.now();
+    if (!Array.isArray(body.updates) || body.updates.length === 0) {
+      return withCors(json(400, { error: '缺少 updates（要写入的行）' }));
+    }
+    const updates = (body.updates as { row?: unknown; score?: unknown }[])
+      .map((u) => ({ row: String(u?.row ?? '').trim(), score: String(u?.score ?? '').trim() }))
+      .filter((u) => u.row && u.score);
+    if (updates.length === 0) return withCors(json(400, { error: 'updates 里没有有效的行' }));
+    if (updates.length > 200) return withCors(json(400, { error: '一次最多写 200 行' }));
+
+    try {
+      const result = await withCloudBrowser(env, async (cdp) => {
+        await cdp.send('Network.setCookies', { cookies: cookieParams });
+        await navigateToTask(cdp, mbClassId, taskId);
+        if (!(await waitStudentRows(cdp))) throw new Error('没读到学生行（该 task 可能还没有学生）');
+
+        const located = JSON.parse(await cdp.text(locateExpr(updates))) as {
+          row: string;
+          score?: string;
+          ok: boolean;
+          reason?: string;
+          inputId?: string;
+          before?: string;
+        }[];
+
+        // **真实输入**：聚焦 + 全选 → 用 CDP 的 Input.insertText 插入新值。
+        // 它会触发浏览器原生的 input 事件（框架的 onChange 正是监听它），
+        // 这是设 el.value 做不到的（见 locateExpr 顶部说明）。
+        const written: { row: string; ok: boolean; reason?: string; before?: string; after?: string }[] = [];
+        for (const t of located) {
+          if (!t.ok || !t.inputId) {
+            written.push({ row: t.row, ok: false, reason: t.reason ?? '定位失败' });
+            continue;
+          }
+          const idLit = JSON.stringify(t.inputId);
+          const focused = await cdp.text(
+            `(() => { const el = document.getElementById(${idLit}); if (!el) return 'missing'; el.focus(); el.select(); return 'ok'; })()`,
+          );
+          if (focused !== 'ok') {
+            written.push({ row: t.row, ok: false, reason: '分数框已不在页面上' });
+            continue;
+          }
+          await cdp.send('Input.insertText', { text: t.score ?? '' });
+          const afterVal = await cdp.text(
+            `(() => { const el = document.getElementById(${idLit}); if (!el) return ''; `
+            + `el.dispatchEvent(new Event('change', { bubbles: true })); el.blur(); `
+            + `return String(el.value == null ? '' : el.value); })()`,
+          );
+          written.push({ row: t.row, ok: true, before: t.before, after: afterVal.trim() });
+        }
+
+        // ManageBac 是异步自动保存：**轮询**回读，全部读到期望值就提前结束。
+        // 注意（2026-09-16 实测教训）：原来固定等 4 秒就下结论，会误报"未确认落库" ——
+        // 实际分数已经写进去了（抓取脚本读回 20/18/17 三个值），只是页面/服务端还没跟上。
+        const key = (s: string) => s.replace(/\s+/g, '').toLowerCase();
+        const pick = (rows: { name: string; alt: string; score: string }[], row: string) =>
+          rows.find((r) => key(`${r.name}|${r.alt}`).includes(key(row)));
+        const allSaved = (rows: { name: string; alt: string; score: string }[]) =>
+          updates.every((u) => {
+            const hit = pick(rows, u.row);
+            return !!hit && hit.score === u.score;
+          });
+
+        let rowsAfter: { name: string; alt: string; score: string }[] = [];
+        let rounds = 0;
+        for (let i = 0; i < 8; i++) {
+          await sleep(1500);
+          rounds = i + 1;
+          const snap = JSON.parse(await cdp.text(MARKS_EXPR)) as {
+            rows: { name: string; alt: string; score: string }[];
+          };
+          rowsAfter = snap.rows ?? [];
+          if (allSaved(rowsAfter)) break;
+        }
+
+        const verified = written.map((w) => {
+          const want = updates.find((u) => u.row === w.row)?.score ?? '';
+          const hit = pick(rowsAfter, w.row);
+          const actual = hit ? hit.score : '';
+          return { ...w, want, actual, saved: actual === want };
+        });
+        return { verified, rowCount: rowsAfter.length, confirmedAll: allSaved(rowsAfter), rounds };
+      });
+
+      return withCors(
+        json(200, { ok: true, classId: mbClassId, taskId, ...result, elapsedMs: Date.now() - t0 }),
+      );
+    } catch (e) {
+      return withCors(marksError(e, t0, '写入'));
+    }
+  }
+
   const target = `https://dtd.managebac.cn/teacher/classes/${mbClassId}/gradebook/core_tasks`;
   const t0 = Date.now();
   try {
     const info = await withCloudBrowser(env, async (cdp) => {
-      await cdp.send('Network.setCookies', {
-        cookies: cookies.map((c) => ({
-          name: c.name,
-          value: c.value,
-          domain: c.domain,
-          path: c.path || '/',
-          secure: !!c.secure,
-          httpOnly: !!c.httpOnly,
-          ...(typeof c.expires === 'number' && c.expires > 0 ? { expires: c.expires } : {}),
-        })),
-      });
+      await cdp.send('Network.setCookies', { cookies: cookieParams });
       await cdp.send('Page.navigate', { url: target });
 
       // 任务列是前端异步渲染的；同时先看是否落到登录页（cookie 过期时立刻停下，不白等）
@@ -335,4 +483,116 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
     }
     return withCors(json(502, { error: '抓取失败', hint: msg.slice(0, 400), detail: msg.slice(0, 400), elapsedMs: Date.now() - t0 }));
   }
+}
+
+/** 导航到某个 task 的成绩册页。
+ *  term 路径不自己拼：先到「全部任务」列表，按 taskId 找到页面给出的链接再进 —— term 变了也不用改代码。 */
+async function navigateToTask(cdp: Cdp, mbClassId: string, taskId: string): Promise<void> {
+  const listUrl = `https://dtd.managebac.cn/teacher/classes/${mbClassId}/gradebook/core_tasks`;
+  await cdp.send('Page.navigate', { url: listUrl });
+
+  let links = 0;
+  for (let i = 0; i < 20; i++) {
+    await sleep(1200);
+    if (/\/login/i.test(await cdp.text('location.href'))) throw new Error('MANAGEBAC_LOGIN_EXPIRED');
+    links = Number(await cdp.text('document.querySelectorAll(\'a[href*="core_tasks/"]\').length')) || 0;
+    if (links > 0) break;
+  }
+  if (!links) throw new Error('没读到任务列表（该班成绩册可能为空，或页面结构有变）');
+
+  const taskHref = await cdp.text(`(() => {
+    const a = document.querySelector('a[href*="core_tasks/${taskId}"]');
+    return a ? a.href : '';
+  })()`);
+  if (!taskHref) throw new Error('当前学期里找不到这个 task —— 它可能已被删除，或在另一个学期');
+
+  await cdp.send('Page.navigate', { url: taskHref });
+}
+
+/** 等成绩册的学生行渲染出来；返回行数（0 表示没等到） */
+async function waitStudentRows(cdp: Cdp): Promise<number> {
+  let n = 0;
+  for (let i = 0; i < 20; i++) {
+    await sleep(1200);
+    if (/\/login/i.test(await cdp.text('location.href'))) throw new Error('MANAGEBAC_LOGIN_EXPIRED');
+    n = Number(await cdp.text('document.querySelectorAll(\'div.grid-table-row.student-grade\').length')) || 0;
+    if (n > 0) break;
+  }
+  return n;
+}
+
+/**
+ * 页面内：按行文本定位分数框，**只定位、不改值**，把目标 input 的 id 回报出来。
+ *
+ * 为什么不在这里直接写值（2026-09-16 实测教训）：
+ *   成绩册是前端异步渲染的，分数框很可能是**受控组件**。直接 `el.value = x` 只改了 DOM 的
+ *   显示值（所以当场回读能看到新值、容易误判成功），但框架内部状态没变，提交给服务端的仍是旧值
+ *   ⇒ 表现为"点了写入、看着也写上了，ManageBac 里却没有"。正解是走**真实输入**
+ *   （CDP 的 Input.insertText），让它像人打字一样触发框架的 input 事件。见调用处。
+ */
+function locateExpr(updates: { row: string; score?: string }[]): string {
+  return `(() => {
+  const clean = (s) => (s || '').replace(/\\s+/g, ' ').trim();
+  const norm = (s) => clean(s).replace(/\\s+/g, '').toLowerCase();
+  const updates = ${JSON.stringify(updates)};
+  const rows = Array.from(document.querySelectorAll('div.grid-table-row.student-grade'));
+  const out = [];
+  for (const u of updates) {
+    const k = norm(u.row);
+    const target = rows.find((r) => {
+      const c = r.querySelector(':scope > div.column');
+      return c ? norm(c.textContent).includes(k) : false;
+    });
+    if (!target) { out.push({ row: u.row, ok: false, reason: '没找到该学生的行' }); continue; }
+    const el = target.querySelector('input[name="core_task[grades][score]"]');
+    if (!el) { out.push({ row: u.row, ok: false, reason: '该行没有分数框' }); continue; }
+    if (!el.id) el.id = 'mbapi-' + Math.random().toString(36).slice(2, 9);
+    out.push({
+      row: u.row,
+      score: u.score,
+      ok: true,
+      inputId: el.id,
+      before: clean(String(el.value == null ? '' : el.value)),
+    });
+  }
+  return JSON.stringify(out);
+})()`;
+}
+
+/** 打开某个 task 的成绩册页并读回所有学生行（**只读**）。
+ *  term 路径不自己拼：先到「全部任务」列表，按 taskId 找到页面给出的链接再进 —— term 变了也不用改代码。 */
+async function openTaskGradebook(
+  cdp: Cdp,
+  mbClassId: string,
+  taskId: string,
+): Promise<{
+  url: string;
+  title: string;
+  count: number;
+  rows: { name: string; alt: string; score: string; scoreBox: boolean }[];
+}> {
+  await navigateToTask(cdp, mbClassId, taskId);
+  if (!(await waitStudentRows(cdp))) {
+    throw new Error('没读到学生行（该 task 可能还没有学生，或页面结构有变）');
+  }
+
+  return JSON.parse(await cdp.text(MARKS_EXPR)) as {
+    url: string;
+    title: string;
+    count: number;
+    rows: { name: string; alt: string; score: string; scoreBox: boolean }[];
+  };
+}
+
+/** 错误映射：登录过期单独给出可操作的提示；其余按动作归类（读取/写入） */
+function marksError(e: unknown, t0: number, action = '读取'): Response {
+  const msg = e instanceof Error ? e.message : String(e);
+  if (msg === 'MANAGEBAC_LOGIN_EXPIRED') {
+    return json(409, {
+      error: 'ManageBac 登录态已过期',
+      hint: '在 app/ 下跑 node scripts/mb-login-local.mjs 重新登录一次（不消耗浏览器额度），再回来重试。',
+      elapsedMs: Date.now() - t0,
+    });
+  }
+  return json(502, { error: `${action}失败`, hint: msg.slice(0, 400), detail: msg.slice(0, 400), elapsedMs: Date.now() - t0 });
 }

@@ -703,6 +703,88 @@ export async function matchMbTask(mbClassId: string, code: string): Promise<MbTa
 }
 
 /**
+ * 读某个 task 的成绩册行（**只读**：学生名与当前分数），供差异预览用。
+ * 一个字段都不会写；写分在后续步骤单独做。
+ */
+export interface MbMarksRow {
+  name: string;    // ManageBac 显示名（取自学生链接 title 里管道符后的部分）
+  alt: string;     // 该行学生列的完整文本（便于人工核对）
+  score: string;   // 分数框当前值（空串表示没分）
+  scoreBox: boolean;
+}
+
+export interface MbMarksResult {
+  ok: boolean;
+  target?: string;
+  count?: number;
+  rows?: MbMarksRow[];
+  error?: string;
+  hint?: string;
+  elapsedMs?: number;
+}
+
+export async function fetchMbMarks(mbClassId: string, taskId: string): Promise<MbMarksResult> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token ?? '';
+  if (!token) throw new Error('未登录');
+  const res = await fetch('/app-api/mb/marks', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ classId: mbClassId, taskId }),
+  });
+  const body = (await res.json()) as MbMarksResult;
+  if (!res.ok) {
+    throw new Error([body.error, body.hint].filter(Boolean).join(' —— ') || `HTTP ${res.status}`);
+  }
+  return body;
+}
+
+/**
+ * 写入分数到 ManageBac（**破坏性操作**）。
+ * 只写分数框本身；写什么值由调用方决定——试卷成绩传折算分，测验/作业传原始分（教师 2026-09-16 定）。
+ * 云端写完会回读校验，返回每行的 before → after 与是否确实落库（saved）。
+ */
+export interface MbWriteResult {
+  ok: boolean;
+  classId?: string;
+  taskId?: string;
+  rowCount?: number;
+  verified?: {
+    row: string;
+    ok: boolean;
+    reason?: string;
+    before?: string;
+    after?: string;
+    want: string;
+    actual: string;
+    saved: boolean;
+  }[];
+  error?: string;
+  hint?: string;
+  elapsedMs?: number;
+}
+
+export async function writeMbMarks(
+  mbClassId: string,
+  taskId: string,
+  updates: { row: string; score: string }[],
+): Promise<MbWriteResult> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token ?? '';
+  if (!token) throw new Error('未登录');
+  const res = await fetch('/app-api/mb/write', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ classId: mbClassId, taskId, updates }),
+  });
+  const body = (await res.json()) as MbWriteResult;
+  if (!res.ok) {
+    throw new Error([body.error, body.hint].filter(Boolean).join(' —— ') || `HTTP ${res.status}`);
+  }
+  return body;
+}
+
+/**
  * 绑定：同一作业在同一班级只保留一条（先按 run|quiz + class_id 清旧行，再写新行）。
  * runId 与 quizId 二选一 —— 试卷成绩用 runId，随堂测验/作业用 quizId。
  */

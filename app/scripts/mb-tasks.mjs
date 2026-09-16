@@ -46,6 +46,7 @@ function devVar(name) {
 const HOST = argOf('--host', 'dtd.managebac.cn');
 const CLASS_ID = argOf('--class', '');
 const CODE = argOf('--code', '');
+const TASK_ID = argOf('--task', ''); // 有值时进入「读成绩册行」模式
 const TARGET = argOf('--url', CLASS_ID ? `https://${HOST}/teacher/classes/${CLASS_ID}/gradebook/core_tasks` : '');
 
 if (!TARGET) {
@@ -83,6 +84,32 @@ async function cfFetch(url, init = {}, tries = 4) {
   }
   return fetch(url, init);
 }
+
+/**
+ * 页面内提取成绩册行（`--task` 模式）：
+ * 把每行的完整线索都取回来 —— title 全文、链接文本、各列文本、分数框当前值。
+ * 用途：确认成绩册上究竟用什么标识（学号？姓名？），从而决定名单桥接该用哪个字段。
+ * 只读：不读取、不输出任何分数以外的个人信息；分数仅用于确认位置。
+ */
+const MARKS_EXPR = `(() => {
+  const clean = (s) => (s || '').replace(/\\s+/g, ' ').trim();
+  const rows = [];
+  for (const r of document.querySelectorAll('div.grid-table-row.student-grade')) {
+    const cols = r.querySelectorAll(':scope > div.column');
+    const nameCol = cols[0] || null;
+    const a = nameCol ? nameCol.querySelector('a') : null;
+    const sc = r.querySelector('input[name="core_task[grades][score]"]');
+    rows.push({
+      title: a ? (a.getAttribute('title') || '') : '',
+      href: a ? (a.getAttribute('href') || '') : '',
+      linkText: a ? clean(a.textContent) : '',
+      colText: clean(nameCol ? nameCol.textContent : ''),
+      colCount: cols.length,
+      score: sc ? clean(String(sc.value || '')) : '',
+    });
+  }
+  return JSON.stringify({ url: location.href, title: document.title, count: rows.length, rows }, null, 2);
+})()`;
 
 /** 页面内提取：task 名 + core_tasks/<id>、term 下拉、表格是否横向滚动 */
 const TASKS_EXPR = `(() => {
@@ -248,10 +275,56 @@ async function main() {
 
   if (landedLogin) {
     log(`⚠️ 落到了登录页（cookie 已过期）：${landedLogin}`);
-    log('   解决：在 app/ 下跑 node scripts/cf-managebac-login.mjs，在它打印的 Live View 里手动登录一次，');
+    log('   解决：在 app/ 下跑 node scripts/mb-login-local.mjs（本机 Chrome 登录，不消耗浏览器额度），');
     log('         cookie 会写回 _ocrlab_out/mb-cookies.json，再回来跑本脚本。');
     await closeSession();
     process.exit(3);
+  }
+
+  // ---- --task 模式：读该 task 的成绩册行（只读）----
+  if (TASK_ID) {
+    const href = await cdp.eval(
+      `(() => { const a = document.querySelector('a[href*="core_tasks/${TASK_ID}"]'); return a ? a.href : ''; })()`,
+    );
+    if (!href) {
+      log(`没在列表里找到 task ${TASK_ID} 的链接（它可能属于另一个 term）`);
+      await closeSession();
+      process.exit(1);
+    }
+    log(`进入成绩册：${href}`);
+    await cdp.send('Page.navigate', { url: href });
+
+    let rows = 0;
+    for (let i = 0; i < 20; i++) {
+      await sleep(1500);
+      const h = String(await cdp.eval('location.href'));
+      if (/\/login/i.test(h)) {
+        log('⚠ 又落回登录页（cookie 过期）');
+        await closeSession();
+        process.exit(3);
+      }
+      rows = Number(await cdp.eval('document.querySelectorAll(\'div.grid-table-row.student-grade\').length')) || 0;
+      if (i % 3 === 0) log(`  …等待学生行（当前 ${rows} 行）`);
+      if (rows > 0) break;
+    }
+    if (!rows) {
+      log('没读到学生行');
+      await closeSession();
+      process.exit(1);
+    }
+
+    const info = JSON.parse(await cdp.eval(MARKS_EXPR));
+    const file = path.join(OUT_DIR, `mb-marks-${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.json`);
+    writeFileSync(file, JSON.stringify(info, null, 2), 'utf-8');
+
+    log(`\n== 成绩册行（${info.count} 行）==`);
+    for (const r of info.rows) {
+      log(`  title = [${r.title}]`);
+      log(`    链接文本=[${r.linkText}]  列文本=[${r.colText}]  分数=[${r.score}]`);
+    }
+    log(`\n→ 结构化结果：${path.relative(ROOT, file)}`);
+    await closeSession();
+    process.exit(0);
   }
 
   const raw = await cdp.eval(TASKS_EXPR);
