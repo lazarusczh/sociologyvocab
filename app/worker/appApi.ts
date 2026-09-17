@@ -13,7 +13,7 @@
 
 import { aiGateForbidden, bearer, verifyUser } from './ai/auth';
 import { completeText, type TextTier } from './ai/text';
-import { transcribePage } from './ai/vision';
+import { probeVisionChannels, transcribePage } from './ai/vision';
 
 export interface AppApiEnv {
   SUPABASE_URL: string;
@@ -21,6 +21,8 @@ export interface AppApiEnv {
   MODELSCOPE_API_KEY?: string;
   OPENROUTER_API_KEY?: string;
   AGNES_API_KEY?: string;
+  /** Workers AI 绑定（OCR 视觉兜底，见 worker/ai/vision.ts） */
+  AI?: { run: (model: string, inputs: unknown) => Promise<unknown> };
 }
 
 const MAX_PROMPT_CHARS = 24000; // 单次文本补全的提示词上限（约 8k tokens 量级）
@@ -98,10 +100,20 @@ export async function handleAppApi(request: Request, env: AppApiEnv, url: URL): 
     }
 
     const res = await transcribePage(image, env);
-    if (!res.ok) return withCors(json(res.status || 502, { error: 'transcribe failed', detail: res.detail.slice(0, 300) }));
+    // 详情放宽到 800：原来截 300，配合前端只显示 40 字符，教师根本看不出模型报了什么（2026-09-17）
+    if (!res.ok) return withCors(json(res.status || 502, { error: 'transcribe failed', detail: res.detail.slice(0, 800) }));
     return withCors(
       json(200, { text: res.text, model: res.model, ms: res.ms, fellBack: res.fellBack }, { 'X-AI-Model': res.model }),
     );
+  }
+
+  // ---- POST /app-api/ai/vision-check ----
+  // 视觉通道自检：用内置小图逐个通道问「几个矩形、什么颜色」，判断哪一档真的看得见图片。
+  // 不占教师答卷、不耗时（小图几百字节）；魔搭那两个模型不处理请求，所以也不计魔粒。
+  if (url.pathname === '/app-api/ai/vision-check') {
+    if (request.method !== 'POST') return withCors(json(405, { error: 'method not allowed' }));
+    const probes = await probeVisionChannels(env);
+    return withCors(json(200, { probes }));
   }
 
   // ---- POST /app-api/ai/complete ----（通用文本补全：判分 / 要素抽取 / 批处理等教师侧任务）

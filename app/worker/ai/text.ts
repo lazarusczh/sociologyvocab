@@ -23,7 +23,9 @@ const MS_CHAT_URL = 'https://api-inference.modelscope.cn/v1/chat/completions';
 const OR_CHAT_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const AG_CHAT_URL = 'https://apihub.agnes-ai.com/v1/chat/completions';
 
-const MS_MODEL = 'Qwen/Qwen3-235B-A22B';
+// ★ 2026-09-17 更换：原 `Qwen/Qwen3-235B-A22B` 已被魔搭下架（400 `has no provider supported`）。
+// 这里是主站 /app-api/ai/complete 的「魔搭兜底档」——它排在 OpenRouter/Agnes 之后，只在免费档都失败时才烧魔粒。
+const MS_MODEL = 'Qwen/Qwen3.5-122B-A10B';
 const OR_MODEL = 'nvidia/nemotron-3-super-120b-a12b:free';
 const AG_MODEL = 'agnes-2.5-flash';
 

@@ -30,12 +30,19 @@ const CHAT_MODEL = '@cf/meta/llama-3.1-8b-instruct-fp8';
 // ===== ModelScope 魔粒多级路由 =====
 // 免费策略：每日 ~250 魔粒；主流档 1 魔粒/次，旗舰档 2 魔粒/次（2026-09 口径）
 const MS_URL = 'https://api-inference.modelscope.cn/v1/chat/completions';
-// hybrid 模型：enable_thinking=false 走快速直答（日常主力），true 走思考链
-const MS_MAIN = 'Qwen/Qwen3-235B-A22B';
-// 独立思考模型（1 魔粒/次）：评估/AO3/对比题用，比 hybrid 思考版更新更强
-const MS_THINK = 'Qwen/Qwen3-235B-A22B-Thinking-2507';
-// 旗舰档（2 魔粒/次）：目前仅作预留，需要高质量顶格输出时再并入链
-const MS_V4 = 'deepseek-ai/DeepSeek-V4-Flash-0731';
+// ★ 2026-09-17 更换模型 id：魔搭已下架整个 `Qwen/Qwen3-*` 系列 —— 调用一律返回
+//   400 `Model id : ... , has no provider supported`，且它们都不在账号可见列表里
+//   （魔搭换代成了 Qwen3.5）。下面三个 id 都是**当天实测可调用**的。
+//   另外注意：魔搭免费池本身也不稳定（同批测试里会出现「HTTP 200 但 content 为空」），
+//   所以多级降级链必须保留，不要因为单个模型可用就删掉后面的兜底。
+// hybrid 模型：enable_thinking=false 走快速直答（日常主力）
+const MS_MAIN = 'Qwen/Qwen3.5-122B-A10B';
+// 独立思考模型：评估/AO3/对比题用，需要更强的推理能力。
+// ★ 2026-09-17 选型时特意**不用第三方旗舰**（GLM-5.2 等通常按 2 魔粒计费，会让每日可用次数直接减半
+//   —— 教师当天提醒了魔粒预算），改用同门最大号 Qwen3.5-397B：3 次连测全通，档位风险最低。
+const MS_THINK = 'Qwen/Qwen3.5-397B-A17B';
+// 旗舰档：目前仅作预留，需要高质量顶格输出时再并入链
+const MS_V4 = 'deepseek-ai/DeepSeek-V4.1-Flash';
 
 // Agnes AI（apihub）：OpenAI 兼容；推理过程在独立字段 reasoning_content，
 // 前端只取 content，思考链不外泄；质量经实测明显强于 8B（合格线达成）。

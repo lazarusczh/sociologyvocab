@@ -68,7 +68,13 @@ psql $conn -w -v ON_ERROR_STOP=1 -f db-migration-xxx.sql
 - **不要用对勾、叉号之类的符号当强调**：回答文字、思考过程、代码注释、文档全都不要用。需要表达判断时正常写"可行 / 不可行"、"是 / 否"、"已过期"。
   项目早期文档里残留了一些这类符号（如 `定义题方案.md`、`DevPanel.tsx` 等）：**不要模仿，也不必为了对齐它们而使用**。
 
-## 七、ManageBac 相关（同步功能的基建）
+## 七、AI 通道（魔搭 ModelScope）
+
+- **模型 id 会过期，绝不能照抄记忆或旧文档里的 id。** 2026-09-17 魔搭下架了整个 `Qwen/Qwen3-*` 系列（含子站问答的文本主力 `Qwen/Qwen3-235B-A22B` 与 OCR 的 `Qwen/Qwen3-VL-*`），调用一律返回 400 `Model id : ... , has no provider supported`。**改任何模型前先跑 `node scripts/ms-models.mjs`**（在 `app/` 下）：它从源码提取所有 `MS_*` 模型 id、列出账号可见模型、再逐个探测（每个 1 token）。加 `--list` 则完全不消耗额度。
+- **魔搭免费池本身也不稳定**：同一批请求里会出现「HTTP 200 但 choices 为空」。所以多级降级链必须保留，不要因为某个模型当下可用就删掉后面的兜底。
+- **失败详情要原样透出，不要截太短**：`/app-api/ai/transcribe` 等的 `detail` 是教师唯一的排查线索。曾截到 40 个字符，导致「模型已下架」被误读成「rate limit」（2026-09-17）。
+
+## 八、ManageBac 相关（同步功能的基建）
 
 - **刷新 ManageBac 登录 cookie：用 `app/scripts/mb-login-local.mjs`**（调本机已装 Chrome/Edge，独立 profile `%LOCALAPPDATA%\mb-login-profile`，刻意不放工作区以避开 OneDrive）。快、**不消耗 Cloudflare 浏览器额度**、profile 复用后通常免登录。
   **不要用 `cf-managebac-login.mjs`**：那是远端投屏（浏览器在 CF 机房，键鼠往返很卡）且**消耗额度**（2026-09-16 又踩一次）。

@@ -107,6 +107,9 @@ export default function OcrMarkPanel() {
   // 而不是留一块空白让人猜（教师反馈"图片显示不出"时，这一行就能定位是数据还是显示的问题）。
   const [zoomDims, setZoomDims] = useState<{ w: number; h: number } | null>(null);
   const [zoomErr, setZoomErr] = useState('');
+  // 视觉通道自检结果（2026-09-17）：用服务端内置的小图逐个通道试，一眼看出挂在哪一档
+  const [probe, setProbe] = useState<{ channel: string; ok: boolean; ms: number; note: string }[] | null>(null);
+  const [probeBusy, setProbeBusy] = useState(false);
 
   const openZoom = useCallback((src: string, name: string) => {
     setZoomActual(false);
@@ -374,6 +377,9 @@ export default function OcrMarkPanel() {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       setPages((ps) => ps.map((p) => (p.id === page.id ? { ...p, busy: false, error: msg } : p)));
+      // 完整错误上浮到页面顶部。卡片位太窄，且原先在那里只显示前 40 个字符 ——
+      // 2026-09-17 教师就是因为那半截碎片，把「模型已下架」误判成了「rate limit」。
+      setErr(`「${page.name}」识别失败：${msg}`);
     }
   }, [loadRecs, table]);
 
@@ -384,6 +390,33 @@ export default function OcrMarkPanel() {
     }
     setBusyAll(false);
   }, [pages, transcribe]);
+
+  // 通道自检：不占自己的答卷，服务端用内置小图（几百字节）逐个通道问「几个矩形、什么颜色」。
+  // 魔搭那两个模型不处理请求，所以这一步也不计魔粒。
+  const checkChannels = useCallback(async () => {
+    setProbeBusy(true);
+    setErr('');
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token ?? '';
+      if (!token) throw new Error('未登录');
+      const res = await fetch('/app-api/ai/vision-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      });
+      const body = (await res.json()) as {
+        probes?: { channel: string; ok: boolean; ms: number; note: string }[];
+        error?: string;
+        detail?: string;
+      };
+      if (!res.ok) throw new Error(body.detail || body.error || `HTTP ${res.status}`);
+      setProbe(body.probes ?? []);
+    } catch (e) {
+      setErr('通道检测失败：' + (e instanceof Error ? e.message : String(e)));
+    } finally {
+      setProbeBusy(false);
+    }
+  }, []);
 
   // ---------- 渲染高亮 ----------
   const renderHi = (text: string, hits: OcrHit[]) => {
@@ -490,7 +523,30 @@ export default function OcrMarkPanel() {
           <button className="ghost" onClick={() => setPages([])} disabled={!pages.length}>
             清空
           </button>
+          <button
+            className="ghost"
+            onClick={() => void checkChannels()}
+            disabled={probeBusy}
+            title="用服务端内置的小图逐个试识别通道，不占用你的答卷；模型换代/通道挂掉时用它定位"
+          >
+            {probeBusy ? '检测中…' : '检测识别通道'}
+          </button>
         </div>
+
+        {probe && (
+          <div style={{ marginTop: '0.5rem', fontSize: '0.82rem', lineHeight: 1.7 }}>
+            {probe.map((p) => (
+              <div key={p.channel} style={{ color: p.ok ? 'var(--ok, #2e7d32)' : 'var(--danger, #c33)', wordBreak: 'break-word' }}>
+                {p.ok ? '可用' : '不可用'} · {p.channel}
+                {p.ms ? ` · ${(p.ms / 1000).toFixed(1)} 秒` : ''}
+                <span className="muted" style={{ marginLeft: '0.4rem' }}>{p.note}</span>
+              </div>
+            ))}
+            <div className="muted" style={{ marginTop: '0.2rem' }}>
+              正常时应至少有一条「可用」，且回答里能说出三个矩形与红绿蓝。
+            </div>
+          </div>
+        )}
 
         <div className="ocrm-toolbar">
           <label
@@ -515,7 +571,11 @@ export default function OcrMarkPanel() {
             if (e.dataTransfer.files) void addFiles(e.dataTransfer.files);
           }}
         >
-          {err && <p style={{ color: 'var(--danger, #c33)', fontSize: '0.85rem' }}>{err}</p>}
+          {err && (
+            <p style={{ color: 'var(--danger, #c33)', fontSize: '0.85rem', whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.5 }}>
+              {err}
+            </p>
+          )}
           {pages.length > 0 && (
             <div className="ocrm-queue">
               {pages.map((p) => (
@@ -532,7 +592,7 @@ export default function OcrMarkPanel() {
                   <div className="meta">
                     {p.name}
                     <br />
-                    {p.busy ? '识别中…' : p.text ? `已识别 ${p.text.length} 字符` : p.error ? `失败：${p.error.slice(0, 40)}` : '待识别'}
+                    {p.busy ? '识别中…' : p.text ? `已识别 ${p.text.length} 字符` : p.error ? '识别失败（详情见上方红字）' : '待识别'}
                     {p.text ? (
                       <>
                         {' · '}

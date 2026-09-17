@@ -6,9 +6,22 @@
 export const MS_BASE_URL = 'https://api-inference.modelscope.cn/v1';
 export const MS_CHAT_URL = `${MS_BASE_URL}/chat/completions`;
 
-// 视觉档（OCR 阅卷）：实测 235B 13 秒/页、通读无碍；8B 6 秒但**会丢内容**（丢术语），仅作降级备份
-export const MS_VISION = 'Qwen/Qwen3-VL-235B-A22B-Instruct';
-export const MS_VISION_FALLBACK = 'Qwen/Qwen3-VL-8B-Instruct';
+// 视觉档（OCR 阅卷）
+//
+// ★ 2026-09-17 更换模型 id：原 `Qwen/Qwen3-VL-235B-A22B-Instruct` 与 `Qwen/Qwen3-VL-8B-Instruct`
+//   已被魔搭下架 —— 调用一律 400 `Model id : ... , has no provider supported`，
+//   并且 `Qwen/Qwen3-*` **整个系列**都不在该账号的可见模型列表里（魔搭已换代到 Qwen3.5）。
+//   现改用账号实测可调用的两个：主力 InternVL3.5-241B，降级 ERNIE-4.5-VL-28B。
+//   换模型前先用 `node scripts/ms-models.mjs` 对照账号**实际**可用列表，不要照抄任何记忆里的旧 id。
+export const MS_VISION = 'OpenGVLab/InternVL3_5-241B-A28B';
+export const MS_VISION_FALLBACK = 'PaddlePaddle/ERNIE-4.5-VL-28B-A3B-PT';
+
+// 视觉兜底（Cloudflare Workers AI）：**完全不依赖魔搭**。
+// 2026-09-17 实测魔搭账号里仅有的两个可见视觉模型都「HTTP 200 但内容为空」
+// （用自造图片测过，见 scripts/ms-vision-check.mjs），OCR 等于全灭，
+// 故补一条自有通道。选它是因官方示例支持直接传 data URL，改动最小；
+// 同账号下还有 @cf/meta/llama-3.2-11b-vision-instruct、@cf/moondream/moondream3.1-9B-A2B 可换。
+export const MS_VISION_CF = '@cf/mistralai/mistral-small-3.1-24b-instruct';
 
 // 免费 API 常校验 UA：不带浏览器 UA 的数据中心请求可能被直接拒绝
 export const BROWSER_UA =
