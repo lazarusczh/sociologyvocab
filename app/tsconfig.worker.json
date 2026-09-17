@@ -9,10 +9,10 @@
   // 纳入 `tsconfig.json` 的 references 后，`npm run build` 会自动检查这里。
   "compilerOptions": {
     "target": "es2023",
-    "lib": ["ES2023", "DOM"],
+    "lib": ["ES2023"],
     "module": "esnext",
     "moduleResolution": "bundler",
-    "types": [],
+    "types": ["@cloudflare/workers-types"],
     "strict": true,
     "skipLibCheck": true,
     "noEmit": true,
