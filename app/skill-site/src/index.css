@@ -215,6 +215,15 @@ button.book-title.open .arrow { transform: rotate(90deg); }
 }
 .ask-tier button:hover { border-color: var(--c-primary); color: var(--c-heading); }
 .ask-tier button.sel { background: var(--c-primary); border-color: var(--c-primary); color: #fff; }
+/* 档位下拉：模型名很长（如 Qwen3.5-397B-A17B（深度）），用下拉避免横排挤乱界面。
+   宽度自适应内容但不超视口，避免移动端撑破（2026-09-17 教师建议）。 */
+.ask-tier-select {
+  border: 1px solid var(--c-hairline); background: var(--c-canvas); color: var(--c-steel);
+  border-radius: 12px; padding: 4px 8px; font-size: 12px; line-height: 1.6;
+  max-width: min(78vw, 360px); cursor: pointer;
+}
+.ask-tier-select:hover, .ask-tier-select:focus { border-color: var(--c-primary); color: var(--c-heading); }
+.ask-tier-select:focus { outline: none; }
 /* 对话工具条：轮数 + 清空按钮 */
 .ask-toolbar { display: flex; align-items: center; gap: 10px; flex: none; margin: -2px 0 8px; }
 .ask-count { font-size: 12px; color: var(--c-stone); }

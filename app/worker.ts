@@ -44,6 +44,30 @@ const MS_THINK = 'Qwen/Qwen3.5-397B-A17B';
 // 旗舰档：目前仅作预留，需要高质量顶格输出时再并入链
 const MS_V4 = 'deepseek-ai/DeepSeek-V4.1-Flash';
 
+/**
+ * 档位目录 —— **模型名的唯一真源**。
+ *
+ * 前端（子站 AskView）据此渲染档位选择与回答尾缀，不再自己写一份模型名映射。
+ * 这里直接引用上面的模型常量，所以以后换模型时界面会自动跟随，
+ * 不会再出现「后端换了模型、界面还写着旧名」（2026-09-17 教师反馈快速档仍显示 Qwen3-235B）。
+ * 经 GET /skill-api/models 暴露，纯只读、不含任何密钥。
+ */
+const AI_TIER_CATALOG = [
+  { code: 'auto', label: '自动', model: '', fallbacks: [MS_MAIN, MS_THINK], note: '按题目难度自动选：日常走快速档，评估/对比类切深度档' },
+  { code: 'fast', label: '快速', model: MS_MAIN, fallbacks: [], note: '强制快速档，不自动切深度' },
+  { code: 'think', label: '深度', model: MS_THINK, fallbacks: [], note: '强制深度档，适合评估/对比类长答' },
+  { code: 'nemotron', label: 'Nemo', model: OR_MODEL, fallbacks: [], note: 'OpenRouter 免费缓冲源（评测用）' },
+  { code: 'llama', label: '兜底', model: CHAT_MODEL, fallbacks: [], note: 'Cloudflare Workers AI 兜底，成本趋零' },
+];
+
+/** 统一的 AI 响应头：档位代号 + **真实模型 id**（前端直接显示后者，不必再维护映射表） */
+const aiHeaders = (code: string, modelId: string, extra: Record<string, string> = {}) => ({
+  ...sseHeaders,
+  'X-AI-Model': code,
+  'X-AI-Model-Id': modelId,
+  ...extra,
+});
+
 // Agnes AI（apihub）：OpenAI 兼容；推理过程在独立字段 reasoning_content，
 // 前端只取 content，思考链不外泄；质量经实测明显强于 8B（合格线达成）。
 // 但从 Cloudflare Worker 出口直连实测恒被拒（CF WAF 1015 限流，与 key 无关，2026-09-09），
@@ -96,7 +120,7 @@ function corsHeaders(request: Request): Record<string, string> {
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Authorization, Content-Type',
     // 让跨域客户端（APK/dev）能读到模型档位与降级原因标记
-    'Access-Control-Expose-Headers': 'X-AI-Model, X-AI-Fail',
+    'Access-Control-Expose-Headers': 'X-AI-Model, X-AI-Model-Id, X-AI-Fail',
     'Access-Control-Max-Age': '86400',
     Vary: 'Origin',
   };
@@ -190,11 +214,11 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
   const tier = String((body as { tier?: unknown }).tier ?? 'auto').trim();
   if (msKey && tier === 'fast') {
     const main = await msAsk(MS_MAIN, messages, msKey, { thinking: false, temperature: 0.6, onFail: rec('ms-main') });
-    if (main) return new Response(main.body, { headers: { ...sseHeaders, 'X-AI-Model': 'qwen3-main' } });
+    if (main) return new Response(main.body, { headers: aiHeaders('qwen3-main', MS_MAIN) });
   }
   if (msKey && tier === 'think') {
     const think = await msAsk(MS_THINK, messages, msKey, { maxTokens: 2400, onFail: rec('ms-think') });
-    if (think) return new Response(think.body, { headers: { ...sseHeaders, 'X-AI-Model': 'qwen3-think' } });
+    if (think) return new Response(think.body, { headers: aiHeaders('qwen3-think', MS_THINK) });
   }
   if (orKey && tier === 'nemotron') {
     const orRes = await msAsk(OR_MODEL, messages, orKey, {
@@ -204,7 +228,7 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
       extraHeaders: { 'HTTP-Referer': 'https://9699vocab.cn', 'X-Title': '9699-sociology-skill' },
       onFail: rec('or-nemotron'),
     });
-    if (orRes) return new Response(orRes.body, { headers: { ...sseHeaders, 'X-AI-Model': 'openrouter' } });
+    if (orRes) return new Response(orRes.body, { headers: aiHeaders('openrouter', OR_MODEL) });
   }
   // 手动选 llama = 直接走 Workers 8B；其它手动档失败仍走下方自动链兜底
   const skipAuto = tier === 'llama';
@@ -212,19 +236,19 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
   // 4a) 评估/复杂题：魔搭 Thinking 优先
   if (hard && msKey && !MS_TEST_SKIP && !skipAuto) {
     const think = await msAsk(MS_THINK, messages, msKey, { maxTokens: 2400, onFail: rec('ms-think') });
-    if (think) return new Response(think.body, { headers: { ...sseHeaders, 'X-AI-Model': 'qwen3-think' } });
+    if (think) return new Response(think.body, { headers: aiHeaders('qwen3-think', MS_THINK) });
   }
 
   // 4b) 日常主力：Agnes（免费，省魔粒）——因 CF 出口 1015 限流默认关闭（AGNES_VIA_CF=false）
   if (AGNES_VIA_CF && agKey) {
     const ag = await msAsk(AG_MODEL, messages, agKey, { base: AG_URL, maxTokens: 1800, onFail: rec('agnes') });
-    if (ag) return new Response(ag.body, { headers: { ...sseHeaders, 'X-AI-Model': 'agnes' } });
+    if (ag) return new Response(ag.body, { headers: aiHeaders('agnes', AG_MODEL) });
   }
 
   // 4c) 降级①：魔搭快速档（Agnes 不可用 / 评估题 think 已失败时顶上）
   if (msKey && !MS_TEST_SKIP && !skipAuto) {
     const main = await msAsk(MS_MAIN, messages, msKey, { thinking: false, temperature: 0.6, onFail: rec('ms-main') });
-    if (main) return new Response(main.body, { headers: { ...sseHeaders, 'X-AI-Model': 'qwen3-main' } });
+    if (main) return new Response(main.body, { headers: aiHeaders('qwen3-main', MS_MAIN) });
   }
 
   // 4d) 降级②：OpenRouter :free（nemotron，关推理）
@@ -236,7 +260,7 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
       extraHeaders: { 'HTTP-Referer': 'https://9699vocab.cn', 'X-Title': '9699-sociology-skill' },
       onFail: rec('or-nemotron'),
     });
-    if (orRes) return new Response(orRes.body, { headers: { ...sseHeaders, 'X-AI-Model': 'openrouter' } });
+    if (orRes) return new Response(orRes.body, { headers: aiHeaders('openrouter', OR_MODEL) });
   }
 
   // 5) 兜底：Workers AI（免费 neurons 额度内，成本趋零）
@@ -249,11 +273,7 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
       top_p: 0.95,
     });
     return new Response(stream as unknown as ReadableStream, {
-      headers: {
-        ...sseHeaders,
-        'X-AI-Model': 'workers-8b',
-        ...(failLog.length ? { 'X-AI-Fail': failLog.join(' | ') } : {}),
-      },
+      headers: aiHeaders('workers-8b', CHAT_MODEL, failLog.length ? { 'X-AI-Fail': failLog.join(' | ') } : {}),
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
@@ -489,6 +509,17 @@ async function handleSbProxy(request: Request, env: Env): Promise<Response> {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+
+    // 档位目录（模型名的唯一真源）：子站前端据此渲染档位选择与回答尾缀。
+    // 纯只读、不含密钥，故不要求登录；回 CORS 头供子站/APK 跨域读取。
+    if (url.pathname === '/skill-api/models') {
+      if (request.method === 'OPTIONS') {
+        return new Response(null, { status: 204, headers: corsHeaders(request) });
+      }
+      const res = json(200, { tiers: AI_TIER_CATALOG });
+      for (const [k, v] of Object.entries(corsHeaders(request))) res.headers.set(k, v);
+      return res;
+    }
 
     // 教材知识站 AI 问答（APK 内 origin 是 https://localhost，需处理预检并回 CORS 头）
     if (url.pathname === '/skill-api/ask' || url.pathname === '/skill-api/terms') {

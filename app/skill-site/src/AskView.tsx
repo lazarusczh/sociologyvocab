@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { retrieve, retrievePages, expandPages, buildPageContext, buildScaffoldText, localTerms, type PageIndexBook, type ScaffoldRow } from './retrieval'
 import { parseBlocks, orderedLabels } from './md'
-import { askStream, fetchQueryTerms, type HistMsg } from './ask'
+import { askStream, fetchQueryTerms, fetchTierCatalog, type HistMsg, type TierInfo } from './ask'
 import { fetchPageIndex, fetchPageTexts, fetchScaffolds } from './supabase'
 import { booksOf, type SkillData } from './data'
 
@@ -14,32 +14,42 @@ const PAGE_BOOK_LABEL: Record<string, string> = {
 // 回传给模型的多轮上下文上限：最多最近 5 轮（10 条消息）
 const HIST_MAX_MSGS = 10;
 
-// 可选模型档位（发送 body.tier）；「自动」= 日常快档/评估题思考档的默认智能路由
-const TIERS = [
-  { code: 'auto', label: '自动', hint: '日常快档；评估/复杂题自动切思考档' },
-  { code: 'fast', label: '快速', hint: '强制 Qwen3-235B 快速档（不自动切思考）' },
-  { code: 'think', label: '深度', hint: '强制 Qwen3-235B-Thinking' },
-  { code: 'nemotron', label: 'Nemo', hint: 'OpenRouter nemotron-super-120b（免费缓冲）' },
-  { code: 'llama', label: '8B', hint: 'Workers AI Llama-3.1-8B（兜底）' },
-] as const;
+// 档位目录的**内置兜底**：只在拉不到后端目录时用（旧部署/断网），保证界面仍可用。
+// 正常走 GET /skill-api/models —— 那里是模型名的唯一真源，后端换模型时界面自动跟随。
+// 2026-09-17 改：原先这里写死了「Qwen3-235B」等名字，路由换了模型后界面还显示旧名（教师发现）。
+const TIER_FALLBACK: TierInfo[] = [
+  { code: 'auto', label: '自动', model: '', note: '按题目难度自动选档' },
+  { code: 'fast', label: '快速', model: '', note: '强制快速档' },
+  { code: 'think', label: '深度', model: '', note: '强制深度档' },
+  { code: 'nemotron', label: 'Nemo', model: '', note: 'OpenRouter 免费缓冲源' },
+  { code: 'llama', label: '兜底', model: '', note: 'Workers AI 兜底' },
+];
+
+/** 模型 id → 展示短名：去掉供应商前缀（`Qwen/Qwen3.5-122B-A10B` → `Qwen3.5-122B-A10B`） */
+const shortModel = (id: string) => id.split('/').pop() || id;
+
+/** 档位在界面上的叫法：`模型名（档位）`；自动档没有单一模型，写「按题切换」 */
+const tierLabel = (t: TierInfo) =>
+  t.code === 'auto' || !t.model ? `${t.label}（按题切换档位）` : `${shortModel(t.model)}（${t.label}）`;
 
 interface Msg {
   q: string;
   a: string;
   error: string | null;
   sources: string[];
+  /** 档位代号（X-AI-Model），诊断用 */
   model?: string | null;
+  /** 真实模型 id（X-AI-Model-Id）；尾缀优先显示它 */
+  modelId?: string | null;
   fail?: string | null;
 }
 
-// 响应头 X-AI-Model 的档位代号 → 展示名（便于对比各档效果）
-const MODEL_NAME: Record<string, string> = {
-  agnes: 'Agnes-2.5-Flash',
-  'qwen3-main': 'Qwen3-235B（快速档）',
-  'qwen3-think': 'Qwen3-235B-Thinking',
-  openrouter: 'OpenRouter 缓冲源',
-  'workers-8b': 'Llama-3.1-8B（兜底）',
-};
+/**
+ * 尾缀显示什么：**优先真实模型 id**（后端给什么就显示什么，换模型自动跟随）；
+ * 旧部署没有这个响应头时退化为代号，至少不会是错的旧名字。
+ */
+const modelLabel = (m: Pick<Msg, 'model' | 'modelId'>) =>
+  m.modelId ? shortModel(m.modelId) : (m.model ?? '');
 
 const SUGGESTIONS = [
   '功能主义怎么解释教育？',
@@ -54,6 +64,15 @@ export default function AskView({ skill }: { skill: SkillData }) {
   const [busy, setBusy] = useState(false);
   // 手动档位选择（记忆在 localStorage，便于长期对比）
   const [tier, setTier] = useState<string>(() => localStorage.getItem('ask_tier') || 'auto');
+  // 档位目录：模型名的唯一真源在后端（GET /skill-api/models）。拉不到时保留内置兜底，界面不至于空白。
+  const [tiers, setTiers] = useState<TierInfo[]>(TIER_FALLBACK);
+  useEffect(() => {
+    let alive = true;
+    void fetchTierCatalog().then((t) => {
+      if (alive && t.length) setTiers(t);
+    });
+    return () => { alive = false; };
+  }, []);
   const chooseTier = (t: string) => {
     setTier(t);
     try { localStorage.setItem('ask_tier', t); } catch { /* ignore */ }
@@ -154,7 +173,7 @@ export default function AskView({ skill }: { skill: SkillData }) {
       setMsgs((m) => {
         const copy = [...m];
         const last = copy[copy.length - 1];
-        if (last && last.q === q) copy[copy.length - 1] = { ...last, sources: finalSources, error: res.error, model: res.model, fail: res.fail };
+        if (last && last.q === q) copy[copy.length - 1] = { ...last, sources: finalSources, error: res.error, model: res.model, modelId: res.modelId, fail: res.fail };
         return copy;
       });
     } catch (e) {
@@ -192,17 +211,19 @@ export default function AskView({ skill }: { skill: SkillData }) {
 
       <div className="ask-tier" role="group" aria-label="模型档位">
         <span className="ask-tier-label">模型</span>
-        {TIERS.map((t) => (
-          <button
-            key={t.code}
-            type="button"
-            className={tier === t.code ? 'sel' : ''}
-            title={t.hint}
-            onClick={() => chooseTier(t.code)}
-          >
-            {t.label}
-          </button>
-        ))}
+        {/* 下拉而非一排药丸：模型名很长（如 Qwen3.5-397B-A17B（深度）），横排会把界面挤乱（2026-09-17 教师建议） */}
+        <select
+          className="ask-tier-select"
+          value={tier}
+          title={tiers.find((t) => t.code === tier)?.note ?? ''}
+          onChange={(e) => chooseTier(e.target.value)}
+        >
+          {tiers.map((t) => (
+            <option key={t.code} value={t.code} title={t.note ?? ''}>
+              {tierLabel(t)}
+            </option>
+          ))}
+        </select>
       </div>
 
       {msgs.length === 0 && (
@@ -233,12 +254,12 @@ export default function AskView({ skill }: { skill: SkillData }) {
             <div className="ask-q">{m.q}</div>
             <div className="ask-a">
               {m.a ? <MdText text={m.a} /> : m.error ? <div className="ask-err">{m.error}</div> : <div className="typing">思考中…</div>}
-              {!m.error && (m.sources.length > 0 || m.model) && (
+              {!m.error && (m.sources.length > 0 || m.model || m.modelId) && (
                 <div className="ask-src">
                   {m.sources.length > 0 && <span>出处：{m.sources.join('、')}</span>}
-                  {m.model && (
+                  {(m.modelId || m.model) && (
                     <span className="ask-model">
-                      模型：{MODEL_NAME[m.model] ?? m.model}
+                      模型：{modelLabel(m)}
                       {m.fail && (
                         <span className="ask-fail" title={m.fail}>
                           ⚠ {m.fail}

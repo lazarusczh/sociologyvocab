@@ -6,6 +6,12 @@ export interface AskResult {
   error: string | null;
   /** 本次应答所用模型档位标记（来自响应头 X-AI-Model），用于诊断/对比 */
   model?: string | null;
+  /**
+   * 本次应答的**真实模型 id**（来自响应头 X-AI-Model-Id）。
+   * 界面尾缀直接显示它，不必再维护「代号 → 名字」映射表 ——
+   * 后端换模型时界面自动跟随（2026-09-17 修：原先前端写死的名字没跟上路由）。
+   */
+  modelId?: string | null;
   /** 落到兜底档时的降级原因（来自 X-AI-Fail，如 "agnes=429 ... | ms-main=401 ..."），仅诊断用 */
   fail?: string | null;
 }
@@ -106,11 +112,12 @@ export async function askStream(
 
   const ct = res.headers.get('Content-Type') ?? '';
   const model = res.headers.get('X-AI-Model');
+  const modelId = res.headers.get('X-AI-Model-Id');
   const fail = res.headers.get('X-AI-Fail');
   if (!ct.includes('text/event-stream')) {
     // 非流式兜底（如代理吞了流）
     const text = await res.text();
-    return { text, error: null, model, fail };
+    return { text, error: null, model, modelId, fail };
   }
 
   const reader = res.body?.getReader();
@@ -157,7 +164,33 @@ export async function askStream(
       onDelta(piece);
     }
   }
-  return { text: out, error: null, model, fail };
+  return { text: out, error: null, model, modelId, fail };
+}
+
+/** 档位目录条目（GET /skill-api/models）——模型名的唯一真源在后端 */
+export interface TierInfo {
+  code: string;
+  label: string;
+  model: string;
+  fallbacks?: string[];
+  note?: string;
+}
+
+/** 拉取档位目录；失败返回空数组，调用方回退到内置清单 */
+export async function fetchTierCatalog(): Promise<TierInfo[]> {
+  const o = typeof location !== 'undefined' ? location.origin : '';
+  const onSite = o.includes('9699vocab.cn') || o.includes('workers.dev');
+  const url = onSite ? '/skill-api/models' : `${REMOTE_ORIGIN}/skill-api/models`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const j = (await res.json()) as { tiers?: TierInfo[] };
+    return Array.isArray(j.tiers)
+      ? j.tiers.filter((t) => t && typeof t.code === 'string' && typeof t.label === 'string')
+      : [];
+  } catch {
+    return [];
+  }
 }
 
 // 兼容多种上游的 SSE 负载：
