@@ -141,3 +141,6 @@ app/data/ms-skill/
 .dev.vars*
 !.dev.vars.example
 !.env.example
+
+# OneDrive 占位目录的备份（junction 迁移时留下，确认无误后可删）
+app/android.od-bak/
