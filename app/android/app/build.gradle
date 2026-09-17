@@ -9,13 +9,25 @@ layout.buildDirectory.set(file('C:/vocab-build/app'))
 
 android {
     namespace = "com.sda.vocabulary"
+
+    // 跳过 release 的 lint。
+    // 2026-09-17：项目在 OneDrive 内，`cap sync` 复制进 src/main/assets/public 的 web 资源
+    // 会被 OneDrive 转成「仅在线」的云占位，Gradle 做增量快照时报
+    //   Cannot snapshot ...\assets\public\assets\index-*.css: not a regular file
+    // 使 :app:generateReleaseLintVitalReportModel 失败、整条打包中断。
+    // 关掉 release lint 可绕过（该任务只产出 lint 报告，不影响 APK 内容）。
+    // ★ 根治办法：把仓库移出 OneDrive，或至少排除 app/android 与 app/node_modules 的同步。
+    lint {
+        checkReleaseBuilds = false
+        abortOnError = false
+    }
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "com.sda.vocabulary"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 43
-        versionName "1.7.21"
+        versionCode 44
+        versionName "1.7.22"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

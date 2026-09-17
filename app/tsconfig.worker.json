@@ -1,0 +1,26 @@
+{
+  // 专门检查 Worker 侧代码（worker.ts 与 worker/ 下的模块）。
+  //
+  // 为什么需要它：`tsconfig.app.json` 的 include 只有 `src`，所以 Worker 代码
+  // **从来不在 `tsc -b` 的检查范围内**。2026-09-17 因此漏掉了两个只在运行时才炸的错误：
+  //   ① `AI_TIER_CATALOG` 引用了之后才定义的 `OR_MODEL`（const 暂时性死区）
+  //   ② 模块级的 `aiHeaders` 引用了 `handleAsk` 函数内部的 `sseHeaders`（作用域错误）
+  // 两者都让模块加载即抛 ReferenceError，整站 500，而 `tsc -b` 一直显示“通过”。
+  // 纳入 `tsconfig.json` 的 references 后，`npm run build` 会自动检查这里。
+  "compilerOptions": {
+    "target": "es2023",
+    "lib": ["ES2023", "DOM"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "types": [],
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "verbatimModuleSyntax": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.worker.tsbuildinfo"
+  },
+  "include": ["worker.ts", "worker/**/*.ts"]
+}

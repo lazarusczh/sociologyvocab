@@ -41,8 +41,39 @@ const MS_MAIN = 'Qwen/Qwen3.5-122B-A10B';
 // ★ 2026-09-17 选型时特意**不用第三方旗舰**（GLM-5.2 等通常按 2 魔粒计费，会让每日可用次数直接减半
 //   —— 教师当天提醒了魔粒预算），改用同门最大号 Qwen3.5-397B：3 次连测全通，档位风险最低。
 const MS_THINK = 'Qwen/Qwen3.5-397B-A17B';
-// 旗舰档：目前仅作预留，需要高质量顶格输出时再并入链
-const MS_V4 = 'deepseek-ai/DeepSeek-V4.1-Flash';
+// 注：原先这里还有个「旗舰档」常量 MS_V4（deepseek-ai/DeepSeek-V4.1-Flash），
+// 但它从未接进任何调用分支 —— 2026-09-17 做 Worker 类型检查时暴露为死代码，故删除。
+// 将来真要用，把常量、档位目录与调用分支一起加上。
+
+// Agnes AI（apihub）：OpenAI 兼容；推理过程在独立字段 reasoning_content，
+// 前端只取 content，思考链不外泄；质量经实测明显强于 8B（合格线达成）。
+// 但从 Cloudflare Worker 出口直连实测恒被拒（CF WAF 1015 限流，与 key 无关，2026-09-09），
+// 故默认不在 Worker 链上启用——仍可用于本地/个人 agent。日后若其风控调整，改回 true 即恢复。
+const AGNES_VIA_CF = false;
+const AG_URL = 'https://apihub.agnes-ai.com/v1/chat/completions';
+const AG_MODEL = 'agnes-2.5-flash';
+
+// OpenRouter（降级缓冲）：:free 池。gemma 系上游是 Google AI Studio 共享池，
+// 高峰期几乎必 429（实测）；NVIDIA nemotron-super-120b 上游池宽松且稳定 200，
+// 但它默认输出推理过程——经 reasoning.enabled=false 关闭后即为干净答案（实测有效）。
+// 若该 id 掉出免费池，再回退到其他 :free 通用模型。
+const OR_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const OR_MODEL = 'nvidia/nemotron-3-super-120b-a12b:free';
+
+// ---- 以下三块依赖上面的全部模型常量，必须放在它们之后 ----
+//
+// 教训（2026-09-17）：这三块原先放在文件顶部（MS_V4 之后），却引用了后面才定义的
+// `OR_MODEL` 与函数内的 `sseHeaders` —— `const` 的暂时性死区 + 作用域错误让**每个请求**
+// 都在模块加载时抛 ReferenceError，整站 500。而 `tsc -b` 抓不到，因为
+// `tsconfig.app.json` 的 include 只有 `src`，**worker.ts 从来不在类型检查范围内**。
+// ⇒ 改完 Worker 必须实际发一次请求验证（或让 tsc 覆盖 worker.ts）。
+
+/** SSE 响应头（原先是 handleAsk 内的局部常量，提到模块级以便 aiHeaders 复用） */
+const sseHeaders = {
+  'Content-Type': 'text/event-stream; charset=utf-8',
+  'Cache-Control': 'no-cache',
+  'X-Accel-Buffering': 'no',
+} as const;
 
 /**
  * 档位目录 —— **模型名的唯一真源**。
@@ -67,21 +98,6 @@ const aiHeaders = (code: string, modelId: string, extra: Record<string, string> 
   'X-AI-Model-Id': modelId,
   ...extra,
 });
-
-// Agnes AI（apihub）：OpenAI 兼容；推理过程在独立字段 reasoning_content，
-// 前端只取 content，思考链不外泄；质量经实测明显强于 8B（合格线达成）。
-// 但从 Cloudflare Worker 出口直连实测恒被拒（CF WAF 1015 限流，与 key 无关，2026-09-09），
-// 故默认不在 Worker 链上启用——仍可用于本地/个人 agent。日后若其风控调整，改回 true 即恢复。
-const AGNES_VIA_CF = false;
-const AG_URL = 'https://apihub.agnes-ai.com/v1/chat/completions';
-const AG_MODEL = 'agnes-2.5-flash';
-
-// OpenRouter（降级缓冲）：:free 池。gemma 系上游是 Google AI Studio 共享池，
-// 高峰期几乎必 429（实测）；NVIDIA nemotron-super-120b 上游池宽松且稳定 200，
-// 但它默认输出推理过程——经 reasoning.enabled=false 关闭后即为干净答案（实测有效）。
-// 若该 id 掉出免费池，再回退到其他 :free 通用模型。
-const OR_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const OR_MODEL = 'nvidia/nemotron-3-super-120b-a12b:free';
 
 // 评估/对比类问题意图词（命中→思考模型）；日常直答模型只用于其余问题
 const HARD_RE =
@@ -192,11 +208,7 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
   //    评估/对比类 → 魔搭 Qwen3 Thinking（1 魔粒，深度已被长期验证）
   //    其余日常    → Agnes-2.5-flash（免费，不烧魔粒；推理链前端剥离）
   //    逐级失败降级：魔搭快速档 → OpenRouter nemotron(:free 关推理) → Workers 8B
-  const sseHeaders = {
-    'Content-Type': 'text/event-stream; charset=utf-8',
-    'Cache-Control': 'no-cache',
-    'X-Accel-Buffering': 'no',
-  } as const;
+  // sseHeaders 已提到模块级（见文件上方），这里直接用，不再重复定义
   const msKey = env.MODELSCOPE_API_KEY;
   const agKey = env.AGNES_API_KEY;
   const orKey = env.OPENROUTER_API_KEY;
