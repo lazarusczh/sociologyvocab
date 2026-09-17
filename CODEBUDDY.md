@@ -68,6 +68,14 @@ psql $conn -w -v ON_ERROR_STOP=1 -f db-migration-xxx.sql
 - **不要用对勾、叉号之类的符号当强调**：回答文字、思考过程、代码注释、文档全都不要用。需要表达判断时正常写"可行 / 不可行"、"是 / 否"、"已过期"。
   项目早期文档里残留了一些这类符号（如 `定义题方案.md`、`DevPanel.tsx` 等）：**不要模仿，也不必为了对齐它们而使用**。
 
+## 六·五、类型检查的覆盖范围（2026-09-17 的教训，务必先读）
+
+- **`tsc -b` 默认只检查 `app/src`，不检查 Worker。** `tsconfig.app.json` 的 `include` 是 `["src"]`，所以 `app/worker.ts` 与 `app/worker/**` **长期不在任何类型检查范围内** —— 改完 Worker 后跑 `tsc -b` 显示"通过"，**不代表 Worker 没问题**。
+- 2026-09-17 因此漏掉两个只在**运行时**才炸的错误，导致子站问答**整站 500**：① `AI_TIER_CATALOG` 引用了之后才定义的 `OR_MODEL`（`const` 暂时性死区）；② 模块级的 `aiHeaders` 引用了 `handleAsk` **函数内部**的 `sseHeaders`（作用域错误）。两者都让模块加载即抛 `ReferenceError`，而类型检查一声不吭。
+- **已修**：新增 `app/tsconfig.worker.json`（含 `worker.ts` 与 `worker/**/*.ts`，装 `@cloudflare/workers-types`，开 `strict` + `noUnusedLocals`），并**加入 `tsconfig.json` 的 `references`** —— 现在 `npm run build` / `npm run ship` 会连带检查 Worker。
+- **纪律**：改完 Worker 代码，除 `tsc -b` 外还要**实际发一次请求**验证。最快的判据：`curl -s -o NUL -w "%{http_code}" -X POST https://9699vocab.cn/skill-api/ask` 返回 **401**（走到鉴权）而非 500（模块加载就炸）。
+- 顺带：开 `noUnusedLocals` 后清掉了 `MS_V4`（从未接进任何调用分支的死代码）。
+
 ## 七、AI 通道（魔搭 ModelScope）
 
 - **模型 id 会过期，绝不能照抄记忆或旧文档里的 id。** 2026-09-17 魔搭下架了整个 `Qwen/Qwen3-*` 系列（含子站问答的文本主力 `Qwen/Qwen3-235B-A22B` 与 OCR 的 `Qwen/Qwen3-VL-*`），调用一律返回 400 `Model id : ... , has no provider supported`。**改任何模型前先跑 `node scripts/ms-models.mjs`**（在 `app/` 下）：它从源码提取所有 `MS_*` 模型 id、列出账号可见模型、再逐个探测（每个 1 token）。加 `--list` 则完全不消耗额度。
