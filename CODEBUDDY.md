@@ -26,6 +26,7 @@
   - `app/android/app/build.gradle` 与 `app/android/build.gradle` 里的 `layout.buildDirectory.set(...)` **保留**，作为第二层保险。
   - **起因**：OneDrive 会把 `android` 下的条目接管成"云占位"（属性 `525328`/`525360`/`525344`，含 `PINNED | REPARSE_POINT`）。先是 `:app:packageRelease` 删不掉中间目录，后来 `:app:mergeReleaseAssets` 报 `Cannot snapshot ...: not a regular file`（文件内容不在本地，Gradle 的 `Files.isRegularFile()` 返回 false）。**后者无法靠 Gradle 配置绕过**（assets 必须真读出来打进 APK），只能让文件脱离 OneDrive。当天还遇到 OneDrive 自身卡死（`metadata.sqlite-shm` 被锁、卡在 61%、暂停同步也点不动），使 `android/app/src` 全体进入中间态，最后靠重启电脑恢复；**不要强杀 OneDrive 进程**（教师反馈曾导致重启后它认不出同步根配置）。
   - **根治方向仍是把仓库移出 OneDrive**；junction 只是先把打包这条链摘出来。
+- **junction 实测有效（2026-09-18，1.7.23 打包）**：`:app:packageRelease` 所在的整条 `assembleRelease` **34 秒跑完**（`171 actionable tasks: 10 executed, 161 up-to-date`），`Unable to delete` 一次未现。对照此前：每次必挂在 `incremental/packageRelease/tmp`，且重试无效、耗时近 2 分钟。增量构建还能保留（`161 up-to-date`），所以不必每次全量重编。**若哪天又出现删除失败，先确认 `app/android` 还是不是 Junction 指向 `C:\vocab-build\android`。**
 - **`feishu:send-apk` 只能用工作区内的相对路径**：`lark-cli` 的 `--file` 拒收绝对路径（报 `invalid_argument: --file must be a relative path within the current directory`），所以脚本先 `copyFileSync` 到 `_ocrlab_out/app-release.apk` 再发。改了构建目录就必须同步改这个拷贝源，否则报文件不存在。
 - **ship 中途挂掉后的补救**：若前端 `npm run build` 已成功、只是后半段（打包 / 发 APK / 部署）失败，**不要重跑整条 `npm run ship`**（二次 build 会让版本号分叉），改为单独补跑缺的步骤：`cd android && gradlew.bat assembleRelease`、`npm run feishu:send-apk`、`npx wrangler deploy`，最后仍要校验 `app/dist/version.json` 与线上一致。
 - 版本号改完补一个提交：`chore: bump android versionCode N / versionName X.Y.Z`。
