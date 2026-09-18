@@ -66,6 +66,12 @@ const TASKS_EXPR = `(() => {
  *   行 = div.grid-table-row.student-grade；第一个 div.column 是学生列（名字在 <a title="… | 显示名">），
  *   分数框 = input[name="core_task[grades][score]"]（其 id 是成绩记录 id，不是学生 id）。
  */
+// 写入诊断开关（2026-09-18 写入跑通后默认关闭）。
+// 排查 ManageBac 写入问题时改成 true：会 dump 页面 URL、改完 DOM 的值、重载后的服务端值、
+// 写入期间的非 GET 请求、表单结构与按钮清单。这些只在线上日志里看，前端不再展示
+// （教师反馈日志太长）。改此开关后需重新 ship 才生效。
+const MB_WRITE_DIAG = false;
+
 const MARKS_EXPR = `(() => {
   const clean = (s) => (s || '').replace(/\\s+/g, ' ').trim();
   const rows = [];
@@ -368,19 +374,21 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
 
         // 记录当前页面 URL —— 用来确认进的到底是「单 task 页」
         // （形态 `/gradebook/term/<term>/core_tasks/<taskId>`）还是学期综合成绩册。
-        const pageUrl = await cdp.text('location.href');
+        const pageUrl = MB_WRITE_DIAG ? await cdp.text('location.href') : '';
 
-        // 开始抓写入期间的非 GET 请求。ManageBac 靠 XHR 自动保存，
-        // 之前这部分是黑盒：只能看到「DOM 值变了、服务端没存」，无法判断是否根本没发请求。
+        // 开始抓写入期间的非 GET 请求（仅诊断开关打开时）。
+        // 当初靠它才发现「写完一条保存请求都没发」，从而定位到 blur 从未触发。
         const saveRequests: string[] = [];
         const saveResponses: string[] = [];
         const offReq = cdp.on('Network.requestWillBeSent', (p) => {
+          if (!MB_WRITE_DIAG) return;
           const req = p.request as { method?: string; url?: string } | undefined;
           if (req?.method && req.method !== 'GET' && saveRequests.length < 20) {
             saveRequests.push(`${req.method} ${String(req.url ?? '').slice(0, 130)}`);
           }
         });
         const offRes = cdp.on('Network.responseReceived', (p) => {
+          if (!MB_WRITE_DIAG) return;
           const resp = p.response as { status?: number; url?: string } | undefined;
           const u = String(resp?.url ?? '');
           if (u && !/\.(png|jpe?g|gif|svg|css|js|woff2?|ico)(\?|$)/i.test(u) && saveResponses.length < 20) {
@@ -404,7 +412,7 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
         // 此前注释写「ManageBac 是失焦自动保存型」是**推测，而且错了**。
         // 字段名 `core_task[grades][score]` 是 Rails 嵌套参数风格 ⇒ 大概率是表单 + 显式提交。
         // 所以这里把表单信息和按钮清单 dump 出来，据此决定该点哪个按钮 / 提交哪个表单。
-        const formInfo = await cdp.text(`(() => {
+        const formInfo = MB_WRITE_DIAG ? await cdp.text(`(() => {
   const el = document.querySelector('input[name="core_task[grades][score]"]');
   const form = el && el.form ? el.form : null;
   const btns = Array.from(document.querySelectorAll('button, input[type=submit], a.btn, a.button'))
@@ -423,7 +431,7 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
     method: form ? (form.getAttribute('method') || '') : '',
     btns,
   });
-})()`);
+  })()`) : '';
 
         // **真实输入**：真实鼠标点击（拿浏览器级焦点）→ 全选清空 → 逐字符键入 → Tab 失焦。
         // 为什么不是 `el.focus()` + `Input.insertText`，见 typeIntoScoreInput 顶部说明
@@ -452,9 +460,9 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
             steps: typed.steps,
             reason: typed.ok ? undefined : '真实输入没有落到分数框',
           });
-          // 写入后这个页面**到底有没有可供提交的按钮/表单** —— 这是"值为什么送不到服务端"的关键。
+          // 写入后这个页面**到底有没有可供提交的按钮/表单**（仅诊断开关打开时）。
           // 放在写入之后 dump：有些界面是"改动后才亮出保存按钮"。
-          const afterInfo = await cdp.text(`(() => {
+          const afterInfo = MB_WRITE_DIAG ? await cdp.text(`(() => {
   const out = { form: null, gradeish: [], gradesBtn: null, inputAttrs: null };
   const inp = document.querySelector('input[name="core_task[grades][score]"]');
   if (inp) {
@@ -515,8 +523,8 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
     .map((b) => (b.textContent || b.value || '').replace(/\\s+/g, ' ').trim().slice(0, 24))
     .filter(Boolean);
   return JSON.stringify({ hasForm: !!form, btns });
-})()`);
-          postWriteUi.push(afterInfo);
+  })()`) : '';
+        if (afterInfo) postWriteUi.push(afterInfo);
         }
 
         // ManageBac 是异步自动保存：**轮询**回读，全部读到期望值就提前结束。
