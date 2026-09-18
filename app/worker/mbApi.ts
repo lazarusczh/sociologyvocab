@@ -382,6 +382,12 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
         // ManageBac 是异步自动保存：**轮询**回读，全部读到期望值就提前结束。
         // 注意（2026-09-16 实测教训）：原来固定等 4 秒就下结论，会误报"未确认落库" ——
         // 实际分数已经写进去了（抓取脚本读回 20/18/17 三个值），只是页面/服务端还没跟上。
+        //
+        // ⚠⚠ **2026-09-18 关键修正：回读前必须重新加载页面！**
+        //   本段读的是 `input.value`，也就是**当前 DOM**。而写入通道里有一条是"原生 setter 改 DOM"，
+        //   如果直接在同一个页面会话里回读，读到的就是我们**刚写进去的值** ⇒ 必然判定 saved:true
+        //   ⇒ 报"成功"，但服务端到底存没存根本验不出来。教师遇到的"没报错、也没写进去"
+        //   正是这个自欺造成的。所以：等自动保存跑完 → **reload** → 再读服务端渲染出的值。
         const key = (s: string) => s.replace(/\s+/g, '').toLowerCase();
         const pick = (rows: { name: string; alt: string; score: string }[], row: string) =>
           rows.find((r) => key(`${r.name}|${r.alt}`).includes(key(row)));
@@ -391,16 +397,40 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
             return !!hit && hit.score === u.score;
           });
 
+        // ① 先记下"改完 DOM 后的即时值"——仅作诊断，用来区分「DOM 写了但服务端没存」与「压根没写进去」
+        const domNow = JSON.parse(await cdp.text(MARKS_EXPR)) as {
+          rows: { name: string; alt: string; score: string }[];
+        };
+        const domVector = updates
+          .map((u) => {
+            const hit = pick(domNow.rows ?? [], u.row);
+            return `${hit ? hit.score : '(缺行)'}`;
+          })
+          .join('/');
+
+        // ② 给自动保存留出时间，然后**重新加载**该 task 页面
+        await sleep(3000);
+        await cdp.send('Page.reload', { ignoreCache: false });
+        if (!(await waitStudentRows(cdp))) throw new Error('回读时没读到学生行（页面可能未加载完成）');
+
         let rowsAfter: { name: string; alt: string; score: string }[] = [];
         let rounds = 0;
         for (let i = 0; i < 8; i++) {
-          await sleep(1500);
-          rounds = i + 1;
-          const snap = JSON.parse(await cdp.text(MARKS_EXPR)) as {
+          rowsAfter = (JSON.parse(await cdp.text(MARKS_EXPR)) as {
             rows: { name: string; alt: string; score: string }[];
-          };
-          rowsAfter = snap.rows ?? [];
+          }).rows ?? [];
+          rounds = i + 1;
           if (allSaved(rowsAfter)) break;
+          await sleep(1500);
+        }
+        const serverVector = updates
+          .map((u) => {
+            const hit = pick(rowsAfter, u.row);
+            return `${hit ? hit.score : '(缺行)'}`;
+          })
+          .join('/');
+        if (domVector !== serverVector) {
+          console.error(`[mb/write] 回读不一致：改完 DOM 时=${domVector}，重载后（服务端）=${serverVector}`);
         }
 
         const verified = written.map((w) => {
