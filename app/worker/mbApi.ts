@@ -455,6 +455,58 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
           // 写入后这个页面**到底有没有可供提交的按钮/表单** —— 这是"值为什么送不到服务端"的关键。
           // 放在写入之后 dump：有些界面是"改动后才亮出保存按钮"。
           const afterInfo = await cdp.text(`(() => {
+  const out = { form: null, gradeish: [], gradesBtn: null, inputAttrs: null };
+  const inp = document.querySelector('input[name="core_task[grades][score]"]');
+  if (inp) {
+    out.inputAttrs = {
+      id: inp.id,
+      cls: String(inp.className || '').slice(0, 70),
+      dataAction: inp.getAttribute('data-action') || '',
+      dataAttrs: Array.from(inp.attributes).map((a) => a.name).filter((n) => n.startsWith('data-')).join(','),
+      readOnly: inp.readOnly === true,
+      disabled: inp.disabled === true,
+      formId: inp.form ? (inp.form.id || '(无id)') : '',
+    };
+  }
+  if (inp && inp.form) {
+    const f = inp.form;
+    out.form = {
+      action: f.getAttribute('action') || '',
+      method: f.getAttribute('method') || '',
+      id: f.id || '',
+      cls: String(f.className || '').slice(0, 60),
+      fieldCount: f.querySelectorAll('input,select,textarea').length,
+      subs: Array.from(f.querySelectorAll('button,input[type=submit]')).map((b) =>
+        (b.textContent || b.value || '').replace(/\\s+/g, ' ').trim().slice(0, 20)),
+    };
+  }
+  const seen = new Set();
+  for (const e of document.querySelectorAll('[class*="save"],[class*="submit"],[data-action*="save"],[data-action*="submit"],[id*="save"],[id*="submit"]')) {
+    const key = e.tagName + '|' + (e.id || '') + '|' + String(e.className || '');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    if (seen.size > 12) break;
+    out.gradeish.push({
+      tag: e.tagName,
+      text: (e.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 34),
+      id: e.id || '',
+      cls: String(e.className || '').slice(0, 70),
+      dataAction: e.getAttribute('data-action') || '',
+    });
+  }
+  const g = Array.from(document.querySelectorAll('button,a')).find((b) => /Grades?\\b/i.test(b.textContent || ''));
+  if (g) {
+    out.gradesBtn = {
+      tag: g.tagName,
+      text: (g.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 40),
+      id: g.id || '',
+      cls: String(g.className || '').slice(0, 90),
+      dataAction: g.getAttribute('data-action') || '',
+      href: g.getAttribute('href') || '',
+      disabled: g.disabled === true,
+    };
+  }
+  return JSON.stringify(out);
   const el = document.querySelector('input[name="core_task[grades][score]"]');
   const form = el && el.form ? el.form : null;
   const btns = Array.from(document.querySelectorAll('button, input[type=submit], a.btn, a.button'))
