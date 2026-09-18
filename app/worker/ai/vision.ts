@@ -3,11 +3,13 @@
 // 档位策略：主力 Qwen3-VL-235B（实测 13 秒/页、质量达标）→ 失败降级 Qwen3-VL-8B（快但会丢内容）。
 // 隐私口径：Worker 只把图片转发给模型，**不落盘、不留存**；返回文本后由前端自行保存。
 
-import { BROWSER_UA, MS_CHAT_URL, MS_VISION, MS_VISION_CF, MS_VISION_FALLBACK, TRANSCRIBE_PROMPT } from './models';
+import { BROWSER_UA, MS_CHAT_URL, OR_CHAT_URL, MS_VISION, MS_VISION_CF, MS_VISION_OR, TRANSCRIBE_PROMPT } from './models';
 import { PROBE_IMAGE_DATA_URL } from './probeImage';
 
 export interface VisionEnv {
   MODELSCOPE_API_KEY?: string;
+  /** OpenRouter key（视觉主力，免费档不耗魔搭魔粒） */
+  OPENROUTER_API_KEY?: string;
   /** Cloudflare Workers AI 绑定（视觉兜底）。只声明用到的形状，不依赖 CF 的类型包 */
   AI?: { run: (model: string, inputs: unknown) => Promise<unknown> };
 }
@@ -59,16 +61,19 @@ async function callVision(
   key: string,
   timeoutMs: number,
   prompt: string = TRANSCRIBE_PROMPT,
+  endpoint: string = MS_CHAT_URL,
+  extraHeaders: Record<string, string> = {},
 ): Promise<{ ok: true; text: string } | { ok: false; status: number; detail: string }> {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const r = await fetch(MS_CHAT_URL, {
+    const r = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${key}`,
         'User-Agent': BROWSER_UA,
+        ...extraHeaders,
       },
       body: JSON.stringify({
         model,
@@ -187,19 +192,23 @@ export async function transcribePage(
   const t0 = Date.now();
   const fails: string[] = [];
 
-  // ① Cloudflare Workers AI —— **当前唯一确认能真正处理图片的通道**，且不耗魔搭魔粒，故排第一档。
-  //    2026-09-17 实测：魔搭账号可见的两个视觉模型一律返回 `choices:null` 且 `prompt_tokens:0`
-  //    （请求根本没被处理，等于没有后端）——把它们放前面只会每次白等几秒。
-  if (env.AI) {
-    const cf = await callWorkersAI(env.AI, dataUrl);
-    if (cf.ok) return { ok: true, text: cf.text, model: MS_VISION_CF, ms: Date.now() - t0, fellBack: false };
-    fails.push(`CF：${cf.detail}`);
-    console.error(`[app-api/transcribe] ${MS_VISION_CF} failed: ${cf.detail.slice(0, 140)}`);
+  // ① OpenRouter（视觉主力）：质量达标且**免费、不耗魔搭魔粒**，故排第一档。
+  //    2026-09-18 实测手写图 15/15 关键词命中，约 6 秒/页。
+  const orKey = env.OPENROUTER_API_KEY;
+  if (orKey) {
+    const or = await callVision(MS_VISION_OR, dataUrl, orKey, timeoutMs, TRANSCRIBE_PROMPT, OR_CHAT_URL, {
+      'HTTP-Referer': 'https://9699vocab.cn',
+      'X-Title': 'Vocabulary Project OCR',
+    });
+    if (or.ok) return { ok: true, text: or.text, model: MS_VISION_OR, ms: Date.now() - t0, fellBack: false };
+    fails.push(`OpenRouter（${MS_VISION_OR}）：${or.detail}`);
+    console.error(`[app-api/transcribe] ${MS_VISION_OR} failed ${or.status}: ${or.detail.slice(0, 140)}`);
   } else {
-    fails.push('CF：没有 AI 绑定');
+    fails.push('OpenRouter：OPENROUTER_API_KEY 未配置');
   }
 
-  // ②③ 魔搭两档 —— 现状不可用，留着是为了它们恢复后能自动接回，不必再改代码
+  // ② 魔搭 `Qwen/Qwen3.5-122B-A10B`：最快（约 1 秒/页）但**耗魔粒**，故排在免费通道之后。
+  //    ⚠ 曾经的错法：只挑名字带 `VL` 的模型 —— 那两个一律空响应。Qwen3.5/3.8 自带视觉，不要按名字找。
   const key = env.MODELSCOPE_API_KEY;
   if (!key) {
     fails.push('魔搭：MODELSCOPE_API_KEY 未配置（本地请写入 app/.dev.vars）');
@@ -208,10 +217,17 @@ export async function transcribePage(
     if (main.ok) return { ok: true, text: main.text, model: MS_VISION, ms: Date.now() - t0, fellBack: true };
     fails.push(`${MS_VISION}：${main.detail}`);
     console.error(`[app-api/transcribe] ${MS_VISION} failed ${main.status}: ${main.detail.slice(0, 140)}`);
+  }
 
-    const fb = await callVision(MS_VISION_FALLBACK, dataUrl, key, timeoutMs);
-    if (fb.ok) return { ok: true, text: fb.text, model: MS_VISION_FALLBACK, ms: Date.now() - t0, fellBack: true };
-    fails.push(`${MS_VISION_FALLBACK}：${fb.detail}`);
+  // ③ Cloudflare Workers AI：最后一档，只为「外部通道全挂时至少还能出一版结果」。
+  //    质量差是已知的（教师实测 blackboard→textbook、IQ→2a），所以排在最后而非最前。
+  if (env.AI) {
+    const cf = await callWorkersAI(env.AI, dataUrl);
+    if (cf.ok) return { ok: true, text: cf.text, model: MS_VISION_CF, ms: Date.now() - t0, fellBack: true };
+    fails.push(`CF：${cf.detail}`);
+    console.error(`[app-api/transcribe] ${MS_VISION_CF} failed: ${cf.detail.slice(0, 140)}`);
+  } else {
+    fails.push('CF：没有 AI 绑定');
   }
 
   return { ok: false, status: 502, detail: fails.join(' | ') };
@@ -233,33 +249,49 @@ export async function probeVisionChannels(env: VisionEnv): Promise<VisionProbe[]
   const ask = '这张图里有几个矩形？从左到右分别是什么颜色？只用一句话回答数量与颜色。';
   const out: VisionProbe[] = [];
 
-  if (env.AI) {
+  // 顺序与 transcribePage 的降级链保持一致，便于一眼看出「挂在哪一档」。
+  const orKey = env.OPENROUTER_API_KEY;
+  if (orKey) {
     const t0 = Date.now();
-    const r = await callWorkersAI(env.AI, PROBE_IMAGE_DATA_URL, ask);
+    const r = await callVision(MS_VISION_OR, PROBE_IMAGE_DATA_URL, orKey, 60_000, ask, OR_CHAT_URL, {
+      'HTTP-Referer': 'https://9699vocab.cn',
+      'X-Title': 'Vocabulary Project OCR',
+    });
     out.push({
-      channel: MS_VISION_CF,
+      channel: `${MS_VISION_OR}（OpenRouter）`,
       ok: r.ok,
       ms: Date.now() - t0,
       note: r.ok ? r.text.replace(/\s+/g, ' ').slice(0, 140) : r.detail.slice(0, 200),
     });
   } else {
-    out.push({ channel: MS_VISION_CF, ok: false, ms: 0, note: '没有 AI 绑定' });
+    out.push({ channel: `${MS_VISION_OR}（OpenRouter）`, ok: false, ms: 0, note: 'OPENROUTER_API_KEY 未配置' });
   }
 
   const key = env.MODELSCOPE_API_KEY;
-  for (const model of [MS_VISION, MS_VISION_FALLBACK]) {
-    if (!key) {
-      out.push({ channel: model, ok: false, ms: 0, note: 'MODELSCOPE_API_KEY 未配置' });
-      continue;
-    }
+  if (!key) {
+    out.push({ channel: `${MS_VISION}（魔搭）`, ok: false, ms: 0, note: 'MODELSCOPE_API_KEY 未配置' });
+  } else {
     const t0 = Date.now();
-    const r = await callVision(model, PROBE_IMAGE_DATA_URL, key, 60_000, ask);
+    const r = await callVision(MS_VISION, PROBE_IMAGE_DATA_URL, key, 60_000, ask);
     out.push({
-      channel: model,
+      channel: `${MS_VISION}（魔搭）`,
       ok: r.ok,
       ms: Date.now() - t0,
       note: r.ok ? r.text.replace(/\s+/g, ' ').slice(0, 140) : r.detail.slice(0, 200),
     });
+  }
+
+  if (env.AI) {
+    const t0 = Date.now();
+    const r = await callWorkersAI(env.AI, PROBE_IMAGE_DATA_URL, ask);
+    out.push({
+      channel: `${MS_VISION_CF}（CF，质量差，仅兜底）`,
+      ok: r.ok,
+      ms: Date.now() - t0,
+      note: r.ok ? r.text.replace(/\s+/g, ' ').slice(0, 140) : r.detail.slice(0, 200),
+    });
+  } else {
+    out.push({ channel: `${MS_VISION_CF}（CF）`, ok: false, ms: 0, note: '没有 AI 绑定' });
   }
 
   return out;

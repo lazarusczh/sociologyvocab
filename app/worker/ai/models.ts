@@ -6,20 +6,36 @@
 export const MS_BASE_URL = 'https://api-inference.modelscope.cn/v1';
 export const MS_CHAT_URL = `${MS_BASE_URL}/chat/completions`;
 
+// OpenRouter（OpenAI 兼容聚合网关）：视觉主力走这里，**不消耗魔搭魔粒**
+export const OR_BASE_URL = 'https://openrouter.ai/api/v1';
+export const OR_CHAT_URL = `${OR_BASE_URL}/chat/completions`;
+
 // 视觉档（OCR 阅卷）
 //
-// ★ 2026-09-17 更换模型 id：原 `Qwen/Qwen3-VL-235B-A22B-Instruct` 与 `Qwen/Qwen3-VL-8B-Instruct`
-//   已被魔搭下架 —— 调用一律 400 `Model id : ... , has no provider supported`，
-//   并且 `Qwen/Qwen3-*` **整个系列**都不在该账号的可见模型列表里（魔搭已换代到 Qwen3.5）。
-//   现改用账号实测可调用的两个：主力 InternVL3.5-241B，降级 ERNIE-4.5-VL-28B。
-//   换模型前先用 `node scripts/ms-models.mjs` 对照账号**实际**可用列表，不要照抄任何记忆里的旧 id。
-export const MS_VISION = 'OpenGVLab/InternVL3_5-241B-A28B';
-export const MS_VISION_FALLBACK = 'PaddlePaddle/ERNIE-4.5-VL-28B-A3B-PT';
+// ★ 2026-09-18 大改。两次误判的教训，动这里之前务必读完：
+//
+// ① **不要按名字找视觉模型**。上一轮只挑名字带 `VL` 的（InternVL3.5-241B / ERNIE-4.5-VL-28B），
+//    结果两个都「HTTP 200 空响应」，等于根本没有后端。
+// ② 而 `Qwen/Qwen3.5-*`、`Qwen/Qwen3.8-*` **本身就是原生多模态** —— 名字里不带 VL 却能识图。
+//    实测（`app/_ocrlab_out/vision-quality-probe.mjs`，手写图 15 个关键词）：
+//    Qwen3.5-122B-A10B 15/15、0.99s；Qwen3.8-27B 15/15、1.5s。
+// ③ CF 的 `mistral-small-3.1-24b` 能出结果，但**手写识别很差**
+//    （教师实测：blackboard→textbook、IQ→2a）。它只能当保命兜底，不能当主力。
+//
+// 现行链路（跨三个平台，任一方全挂也不至于全灭）：
+//   ① OpenRouter `ling-3.0-flash-vl:free` —— 15/15、5.9s，**免费且不耗魔粒**，故排第一
+//   ② 魔搭 `Qwen/Qwen3.5-122B-A10B` —— 15/15、0.99s 最快，但耗魔粒，仅在 ① 失败时用
+//   ③ CF Workers AI —— 免费自有通道，质量差，最后一档
+//
+// ⚠ OpenRouter 免费档的坑（2026-09-18 实测，别只看 pricing=0 就选）：
+//   `qwen/qwen3.8-27b:free`、`google/gemma-4-31b-it:free`、`google/gemma-4-26b-a4b-it:free`
+//   调用一律 **429**（免费池拥挤）；`thinkingmachines/inkling:free` 返回 **403**
+//   「only available on agentic harnesses」，即**不允许 API 调用**。
+export const MS_VISION_OR = 'inclusionai/ling-3.0-flash-vl:free';
+export const MS_VISION = 'Qwen/Qwen3.5-122B-A10B';
 
-// 视觉兜底（Cloudflare Workers AI）：**完全不依赖魔搭**。
-// 2026-09-17 实测魔搭账号里仅有的两个可见视觉模型都「HTTP 200 但内容为空」
-// （用自造图片测过，见 scripts/ms-vision-check.mjs），OCR 等于全灭，
-// 故补一条自有通道。选它是因官方示例支持直接传 data URL，改动最小；
+// 视觉兜底（Cloudflare Workers AI）：**不依赖任何第三方 key**。
+// 质量差是已知的（见上），保留它只为「外部通道全挂时至少还能出一版结果」。
 // 同账号下还有 @cf/meta/llama-3.2-11b-vision-instruct、@cf/moondream/moondream3.1-9B-A2B 可换。
 export const MS_VISION_CF = '@cf/mistralai/mistral-small-3.1-24b-instruct';
 
