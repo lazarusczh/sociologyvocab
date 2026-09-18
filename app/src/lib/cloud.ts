@@ -750,15 +750,17 @@ export interface MbWriteResult {
   taskId?: string;
   rowCount?: number;
   verified?: {
-    row: string;
-    ok: boolean;
-    reason?: string;
-    before?: string;
-    after?: string;
-    want: string;
-    actual: string;
-    saved: boolean;
-  }[];
+      row: string;
+      ok: boolean;
+      reason?: string;
+      before?: string;
+      after?: string;
+      want: string;
+      actual: string;
+      saved: boolean;
+      /** 写入时每一步的实况：点击拿焦点 → 清空 → 逐字符键入 → Tab 失焦。失败时用于定位卡在哪一环 */
+      steps?: string[];
+    }[];
   error?: string;
   hint?: string;
   elapsedMs?: number;

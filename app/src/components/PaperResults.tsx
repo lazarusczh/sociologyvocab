@@ -114,7 +114,7 @@ export default function PaperResults() {
   const [regenCode, setRegenCode] = useState(false);  // 点「修正」后，回到可重选年级位的状态
   const [mbPreview, setMbPreview] = useState<MbPreview | null>(null); // 差异预览（读取不改动任何字段）
   // 未确认成功的行：ok=false 是「没能写入」（定位不到行/没有分数框），ok=true 而没 saved 是「提交了但回读还没看到」
-  const [writeReport, setWriteReport] = useState<{ row: string; ok: boolean; want: string; actual: string; reason?: string }[]>([]);
+  const [writeReport, setWriteReport] = useState<{ row: string; ok: boolean; want: string; actual: string; reason?: string; steps?: string[] }[]>([]);
   const [gradePick, setGradePick] = useState<Grade>('A1');
 
   const refresh = useCallback(async () => {
@@ -532,7 +532,7 @@ export default function PaperResults() {
       setWriteReport(
         verified
           .filter((v) => !v.saved)
-          .map((v) => ({ row: v.row, ok: v.ok, want: v.want, actual: v.actual, reason: v.reason })),
+          .map((v) => ({ row: v.row, ok: v.ok, want: v.want, actual: v.actual, reason: v.reason, steps: v.steps })),
       );
     } catch (e) {
       setError('写入失败：' + ((e as Error).message || String(e)));
@@ -855,14 +855,21 @@ export default function PaperResults() {
                       && '（有「需更新」的行算不出折百分，未设分数线时无法写入 —— 那些行不给勾选）'}
                   </p>
                   {writeReport.length > 0 && (
-                    <p className="muted" style={{ margin: '0.25rem 0 0', fontSize: '0.78rem', color: 'var(--warn, #a07a3a)' }}>
-                      以下几行没有确认成功：
-                      {writeReport
-                        .map((w) => (w.ok
-                          ? `${w.row}（写了 ${w.want}，读到 ${w.actual || '空'}${w.reason ? `，${w.reason}` : ''}）`
-                          : `${w.row}（没能写入${w.reason ? `：${w.reason}` : ''}）`))
-                        .join('；')}
-                    </p>
+                    <div className="muted" style={{ margin: '0.25rem 0 0', fontSize: '0.78rem', color: 'var(--warn, #a07a3a)' }}>
+                      <div>以下几行没有确认成功：</div>
+                      {writeReport.map((w) => (
+                        <div key={w.row} style={{ marginTop: '0.15rem' }}>
+                          {w.ok
+                            ? `${w.row}：写了 ${w.want}，回读到 ${w.actual || '空'}`
+                            : `${w.row}：没能写入${w.reason ? `（${w.reason}）` : ''}`}
+                          {/* 写入的每一步：点击拿到焦点 → 清空 → 逐字符键入 → Tab 失焦。
+                              卡在哪一环一眼可见，不必再靠猜（原先只有一句"没确认成功"）。 */}
+                          {w.steps && w.steps.length > 0 && (
+                            <div style={{ paddingLeft: '1rem', opacity: 0.85 }}>{w.steps.join(' → ')}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </>
               )}

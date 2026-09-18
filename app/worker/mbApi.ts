@@ -352,30 +352,31 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
           before?: string;
         }[];
 
-        // **真实输入**：聚焦 + 全选 → 用 CDP 的 Input.insertText 插入新值。
-        // 它会触发浏览器原生的 input 事件（框架的 onChange 正是监听它），
-        // 这是设 el.value 做不到的（见 locateExpr 顶部说明）。
-        const written: { row: string; ok: boolean; reason?: string; before?: string; after?: string }[] = [];
+        // **真实输入**：真实鼠标点击（拿浏览器级焦点）→ 全选清空 → 逐字符键入 → Tab 失焦。
+        // 为什么不是 `el.focus()` + `Input.insertText`，见 typeIntoScoreInput 顶部说明
+        // ——那正是 2026-09-18「写进去失败、再查又会变空」的原因。
+        const written: {
+          row: string;
+          ok: boolean;
+          reason?: string;
+          before?: string;
+          after?: string;
+          steps?: string[];
+        }[] = [];
         for (const t of located) {
           if (!t.ok || !t.inputId) {
             written.push({ row: t.row, ok: false, reason: t.reason ?? '定位失败' });
             continue;
           }
-          const idLit = JSON.stringify(t.inputId);
-          const focused = await cdp.text(
-            `(() => { const el = document.getElementById(${idLit}); if (!el) return 'missing'; el.focus(); el.select(); return 'ok'; })()`,
-          );
-          if (focused !== 'ok') {
-            written.push({ row: t.row, ok: false, reason: '分数框已不在页面上' });
-            continue;
-          }
-          await cdp.send('Input.insertText', { text: t.score ?? '' });
-          const afterVal = await cdp.text(
-            `(() => { const el = document.getElementById(${idLit}); if (!el) return ''; `
-            + `el.dispatchEvent(new Event('change', { bubbles: true })); el.blur(); `
-            + `return String(el.value == null ? '' : el.value); })()`,
-          );
-          written.push({ row: t.row, ok: true, before: t.before, after: afterVal.trim() });
+          const typed = await typeIntoScoreInput(cdp, t.inputId, t.score ?? '');
+          written.push({
+            row: t.row,
+            ok: typed.ok,
+            before: t.before,
+            after: typed.ok ? (t.score ?? '') : '',
+            steps: typed.steps,
+            reason: typed.ok ? undefined : '真实输入没有落到分数框',
+          });
         }
 
         // ManageBac 是异步自动保存：**轮询**回读，全部读到期望值就提前结束。
@@ -557,6 +558,71 @@ function locateExpr(updates: { row: string; score?: string }[]): string {
   }
   return JSON.stringify(out);
 })()`;
+}
+
+/**
+ * 把分数真正「打」进分数框 —— 走**真实鼠标 + 键盘事件**，全程不碰 `el.value`。
+ *
+ * 为什么必须做到这个程度（2026-09-16 与 09-18 两次失败的教训）：
+ *   ① `el.value = x`：只改 DOM 显示值，框架内部状态不变 ⇒ 当场回读看得到新值、实际没提交。
+ *   ② `el.focus()` + `Input.insertText`：**仍然不可靠** —— JS 的 `focus()` 只改 DOM 焦点，
+ *      **CDP 输入层不一定认它**；一旦没认到，insertText 就落到别处或完全无效，
+ *      而前面 `el.select()` 已经把内容全选 ⇒ 教师看到的现象正是「写进去失败、再查又会变空」。
+ *   ③ 现在：`Input.dispatchMouseEvent` 真点一下拿到**浏览器级焦点** → `Ctrl+A` 全选 →
+ *      `Backspace` 显式清空 → 逐字符发 `char` 事件（等价真人打字，框架的 onChange 必然收到）
+ *      → `Tab` 真失焦，触发框架的 blur/change 提交。
+ *   每一步的结果都记进 `steps`，失败时能直接看出卡在哪一环（不再靠猜）。
+ */
+async function typeIntoScoreInput(
+  cdp: Cdp,
+  inputId: string,
+  text: string,
+): Promise<{ ok: boolean; steps: string[] }> {
+  const idLit = JSON.stringify(inputId);
+  const steps: string[] = [];
+  const readVal = () =>
+    cdp.text(`(() => { const el = document.getElementById(${idLit}); return el ? String(el.value == null ? '' : el.value) : '(元素消失)'; })()`);
+
+  // 1) 取输入框中心坐标（先滚进视野，避免点击落在视口外）
+  const rectRaw = await cdp.text(`(() => {
+    const el = document.getElementById(${idLit});
+    if (!el) return '';
+    el.scrollIntoView({ block: 'center' });
+    const r = el.getBoundingClientRect();
+    return JSON.stringify({ x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) });
+  })()`);
+  if (!rectRaw) return { ok: false, steps: ['输入框已不在页面上'] };
+  const { x, y } = JSON.parse(rectRaw) as { x: number; y: number };
+
+  // 2) 真实鼠标点击 —— 这是拿到「浏览器级焦点」的关键，JS 的 focus() 做不到
+  await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', x, y, button: 'left', clickCount: 1 });
+  await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x, y, button: 'left', clickCount: 1 });
+  const active = await cdp.text(
+    `(() => { const a = document.activeElement; if (!a) return 'none'; return a.id === ${idLit} ? 'yes' : (a.tagName + '#' + (a.id || '-')); })()`,
+  );
+  steps.push(`点击(${x},${y})→活动元素=${active}`);
+  if (active !== 'yes') return { ok: false, steps };
+
+  // 3) Ctrl+A 全选 + Backspace 清空（显式清，不依赖 select() 的副作用）
+  await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', modifiers: 2, key: 'a', code: 'KeyA', windowsVirtualKeyCode: 65 });
+  await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', modifiers: 2, key: 'a', code: 'KeyA', windowsVirtualKeyCode: 65 });
+  await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Backspace', code: 'Backspace', windowsVirtualKeyCode: 8 });
+  await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Backspace', code: 'Backspace', windowsVirtualKeyCode: 8 });
+  steps.push(`清空后='${(await readVal()).trim()}'`);
+
+  // 4) 逐字符发 char 事件（比 insertText 更接近真人键盘，框架一定收得到）
+  for (const ch of text) {
+    await cdp.send('Input.dispatchKeyEvent', { type: 'char', text: ch });
+  }
+  const typed = (await readVal()).trim();
+  steps.push(`键入后='${typed}'`);
+
+  // 5) Tab 真失焦 → 触发框架的 blur/change 提交
+  await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 });
+  await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 });
+  steps.push('已 Tab 失焦');
+
+  return { ok: typed === text.trim(), steps };
 }
 
 /** 打开某个 task 的成绩册页并读回所有学生行（**只读**）。
