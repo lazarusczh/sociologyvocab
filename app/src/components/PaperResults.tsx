@@ -115,6 +115,11 @@ export default function PaperResults() {
   const [mbPreview, setMbPreview] = useState<MbPreview | null>(null); // 差异预览（读取不改动任何字段）
   // 未确认成功的行：ok=false 是「没能写入」（定位不到行/没有分数框），ok=true 而没 saved 是「提交了但回读还没看到」
   const [writeReport, setWriteReport] = useState<{ row: string; ok: boolean; want: string; actual: string; reason?: string; steps?: string[] }[]>([]);
+  // 保存请求诊断：页面 URL + 改完 DOM 的值 vs 重载后的服务端值 + 实际发出的非 GET 请求
+  const [writeDiag, setWriteDiag] = useState<{
+    pageUrl?: string; domVector?: string; serverVector?: string;
+    saveRequests?: string[]; saveResponses?: string[];
+  } | null>(null);
   const [gradePick, setGradePick] = useState<Grade>('A1');
 
   const refresh = useCallback(async () => {
@@ -515,6 +520,14 @@ export default function PaperResults() {
         unconfirmed.length ? `${unconfirmed.length} 行已提交但暂未回读到（ManageBac 可能还在保存）` : '',
       ].filter(Boolean).join('；');
       setMsg(`已写入并确认 ${done} 行${extra ? `；${extra}` : ''}`);
+      // 保存请求诊断：没发请求 ⇒ 提交机制不是"失焦自动保存"；发了但 4xx/5xx ⇒ 服务端拒绝。
+      setWriteDiag({
+        pageUrl: res.pageUrl,
+        domVector: res.domVector,
+        serverVector: res.serverVector,
+        saveRequests: res.saveRequests,
+        saveResponses: res.saveResponses,
+      });
       // 用云端回读的结果更新表格，不再多跑一次（省额度）
       setMbPreview((p) =>
         p
@@ -854,6 +867,23 @@ export default function PaperResults() {
                       && mbPreview.lines.some((l) => l.status === 'diff' && l.conv == null)
                       && '（有「需更新」的行算不出折百分，未设分数线时无法写入 —— 那些行不给勾选）'}
                   </p>
+                  {writeDiag && (
+                    <div className="muted" style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', opacity: 0.92, lineHeight: 1.5 }}>
+                      <div>页面：{writeDiag.pageUrl || '(未知)'}</div>
+                      <div>
+                        改完 DOM 时：{writeDiag.domVector || '(空)'}　／　重载后（服务端）：{writeDiag.serverVector ?? '(空)'}
+                      </div>
+                      <div>
+                        写入期间发出的非 GET 请求 {writeDiag.saveRequests?.length ?? 0} 条
+                        {writeDiag.saveRequests?.length
+                          ? `：${writeDiag.saveRequests.join('；')}`
+                          : '（一条都没有 —— 说明提交机制不是「失焦自动保存」）'}
+                      </div>
+                      {writeDiag.saveResponses?.length ? (
+                        <div>响应：{writeDiag.saveResponses.join('；')}</div>
+                      ) : null}
+                    </div>
+                  )}
                   {writeReport.length > 0 && (
                     <div className="muted" style={{ margin: '0.25rem 0 0', fontSize: '0.78rem', color: 'var(--warn, #a07a3a)' }}>
                       <div>以下几行没有确认成功：</div>

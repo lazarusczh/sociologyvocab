@@ -761,10 +761,20 @@ export interface MbWriteResult {
       /** 写入时每一步的实况：点击拿焦点 → 清空 → 逐字符键入 → Tab 失焦。失败时用于定位卡在哪一环 */
       steps?: string[];
     }[];
-  error?: string;
-  hint?: string;
-  elapsedMs?: number;
-}
+    error?: string;
+    hint?: string;
+    elapsedMs?: number;
+    /** 写入时所在页面 —— 确认是「单 task 页」还是「学期综合成绩册」 */
+    pageUrl?: string;
+    /** 改完 DOM 时的值向量（诊断用，不代表已保存） */
+    domVector?: string;
+    /** 重载页面后读到的服务端值向量 —— 这才是真相 */
+    serverVector?: string;
+    /** 写入期间发往 ManageBac 的非 GET 请求（没发 ⇒ 提交机制不是失焦自动保存） */
+    saveRequests?: string[];
+    /** 上述请求的响应状态（4xx/5xx ⇒ 服务端拒绝） */
+    saveResponses?: string[];
+  }
 
 export async function writeMbMarks(
   mbClassId: string,

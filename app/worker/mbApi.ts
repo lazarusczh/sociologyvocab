@@ -118,21 +118,44 @@ class Cdp {
   private seq = 0;
   private pending = new Map<number, { ok: (v: unknown) => void; no: (e: Error) => void }>();
 
+  /** CDP 事件订阅（`Network.*` 这类**没有 id** 的通知）。
+   *
+   * 2026-09-18 加：此前这里只处理带 id 的响应、把事件**直接丢弃**，
+   * 导致"写完到底有没有向 ManageBac 发保存请求"完全是黑盒 ——
+   * 只能看到 DOM 值变了、服务端却没存，无从判断断在哪一环。 */
+  private listeners = new Map<string, ((p: Record<string, unknown>) => void)[]>();
+
   constructor(private ws: WebSocket) {
     ws.addEventListener('message', (ev: MessageEvent) => {
-      let m: { id?: number; result?: unknown; error?: unknown };
+      let m: { id?: number; method?: string; params?: Record<string, unknown>; result?: unknown; error?: unknown };
       try {
         m = JSON.parse(String((ev as MessageEvent).data)) as typeof m;
       } catch {
         return;
       }
-      if (typeof m.id !== 'number') return;
+      // 无 id ⇒ 事件通知，分发给订阅者
+      if (typeof m.id !== 'number') {
+        const hs = m.method ? this.listeners.get(m.method) : undefined;
+        if (hs) for (const h of hs) h(m.params ?? {});
+        return;
+      }
       const p = this.pending.get(m.id);
       if (!p) return;
       this.pending.delete(m.id);
       if (m.error) p.no(new Error(JSON.stringify(m.error).slice(0, 240)));
       else p.ok(m.result);
     });
+  }
+
+  /** 订阅 CDP 事件；返回取消订阅的函数 */
+  on(method: string, fn: (p: Record<string, unknown>) => void): () => void {
+    const arr = this.listeners.get(method) ?? [];
+    arr.push(fn);
+    this.listeners.set(method, arr);
+    return () => {
+      const cur = this.listeners.get(method) ?? [];
+      this.listeners.set(method, cur.filter((f) => f !== fn));
+    };
   }
 
   static connect(url: string): Promise<Cdp> {
@@ -343,6 +366,28 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
         await navigateToTask(cdp, mbClassId, taskId);
         if (!(await waitStudentRows(cdp))) throw new Error('没读到学生行（该 task 可能还没有学生）');
 
+        // 记录当前页面 URL —— 用来确认进的到底是「单 task 页」
+        // （形态 `/gradebook/term/<term>/core_tasks/<taskId>`）还是学期综合成绩册。
+        const pageUrl = await cdp.text('location.href');
+
+        // 开始抓写入期间的非 GET 请求。ManageBac 靠 XHR 自动保存，
+        // 之前这部分是黑盒：只能看到「DOM 值变了、服务端没存」，无法判断是否根本没发请求。
+        const saveRequests: string[] = [];
+        const saveResponses: string[] = [];
+        const offReq = cdp.on('Network.requestWillBeSent', (p) => {
+          const req = p.request as { method?: string; url?: string } | undefined;
+          if (req?.method && req.method !== 'GET' && saveRequests.length < 20) {
+            saveRequests.push(`${req.method} ${String(req.url ?? '').slice(0, 130)}`);
+          }
+        });
+        const offRes = cdp.on('Network.responseReceived', (p) => {
+          const resp = p.response as { status?: number; url?: string } | undefined;
+          const u = String(resp?.url ?? '');
+          if (u && !/\.(png|jpe?g|gif|svg|css|js|woff2?|ico)(\?|$)/i.test(u) && saveResponses.length < 20) {
+            saveResponses.push(`${resp?.status ?? '?'} ${u.slice(0, 110)}`);
+          }
+        });
+
         const located = JSON.parse(await cdp.text(locateExpr(updates))) as {
           row: string;
           score?: string;
@@ -439,7 +484,19 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
           const actual = hit ? hit.score : '';
           return { ...w, want, actual, saved: actual === want };
         });
-        return { verified, rowCount: rowsAfter.length, confirmedAll: allSaved(rowsAfter), rounds };
+        offReq();
+        offRes();
+        return {
+          verified,
+          rowCount: rowsAfter.length,
+          confirmedAll: allSaved(rowsAfter),
+          rounds,
+          pageUrl,
+          domVector,
+          serverVector,
+          saveRequests,
+          saveResponses,
+        };
       });
 
       return withCors(
