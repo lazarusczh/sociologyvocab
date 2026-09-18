@@ -561,17 +561,27 @@ function locateExpr(updates: { row: string; score?: string }[]): string {
 }
 
 /**
- * 把分数真正「打」进分数框 —— 走**真实鼠标 + 键盘事件**，全程不碰 `el.value`。
+ * 把分数真正写进分数框 —— **两条独立通道一起走**，任一条成功即可。
  *
- * 为什么必须做到这个程度（2026-09-16 与 09-18 两次失败的教训）：
+ * 为什么必须做到这个程度（2026-09-16 / 09-18 三次失败的教训）：
  *   ① `el.value = x`：只改 DOM 显示值，框架内部状态不变 ⇒ 当场回读看得到新值、实际没提交。
  *   ② `el.focus()` + `Input.insertText`：**仍然不可靠** —— JS 的 `focus()` 只改 DOM 焦点，
- *      **CDP 输入层不一定认它**；一旦没认到，insertText 就落到别处或完全无效，
- *      而前面 `el.select()` 已经把内容全选 ⇒ 教师看到的现象正是「写进去失败、再查又会变空」。
- *   ③ 现在：`Input.dispatchMouseEvent` 真点一下拿到**浏览器级焦点** → `Ctrl+A` 全选 →
- *      `Backspace` 显式清空 → 逐字符发 `char` 事件（等价真人打字，框架的 onChange 必然收到）
- *      → `Tab` 真失焦，触发框架的 blur/change 提交。
- *   每一步的结果都记进 `steps`，失败时能直接看出卡在哪一环（不再靠猜）。
+ *      CDP 输入层不一定认它；insertText 于是落空，而 `el.select()` 已全选
+ *      ⇒ 教师看到的现象正是「写进去失败、再查又会变空」。
+ *   ③ 改成真实鼠标点击后，实测活动元素是 `BODY#action-show` —— **点击坐标那点上根本没有输入框**
+ *      （rect 看着合理，但 `elementFromPoint` 命中 body）。继续依赖坐标只会反复踩。
+ *
+ * 所以现在：
+ *   **通道 A（主）**：`Input.dispatchMouseEvent` 真点一下 → 若命中输入框，再 `Ctrl+A` + `Backspace`
+ *     + 逐字符 `char` 事件 + `Tab` 失焦 —— 最贴近真人。
+ *   **通道 B（兜底，不依赖焦点与坐标）**：用 `HTMLInputElement.prototype` 上的**原生 value setter**
+ *     赋值，再派发 `input`/`change`。React 的受控组件拦截的是 `el.value = x` 这种实例赋值，
+ *     **拦截不了原型上的原生 setter**；派发 `input` 后它的 `onChange` 必然收到。
+ *     这是程序化驱动 React 表单的正规做法。
+ *   **收尾**：无论走哪条，最后都发 `Tab` 真失焦 —— ManageBac 是失焦/自动保存型表单，
+ *     值进了框架状态还不够，要失焦才会提交。
+ *
+ * 每一步都记进 `steps`（含 rect、命中元素、可见性），失败时能直接看出卡在哪一环，不必靠猜。
  */
 async function typeIntoScoreInput(
   cdp: Cdp,
@@ -583,46 +593,73 @@ async function typeIntoScoreInput(
   const readVal = () =>
     cdp.text(`(() => { const el = document.getElementById(${idLit}); return el ? String(el.value == null ? '' : el.value) : '(元素消失)'; })()`);
 
-  // 1) 取输入框中心坐标（先滚进视野，避免点击落在视口外）
-  const rectRaw = await cdp.text(`(() => {
+  // 1) 几何诊断 + 真实鼠标点击。
+  //    2026-09-18 实测：点击后活动元素是 `BODY#action-show` —— 坐标那点上根本没有输入框。
+  //    所以这里把 rect、命中元素、可见性一起记下来，一眼能看出是「坐标算错」还是「框不可点」。
+  const geoRaw = await cdp.text(`(() => {
     const el = document.getElementById(${idLit});
     if (!el) return '';
-    el.scrollIntoView({ block: 'center' });
+    el.scrollIntoView({ block: 'center', behavior: 'instant' });
     const r = el.getBoundingClientRect();
-    return JSON.stringify({ x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) });
+    const cx = Math.round(r.left + r.width / 2);
+    const cy = Math.round(r.top + r.height / 2);
+    const hit = document.elementFromPoint(cx, cy);
+    const cs = getComputedStyle(el);
+    return JSON.stringify({
+      x: cx, y: cy,
+      rect: [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)].join(','),
+      hit: hit ? hit.tagName + '#' + (hit.id || '-') : 'none',
+      style: cs.visibility + '/' + cs.display + '/pe=' + cs.pointerEvents,
+    });
   })()`);
-  if (!rectRaw) return { ok: false, steps: ['输入框已不在页面上'] };
-  const { x, y } = JSON.parse(rectRaw) as { x: number; y: number };
+  if (!geoRaw) return { ok: false, steps: ['输入框已不在页面上'] };
+  const geo = JSON.parse(geoRaw) as { x: number; y: number; rect: string; hit: string; style: string };
+  steps.push(`框rect=[${geo.rect}] 该点命中=${geo.hit} 样式=${geo.style}`);
 
-  // 2) 真实鼠标点击 —— 这是拿到「浏览器级焦点」的关键，JS 的 focus() 做不到
-  await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', x, y, button: 'left', clickCount: 1 });
-  await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x, y, button: 'left', clickCount: 1 });
+  await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: geo.x, y: geo.y, button: 'left', clickCount: 1 });
+  await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: geo.x, y: geo.y, button: 'left', clickCount: 1 });
   const active = await cdp.text(
     `(() => { const a = document.activeElement; if (!a) return 'none'; return a.id === ${idLit} ? 'yes' : (a.tagName + '#' + (a.id || '-')); })()`,
   );
-  steps.push(`点击(${x},${y})→活动元素=${active}`);
-  if (active !== 'yes') return { ok: false, steps };
+  steps.push(`点击(${geo.x},${geo.y})→活动元素=${active}`);
 
-  // 3) Ctrl+A 全选 + Backspace 清空（显式清，不依赖 select() 的副作用）
-  await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', modifiers: 2, key: 'a', code: 'KeyA', windowsVirtualKeyCode: 65 });
-  await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', modifiers: 2, key: 'a', code: 'KeyA', windowsVirtualKeyCode: 65 });
-  await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Backspace', code: 'Backspace', windowsVirtualKeyCode: 8 });
-  await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Backspace', code: 'Backspace', windowsVirtualKeyCode: 8 });
-  steps.push(`清空后='${(await readVal()).trim()}'`);
+  // 2) **兜底通道**：用原生 value setter 写值。
+  //    React 的受控 input 会拦截 `el.value = x`（框架状态不变），但**不拦截**通过
+  //    `HTMLInputElement.prototype` 上的原生 setter 赋值；随后派发 input 事件，
+  //    React 的 onChange 就必然收到 —— 这是程序化驱动 React 表单的正规做法，
+  //    **不依赖焦点、也不依赖坐标**。即便上面点击没命中（活动元素是 BODY），这条路也能把值送进去。
+  const nativeVal = await cdp.text(`(() => {
+    const el = document.getElementById(${idLit});
+    if (!el) return 'missing';
+    const d = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+    if (!d || !d.set) return 'no-setter';
+    d.set.call(el, ${JSON.stringify(text)});
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    return String(el.value == null ? '' : el.value);
+  })()`);
+  steps.push(`原生setter写入后='${nativeVal.trim()}'`);
 
-  // 4) 逐字符发 char 事件（比 insertText 更接近真人键盘，框架一定收得到）
-  for (const ch of text) {
-    await cdp.send('Input.dispatchKeyEvent', { type: 'char', text: ch });
+  // 3) 若点击确实命中了输入框，再补一遍真实键盘输入（最贴近真人，兼容性最好）；
+  //    没命中就跳过 —— 值已由第 2 步写入，不必强求。
+  if (active === 'yes') {
+    await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', modifiers: 2, key: 'a', code: 'KeyA', windowsVirtualKeyCode: 65 });
+    await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', modifiers: 2, key: 'a', code: 'KeyA', windowsVirtualKeyCode: 65 });
+    await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Backspace', code: 'Backspace', windowsVirtualKeyCode: 8 });
+    await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Backspace', code: 'Backspace', windowsVirtualKeyCode: 8 });
+    for (const ch of text) {
+      await cdp.send('Input.dispatchKeyEvent', { type: 'char', text: ch });
+    }
+    steps.push(`键盘键入后='${(await readVal()).trim()}'`);
   }
-  const typed = (await readVal()).trim();
-  steps.push(`键入后='${typed}'`);
 
-  // 5) Tab 真失焦 → 触发框架的 blur/change 提交
+  // 4) Tab 真失焦 → 触发框架的 blur/change 提交（ManageBac 是失焦/自动保存型表单）
   await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 });
   await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 });
-  steps.push('已 Tab 失焦');
+  const finalVal = (await readVal()).trim();
+  steps.push(`Tab 失焦后='${finalVal}'`);
 
-  return { ok: typed === text.trim(), steps };
+  return { ok: finalVal === text.trim(), steps };
 }
 
 /** 打开某个 task 的成绩册页并读回所有学生行（**只读**）。
