@@ -774,6 +774,10 @@ export interface MbWriteResult {
     saveRequests?: string[];
     /** 上述请求的响应状态（4xx/5xx ⇒ 服务端拒绝） */
     saveResponses?: string[];
+    /** 写入前 dump 的表单/按钮信息（判断该靠什么提交） */
+    formInfo?: string;
+    /** 写入后页面上可见的按钮（若有"保存"按钮 ⇒ 需要显式点击） */
+    postWriteUi?: string[];
   }
 
 export async function writeMbMarks(

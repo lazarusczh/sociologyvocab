@@ -119,6 +119,7 @@ export default function PaperResults() {
   const [writeDiag, setWriteDiag] = useState<{
     pageUrl?: string; domVector?: string; serverVector?: string;
     saveRequests?: string[]; saveResponses?: string[];
+    formInfo?: string; postWriteUi?: string[];
   } | null>(null);
   const [gradePick, setGradePick] = useState<Grade>('A1');
 
@@ -527,6 +528,8 @@ export default function PaperResults() {
         serverVector: res.serverVector,
         saveRequests: res.saveRequests,
         saveResponses: res.saveResponses,
+        formInfo: res.formInfo,
+        postWriteUi: res.postWriteUi,
       });
       // 用云端回读的结果更新表格，不再多跑一次（省额度）
       setMbPreview((p) =>
@@ -881,6 +884,10 @@ export default function PaperResults() {
                       </div>
                       {writeDiag.saveResponses?.length ? (
                         <div>响应：{writeDiag.saveResponses.join('；')}</div>
+                      ) : null}
+                      <div>表单：{writeDiag.formInfo || '(未取到)'}</div>
+                      {writeDiag.postWriteUi?.length ? (
+                        <div>写入后页面可见的按钮：{writeDiag.postWriteUi.join('　／　')}</div>
                       ) : null}
                     </div>
                   )}

@@ -397,6 +397,34 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
           before?: string;
         }[];
 
+        // 诊断：这个页面到底靠什么提交？
+        //
+        // 2026-09-18 实测发现：写入期间**没有任何发往 dtd.managebac.cn 的请求** ——
+        // 20 条非 GET 全是 Clarity / New Relic 埋点 ⇒ 分数框改完根本不触发自动保存。
+        // 此前注释写「ManageBac 是失焦自动保存型」是**推测，而且错了**。
+        // 字段名 `core_task[grades][score]` 是 Rails 嵌套参数风格 ⇒ 大概率是表单 + 显式提交。
+        // 所以这里把表单信息和按钮清单 dump 出来，据此决定该点哪个按钮 / 提交哪个表单。
+        const formInfo = await cdp.text(`(() => {
+  const el = document.querySelector('input[name="core_task[grades][score]"]');
+  const form = el && el.form ? el.form : null;
+  const btns = Array.from(document.querySelectorAll('button, input[type=submit], a.btn, a.button'))
+    .slice(0, 25)
+    .map((b) => ({
+      tag: b.tagName,
+      type: b.getAttribute('type') || '',
+      text: (b.textContent || b.value || '').replace(/\\s+/g, ' ').trim().slice(0, 28),
+      id: b.id || '',
+      cls: String(b.className || '').slice(0, 36),
+      hidden: b.offsetParent === null,
+    }));
+  return JSON.stringify({
+    hasForm: !!form,
+    action: form ? (form.getAttribute('action') || '') : '',
+    method: form ? (form.getAttribute('method') || '') : '',
+    btns,
+  });
+})()`);
+
         // **真实输入**：真实鼠标点击（拿浏览器级焦点）→ 全选清空 → 逐字符键入 → Tab 失焦。
         // 为什么不是 `el.focus()` + `Input.insertText`，见 typeIntoScoreInput 顶部说明
         // ——那正是 2026-09-18「写进去失败、再查又会变空」的原因。
@@ -408,6 +436,8 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
           after?: string;
           steps?: string[];
         }[] = [];
+        // 写入后页面上可见的按钮 / 是否在表单里（每个学生记一条，用于判断提交机制）
+        const postWriteUi: string[] = [];
         for (const t of located) {
           if (!t.ok || !t.inputId) {
             written.push({ row: t.row, ok: false, reason: t.reason ?? '定位失败' });
@@ -422,6 +452,19 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
             steps: typed.steps,
             reason: typed.ok ? undefined : '真实输入没有落到分数框',
           });
+          // 写入后这个页面**到底有没有可供提交的按钮/表单** —— 这是"值为什么送不到服务端"的关键。
+          // 放在写入之后 dump：有些界面是"改动后才亮出保存按钮"。
+          const afterInfo = await cdp.text(`(() => {
+  const el = document.querySelector('input[name="core_task[grades][score]"]');
+  const form = el && el.form ? el.form : null;
+  const btns = Array.from(document.querySelectorAll('button, input[type=submit], a.btn, a.button'))
+    .filter((b) => b.offsetParent !== null)
+    .slice(0, 15)
+    .map((b) => (b.textContent || b.value || '').replace(/\\s+/g, ' ').trim().slice(0, 24))
+    .filter(Boolean);
+  return JSON.stringify({ hasForm: !!form, btns });
+})()`);
+          postWriteUi.push(afterInfo);
         }
 
         // ManageBac 是异步自动保存：**轮询**回读，全部读到期望值就提前结束。
@@ -496,7 +539,9 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
           serverVector,
           saveRequests,
           saveResponses,
-        };
+          formInfo,
+          postWriteUi: postWriteUi.slice(0, 2),
+          };
       });
 
       return withCors(
