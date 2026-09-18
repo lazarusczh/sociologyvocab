@@ -831,19 +831,47 @@ async function typeIntoScoreInput(
     await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', modifiers: 2, key: 'a', code: 'KeyA', windowsVirtualKeyCode: 65 });
     await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Backspace', code: 'Backspace', windowsVirtualKeyCode: 8 });
     await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Backspace', code: 'Backspace', windowsVirtualKeyCode: 8 });
+    // 完整键盘序列：keyDown → char（带 text，负责插入）→ keyUp。
+    // 之前只发 `char`，有些框架只监听 keydown/keyup，那样就完全收不到。
     for (const ch of text) {
+      const isDigit = ch >= '0' && ch <= '9';
+      const code = isDigit ? `Digit${ch}` : '';
+      const vk = isDigit ? ch.charCodeAt(0) : 0;
+      await cdp.send('Input.dispatchKeyEvent', {
+        type: 'keyDown', key: ch, code, windowsVirtualKeyCode: vk, nativeVirtualKeyCode: vk,
+      });
       await cdp.send('Input.dispatchKeyEvent', { type: 'char', text: ch });
+      await cdp.send('Input.dispatchKeyEvent', {
+        type: 'keyUp', key: ch, code, windowsVirtualKeyCode: vk, nativeVirtualKeyCode: vk,
+      });
     }
     steps.push(`键盘键入后='${(await readVal()).trim()}'`);
   }
 
-  // 4) Tab 真失焦 → 触发框架的 blur/change 提交（ManageBac 是失焦/自动保存型表单）
-  await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 });
-  await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 });
+  // 4) **失焦提交**。
+  //
+  // 2026-09-18 关键修正：教师确认「失焦即保存」是对的（手动填与油猴脚本都如此）。
+  // 那之前的失败就出在「我们的失焦根本没发生」上 ——
+  // `Input.dispatchKeyEvent` 发 Tab 只是把按键投递给页面，**不保证执行「移动焦点」这个默认行为**，
+  // 焦点没移走 ⇒ 没有 blur ⇒ 框架的保存 handler 不会被调用（网络抓包也证实 0 条保存请求）。
+  //
+  // 所以改为**真实点击页面空白处**夺走焦点（真焦点转移 ⇒ 真 blur），
+  // 并且**挂一个计数器验证 blur 确实发生** —— 之前那句"Tab 失焦后=xx"只是又读了遍值，
+  // 根本证明不了失焦，这是排查一直打转的原因之一。
+  await cdp.text(
+    `(() => { window.__mbBlur = 0; const el = document.getElementById(${idLit}); `
+    + `if (el) el.addEventListener('blur', () => { window.__mbBlur++; }, true); return 'ok'; })()`,
+  );
+  await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: 4, y: 4, button: 'left', clickCount: 1 });
+  await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: 4, y: 4, button: 'left', clickCount: 1 });
+  const blurCount = await cdp.text('String(window.__mbBlur)');
+  const activeAfter = await cdp.text(
+    `(() => { const a = document.activeElement; return a ? (a.tagName + '#' + (a.id || '-')) : 'none'; })()`,
+  );
   const finalVal = (await readVal()).trim();
-  steps.push(`Tab 失焦后='${finalVal}'`);
+  steps.push(`点空白夺焦：blur次数=${blurCount} 活动元素=${activeAfter} 值='${finalVal}'`);
 
-  return { ok: finalVal === text.trim(), steps };
+  return { ok: finalVal === text.trim() && blurCount !== '0', steps };
 }
 
 /** 打开某个 task 的成绩册页并读回所有学生行（**只读**）。
