@@ -23,6 +23,7 @@ import ProfilePanel from './components/ProfilePanel';
 import DevPanel from './components/DevPanel';
 import QuizTaker from './components/QuizTaker';
 import Cloze from './components/Cloze';
+import DefinitionPractice from './components/DefinitionPractice';
 import LogicChain from './components/LogicChain';
 import ConceptMapView from './components/ConceptMapView';
 import PastPaperTopics from './components/PastPaperTopics';
@@ -33,6 +34,7 @@ export type View =
   | 'import'
   | 'quiz'
   | 'cloze'
+  | 'definition'
   | 'flashcards'
   | 'chain'
   | 'choice'
@@ -66,6 +68,7 @@ const NAV_PILLS: NavPill[] = [
     { key: 'choice', label: '选择题' },
     { key: 'chain', label: '接龙 Beta' },
     { key: 'cloze', label: '语境 Beta' },
+    { key: 'definition', label: '定义 Beta' },
     { key: 'spelling', label: '拼写' },
     { key: 'matching', label: '匹配' },
     { key: 'wrong', label: '错题' },
@@ -518,6 +521,7 @@ function AppBody() {
         {view === 'chain' && <LogicChain />}
         {view === 'choice' && <MultipleChoice />}
         {view === 'cloze' && <Cloze />}
+        {view === 'definition' && <DefinitionPractice />}
         {view === 'spelling' && <Spelling />}
         {view === 'matching' && <Matching />}
         {view === 'crossword' && <Crossword />}

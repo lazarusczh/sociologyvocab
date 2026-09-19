@@ -20,6 +20,7 @@ const MODES: { key: View; title: string; desc: string }[] = [
   { key: 'choice', title: '选择题测验', desc: '四选一，术语与释义配对' },
   { key: 'chain', title: '逻辑接龙 (Beta)', desc: '沿概念间的逻辑关系一步步接龙' },
   { key: 'cloze', title: '语境填空 (Beta)', desc: '结合上下文语境填入术语' },
+  { key: 'definition', title: '定义题 (Beta)', desc: '看术语写定义，AI 按必踩要素判分' },
   { key: 'spelling', title: '拼写默写', desc: '看中文释义拼写英文术语' },
   { key: 'matching', title: '匹配题', desc: '术语与释义连线配对' },
   { key: 'crossword', title: '纵横填字', desc: '随机生成填字游戏' },
