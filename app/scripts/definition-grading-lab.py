@@ -120,13 +120,21 @@ def load_key(var: str) -> str:
     raise SystemExit(f"no {var} in .dev.vars")
 
 
-def call(prompt: str, url: str, model: str, key: str, max_tokens=500, retries=3):
+def call(prompt: str, url: str, model: str, key: str, max_tokens=500, retries=3,
+         reasoning="off"):
+    """reasoning: off = 关推理（现状）；on = 开推理（思考会出现在 reasoning 字段）；
+    exclude = 开推理但**不返回思考内容**（OpenRouter 的 reasoning.exclude，用于避免思考溢出）。"""
     body = {"model": model, "messages": [{"role": "user", "content": prompt}],
             "stream": False, "max_tokens": max_tokens, "temperature": 0.1}
     if "openrouter" in url:
-        body["reasoning"] = {"enabled": False}
+        if reasoning == "on":
+            body["reasoning"] = {"enabled": True}
+        elif reasoning == "exclude":
+            body["reasoning"] = {"enabled": True, "exclude": True}
+        else:
+            body["reasoning"] = {"enabled": False}
     elif "modelscope" in url:
-        body["enable_thinking"] = False
+        body["enable_thinking"] = reasoning != "off"
     data = json.dumps(body).encode()
     for attempt in range(retries):
         req = urllib.request.Request(url, data=data, method="POST", headers={
@@ -136,7 +144,12 @@ def call(prompt: str, url: str, model: str, key: str, max_tokens=500, retries=3)
                 payload = json.loads(r.read().decode())
             ch = payload.get("choices") or []
             if ch:
-                return (ch[0].get("message") or {}).get("content", "")
+                msg = ch[0].get("message") or {}
+                content = msg.get("content", "")
+                if not content and (msg.get("reasoning") or ""):
+                    # 推理吃光预算：可见输出为空（OpenRouter 文档提到的坑）
+                    print("    !! 推理占满预算、可见输出为空")
+                return content
             print(f"    BAD PAYLOAD: {str(payload)[:120]}")
         except urllib.error.HTTPError as e:
             print(f"    HTTP {e.code}: {e.read().decode('utf-8', 'ignore')[:110]}")
@@ -164,6 +177,10 @@ def main():
     ap.add_argument("--provider", default="openrouter", choices=sorted(PROVIDERS))
     ap.add_argument("--only", default="", help="只跑术语名包含该子串的案例")
     ap.add_argument("--sleep", type=float, default=0.5)
+    ap.add_argument("--reasoning", default="off", choices=["off", "on", "exclude"],
+                    help="推理模式：off=关（现状）；on=开；exclude=开但不返回思考内容（防思考溢出）")
+    ap.add_argument("--max-tokens", type=int, default=0,
+                    help="0 = 自动（关推理 500；开推理 2200，因为推理与可见输出共享预算）")
     ap.add_argument("--out", default="C:/Users/rebir/AppData/Local/Temp/grading-lab.json")
     args = ap.parse_args()
 
@@ -171,13 +188,16 @@ def main():
     key = load_key(keyvar)
     strategies = [s.strip().upper() for s in args.strategy.split(",") if s.strip()]
     cases = [c for c in CASES if args.only.lower() in c[0].lower()] if args.only else CASES
-    print(f"provider={args.provider} model={model}  策略={strategies}  案例={len(cases)}\n")
+    max_tokens = args.max_tokens or (500 if args.reasoning == "off" else 2200)
+    print(f"provider={args.provider} model={model}  策略={strategies}  案例={len(cases)}"
+          f"  推理={args.reasoning}  max_tokens={max_tokens}\n")
 
     results = []
     for term, kp, en, ans, expect, note in cases:
         row = {"term": term, "kp": kp, "answer": ans, "expect": expect, "note": note, "got": {}}
         for s in strategies:
-            txt = call(PROMPTS[s].format(term=term, kp=kp, en=en, answer=ans), url, model, key)
+            txt = call(PROMPTS[s].format(term=term, kp=kp, en=en, answer=ans), url, model, key,
+                       max_tokens=max_tokens, reasoning=args.reasoning)
             obj = parse(txt) or {}
             if s == "A":
                 cov = obj.get("coverage")
