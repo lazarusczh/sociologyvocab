@@ -98,6 +98,38 @@ export function verdictFromCoverage(coverage: unknown, listingOnly: boolean, kpC
   return 'partial';
 }
 
+// ===== 逐要素性质的判分（2026-09-20 起采用）=====
+// 要素分两类，判分口径不同：
+//   required（定义主干）—— 必须答到，平均覆盖度 ≥ 0.75
+//   example （并列举例）—— 举出其中若干项即可：≤2 项时答 1 项、≥3 项时答 2 项
+// 例：green crime = [必须] 危害环境的全球性犯罪 + 举例(倾倒/开采/污染) → 答出定义 + 举 2 例即通关。
+export interface KeypointRef {
+  text: string;
+  kind?: 'required' | 'example';
+}
+
+export function verdictFromKeypoints(coverage: unknown, kps: KeypointRef[], listingOnly: boolean): Verdict {
+  const vals = (Array.isArray(coverage) ? coverage : []).map((x) => Number(x));
+  if (!vals.length || Math.max(...vals) <= 0) return 'wrong';
+
+  const reqIdx: number[] = [];
+  const exIdx: number[] = [];
+  kps.forEach((k, i) => (k.kind === 'example' ? exIdx : reqIdx).push(i));
+
+  const reqScore = reqIdx.length
+    ? reqIdx.reduce((s, i) => s + (vals[i] ?? 0), 0) / reqIdx.length
+    : 1;                                                  // 无主干要素（纯列举型）时不设约束
+  // 主干要素必须「每一项都答到位」：平均达标不够（两条主干只答一条、另一条蒙对半个，不应算掌握）
+  const reqAllOk = reqIdx.every((i) => (vals[i] ?? 0) >= 0.75);
+  // 举例项要"确实举到"才算命中（0.5 表示只沾到一点/概括带过，不能算）
+  const exHits = exIdx.filter((i) => (vals[i] ?? 0) >= 0.75).length;
+  const exNeed = exIdx.length ? (exIdx.length <= 2 ? 1 : 2) : 0;
+
+  if (reqAllOk && exHits >= exNeed && !listingOnly) return 'correct';
+  if (reqScore >= 0.3 || exHits >= 1) return 'partial';
+  return 'wrong';
+}
+
 export interface GradeResult {
   verdict: Verdict;
   coverage: number[];
@@ -111,30 +143,32 @@ export interface GradeResult {
 /** 判一条定义默写作答：拼提示词 → 调模型 → 解析覆盖度 → 算档位 */
 export async function gradeDefinition(
   term: string,
-  keypoints: string[],
+  keypoints: KeypointRef[],
   answer: string,
   opts: CompleteOpts = {},
 ): Promise<GradeResult> {
-  const list = keypoints.map((k, i) => `${i + 1}. ${k}`).join('\n');
+  const list = keypoints
+    .map((k, i) => `${i + 1}. ${k.kind === 'example' ? '·' : '★'} ${k.text}`)
+    .join('\n');
   const prompt = `你是剑桥 9699 A Level 社会学的阅卷官。学生在做「术语定义默写」，请**只判定每个要素的覆盖程度**，不要给档位。
 
 术语：${term}
 
-核心要素（共 ${keypoints.length} 条）：
+核心要素（★ = 定义主干，必须答到；· = 并列举例，举出其中若干项即可）：
 ${list}
 
 学生答案：${answer}
 
 请对每个要素给出覆盖度 coverage：
-- 1.0 = 该要素的意思表达到位（不要求用词一致、不要求逐点复述，意思到了即可）
-- 0.5 = 只沾到一部分（说了半句、过于笼统、要靠猜才成立）
-- 0.0 = 没提到，或说错
+- ★ 主干要素：1.0 = 表达到位；0.5 = 只沾到一部分（说了半句、过于笼统）；0.0 = 没提到或说错
+- · 举例要素：**只给 0.0 或 1.0 两档**（明确举出了这个例子 → 1.0；没提到或只是笼统说"有危害/有多种形式" → 0.0）
 
-另外判断 listing_only：答案是否只是把关键词堆在一起、没有形成完整陈述（true/false）。
+另外判断 listing_only（"是否只是罗列关键词"）：
+- true 仅指**把关键词成串堆在一起、完全没有形成句子**（如"学业压力 屏幕时间 商业化"这样一串词）；
+- 只要答案有主谓结构（如"儿童面临多种危害，例如学业压力、屏幕时间和商业化"），即使中间夹着举例，也算**正常陈述 → false**。
+
 用中文或英文作答都算；意思相同即算覆盖，不要求用词一致。
-
-特别说明：如果这些要素是**一组并列的下属事项**（例如同一概念的多种表现/危害/形式），
-学生用 for example 之类的方式举出其中若干项，就视为覆盖了对应要素 —— 不要因为"没列全"而压低覆盖度。
+若学生举出的例子**已经体现了某个 ★ 主干要素**（例如主干说"科技变化造成危害"，学生举了"屏幕时间过长"），该主干要素可给 0.5 以上。
 
 只输出 JSON（不要 markdown、不要解释）：
 {"coverage":[1.0,0.0],"listing_only":false,"reason":"不超过40字的中文理由","confidence":0.0}`;
@@ -144,7 +178,7 @@ ${list}
   const listingOnly = Boolean(parsed.listing_only);
   const coverage = (Array.isArray(parsed.coverage) ? parsed.coverage : []).map((x) => Number(x));
   return {
-    verdict: verdictFromCoverage(parsed.coverage, listingOnly, keypoints.length),
+    verdict: verdictFromKeypoints(parsed.coverage, keypoints, listingOnly),
     coverage,
     listingOnly,
     reason: String(parsed.reason ?? ''),

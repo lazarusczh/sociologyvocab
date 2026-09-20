@@ -86,13 +86,15 @@ export default function DefinitionPractice() {
   }, [pool, vocabByTerm]);
 
   const cur = round[idx];
+  const reqCount = cur ? cur.item.keypoints.filter((k) => k.kind !== 'example').length : 0;
+  const exCount = cur ? cur.item.keypoints.filter((k) => k.kind === 'example').length : 0;
 
   const submit = useCallback(async () => {
     if (!cur || !answer.trim()) return;
     setPhase('grading');
     setErrMsg('');
     try {
-      const res = await gradeDefinition(cur.item.term, cur.item.keypoints.map((k) => k.text), answer.trim());
+      const res = await gradeDefinition(cur.item.term, cur.item.keypoints, answer.trim());
       setGrade(res);
       setStats((s) => ({ ...s, [res.verdict]: s[res.verdict] + 1 }));
       // correct 才算答对；partial / wrong 记未答对（β 阶段先统一口径，看数据再细化权重）
@@ -216,9 +218,12 @@ export default function DefinitionPractice() {
           {cur?.item.units?.length ? <span className="badge">{cur.item.units[0]}</span> : null}
         </div>
 
-        {cur && cur.item.keypoints.length >= 4 ? (
+        {cur && (reqCount > 0 || exCount > 0) ? (
           <p className="muted" style={{ fontSize: '0.82rem', margin: '0.4rem 0 0' }}>
-            💡 列举型：本术语有 {cur.item.keypoints.length} 个并列要点，答出其中 2–3 项即可通关。
+            💡 判分口径：
+            {reqCount > 0 ? `${reqCount} 个主干要点必须答到` : ''}
+            {reqCount > 0 && exCount > 0 ? '；' : ''}
+            {exCount > 0 ? `另有 ${exCount} 项并列举例，举出其中 ${exCount <= 2 ? 1 : 2} 项即可` : ''}
           </p>
         ) : null}
 
@@ -265,6 +270,7 @@ export default function DefinitionPractice() {
               {cur?.item.keypoints.map((k, i) => (
                 <li key={i} style={{ marginBottom: '0.2rem' }}>
                   <span style={{ marginRight: '0.3rem' }}>{covMark(grade.coverage[i] ?? 0)}</span>
+                  {k.kind === 'example' ? <span className="badge" style={{ marginRight: '0.3rem', fontSize: '0.72rem' }}>举例</span> : null}
                   {k.text}
                 </li>
               ))}

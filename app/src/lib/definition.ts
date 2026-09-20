@@ -8,6 +8,7 @@ import type { Verdict } from './ai';
 export interface DefinitionKeypoint {
   text: string;
   source?: string;
+  kind?: 'required' | 'example';   // required = 定义主干（必须答到）；example = 并列举例（举若干项即可）
 }
 
 export interface DefinitionItem {
