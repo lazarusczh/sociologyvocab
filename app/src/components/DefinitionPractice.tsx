@@ -216,6 +216,12 @@ export default function DefinitionPractice() {
           {cur?.item.units?.length ? <span className="badge">{cur.item.units[0]}</span> : null}
         </div>
 
+        {cur && cur.item.keypoints.length >= 4 ? (
+          <p className="muted" style={{ fontSize: '0.82rem', margin: '0.4rem 0 0' }}>
+            💡 列举型：本术语有 {cur.item.keypoints.length} 个并列要点，答出其中 2–3 项即可通关。
+          </p>
+        ) : null}
+
         <textarea
           value={answer}
           onChange={(e) => setAnswer(e.target.value.slice(0, MAX_ANSWER))}

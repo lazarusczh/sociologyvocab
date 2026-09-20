@@ -29,18 +29,27 @@ export async function callComplete(prompt: string, opts: CompleteOpts = {}): Pro
   const token = data.session?.access_token ?? '';
   if (!token) throw new Error('未登录');
 
-  const res = await fetch('/app-api/ai/complete', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ prompt, ...opts }),
-  });
-  const body = (await res.json().catch(() => ({}))) as {
-    text?: string; model?: string; tier?: string; ms?: number; error?: string; detail?: string;
-  };
-  if (!res.ok || !body.text) {
-    throw new Error(body.detail || body.error || `HTTP ${res.status}`);
+  // 免费池偶发空响应/瞬时错误：客户端再试一次，避免学生看到一次失败就得手动重提
+  let lastErr = '';
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await fetch('/app-api/ai/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ prompt, ...opts }),
+      });
+      const body = (await res.json().catch(() => ({}))) as {
+        text?: string; model?: string; tier?: string; ms?: number; error?: string; detail?: string;
+      };
+      if (res.ok && body.text) {
+        return { text: body.text, model: body.model ?? '', tier: body.tier ?? '', ms: body.ms ?? 0 };
+      }
+      lastErr = body.detail || body.error || `HTTP ${res.status}`;
+    } catch (e) {
+      lastErr = e instanceof Error ? e.message : String(e);
+    }
   }
-  return { text: body.text, model: body.model ?? '', tier: body.tier ?? '', ms: body.ms ?? 0 };
+  throw new Error(lastErr || '判分失败，请重试');
 }
 
 /** 从模型返回里抠出 JSON 对象：容忍 ``` 包裹、前后说明文字、尾随逗号 */
@@ -62,18 +71,30 @@ export function parseJsonLoose<T>(text: string): T | null {
 export type Verdict = 'correct' | 'partial' | 'wrong';
 
 /**
- * 覆盖度 → 档位（确定性规则，与判分脚本一致）：
- *   correct：平均覆盖度 ≥ 0.75 且不是只罗列关键词
- *   partial：答到任一要素（对齐 ms 的"2 分/条"口径：答到一点给一点分）
- *   wrong  ：一个要素都没答到
+ * 覆盖度 → 档位（确定性规则，与判分脚本一致）。
+ *
+ * 门槛随「要素条数」递减：条数多的术语几乎都是**并列列举型**
+ * （如 toxic childhood 的七项危害、Wealth 的五种形式），要求答全不现实；
+ * 教学上"举出其中若干项"即算掌握。
+ *   ≤3 条（递进必需型）：≥ 0.75
+ *   4–5 条：              ≥ 0.5
+ *   ≥6 条：               ≥ 0.4（七项答中 3 项即通关，对应"for example 举 2–3 项"）
+ * partial：答到任一要素（对齐 ms 的"2 分/条"口径：答到一点给一点分）
+ * wrong  ：一个要素都没答到
  */
-export function verdictFromCoverage(coverage: unknown, listingOnly: boolean): Verdict {
+export function correctThreshold(kpCount: number): number {
+  if (kpCount >= 6) return 0.4;
+  if (kpCount >= 4) return 0.5;
+  return 0.75;
+}
+
+export function verdictFromCoverage(coverage: unknown, listingOnly: boolean, kpCount = 0): Verdict {
   const vals = (Array.isArray(coverage) ? coverage : [])
     .map((x) => Number(x))
     .filter((x) => Number.isFinite(x));
   if (!vals.length || Math.max(...vals) <= 0) return 'wrong';
   const score = vals.reduce((a, b) => a + b, 0) / vals.length;
-  if (score >= 0.75 && !listingOnly) return 'correct';
+  if (score >= correctThreshold(kpCount || vals.length) && !listingOnly) return 'correct';
   return 'partial';
 }
 
@@ -112,6 +133,9 @@ ${list}
 另外判断 listing_only：答案是否只是把关键词堆在一起、没有形成完整陈述（true/false）。
 用中文或英文作答都算；意思相同即算覆盖，不要求用词一致。
 
+特别说明：如果这些要素是**一组并列的下属事项**（例如同一概念的多种表现/危害/形式），
+学生用 for example 之类的方式举出其中若干项，就视为覆盖了对应要素 —— 不要因为"没列全"而压低覆盖度。
+
 只输出 JSON（不要 markdown、不要解释）：
 {"coverage":[1.0,0.0],"listing_only":false,"reason":"不超过40字的中文理由","confidence":0.0}`;
 
@@ -120,7 +144,7 @@ ${list}
   const listingOnly = Boolean(parsed.listing_only);
   const coverage = (Array.isArray(parsed.coverage) ? parsed.coverage : []).map((x) => Number(x));
   return {
-    verdict: verdictFromCoverage(parsed.coverage, listingOnly),
+    verdict: verdictFromCoverage(parsed.coverage, listingOnly, keypoints.length),
     coverage,
     listingOnly,
     reason: String(parsed.reason ?? ''),

@@ -131,7 +131,11 @@ export async function completeText(
   const t0 = Date.now();
   for (let i = 0; i < chain.length; i++) {
     const t = chain[i];
-    const res = await callOnce(t, prompt, env, callOpts);
+    let res = await callOnce(t, prompt, env, callOpts);
+    // 免费池偶发「空内容 / 连接被断 / 5xx」：同档重试一次，再谈降级
+    if (!res.ok && (res.detail === 'empty content' || res.status === 0 || res.status >= 500)) {
+      res = await callOnce(t, prompt, env, callOpts);
+    }
     if (res.ok) {
       return { ok: true, text: res.text, model: res.model, tier: t, ms: Date.now() - t0, detail: '', fellBack: i > 0 };
     }

@@ -170,10 +170,11 @@ def parse_verdict(txt: str):
     return None
 
 
-def verdict_from_coverage(coverage: list, listing_only: bool) -> str:
+def verdict_from_coverage(coverage: list, listing_only: bool, kp_count: int = 0) -> str:
     """档位由确定性规则算出（可复现、可审计）。用连续覆盖度，1 个要素的术语同样适用。
 
-    口径对齐 ms 的"2 分/条"：答到任一要素即拿部分分，只有完全没答到才判 wrong。
+    门槛随要素条数递减：条数多的术语几乎都是并列列举型（如 toxic childhood 的七项危害），
+    要求答全不现实，教学上"举出其中若干项"即算掌握（与前端 lib/ai.ts 保持一致）。
     """
     try:
         vals = [float(x) for x in (coverage or [])]
@@ -181,8 +182,10 @@ def verdict_from_coverage(coverage: list, listing_only: bool) -> str:
         return "PARSE_FAIL"
     if not vals or max(vals) <= 0:
         return "wrong"
+    n = kp_count or len(vals)
+    threshold = 0.4 if n >= 6 else 0.5 if n >= 4 else 0.75
     score = sum(vals) / len(vals)
-    if score >= 0.75 and not listing_only:
+    if score >= threshold and not listing_only:
         return "correct"
     return "partial"          # 覆盖不足 / 只有罗列 → 部分正确
 
