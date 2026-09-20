@@ -8,7 +8,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useStore, useStudySession, useCelebrateCheckIn } from '../lib/store';
 import { loadDefinitionItems, saveDefinitionAttempt, type DefinitionItem } from '../lib/definition';
-import { gradeDefinition, type GradeResult, type Verdict } from '../lib/ai';
+import { gradeDefinition, SOURCE_LABEL, type GradeResult, type Verdict } from '../lib/ai';
 import { normalizeKey } from '../lib/answers';
 import { sample } from '../lib/shuffle';
 import { PAPER_ORDER } from '../lib/storage';
@@ -114,6 +114,11 @@ export default function DefinitionPractice() {
   const cur = round[idx];
   const reqCount = cur ? cur.item.keypoints.filter((k) => k.kind !== 'example').length : 0;
   const exCount = cur ? cur.item.keypoints.filter((k) => k.kind === 'example').length : 0;
+  // 判分参照的各来源英文原文（展示用，不要求复述）
+  const refDefs = useMemo(
+    () => Object.entries(cur?.item.source_defs ?? {}).filter(([, d]) => d && d.trim()),
+    [cur],
+  );
 
   const submit = useCallback(async () => {
     if (!cur || !answer.trim()) return;
@@ -322,6 +327,7 @@ export default function DefinitionPractice() {
                   <span style={{ marginRight: '0.3rem' }}>{covMark(grade.coverage[i] ?? 0)}</span>
                   {k.kind === 'example' ? <span className="badge" style={{ marginRight: '0.3rem', fontSize: '0.72rem' }}>举例</span> : null}
                   {k.text}
+                  {k.en ? <span className="muted" style={{ fontSize: '0.78rem' }}> · {k.en}</span> : null}
                 </li>
               ))}
             </ul>
@@ -334,7 +340,28 @@ export default function DefinitionPractice() {
               </div>
               <ul style={{ margin: '0.3rem 0 0', paddingLeft: '1.1rem' }}>
                 {cur.item.bonus.slice(0, 4).map((b, i) => (
-                  <li key={i} className="muted" style={{ marginBottom: '0.2rem' }}>{b.text}</li>
+                  <li key={i} className="muted" style={{ marginBottom: '0.2rem' }}>
+                    {b.text}
+                    {b.en ? <span style={{ fontSize: '0.78rem' }}> · {b.en}</span> : null}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {refDefs.length ? (
+            <div style={{ marginTop: '0.5rem' }}>
+              <div className="muted" style={{ fontSize: '0.85rem' }}>
+                各来源原文（判分参照，不要求复述）：
+              </div>
+              <ul style={{ margin: '0.3rem 0 0', paddingLeft: '1.1rem' }}>
+                {refDefs.map(([src, d]) => (
+                  <li key={src} className="muted" style={{ marginBottom: '0.2rem', fontSize: '0.82rem' }}>
+                    <span className="badge" style={{ marginRight: '0.3rem', fontSize: '0.72rem' }}>
+                      {SOURCE_LABEL[src] ?? src}
+                    </span>
+                    {d}
+                  </li>
                 ))}
               </ul>
             </div>

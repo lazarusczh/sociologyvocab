@@ -106,6 +106,7 @@ export function verdictFromCoverage(coverage: unknown, listingOnly: boolean, kpC
 export interface KeypointRef {
   text: string;
   kind?: 'required' | 'example';
+  en?: string;      // 该要素在权威来源英文原文里的对应表述（跨语言判分用；见 scripts/definition-align-en.py）
 }
 
 export function verdictFromKeypoints(coverage: unknown, kps: KeypointRef[], listingOnly: boolean): Verdict {
@@ -140,8 +141,8 @@ export interface GradeResult {
   ms: number;
 }
 
-// 来源标签（写进判分提示词，让模型知道参照原文的出处）
-const SOURCE_LABEL: Record<string, string> = {
+// 来源标签（写进判分提示词，让模型知道参照原文的出处；前端展示原文出处也复用）
+export const SOURCE_LABEL: Record<string, string> = {
   main: '主站词库（学生日常练习所依据的定义）',
   tb1: '教材 Haralambos',
   tb2: '教材 Livesey Coursebook',
@@ -163,7 +164,11 @@ export async function gradeDefinition(
   opts: CompleteOpts = {},
 ): Promise<GradeResult> {
   const list = keypoints
-    .map((k, i) => `${i + 1}. ${k.kind === 'example' ? '·' : '★'} ${k.text}`)
+    .map((k, i) => {
+      const mark = k.kind === 'example' ? '·' : '★';
+      const en = k.en ? `　〔原文表述：${k.en}〕` : '';
+      return `${i + 1}. ${mark} ${k.text}${en}`;
+    })
     .join('\n');
   const refs = Object.entries(sourceDefs ?? {})
     .filter(([, v]) => typeof v === 'string' && v.trim())
@@ -186,8 +191,12 @@ ${list}
 - true 仅指**把关键词成串堆在一起、完全没有形成句子**（如"学业压力 屏幕时间 商业化"这样一串词）；
 - 只要答案有主谓结构（如"儿童面临多种危害，例如学业压力、屏幕时间和商业化"），即使中间夹着举例，也算**正常陈述 → false**。
 
-判定口径：
+判定口径（务必严格执行）：
 - 用中文或英文作答都算；**只要与「核心要素」或「参考原文」意思相同即算覆盖**，不要求用词一致、更不要求复述原文；
+- **同义改写必须宽容**（本任务最易出错处）：词序调整、复合词化、词性转换、单复数/时态变化、同义替换都算覆盖。
+  例：要素「低工作保障」〔原文 low job security〕，学生写 "low-security jobs"、"jobs with little security"、
+  "工作保障低" 均应判 **1.0**；
+- 0.5 仅用于「提到了但明显不完整或方向不对」；0.0 仅当学生**完全没有表达该含义**；
 - **成档与否只看「核心要素」清单**——不要额外要求学生答出参考原文里的其它内容；
 - 若学生举出的例子**已经体现了某个 ★ 主干要素**（例如主干说"科技变化造成危害"，学生举了"屏幕时间过长"），该主干要素可给 0.5 以上。
 

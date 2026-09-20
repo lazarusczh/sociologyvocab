@@ -9,6 +9,7 @@ export interface DefinitionKeypoint {
   text: string;
   source?: string;
   kind?: 'required' | 'example';   // required = 定义主干（必须答到）；example = 并列举例（举若干项即可）
+  en?: string;                     // 该要素在权威来源英文原文里的对应表述（跨语言判分 / 展示用）
 }
 
 export interface DefinitionItem {
