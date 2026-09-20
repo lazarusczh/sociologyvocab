@@ -1205,6 +1205,7 @@
   "chinese": "使…成为替罪羊",
   "paper": "Paper 4",
   "unit": [
+   "社会认同基础",
    "全球化移民"
   ],
   "reference": "main",
@@ -1431,7 +1432,8 @@
   "chinese": "道德恐慌",
   "paper": "Paper 4",
   "unit": [
-   "全球犯罪与不平等"
+   "全球犯罪与不平等",
+   "媒体再现与效果"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -1525,6 +1527,7 @@
   "chinese": "贿赂",
   "paper": "Paper 4",
   "unit": [
+   "阶级认同",
    "全球犯罪与不平等"
   ],
   "reference": "main",
@@ -2039,45 +2042,6 @@
   "source_notes": {
    "main": "该来源指出女性在生存压力中承担更重负担，需汇款回家，导致脆弱性增加和潜在非法行为",
    "tb1": "",
-   "igcse0495": ""
-  }
- },
- {
-  "term": "Folk devil",
-  "chinese": "民间恶魔",
-  "paper": "Paper 4",
-  "unit": [
-   "全球犯罪与不平等"
-  ],
-  "reference": "main",
-  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
-  "keypoints": [
-   {
-    "text": "一群人被媒体负面描绘",
-    "source": "main",
-    "kind": "required"
-   },
-   {
-    "text": "被设为社会其他成员攻击的'敌人'",
-    "source": "main",
-    "kind": "required"
-   }
-  ],
-  "bonus": [
-   {
-    "text": "被视为对社会构成威胁或社会问题的人、社会群体或事物",
-    "sources": [
-     "tb1"
-    ]
-   }
-  ],
-  "sources": [
-   "main",
-   "tb1"
-  ],
-  "source_notes": {
-   "main": "强调媒体角色和社会攻击对象的建构过程",
-   "tb1": "侧重对威胁或问题的感知，范围更广",
    "igcse0495": ""
   }
  },
@@ -3396,6 +3360,7 @@
   "chinese": "民间恶魔",
   "paper": "Paper 4",
   "unit": [
+   "全球犯罪与不平等",
    "媒体再现与效果"
   ],
   "reference": "main",
@@ -5241,6 +5206,7 @@
   "chinese": "“安全阀”",
   "paper": "Paper 2",
   "unit": [
+   "社会化",
    "家庭功能"
   ],
   "reference": "main",
@@ -5389,7 +5355,7 @@
   }
  },
  {
-  "term": "‘Warm bath’ Theory",
+  "term": "'Warm bath' Theory",
   "chinese": "“温浴”理论",
   "paper": "Paper 2",
   "unit": [
@@ -6317,37 +6283,6 @@
   ],
   "source_notes": {
    "main": "定义了以婚姻为基础且目前无子女的家庭类型",
-   "tb1": "",
-   "igcse0495": ""
-  }
- },
- {
-  "term": "Cultural diversity",
-  "chinese": "（家庭的）文化多样性",
-  "paper": "Paper 2",
-  "unit": [
-   "家庭多样性"
-  ],
-  "reference": "main",
-  "reference_reason": "main 为校本手写词库，学生日常练习所用，定义完整且与教学口径一致",
-  "keypoints": [
-   {
-    "text": "不同（民族）文化倾向于有不同的家庭价值观",
-    "source": "main",
-    "kind": "example"
-   },
-   {
-    "text": "不同（民族）文化倾向于有不同的偏好家庭类型",
-    "source": "main",
-    "kind": "example"
-   }
-  ],
-  "bonus": [],
-  "sources": [
-   "main"
-  ],
-  "source_notes": {
-   "main": "指出不同民族文化在家庭价值观和偏好家庭类型上的差异模式",
    "tb1": "",
    "igcse0495": ""
   }
@@ -8054,6 +7989,7 @@
   "chinese": "共谋式男子气概",
   "paper": "Paper 2",
   "unit": [
+   "性别认同",
    "性别平等"
   ],
   "reference": "main",
@@ -8193,7 +8129,8 @@
   "chinese": "女性主义",
   "paper": "Paper 2",
   "unit": [
-   "性别平等"
+   "性别平等",
+   "社会理论"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -8442,7 +8379,7 @@
   }
  },
  {
-  "term": "‘New Man’ / ‘New Father’",
+  "term": "'New Man' / 'New Father'",
   "chinese": "新式男性/新式父亲",
   "paper": "Paper 2",
   "unit": [
@@ -10212,7 +10149,9 @@
   "chinese": "风险社会",
   "paper": "Paper 3",
   "unit": [
-   "教育与不平等"
+   "家庭多样性",
+   "教育与不平等",
+   "理论视角与核心概念"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -11049,7 +10988,8 @@
   "chinese": "特殊主义价值观",
   "paper": "Paper 3",
   "unit": [
-   "教育功能"
+   "教育功能",
+   "理论视角与核心概念"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -11173,7 +11113,8 @@
   "chinese": "普世价值观",
   "paper": "Paper 3",
   "unit": [
-   "教育功能"
+   "教育功能",
+   "理论视角与核心概念"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -11561,9 +11502,9 @@
  {
   "term": "Pluralism",
   "chinese": "（研究方法）多元主义",
-  "paper": "Paper 1",
+  "paper": "Paper 4",
   "unit": [
-   "方法论取向"
+   "媒体所有权与控制"
   ],
   "reference": "tb1",
   "reference_reason": "main 来源定义偏向研究方法论，与政治学中的 pluralism 核心概念不符，tb1 更准确描述多元竞争政党制度，符合 A Level 社会学政治部分教学重点",
@@ -11705,7 +11646,9 @@
   "chinese": "制度化的种族主义",
   "paper": "Paper 1",
   "unit": [
-   "族裔认同"
+   "族裔认同",
+   "族群与学业成就",
+   "全球犯罪与不平等"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -11936,7 +11879,8 @@
   "chinese": "同质化",
   "paper": "Paper 1",
   "unit": [
-   "族裔认同"
+   "族裔认同",
+   "理论视角与核心概念"
   ],
   "reference": "main",
   "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -12072,7 +12016,8 @@
   "chinese": "文化多元主义",
   "paper": "Paper 1",
   "unit": [
-   "族裔认同"
+   "族裔认同",
+   "理论视角与核心概念"
   ],
   "reference": "main",
   "reference_reason": "主站词库为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -12260,7 +12205,8 @@
   "chinese": "西方化",
   "paper": "Paper 1",
   "unit": [
-   "族裔认同"
+   "族裔认同",
+   "理论视角与核心概念"
   ],
   "reference": "main",
   "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -12371,6 +12317,8 @@
   "chinese": "宿命论",
   "paper": "Paper 4",
   "unit": [
+   "阶级认同",
+   "社会阶层与学业成就",
    "理论视角与核心概念"
   ],
   "reference": "main",
@@ -12512,6 +12460,7 @@
   "chinese": "同化",
   "paper": "Paper 4",
   "unit": [
+   "族裔认同",
    "理论视角与核心概念"
   ],
   "reference": "main",
@@ -13542,47 +13491,6 @@
   }
  },
  {
-  "term": "Hyper-Globalism",
-  "chinese": "超全球化主义",
-  "paper": "Paper 4",
-  "unit": [
-   "理论视角与核心概念"
-  ],
-  "reference": "main",
-  "reference_reason": "main 为学生日常练习所用，曝光度最高，判分应与所学口径一致",
-  "keypoints": [
-   {
-    "text": "Hyper-Globalism 又称 Global optimism",
-    "source": "main",
-    "kind": "required"
-   },
-   {
-    "text": "认为当前全球化趋势是积极的",
-    "source": "main",
-    "kind": "required"
-   },
-   {
-    "text": "认为当前全球化趋势是不可避免的",
-    "source": "main",
-    "kind": "required"
-   },
-   {
-    "text": "通常与新自由主义信念一致",
-    "source": "main",
-    "kind": "example"
-   }
-  ],
-  "bonus": [],
-  "sources": [
-   "main"
-  ],
-  "source_notes": {
-   "main": "定义了 Hyper-Globalism 的核心特征：积极、必然、与新自由主义相关",
-   "tb1": "",
-   "igcse0495": ""
-  }
- },
- {
   "term": "Imperialism",
   "chinese": "帝国主义",
   "paper": "Paper 4",
@@ -13899,42 +13807,6 @@
   }
  },
  {
-  "term": "Multiculturalism",
-  "chinese": "多元文化主义",
-  "paper": "Paper 4",
-  "unit": [
-   "理论视角与核心概念"
-  ],
-  "reference": "main",
-  "reference_reason": "main 为校本手写词库，学生日常练习所用，定义完整且准确，符合判分口径",
-  "keypoints": [
-   {
-    "text": "管理多民族社会的方式",
-    "source": "main",
-    "kind": "required"
-   },
-   {
-    "text": "允许少数民族保持其文化的重要部分",
-    "source": "main",
-    "kind": "required"
-   },
-   {
-    "text": "同时完全融入社会的公民生活",
-    "source": "main",
-    "kind": "required"
-   }
-  ],
-  "bonus": [],
-  "sources": [
-   "main"
-  ],
-  "source_notes": {
-   "main": "该来源定义了多元文化主义的核心要素：管理方式、文化保持与公民融入",
-   "tb1": "",
-   "igcse0495": ""
-  }
- },
- {
   "term": "Nation state",
   "chinese": "民族国家",
   "paper": "Paper 4",
@@ -14059,45 +13931,6 @@
   "source_notes": {
    "main": "该来源强调自由市场优势和个人对贫困的责任",
    "tb1": "",
-   "igcse0495": ""
-  }
- },
- {
-  "term": "Particularism",
-  "chinese": "特殊主义",
-  "paper": "Paper 4",
-  "unit": [
-   "理论视角与核心概念"
-  ],
-  "reference": "main",
-  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
-  "keypoints": [
-   {
-    "text": "根据个人特定的社会关系来决定一个人的社会地位",
-    "source": "main",
-    "kind": "required"
-   },
-   {
-    "text": "与普遍主义相对立",
-    "source": "main",
-    "kind": "required"
-   }
-  ],
-  "bonus": [
-   {
-    "text": "因作为特定家庭成员而被爱，因而将人视为独特个体",
-    "sources": [
-     "tb1"
-    ]
-   }
-  ],
-  "sources": [
-   "main",
-   "tb1"
-  ],
-  "source_notes": {
-   "main": "强调社会关系决定地位，与普遍主义相对",
-   "tb1": "强调因家庭关系被爱而视为独特个体",
    "igcse0495": ""
   }
  },
@@ -14532,61 +14365,6 @@
   "source_notes": {
    "main": "描述了 truth decay 为一种当前社会现象，强调情感而非理性在媒体和政治中的主导作用",
    "tb1": "",
-   "igcse0495": ""
-  }
- },
- {
-  "term": "Universalism",
-  "chinese": "普世价值观",
-  "paper": "Paper 4",
-  "unit": [
-   "理论视角与核心概念"
-  ],
-  "reference": "main",
-  "reference_reason": "main 为校本手写词库，学生日常练习所用，曝光度最高，判分应与所学口径一致",
-  "keypoints": [
-   {
-    "text": "一套适用于社会所有成员的价值观",
-    "source": "main",
-    "kind": "required"
-   },
-   {
-    "text": "不受个人社会地位的影响",
-    "source": "main",
-    "kind": "required"
-   },
-   {
-    "text": "不受个人与他人特殊关系的影响",
-    "source": "main",
-    "kind": "required"
-   },
-   {
-    "text": "与 particularism 相对立",
-    "source": "main",
-    "kind": "required"
-   }
-  ],
-  "bonus": [
-   {
-    "text": "基于机会平等的思想，人们应受相同标准评判",
-    "sources": [
-     "tb1"
-    ]
-   },
-   {
-    "text": "例如通过考试来体现这种评判方式",
-    "sources": [
-     "tb1"
-    ]
-   }
-  ],
-  "sources": [
-   "main",
-   "tb1"
-  ],
-  "source_notes": {
-   "main": "强调普适价值观及其与特殊主义的对立",
-   "tb1": "侧重机会平等下的评判标准与考试举例",
    "igcse0495": ""
   }
  },
@@ -15501,7 +15279,7 @@
   }
  },
  {
-  "term": "’Go native'",
+  "term": "'Go native'",
   "chinese": "像当地人一样（生活和思考）",
   "paper": "Paper 1",
   "unit": [
@@ -16904,8 +16682,8 @@
   "chinese": "操纵",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制",
-   "性别认同"
+   "性别认同",
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -16939,8 +16717,8 @@
   "chinese": "口头称谓",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制",
-   "性别认同"
+   "性别认同",
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为校本手写词库，学生日常练习所用，定义完整且与教学口径一致",
@@ -16976,7 +16754,7 @@
   "chinese": "胁迫",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -17016,7 +16794,7 @@
   "chinese": "服从",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -17062,7 +16840,7 @@
   "chinese": "文化",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -17103,7 +16881,7 @@
   "chinese": "习俗",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -17144,7 +16922,7 @@
   "chinese": "叛逆",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，定义完整且与教学口径一致",
@@ -17185,7 +16963,7 @@
   "chinese": "“野孩子”",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -17238,7 +17016,7 @@
   "chinese": "规范",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -17295,7 +17073,7 @@
   "chinese": "权力",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -17336,7 +17114,7 @@
   "chinese": "初级社会化",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "主站词库为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -17395,7 +17173,7 @@
   "chinese": "角色",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -17441,7 +17219,7 @@
   "chinese": "榜样",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -17488,7 +17266,7 @@
   "chinese": "制约（制裁）",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -17540,7 +17318,7 @@
   "chinese": "次级社会化",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "主站词库为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -17591,7 +17369,7 @@
   "chinese": "世俗化",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -17643,7 +17421,7 @@
   "chinese": "亚文化",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -17689,7 +17467,8 @@
   "chinese": "引导",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化",
+   "性别认同"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -17736,7 +17515,7 @@
   "chinese": "社会化的场所",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -17775,7 +17554,7 @@
   "chinese": "信仰",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -17814,7 +17593,7 @@
   "chinese": "破坏实验",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -17845,7 +17624,7 @@
   "chinese": "威慑",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -17883,7 +17662,7 @@
   "chinese": "数字监控",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，定义完整且与教学口径一致",
@@ -17919,7 +17698,7 @@
   "chinese": "教育",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -17955,7 +17734,7 @@
   "chinese": "家庭",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -17986,7 +17765,7 @@
   "chinese": "正式规定",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18022,7 +17801,7 @@
   "chinese": "自由意志",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 是学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18053,7 +17832,7 @@
   "chinese": "“潜规则”",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18089,7 +17868,7 @@
   "chinese": "模仿",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18123,7 +17902,7 @@
   "chinese": "非正式的",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18154,7 +17933,7 @@
   "chinese": "亲密的",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18185,7 +17964,7 @@
   "chinese": "司法制度",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "主站词库为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18216,7 +17995,7 @@
   "chinese": "被边缘化",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "主站词库为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18252,7 +18031,7 @@
   "chinese": "媒体",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "主站词库为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18293,7 +18072,7 @@
   "chinese": "先天",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18332,7 +18111,7 @@
   "chinese": "不服从",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "主站词库为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18358,7 +18137,7 @@
   "chinese": "后天",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18396,7 +18175,7 @@
   "chinese": "驱逐/流放",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18434,7 +18213,7 @@
   "chinese": "同龄人",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18460,7 +18239,7 @@
   "chinese": "同龄人带来的压力",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18504,7 +18283,7 @@
   "chinese": "刑罚制度",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18548,7 +18327,7 @@
   "chinese": "公开嘲讽",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "主站词库为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18579,7 +18358,7 @@
   "chinese": "惩罚",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "main 是学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18605,7 +18384,7 @@
   "chinese": "互惠互利的关系",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "主站词库为学生日常练习所用，定义简明且符合教学口径",
@@ -18631,7 +18410,7 @@
   "chinese": "宗教",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18681,7 +18460,7 @@
   "chinese": "抵抗",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18715,7 +18494,7 @@
   "chinese": "颠倒的，相反的",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "主站词库为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18741,7 +18520,7 @@
   "chinese": "奖励",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "main 是学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18767,7 +18546,7 @@
   "chinese": "自身利益",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18793,7 +18572,7 @@
   "chinese": "社会交换理论",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18844,7 +18623,8 @@
   "chinese": "社会学习理论",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化",
+   "媒体再现与效果"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，定义完整且准确，符合判分口径",
@@ -18880,7 +18660,7 @@
   "chinese": "社会化不充分",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18916,7 +18696,7 @@
   "chinese": "价值观",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "主站词库为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -18942,7 +18722,7 @@
   "chinese": "工作场合",
   "paper": "Paper 1",
   "unit": [
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -19297,8 +19077,8 @@
   "paper": "Paper 1",
   "unit": [
    "社会理论",
-   "社会化和社会控制",
-   "社会认同基础"
+   "社会认同基础",
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "主站词库为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -19330,8 +19110,8 @@
   "paper": "Paper 1",
   "unit": [
    "社会理论",
-   "社会化和社会控制",
-   "社会认同基础"
+   "社会认同基础",
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "main 是学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -19365,54 +19145,12 @@
   }
  },
  {
-  "term": "Consensus",
-  "chinese": "共识",
-  "paper": "Paper 1",
-  "unit": [
-   "社会理论",
-   "社会化和社会控制"
-  ],
-  "reference": "main",
-  "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
-  "keypoints": [
-   {
-    "text": "社会中所有成员普遍同意的一套价值观",
-    "source": "main",
-    "kind": "required"
-   }
-  ],
-  "bonus": [
-   {
-    "text": "共识",
-    "sources": [
-     "tb1"
-    ]
-   },
-   {
-    "text": "用于描述一种社会视角，该视角假设人们普遍共享价值观",
-    "sources": [
-     "igcse0495"
-    ]
-   }
-  ],
-  "sources": [
-   "igcse0495",
-   "main",
-   "tb1"
-  ],
-  "source_notes": {
-   "main": "强调普遍同意的一套价值观",
-   "tb1": "仅给出‘共同同意’的简短定义",
-   "igcse0495": "将共识定义为协议，并关联到功能主义视角"
-  }
- },
- {
   "term": "Value consensus",
   "chinese": "价值共识",
   "paper": "Paper 1",
   "unit": [
    "社会理论",
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为校本手写词库，学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -19454,7 +19192,7 @@
   "paper": "Paper 1",
   "unit": [
    "社会理论",
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "主站词库为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -19481,7 +19219,7 @@
   "paper": "Paper 1",
   "unit": [
    "社会理论",
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "主站词库为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -19507,8 +19245,7 @@
   "chinese": "意识形态国家机器",
   "paper": "Paper 1",
   "unit": [
-   "社会理论",
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -19539,8 +19276,7 @@
   "chinese": "意识形态",
   "paper": "Paper 1",
   "unit": [
-   "社会理论",
-   "社会化和社会控制"
+   "社会理论"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -19584,8 +19320,7 @@
   "chinese": "经济基础",
   "paper": "Paper 1",
   "unit": [
-   "社会理论",
-   "社会化和社会控制"
+   "社会理论"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -19626,7 +19361,7 @@
   "paper": "Paper 1",
   "unit": [
    "社会理论",
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -19666,7 +19401,7 @@
   "paper": "Paper 1",
   "unit": [
    "社会理论",
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -19698,7 +19433,7 @@
   "paper": "Paper 1",
   "unit": [
    "社会理论",
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -19737,7 +19472,7 @@
   "paper": "Paper 1",
   "unit": [
    "社会理论",
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -19768,8 +19503,7 @@
   "chinese": "镇压性国家机器",
   "paper": "Paper 1",
   "unit": [
-   "社会理论",
-   "社会化和社会控制"
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -19796,7 +19530,7 @@
   "paper": "Paper 1",
   "unit": [
    "社会理论",
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "主站词库为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -19833,7 +19567,7 @@
   "paper": "Paper 1",
   "unit": [
    "社会理论",
-   "社会化和社会控制"
+   "社会化"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，定义完整且准确，无需改选其他来源",
@@ -19864,8 +19598,7 @@
   "chinese": "低地位的沮丧感",
   "paper": "Paper 1",
   "unit": [
-   "社会理论",
-   "社会化和社会控制"
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -19903,8 +19636,7 @@
   "chinese": "结构主义",
   "paper": "Paper 1",
   "unit": [
-   "社会理论",
-   "社会化和社会控制"
+   "社会理论"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -19940,8 +19672,7 @@
   "chinese": "上层建筑",
   "paper": "Paper 1",
   "unit": [
-   "社会理论",
-   "社会化和社会控制"
+   "社会理论"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，定义完整且与教材一致，无需改选",
@@ -20638,37 +20369,6 @@
   }
  },
  {
-  "term": "Scapegoat",
-  "chinese": "替罪羊",
-  "paper": "Paper 1",
-  "unit": [
-   "社会认同基础"
-  ],
-  "reference": "main",
-  "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
-  "keypoints": [
-   {
-    "text": "将某人作为替罪羊，指责其导致某种负面社会现象",
-    "source": "main",
-    "kind": "required"
-   },
-   {
-    "text": "该人实际上并不对该社会现象负有责任",
-    "source": "main",
-    "kind": "required"
-   }
-  ],
-  "bonus": [],
-  "sources": [
-   "main"
-  ],
-  "source_notes": {
-   "main": "定义清晰点出替罪羊机制的两个核心：无责任被指责 + 负面社会现象",
-   "tb1": "",
-   "igcse0495": ""
-  }
- },
- {
   "term": "Stereotype",
   "chinese": "刻板印象",
   "paper": "Paper 1",
@@ -20706,7 +20406,8 @@
   "chinese": "自我实现的预言",
   "paper": "Paper 3",
   "unit": [
-   "社会阶层与学业成就"
+   "社会阶层与学业成就",
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -20784,7 +20485,7 @@
   }
  },
  {
-  "term": "Cultural factor (deprivation)",
+  "term": "Cultural factor",
   "chinese": "文化因素（文化素养匮乏）",
   "paper": "Paper 3",
   "unit": [
@@ -20824,6 +20525,8 @@
   "chinese": "方言",
   "paper": "Paper 3",
   "unit": [
+   "阶级认同",
+   "族裔认同",
    "社会阶层与学业成就"
   ],
   "reference": "main",
@@ -21052,6 +20755,7 @@
   "chinese": "及时满足",
   "paper": "Paper 3",
   "unit": [
+   "阶级认同",
    "社会阶层与学业成就"
   ],
   "reference": "main",
@@ -21137,7 +20841,8 @@
   "chinese": "打标签",
   "paper": "Paper 3",
   "unit": [
-   "社会阶层与学业成就"
+   "社会阶层与学业成就",
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -21277,7 +20982,7 @@
   }
  },
  {
-  "term": "‘Old boys network’",
+  "term": "'Old boys network'",
   "chinese": "校友关系网",
   "paper": "Paper 3",
   "unit": [
@@ -21628,7 +21333,8 @@
   "paper": "Paper 1",
   "unit": [
    "阶级认同",
-   "族裔认同"
+   "族裔认同",
+   "叛逆与社会控制"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -22343,7 +22049,8 @@
   "chinese": "集体主义",
   "paper": "Paper 1",
   "unit": [
-   "阶级认同"
+   "阶级认同",
+   "理论视角与核心概念"
   ],
   "reference": "main",
   "reference_reason": "main 为学生日常练习所用，exposure 最高，判分应与所学口径一致",
@@ -22926,7 +22633,7 @@
   }
  },
  {
-  "term": "‘Jet set’ upper class",
+  "term": "'Jet set' upper class",
   "chinese": "一夜成名的上层阶级",
   "paper": "Paper 1",
   "unit": [
