@@ -70,15 +70,18 @@ export function computeStreak(state: CheckInState, now: Date = new Date()): numb
   return streak;
 }
 
-// 记录一次正式练习（选择题/拼写/匹配/错题练习），更新当日题数与答对数
-export function recordFormalAnswer(state: CheckInState, correct: boolean, now: Date = new Date()): CheckInState {
+// 记录一次正式练习（选择题/拼写/匹配/错题练习），更新当日题数与答对数。
+// score 支持小数：定义题的「部分正确」计 0.5 —— 正确率 = correct / questions 本就按浮点算，
+// 这不影响打卡达成（只看题数与时长），只让每周补卡的正确率门槛更公平。
+export function recordFormalAnswer(state: CheckInState, score: boolean | number, now: Date = new Date()): CheckInState {
   const key = dateKeyOf(now);
   const cur: DayStudy = state.study[key] || { seconds: 0, questions: 0, correct: 0 };
+  const add = typeof score === 'number' ? score : (score ? 1 : 0);
   const next: CheckInState = {
     ...state,
     study: {
       ...state.study,
-      [key]: { seconds: cur.seconds, questions: cur.questions + 1, correct: cur.correct + (correct ? 1 : 0) },
+      [key]: { seconds: cur.seconds, questions: cur.questions + 1, correct: cur.correct + add },
     },
   };
   next.bestStreak = Math.max(next.bestStreak, computeStreak(next, now));

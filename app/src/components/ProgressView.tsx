@@ -123,7 +123,8 @@ export default function ProgressView() {
                   </span>
                   {p && p.seenCount > 0 && (
                     <span className="muted" style={{ fontSize: '0.8rem' }}>
-                      {p.correctCount}/{p.seenCount}
+                      {/* 定义题按 0.5 计分，答对数可能带一位小数 */}
+                      {Number.isInteger(p.correctCount) ? p.correctCount : p.correctCount.toFixed(1)}/{p.seenCount}
                     </span>
                   )}
                 </div>

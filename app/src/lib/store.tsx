@@ -66,7 +66,7 @@ interface StoreValue {
   moveUnit: (paper: string, sub: string, name: string, dir: -1 | 1) => void;
   renameUnit: (paper: string, sub: string, oldName: string, newName: string) => void;
   // 进度操作
-  recordItem: (itemId: string, correct: boolean, mode: PracticeMode) => void;
+  recordItem: (itemId: string, correct: boolean, mode: PracticeMode, opts?: { score?: number }) => void;
   resetProgress: () => void;
   // 打卡
   beginStudy: () => void;
@@ -441,20 +441,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setSurnameOverrides(overrides);
   }, []);
 
-  // 记录一次正式练习结果：同时更新掌握度（按模式权重）、当日打卡题数、错题本
-  const recordItem = useCallback((itemId: string, correct: boolean, mode: PracticeMode) => {
+  // 记录一次正式练习结果：同时更新掌握度（按模式权重）、当日打卡题数、错题本。
+  // opts.score 支持小数（定义题「部分正确」= 0.5）：计入正确率、掌握度不变、也不进错题本。
+  const recordItem = useCallback((itemId: string, correct: boolean, mode: PracticeMode, opts?: { score?: number }) => {
+    const score = opts?.score ?? (correct ? 1 : 0);
     setProgress((prev) => {
-      const next = recordAnswer(itemId, correct, mode, prev);
+      const next = recordAnswer(itemId, correct, mode, prev, score);
       saveProgress(next);
       return next;
     });
     setCheckin((prev) => {
-      const next = recordFormalAnswer(prev, correct);
+      const next = recordFormalAnswer(prev, score);
       saveCheckIn(next);
       return next;
     });
     setWrongBook((prev) => {
-      const next = applyWrongAnswer(prev, itemId, correct);
+      // 半对不进错题本（只是没答全，不算不会）
+      const next = applyWrongAnswer(prev, itemId, score >= 0.5);
       saveWrongBook(next);
       return next;
     });

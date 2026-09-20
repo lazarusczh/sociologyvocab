@@ -28,10 +28,13 @@ const MASTERY_WEIGHTS: Record<PracticeMode, { gain: number; loss: number }> = {
   definition: { gain: 15, loss: 20 }, // 定义题：输出型任务（自己写定义），难度最高
 };
 
-// 依据答对/答错动态调整掌握度（0-100 区间）
-export function adjustMastery(mastery: number, correct: boolean, mode: PracticeMode): number {
+// 依据答对/答错动态调整掌握度（0-100 区间）。
+// score 可传小数（0.5 = 部分正确）：半对时掌握度保持不变 —— 既不算已掌握，也不算答错。
+export function adjustMastery(mastery: number, correct: boolean, mode: PracticeMode, score?: number): number {
+  const s = score ?? (correct ? 1 : 0);
+  if (s > 0 && s < 1) return Math.max(0, Math.min(100, mastery));
   const { gain, loss } = MASTERY_WEIGHTS[mode];
-  const next = correct ? mastery + gain : mastery - loss;
+  const next = s >= 1 ? mastery + gain : mastery - loss;
   return Math.max(0, Math.min(100, next));
 }
 
@@ -145,20 +148,22 @@ export function saveProgress(progress: Progress): void {
   localStorage.setItem(scopedKey(PROGRESS_KEY), JSON.stringify(progress));
 }
 
-// 记录一次练习结果（含按模式权重的掌握度动态调整）
+// 记录一次练习结果（含按模式权重的掌握度动态调整）。score 支持小数（部分正确 = 0.5）
 export function recordAnswer(
   itemId: string,
   correct: boolean,
   mode: PracticeMode,
   progress: Progress,
+  score?: number,
 ): Progress {
   const cur = progress[itemId] || { mastery: 0, seenCount: 0, correctCount: 0, lastSeen: 0 };
+  const s = score ?? (correct ? 1 : 0);
   const next = {
     ...cur,
     seenCount: cur.seenCount + 1,
-    correctCount: cur.correctCount + (correct ? 1 : 0),
+    correctCount: cur.correctCount + s,
     lastSeen: Date.now(),
-    mastery: adjustMastery(cur.mastery, correct, mode),
+    mastery: adjustMastery(cur.mastery, correct, mode, s),
   };
   return { ...progress, [itemId]: next };
 }

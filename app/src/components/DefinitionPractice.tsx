@@ -31,6 +31,9 @@ const VERDICT_META: Record<Verdict, { label: string; cls: string; icon: string }
   wrong: { label: '未答对', cls: 'badge danger', icon: '✗' },
 };
 
+// 计分口径：正确 1 题、部分正确 0.5 题、未答对 0 题（半对不进错题本，掌握度也不变）
+const VERDICT_SCORE: Record<Verdict, number> = { correct: 1, partial: 0.5, wrong: 0 };
+
 const covMark = (v: number) => (v >= 0.99 ? '✓' : v >= 0.4 ? '◐' : '✗');
 
 export default function DefinitionPractice() {
@@ -120,8 +123,10 @@ export default function DefinitionPractice() {
       const res = await gradeDefinition(cur.item.term, cur.item.keypoints, answer.trim());
       setGrade(res);
       setStats((s) => ({ ...s, [res.verdict]: s[res.verdict] + 1 }));
-      // correct 才算答对；partial / wrong 记未答对（β 阶段先统一口径，看数据再细化权重）
-      if (cur.vocabId) recordItem(cur.vocabId, res.verdict === 'correct', 'definition');
+      // 计分：correct = 1 题、partial = 0.5 题（计入正确率，掌握度不变、不进错题本）、wrong = 0 题
+      if (cur.vocabId) {
+        recordItem(cur.vocabId, res.verdict === 'correct', 'definition', { score: VERDICT_SCORE[res.verdict] });
+      }
       void saveDefinitionAttempt({
         itemId: cur.item.id,
         answer: answer.trim(),
@@ -221,6 +226,9 @@ export default function DefinitionPractice() {
           <p className="muted" style={{ fontSize: '0.85rem' }}>
             当前范围 <strong>{scoped.length}</strong> 个术语（共 {pool?.length ?? 0} 个）· 每轮
             {' '}{Math.min(ROUND, scoped.length || ROUND)} 题 · 判分走 nemotron 免费档（不消耗魔搭额度）
+          </p>
+          <p className="muted" style={{ fontSize: '0.85rem' }}>
+            计分：正确 1 题、部分正确 0.5 题、未答对 0 题（都计入打卡题数与时长；只有"未答对"进错题本）
           </p>
           <button className="primary" onClick={start} disabled={!scoped.length} style={{ marginTop: '0.4rem' }}>
             {phase === 'done' ? '再来一轮' : '开始练习'}
