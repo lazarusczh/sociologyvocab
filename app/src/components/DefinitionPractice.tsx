@@ -120,7 +120,12 @@ export default function DefinitionPractice() {
     setPhase('grading');
     setErrMsg('');
     try {
-      const res = await gradeDefinition(cur.item.term, cur.item.keypoints, answer.trim());
+      const res = await gradeDefinition(
+        cur.item.term,
+        cur.item.keypoints,
+        answer.trim(),
+        cur.item.source_defs ?? {},
+      );
       setGrade(res);
       setStats((s) => ({ ...s, [res.verdict]: s[res.verdict] + 1 }));
       // 计分：correct = 1 题、partial = 0.5 题（计入正确率，掌握度不变、不进错题本）、wrong = 0 题

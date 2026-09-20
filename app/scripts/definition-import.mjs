@@ -34,13 +34,15 @@ for (let i = 0; i < items.length; i++) {
   if (!it?.term || !Array.isArray(it.keypoints) || !it.keypoints.length) continue;
   const units = Array.isArray(it.unit) ? it.unit : it.unit ? [it.unit] : [];
   lines.push(
-    `insert into definition_items (id, term, chinese, paper, units, reference, keypoints, bonus, sources, source_notes, beta, active) values (` +
+    `insert into definition_items (id, term, chinese, paper, units, reference, keypoints, bonus, sources, source_notes, source_defs, beta, active) values (` +
       `${q(slug(it.term, i))}, ${q(it.term)}, ${q(it.chinese)}, ${q(it.paper)}, ${arr(units)}, ${q(it.reference)}, ` +
       `${q(JSON.stringify(it.keypoints))}::jsonb, ${q(JSON.stringify(it.bonus ?? []))}::jsonb, ` +
-      `${arr(it.sources)}, ${q(JSON.stringify(it.source_notes ?? {}))}::jsonb, true, true) ` +
+      `${arr(it.sources)}, ${q(JSON.stringify(it.source_notes ?? {}))}::jsonb, ` +
+      `${q(JSON.stringify(it.source_defs ?? {}))}::jsonb, true, true) ` +
       `on conflict (id) do update set term = excluded.term, chinese = excluded.chinese, paper = excluded.paper, ` +
       `units = excluded.units, reference = excluded.reference, keypoints = excluded.keypoints, ` +
-      `bonus = excluded.bonus, sources = excluded.sources, source_notes = excluded.source_notes, updated_at = now();`,
+      `bonus = excluded.bonus, sources = excluded.sources, source_notes = excluded.source_notes, ` +
+      `source_defs = excluded.source_defs, updated_at = now();`,
   );
   n++;
 }

@@ -20,13 +20,14 @@ export interface DefinitionItem {
   reference: string | null;       // 参考来源 key（main / tb1 / igcse0495 …）
   keypoints: DefinitionKeypoint[]; // 必踩点
   bonus: DefinitionKeypoint[];     // 加分点（其他来源独有，不要求必答）
+  source_defs?: Record<string, string> | null; // 各来源英文原文（判分时的语义参照，不参与计分）
 }
 
 /** 拉取全部启用中的题目（一次拉完，前端本地抽样） */
 export async function loadDefinitionItems(): Promise<DefinitionItem[]> {
   const { data, error } = await supabase
     .from('definition_items')
-    .select('id, term, chinese, paper, units, reference, keypoints, bonus')
+    .select('id, term, chinese, paper, units, reference, keypoints, bonus, source_defs')
     .eq('active', true)
     .order('id');
   if (error) throw error;

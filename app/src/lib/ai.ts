@@ -140,20 +140,39 @@ export interface GradeResult {
   ms: number;
 }
 
-/** 判一条定义默写作答：拼提示词 → 调模型 → 解析覆盖度 → 算档位 */
+// 来源标签（写进判分提示词，让模型知道参照原文的出处）
+const SOURCE_LABEL: Record<string, string> = {
+  main: '主站词库（学生日常练习所依据的定义）',
+  tb1: '教材 Haralambos',
+  tb2: '教材 Livesey Coursebook',
+  igcse0495: '0495 官方 glossary',
+};
+
+/** 判一条定义默写作答：拼提示词 → 调模型 → 解析覆盖度 → 算档位。
+ *
+ *  sourceDefs = 各来源的**英文原文**。学生多用英文作答，而同语言比对能避免
+ *  「英文原文 → 中文摘要 → 中文要素」两次转译丢信息导致的误判
+ *  （典型：词库原文 "A disease that is increasingly seen on children" 被压成「糖尿病是一种疾病」）。
+ *  参考原文只用于判定**语义等价**，成档仍只看「核心要素」清单。
+ */
 export async function gradeDefinition(
   term: string,
   keypoints: KeypointRef[],
   answer: string,
+  sourceDefs: Record<string, string> = {},
   opts: CompleteOpts = {},
 ): Promise<GradeResult> {
   const list = keypoints
     .map((k, i) => `${i + 1}. ${k.kind === 'example' ? '·' : '★'} ${k.text}`)
     .join('\n');
+  const refs = Object.entries(sourceDefs ?? {})
+    .filter(([, v]) => typeof v === 'string' && v.trim())
+    .map(([k, v]) => `- [${SOURCE_LABEL[k] ?? k}] ${v.trim()}`)
+    .join('\n');
   const prompt = `你是剑桥 9699 A Level 社会学的阅卷官。学生在做「术语定义默写」，请**只判定每个要素的覆盖程度**，不要给档位。
 
 术语：${term}
-
+${refs ? `\n参考原文（英文，来自权威来源，供你判断语义等价用）：\n${refs}\n` : ''}
 核心要素（★ = 定义主干，必须答到；· = 并列举例，举出其中若干项即可）：
 ${list}
 
@@ -167,8 +186,10 @@ ${list}
 - true 仅指**把关键词成串堆在一起、完全没有形成句子**（如"学业压力 屏幕时间 商业化"这样一串词）；
 - 只要答案有主谓结构（如"儿童面临多种危害，例如学业压力、屏幕时间和商业化"），即使中间夹着举例，也算**正常陈述 → false**。
 
-用中文或英文作答都算；意思相同即算覆盖，不要求用词一致。
-若学生举出的例子**已经体现了某个 ★ 主干要素**（例如主干说"科技变化造成危害"，学生举了"屏幕时间过长"），该主干要素可给 0.5 以上。
+判定口径：
+- 用中文或英文作答都算；**只要与「核心要素」或「参考原文」意思相同即算覆盖**，不要求用词一致、更不要求复述原文；
+- **成档与否只看「核心要素」清单**——不要额外要求学生答出参考原文里的其它内容；
+- 若学生举出的例子**已经体现了某个 ★ 主干要素**（例如主干说"科技变化造成危害"，学生举了"屏幕时间过长"），该主干要素可给 0.5 以上。
 
 只输出 JSON（不要 markdown、不要解释）：
 {"coverage":[1.0,0.0],"listing_only":false,"reason":"不超过40字的中文理由","confidence":0.0}`;
