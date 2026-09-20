@@ -11,6 +11,9 @@ import { loadDefinitionItems, saveDefinitionAttempt, type DefinitionItem } from 
 import { gradeDefinition, type GradeResult, type Verdict } from '../lib/ai';
 import { normalizeKey } from '../lib/answers';
 import { sample } from '../lib/shuffle';
+import { PAPER_ORDER } from '../lib/storage';
+import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
+import type { VocabItem } from '../lib/types';
 
 const ROUND = 5;                 // 一轮 5 题（写定义为输出型任务，不宜过长）
 const MAX_ANSWER = 600;
@@ -42,6 +45,10 @@ export default function DefinitionPractice() {
   const [errMsg, setErrMsg] = useState('');
   const [stats, setStats] = useState<Record<Verdict, number>>({ correct: 0, partial: 0, wrong: 0 });
   const [showHint, setShowHint] = useState(false);
+  // 范围分类：与其它题型一致（考卷 / 单元）
+  const [paper, setPaper] = useState('all');
+  const [cat, setCat] = useState('all');
+  const [units, setUnits] = useState<string[]>([]);
 
   // 计时：仅在作答/判分阶段计入学习时长（与其它练习一致）
   useStudySession(phase === 'answering' || phase === 'grading');
@@ -69,9 +76,25 @@ export default function DefinitionPractice() {
     return m;
   }, [vocab]);
 
+  // 范围分类：把题目映射成 CategoryFilter 需要的形状（它只用到 paper / category / unit 字段），
+  // 再用同一个 filterByPaperCat 过滤，保证与其它题型的筛选口径完全一致。
+  const asVocab = useMemo<VocabItem[]>(
+    () => (pool ?? []).map((d) => ({
+      id: d.id, type: 'term' as const, term: d.term, chinese: d.chinese ?? '',
+      definition: '', paper: d.paper ?? '', category: '', unit: d.units ?? [],
+    })),
+    [pool],
+  );
+  const paperOptions = useMemo(() => PAPER_ORDER.filter((p) => asVocab.some((v) => v.paper === p)), [asVocab]);
+  const scopedIds = useMemo(
+    () => new Set(filterByPaperCat(asVocab, paper, cat, units).map((v) => v.id)),
+    [asVocab, paper, cat, units],
+  );
+  const scoped = useMemo(() => (pool ?? []).filter((d) => scopedIds.has(d.id)), [pool, scopedIds]);
+
   const start = useCallback(() => {
-    if (!pool?.length) return;
-    const picked: RoundItem[] = sample(pool, Math.min(ROUND, pool.length)).map((item) => ({
+    if (!scoped.length) return;
+    const picked: RoundItem[] = sample(scoped, Math.min(ROUND, scoped.length)).map((item) => ({
       item,
       vocabId: vocabByTerm.get(normalizeKey(item.term)) ?? null,
     }));
@@ -83,7 +106,7 @@ export default function DefinitionPractice() {
     setShowHint(false);
     setStats({ correct: 0, partial: 0, wrong: 0 });
     setPhase('answering');
-  }, [pool, vocabByTerm]);
+  }, [scoped, vocabByTerm]);
 
   const cur = round[idx];
   const reqCount = cur ? cur.item.keypoints.filter((k) => k.kind !== 'example').length : 0;
@@ -172,6 +195,20 @@ export default function DefinitionPractice() {
             </p>
           </div>
         )}
+        {asVocab.length > 0 && (
+          <CategoryFilter
+            items={asVocab}
+            papers={paperOptions}
+            categories={[]}
+            paper={paper}
+            onPaperChange={(p) => { setPaper(p); setCat('all'); setUnits([]); }}
+            cat={cat}
+            onCatChange={(c) => { setCat(c); setUnits([]); }}
+            units={units}
+            onUnitsChange={setUnits}
+          />
+        )}
+
         <div className="card">
           <div className="row" style={{ alignItems: 'center' }}>
             <h2 style={{ margin: 0 }}>定义题练习</h2>
@@ -182,10 +219,10 @@ export default function DefinitionPractice() {
             中英文作答都可以，意思到了就算覆盖。
           </p>
           <p className="muted" style={{ fontSize: '0.85rem' }}>
-            题库 {pool?.length ?? 0} 个术语 · 每轮 {Math.min(ROUND, pool?.length ?? 0)} 题 · 判分走
-            {' '}nemotron 免费档（不消耗魔搭额度）
+            当前范围 <strong>{scoped.length}</strong> 个术语（共 {pool?.length ?? 0} 个）· 每轮
+            {' '}{Math.min(ROUND, scoped.length || ROUND)} 题 · 判分走 nemotron 免费档（不消耗魔搭额度）
           </p>
-          <button className="primary" onClick={start} disabled={!pool?.length} style={{ marginTop: '0.4rem' }}>
+          <button className="primary" onClick={start} disabled={!scoped.length} style={{ marginTop: '0.4rem' }}>
             {phase === 'done' ? '再来一轮' : '开始练习'}
           </button>
         </div>
