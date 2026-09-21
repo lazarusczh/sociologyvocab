@@ -21,6 +21,10 @@ export interface LabBrowserEnv {
   BROWSER_API_TOKEN?: string;
   CF_ACCOUNT_ID?: string;
   CF_API_TOKEN?: string;
+  // 下面几个用于 /app-api/lab/ai-probe：从 CF 边缘探测各 AI 通道的出口可达性
+  AGNES_API_KEY?: string;
+  OPENROUTER_API_KEY?: string;
+  MODELSCOPE_API_KEY?: string;
 }
 
 const ALLOW_HOSTS = [
@@ -154,6 +158,48 @@ export async function handleLabBrowser(
       const msg = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
       return json(502, { error: 'quick action failed', detail: msg.slice(0, 400), elapsedMs: Date.now() - t0 });
     }
+  }
+
+  // AI 通道连通性探测：**从 CF 边缘真实发起**，用于区分「端点/服务问题」与「CF 出口被拒」。
+  // 典型用途：Agnes 国际站(.com) 与国内节点(.cn) 在 Worker 出口的可达性对比
+  // （2026-09-21：当年「CF 出口恒 1015」的结论疑似就是打了国际站所致）。
+  if (url.pathname === '/app-api/lab/ai-probe') {
+    const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
+      '(KHTML, like Gecko) Chrome/128.0 Safari/537.36';
+    const targets: [string, string, string, string, boolean][] = [
+      ['agnes-cn', 'https://apihub.agnes-ai.cn/v1/chat/completions', 'agnes-2.5-flash', env.AGNES_API_KEY ?? '', false],
+      ['agnes-com', 'https://apihub.agnes-ai.com/v1/chat/completions', 'agnes-2.5-flash', env.AGNES_API_KEY ?? '', false],
+      ['openrouter-ultra', 'https://openrouter.ai/api/v1/chat/completions',
+        'nvidia/nemotron-3-ultra-550b-a55b:free', env.OPENROUTER_API_KEY ?? '', true],
+      ['modelscope', 'https://api-inference.modelscope.cn/v1/chat/completions',
+        'Qwen/Qwen3.5-122B-A10B', env.MODELSCOPE_API_KEY ?? '', true],
+    ];
+    const results: Record<string, unknown>[] = [];
+    for (const [name, endpoint, model, key, needThinkingFlag] of targets) {
+      const t0 = Date.now();
+      if (!key) {
+        results.push({ name, status: -1, error: 'no key in env' });
+        continue;
+      }
+      const body: Record<string, unknown> = {
+        model, messages: [{ role: 'user', content: 'Reply with exactly: ok' }],
+        max_tokens: 16, stream: false, temperature: 0,
+      };
+      if (needThinkingFlag) body.enable_thinking = false;   // 魔搭：关思考
+      try {
+        const r = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}`, 'User-Agent': UA },
+          body: JSON.stringify(body),
+        });
+        const text = await r.text();
+        results.push({ name, status: r.status, ms: Date.now() - t0, snippet: text.slice(0, 220) });
+      } catch (e) {
+        const msg = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
+        results.push({ name, status: 0, ms: Date.now() - t0, error: msg.slice(0, 220) });
+      }
+    }
+    return json(200, { ok: true, from: 'cloudflare-edge', results });
   }
 
   return json(404, { error: 'not found' });
