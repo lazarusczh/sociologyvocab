@@ -170,7 +170,7 @@ export async function handleLabBrowser(
       ['agnes-cn', 'https://apihub.agnes-ai.cn/v1/chat/completions', 'agnes-2.5-flash', env.AGNES_API_KEY ?? '', false],
       ['agnes-com', 'https://apihub.agnes-ai.com/v1/chat/completions', 'agnes-2.5-flash', env.AGNES_API_KEY ?? '', false],
       ['openrouter-ultra', 'https://openrouter.ai/api/v1/chat/completions',
-        'nvidia/nemotron-3-ultra-550b-a55b:free', env.OPENROUTER_API_KEY ?? '', true],
+        'nvidia/nemotron-3-ultra-550b-a55b:free', env.OPENROUTER_API_KEY ?? '', false],
       ['modelscope', 'https://api-inference.modelscope.cn/v1/chat/completions',
         'Qwen/Qwen3.5-122B-A10B', env.MODELSCOPE_API_KEY ?? '', true],
     ];

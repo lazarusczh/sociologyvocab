@@ -111,9 +111,12 @@ const aiHeaders = (code: string, modelId: string, extra: Record<string, string> 
   ...extra,
 });
 
-// 评估/对比类问题意图词（命中→思考模型）；日常直答模型只用于其余问题
+// 评估/对比类问题意图词（命中 → 思考模型）；日常直答模型只用于其余问题。
+// ⚠️ 2026-09-21 修：英文词原先没有词边界，`merit` 会命中 **meritocracy**（Paper 1 核心术语），
+//    于是「什么是 meritocracy」这种最普通的术语提问被误判成评估题、切到 think 档。
+//    现在英文词一律加词边界，且 `merit / merits` 用精确词边界，不再吞掉 meritocracy 这类派生词。
 const HARD_RE =
-  /评估|评价|比较|对比|争议|批判|正反|优劣|优缺点|利弊|观点|同意|反对|AO3|assess|evaluate|compare|contrast|critic|strength|weakness|merit|limitation|advantage|disadvantage|judge|argue|debate/i;
+  /评估|评价|比较|对比|争议|批判|正反|优劣|优缺点|利弊|观点|同意|反对|AO3|\b(?:assess\w*|evaluat\w*|compar\w*|contrast\w*|critic\w*|strength\w*|weakness\w*|merits?\b|limitation\w*|advantage\w*|disadvantage\w*|judg\w*|argu\w*|debate\w*)/i;
 
 // 临时验证开关（已实证 nemotron 线上跑通，2026-09-09）：true 时跳过魔搭双档走降级链。
 // 平时必须为 false。
