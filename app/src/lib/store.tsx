@@ -1,4 +1,4 @@
-import {
+﻿import {
   createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode,
 } from 'react';
 import type { VocabItem, Progress, ContextPassage, ImportResult, CheckInState, WrongBook, PracticeMode, SurnameOverrides, AuthUser } from './types';
@@ -315,7 +315,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     // 去重后一条都没有 = 内容没变：既不标脏也不写盘。
     //（此前是无条件 setVocabDirty(true)，重复导入同一个 xlsx 会误报「有未发布的修改」）
     if (fresh.length === 0) return;
-    setVocabDirty(true);
+    markDirty('appendVocab 有新条目');
     persistVocab([...vocab, ...fresh]);
   }, [vocab, persistVocab]);
 
@@ -324,11 +324,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     // 只有内容真的变了才标脏：编辑后原样保存、批量操作没命中任何条目、删除不存在的关系，
     // 都不该报「有未发布的修改」。用内容指纹比对，键顺序差异不影响判断。
     if (vocabSnapshotKey(items) === vocabSnapshotKey(vocab)) return;
-    setVocabDirty(true);
+    markDirty('replaceVocab 内容有变');
     persistVocab(items);
   }, [vocab, persistVocab]);
 
-  const markVocabDirty = useCallback(() => setVocabDirty(true), []);
+  /**
+   * 标脏并**记录来源**。
+   *
+   * 2026-09-21 加：教师报「未对词条作任何调整，却出现『有未发布的修改』提示」，
+   * 而代码里有七八处会标脏，光看现象无法判断是哪一处误报。
+   * 这里统一走一个入口打一行 console（仅开发者工具可见，不影响普通使用），
+   * 复现时一眼就能看出是谁标的 —— 比继续逐个猜快得多。
+   */
+  const markDirty = useCallback((from: string) => {
+    console.warn(`[vocabDirty] 由「${from}」标记为「有未发布的修改」`);
+    setVocabDirty(true);
+  }, []);
+  const markVocabDirty = useCallback(() => markDirty('显式调用 markVocabDirty'), [markDirty]);
   const clearVocabDirty = useCallback(() => setVocabDirty(false), []);
 
   // 单元分类管理（增删排序；变更存本地，随「发布词库」同步云端）
@@ -344,24 +356,29 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       saveUnitOrder(next);
       return next;
     });
-    setVocabDirty(true);
+    markDirty('addUnit 新增单元');
   }, [unitOrder]);
 
   const removeUnit = useCallback((paper: string, sub: string, name: string) => {
     const key = `${paper}|${sub}`;
+    // 删除一个本就不存在的单元 = 没有任何变化：不该标脏、也不该写盘。
+    // 2026-09-21：与 addUnit / moveUnit 的口径统一 —— 此前这里无条件 setVocabDirty(true)，
+    // 是「未做任何调整却报『有未发布的修改』」的来源之一。
+    if (!(unitOrder[key] ?? []).includes(name)) return;
     setUnitOrder((prev) => {
       const next = { ...prev, [key]: (prev[key] ?? []).filter((u) => u !== name) };
       saveUnitOrder(next);
       return next;
     });
-    // 删除单元时，同步从所有词条上移除该单元
-    setVocabDirty(true);
+    markDirty('removeUnit 删除单元');
+    // 同步从所有词条上移除该单元；若没有任何词条引用它，就别写盘、也别让上层以为变了
     setVocab((prev) => {
       const next = prev.map((i) => (i.unit?.includes(name) ? { ...i, unit: i.unit.filter((u) => u !== name) } : i));
+      if (next.every((it, i) => it === prev[i])) return prev;
       saveVocab(next);
       return next;
     });
-  }, []);
+  }, [unitOrder]);
 
   const moveUnit = useCallback((paper: string, sub: string, name: string, dir: -1 | 1) => {
     const key = `${paper}|${sub}`;
@@ -382,31 +399,37 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return next;
     });
     // 单元顺序会随发布同步给学生，属于真实变更
-    setVocabDirty(true);
+    markDirty('moveUnit 调整单元顺序');
   }, [unitOrder]);
 
   // 重命名单元：更新单元列表中的名字，并同步更新所有词条的 unit 引用
   const renameUnit = useCallback((paper: string, sub: string, oldName: string, newName: string) => {
     const key = `${paper}|${sub}`;
+    // 改成同名、目标名已存在、或原单元本就不在列表里 —— 都是"没有任何变化"，不该标脏。
+    // 2026-09-21：此前无条件 setVocabDirty(true)，点一下"重命名"却没真改也会报「有未发布的修改」。
+    const list0 = unitOrder[key] ?? [];
+    if (!oldName || !newName || oldName === newName) return;
+    if (!list0.includes(oldName) || list0.includes(newName)) return;
     setUnitOrder((prev) => {
       const list = (prev[key] ?? []).map((u) => (u === oldName ? newName : u));
       const next = { ...prev, [key]: list };
       saveUnitOrder(next);
       return next;
     });
-    setVocabDirty(true);
+    markDirty('renameUnit 重命名单元');
     setVocab((prev) => {
       const next = prev.map((i) =>
         i.unit?.includes(oldName) ? { ...i, unit: i.unit.map((u) => (u === oldName ? newName : u)) } : i,
       );
+      if (next.every((it, i) => it === prev[i])) return prev;
       saveVocab(next);
       return next;
     });
-  }, []);
+  }, [unitOrder]);
 
   const clearAll = useCallback(() => {
     setConfigured();
-    setVocabDirty(true);
+    markDirty('clearAll 清空词库');
     clearVocab();
     setVocab([]);
   }, []);
@@ -414,7 +437,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const setSurnameOverride = useCallback((term: string, surname: string) => {
     const v = surname.trim();
     if ((surnameOverrides[term] ?? '') === v) return; // 值没变：不标脏、也不写盘
-    setVocabDirty(true); // 覆盖表已随发布上云，改动即「未发布的修改」
+    markDirty('setSurnameOverride 改姓氏覆盖');
     setSurnameOverrides((prev) => {
       const next = v
         ? { ...prev, [term]: v }
@@ -426,7 +449,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const removeSurnameOverride = useCallback((term: string) => {
     if (!(term in surnameOverrides)) return; // 本就没有：什么都不做
-    setVocabDirty(true);
+    markDirty('removeSurnameOverride 删姓氏覆盖');
     setSurnameOverrides((prev) => {
       const { [term]: _drop, ...rest } = prev;
       saveSurnameOverrides(rest);

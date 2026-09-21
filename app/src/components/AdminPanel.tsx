@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import ImportPanel from './ImportPanel';
 import TeacherCheckPanel from './TeacherCheckPanel';
+import DefinitionReviewPanel from './DefinitionReviewPanel';
 import VocabManager from './VocabManager';
 import LogicManager from './LogicManager';
 import ClassManager from './ClassManager';
@@ -19,7 +20,7 @@ import OcrMarkPanel from './OcrMarkPanel';
 // 位置记忆：localStorage 记住「上次所在的组」与「每组上次所在的页」；记忆失效时回退到该组第一项。
 
 type TabKey =
-  | 'check' | 'classes' | 'quiz' | 'grouper' | 'results'
+  | 'check' | 'classes' | 'quiz' | 'grouper' | 'results' | 'defreview'
   | 'aigate' | 'ocr' | 'vocab' | 'logic' | 'import';
 
 type GroupKey = 'task' | 'student' | 'content';
@@ -35,6 +36,7 @@ const GROUPS: GroupDef[] = [
       { key: 'quiz', label: '测验/作业' },   // 最高频，放首位
       { key: 'grouper', label: '组卷器' },   // 组卷 → 阅卷 → 登分，保持这个顺序
       { key: 'ocr', label: 'OCR 阅卷' },
+      { key: 'defreview', label: '定义题复核' },   // 与 OCR 阅卷同类：看学生真实作答并判定
       { key: 'results', label: '试卷成绩' },
     ],
   },
@@ -67,6 +69,7 @@ const PAGE_HINT: Record<TabKey, string> = {
   quiz: '创建随堂测验/作业，看待答与成绩（ManageBac 同步也在这里）。',
   grouper: '按考卷与考点组一份卷；保存后到「试卷成绩」登记分数。',
   ocr: '上传纸质答卷照片，视觉模型转写并在原文里高亮术语与学者。',
+  defreview: '复核学生在定义题练习里的真实作答与模型判分，给出教师判定并统计一致率。',
   results: '回访已保存的试卷、登记卷面分并换算百分制，可同步 ManageBac。',
   check: '查看打卡与掌握度统计，可按班级筛选。',
   classes: '建立班级、给学生分班，并绑定 ManageBac 成绩册与导入名单。',
@@ -154,6 +157,7 @@ export default function AdminPanel() {
       {tab === 'results' && <PaperResults />}
       {tab === 'aigate' && <AiGatePanel />}
       {tab === 'ocr' && <OcrMarkPanel />}
+      {tab === 'defreview' && <DefinitionReviewPanel />}
       {tab === 'vocab' && <VocabManager />}
       {tab === 'logic' && <LogicManager />}
       {tab === 'import' && <ImportPanel />}
