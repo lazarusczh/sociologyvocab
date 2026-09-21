@@ -174,7 +174,8 @@ export async function gradeDefinition(
     .filter(([, v]) => typeof v === 'string' && v.trim())
     .map(([k, v]) => `- [${SOURCE_LABEL[k] ?? k}] ${v.trim()}`)
     .join('\n');
-  const prompt = `你是剑桥 9699 A Level 社会学的阅卷官。学生在做「术语定义默写」，请**只判定每个要素的覆盖程度**，不要给档位。
+  const prompt = `你是剑桥 9699 A Level 社会学的阅卷官。学生在做「术语定义默写」。
+请**分两步**作答：先理解学生说了什么，再逐要素判定覆盖程度（只判覆盖度，不要给档位）。
 
 术语：${term}
 ${refs ? `\n参考原文（英文，来自权威来源，供你判断语义等价用）：\n${refs}\n` : ''}
@@ -183,7 +184,9 @@ ${list}
 
 学生答案：${answer}
 
-请对每个要素给出覆盖度 coverage：
+**第一步**：用 1~3 条列出「学生这段话表达了哪些含义」——只描述学生的意思，
+不要改写成要素的措辞、不要补充学生没说过的内容。
+**第二步**：把第一步的清单与核心要素逐条对照，给出覆盖度 coverage：
 - ★ 主干要素：1.0 = 表达到位；0.5 = 只沾到一部分（说了半句、过于笼统）；0.0 = 没提到或说错
 - · 举例要素：**只给 0.0 或 1.0 两档**（明确举出了这个例子 → 1.0；没提到或只是笼统说"有危害/有多种形式" → 0.0）
 
@@ -193,9 +196,12 @@ ${list}
 
 判定口径（务必严格执行）：
 - 用中文或英文作答都算；**只要与「核心要素」或「参考原文」意思相同即算覆盖**，不要求用词一致、更不要求复述原文；
-- **同义改写必须宽容**（本任务最易出错处）：词序调整、复合词化、词性转换、单复数/时态变化、同义替换都算覆盖。
-  例：要素「低工作保障」〔原文 low job security〕，学生写 "low-security jobs"、"jobs with little security"、
-  "工作保障低" 均应判 **1.0**；
+- **同义词与上下位词一律算覆盖**（本任务最易出错处）：绝不因为用词与要素/原文不同就判未覆盖。例：
+  「低工资」〔原文 low pay〕← 学生写 "low wages" / "badly paid" → **1.0**；
+  「低工作保障」〔low job security〕← "low-security jobs" / "工作保障低" → **1.0**；
+  「新型无产阶级」〔a new type of proletariats〕← "a new type of working class" → **1.0**；
+- **判断方式**：先看懂学生的意思，再问它是否等于该要素，**不要**在答案里搜与要素/原文相同或相近的词去打勾；
+  词序调整、复合词化、词性转换、单复数/时态变化同样都算覆盖；
 - **0.5 的边界（最容易误判，务必严格）**：只有「方向或程度明显不对」或「只说了半句、要靠猜才成立」才给 0.5。
   **学生答出了要素的实质、只是少列了其中一个并列子点，不算 0.5，应给 1.0**：
   例①：要素「因长期失业、家庭主要养家者角色逆转而被边缘化的男性气质」，
@@ -207,9 +213,10 @@ ${list}
 - 若学生举出的例子**已经体现了某个 ★ 主干要素**（例如主干说"科技变化造成危害"，学生举了"屏幕时间过长"），该主干要素可给 0.5 以上。
 
 只输出 JSON（不要 markdown、不要解释）：
-{"coverage":[1.0,0.0],"listing_only":false,"reason":"不超过40字的中文理由","confidence":0.0}`;
+{"restate":["学生表达的含义1","含义2"],"coverage":[1.0,0.0],"listing_only":false,"reason":"不超过40字的中文理由","confidence":0.0}`;
 
-  const { text, model, tier, ms } = await callComplete(prompt, { maxTokens: 600, ...opts });
+  // maxTokens 留足：判分要求先输出 restate（学生表达的含义）再给 coverage
+  const { text, model, tier, ms } = await callComplete(prompt, { maxTokens: 1000, ...opts });
   const parsed = parseJsonLoose<{ coverage?: unknown; listing_only?: boolean; reason?: string }>(text) ?? {};
   const listingOnly = Boolean(parsed.listing_only);
   const coverage = (Array.isArray(parsed.coverage) ? parsed.coverage : []).map((x) => Number(x));
