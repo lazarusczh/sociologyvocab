@@ -47,10 +47,16 @@ const MS_THINK = 'Qwen/Qwen3.5-397B-A17B';
 
 // Agnes AI（apihub）：OpenAI 兼容；推理过程在独立字段 reasoning_content，
 // 前端只取 content，思考链不外泄；质量经实测明显强于 8B（合格线达成）。
-// 但从 Cloudflare Worker 出口直连实测恒被拒（CF WAF 1015 限流，与 key 无关，2026-09-09），
-// 故默认不在 Worker 链上启用——仍可用于本地/个人 agent。日后若其风控调整，改回 true 即恢复。
-const AGNES_VIA_CF = false;
-const AG_URL = 'https://apihub.agnes-ai.com/v1/chat/completions';
+//
+// ★ 2026-09-21 重新启用 + 换端点：Agnes 于 2026-07-29 上线**国内节点** `apihub.agnes-ai.cn`
+//   （原 `apihub.agnes-ai.com` 为国际站，key 与参数通用，仅需换地址）。
+//   当年 2026-09-09 实测「CF 出口恒 1015」时打的正是国际站 —— 参考案例（Cloudflare Pages
+//   Functions 代理 agnes-2.5-flash 流式）证明 CF 边缘调 Agnes 本身可行，故高度怀疑是端点/风控问题。
+//   本地实测两个端点均可用（.com 7.3s / .cn 4.8s）。
+//   ⚠️ 若线上实测仍不通（子站问答的响应头 X-AI-Model 不落到 agnes），把这里改回 false 即可，
+//      降级链会自动继续走魔搭，无副作用（只多一次失败请求的延迟）。
+const AGNES_VIA_CF = true;
+const AG_URL = 'https://apihub.agnes-ai.cn/v1/chat/completions';
 const AG_MODEL = 'agnes-2.5-flash';
 
 // OpenRouter（降级缓冲）：:free 池。gemma 系上游是 Google AI Studio 共享池，

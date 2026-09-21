@@ -21,7 +21,8 @@ const BROWSER_UA =
 
 const MS_CHAT_URL = 'https://api-inference.modelscope.cn/v1/chat/completions';
 const OR_CHAT_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const AG_CHAT_URL = 'https://apihub.agnes-ai.com/v1/chat/completions';
+// Agnes 国内节点（2026-07-29 上线；原 apihub.agnes-ai.com 为国际站，key/参数通用）
+const AG_CHAT_URL = 'https://apihub.agnes-ai.cn/v1/chat/completions';
 
 // ★ 2026-09-17 更换：原 `Qwen/Qwen3-235B-A22B` 已被魔搭下架（400 `has no provider supported`）。
 // 这里是主站 /app-api/ai/complete 的「魔搭兜底档」——它排在 OpenRouter/Agnes 之后，只在免费档都失败时才烧魔粒。

@@ -33,7 +33,7 @@ DEV_VARS = ROOT / ".dev.vars"
 PROVIDERS = {
     "openrouter": ("https://openrouter.ai/api/v1/chat/completions",
                    "nvidia/nemotron-3-super-120b-a12b:free", "OPENROUTER_API_KEY"),
-    "agnes": ("https://apihub.agnes-ai.com/v1/chat/completions",
+    "agnes": ("https://apihub.agnes-ai.cn/v1/chat/completions",     # 国内节点（.com 为国际站）
               "agnes-2.5-flash", "AGNES_API_KEY"),
 }
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "

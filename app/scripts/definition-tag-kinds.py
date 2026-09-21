@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PROVIDERS = {
     "openrouter": ("https://openrouter.ai/api/v1/chat/completions",
                    "nvidia/nemotron-3-super-120b-a12b:free", "OPENROUTER_API_KEY"),
-    "agnes": ("https://apihub.agnes-ai.com/v1/chat/completions", "agnes-2.5-flash", "AGNES_API_KEY"),
+    "agnes": ("https://apihub.agnes-ai.cn/v1/chat/completions", "agnes-2.5-flash", "AGNES_API_KEY"),  # 国内节点
 }
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/128.0 Safari/537.36")
