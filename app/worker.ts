@@ -270,7 +270,7 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
     if (orRes) return new Response(orRes.body, { headers: aiHeaders('openrouter', OR_MODEL) });
   }
   if (agKey && tier === 'agnes') {
-    const ag = await msAsk(AG_MODEL, messages, agKey, { base: AG_URL, maxTokens: 1800, onFail: rec('agnes') });
+    const ag = await msAsk(AG_MODEL, messages, agKey, { base: AG_URL, maxTokens: 3600, onFail: rec('agnes') });
     if (ag) return new Response(ag.body, { headers: aiHeaders('agnes', AG_MODEL) });
   }
   // 手动选 llama = 直接走 Workers 8B；其它手动档失败仍走下方自动链兜底
@@ -282,9 +282,14 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
     if (think) return new Response(think.body, { headers: aiHeaders('qwen3-think', MS_THINK) });
   }
 
-  // 4b) 日常主力：Agnes（免费，省魔粒）——因 CF 出口 1015 限流默认关闭（AGNES_VIA_CF=false）
+  // 4b) 日常主力：Agnes（免费，省魔粒）
+  // ★ 2026-09-21 修截断：maxTokens 1800 → **3600**（与魔搭/OpenRouter 档一致）。
+  //   原因：**Agnes 的推理关不掉**（`enable_thinking:false` 被忽略，实测 reasoning_tokens 仍占 140~600），
+  //   而推理与正文**共享 max_tokens 预算** → 1800 时留给正文的只剩 ~1200，
+  //   遇到「think 档」那种要求长论证的提问（2000 字以上）就会在结尾处被截断
+  //   （表现为回答读着读着断在半句）。其余档（魔搭 / OpenRouter）都能真正关推理，所以没有这个问题。
   if (AGNES_VIA_CF && agKey) {
-    const ag = await msAsk(AG_MODEL, messages, agKey, { base: AG_URL, maxTokens: 1800, onFail: rec('agnes') });
+    const ag = await msAsk(AG_MODEL, messages, agKey, { base: AG_URL, maxTokens: 3600, onFail: rec('agnes') });
     if (ag) return new Response(ag.body, { headers: aiHeaders('agnes', AG_MODEL) });
   }
 

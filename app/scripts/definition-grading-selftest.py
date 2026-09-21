@@ -41,25 +41,61 @@ PROVIDERS = {
 }
 STOP = {"the", "a", "an", "of", "and", "in", "for", "to", "on", "with", "by", "as", "is", "are"}
 
-PROMPT = """你是剑桥 9699 A Level 社会学的阅卷官。学生在做「术语定义默写」，请**只判定每个要素的覆盖程度**，不要给档位。
+# 与线上 lib/ai.ts 的 SOURCE_LABEL 一致（参考原文的来源标注）
+SOURCE_LABEL = {
+    "main": "主站词库（学生日常练习所依据的定义）",
+    "tb1": "教材 Haralambos",
+    "tb2": "教材 Livesey Coursebook",
+    "igcse0495": "0495 官方 glossary",
+}
+
+# ★ 2026-09-21：本 PROMPT 与线上 `app/src/lib/ai.ts` 的 `gradeDefinition` **保持同构**。
+#   原先是旧版 —— 缺「两步法 / ★·标记 / 参考原文 / 0.5 边界（少列一个并列子点应给 1.0）」
+#   等条款，会让脚本成绩**系统性偏严、不能代表线上**。
+#   ⚠️ prompt 现在有两份真源（TS 一份、Python 一份），改线上务必同步这里，否则必然漂移。
+PROMPT = """你是剑桥 9699 A Level 社会学的阅卷官。学生在做「术语定义默写」。
+请**分两步**作答：先理解学生说了什么，再逐要素判定覆盖程度（只判覆盖度，不要给档位）。
 
 术语：{term}
+{refs}
+核心要素（★ = 定义主干，必须答到；· = 并列举例，举出其中若干项即可）：
+{list}
 
-核心要素（来自多个权威来源的共识，共 {n} 条）：
-{keypoints}
-{extra}
 学生答案：{answer}
 
-请对每个要素给出覆盖度 coverage：
-- 1.0 = 该要素的意思表达到位（不要求用词一致、不要求逐点复述，意思到了即可）
-- 0.5 = 只沾到一部分（说了半句、过于笼统、要靠猜才成立）
-- 0.0 = 没提到，或说错
+**第一步**：用 1~3 条列出「学生这段话表达了哪些含义」——只描述学生的意思，
+不要改写成要素的措辞、不要补充学生没说过的内容。
+**第二步**：把第一步的清单与核心要素逐条对照，给出覆盖度 coverage：
+- ★ 主干要素：1.0 = 表达到位；0.5 = 只沾到一部分（说了半句、过于笼统）；0.0 = 没提到或说错
+- · 举例要素：**只给 0.0 或 1.0 两档**（明确举出了这个例子 → 1.0；没提到或只是笼统说"有危害/有多种形式" → 0.0）
 
-另外判断 listing_only：答案是否只是把关键词堆在一起、没有形成完整陈述（true/false）。
-用中文或英文作答都算；意思相同即算覆盖，不要求用词一致。
+另外判断 listing_only（"是否只是罗列关键词"）：
+- true 仅指**把关键词成串堆在一起、完全没有形成句子**（如"学业压力 屏幕时间 商业化"这样一串词）；
+- 只要答案有主谓结构（如"儿童面临多种危害，例如学业压力、屏幕时间和商业化"），即使中间夹着举例，也算**正常陈述 → false**。
+
+判定口径（务必严格执行）：
+- **判定依据只有「学生答案」本身**：参考原文与要素说明只用于帮你理解这个术语和可接受的表述，
+  **绝不能**把参考原文里的内容当成学生说过的内容 —— 学生没写的内容，即使原文里有，也必须判 0.0；
+- **要素以英文表述为准**（要素给了英文时，按英文含义判断；中文说明仅供参考，不构成额外要求）；
+- 用中文或英文作答都算；**只要与「核心要素」或「参考原文」意思相同即算覆盖**，不要求用词一致、更不要求复述原文；
+- **同义词与上下位词一律算覆盖**（本任务最易出错处）：绝不因为用词与要素/原文不同就判未覆盖。例：
+  「低工资」〔原文 low pay〕← 学生写 "low wages" / "badly paid" → **1.0**；
+  「低工作保障」〔low job security〕← "low-security jobs" / "工作保障低" → **1.0**；
+  「新型无产阶级」〔a new type of proletariats〕← "a new type of working class" → **1.0**；
+- **判断方式**：先看懂学生的意思，再问它是否等于该要素，**不要**在答案里搜与要素/原文相同或相近的词去打勾；
+  词序调整、复合词化、词性转换、单复数/时态变化同样都算覆盖；
+- **0.5 的边界（最容易误判，务必严格）**：只有「方向或程度明显不对」或「只说了半句、要靠猜才成立」才给 0.5。
+  **学生答出了要素的实质、只是少列了其中一个并列子点，不算 0.5，应给 1.0**：
+  例①：要素「因长期失业、家庭主要养家者角色逆转而被边缘化的男性气质」，
+  学生写 "men pushed to the margins because they lost their role as the main earner"
+  （答出"被边缘化 + 失去养家角色"，只是没写"长期失业"）→ **1.0**；
+  例②：要素「累积的金钱及其他财产」，学生写「房屋、汽车、珠宝等积累起来的财富」→ **1.0**；
+- 0.0 仅当学生**完全没有表达该含义**（含说反了）；
+- **成档与否只看「核心要素」清单**——不要额外要求学生答出参考原文里的其它内容；
+- 若学生举出的例子**已经体现了某个 ★ 主干要素**（例如主干说"科技变化造成危害"，学生举了"屏幕时间过长"），该主干要素可给 0.5 以上。
 
 只输出 JSON（不要 markdown、不要解释）：
-{{"coverage":[1.0,0.0],"listing_only":false,"reason":"不超过40字的中文理由","confidence":0.0}}"""
+{{"restate":["学生表达的含义1","含义2"],"coverage":[1.0,0.0],"listing_only":false,"reason":"不超过40字的中文理由","confidence":0.0}}"""
 
 
 def load_key(var: str):
@@ -181,11 +217,12 @@ def parse_verdict(txt: str):
     return None
 
 
-def verdict_from_coverage(coverage: list, listing_only: bool, kp_count: int = 0) -> str:
-    """档位由确定性规则算出（可复现、可审计）。用连续覆盖度，1 个要素的术语同样适用。
+def verdict_from_keypoints(coverage: list, kps: list, listing_only: bool) -> str:
+    """档位规则 —— 与线上 `app/src/lib/ai.ts` 的 `verdictFromKeypoints` **同构**。
 
-    门槛随要素条数递减：条数多的术语几乎都是并列列举型（如 toxic childhood 的七项危害），
-    要求答全不现实，教学上"举出其中若干项"即算掌握（与前端 lib/ai.ts 保持一致）。
+    ★ 主干要素必须**每一项都达标**（平均达标不算）；· 举例要素举够数即可
+    （≤2 项时举 1 项、≥3 项时举 2 项）。缺失索引按 0 计。
+    早前这里用的是"全要素平均覆盖度 ≥ 递减门槛"，与线上口径不同，会让脚本成绩失真。
     """
     try:
         vals = [float(x) for x in (coverage or [])]
@@ -193,12 +230,23 @@ def verdict_from_coverage(coverage: list, listing_only: bool, kp_count: int = 0)
         return "PARSE_FAIL"
     if not vals or max(vals) <= 0:
         return "wrong"
-    n = kp_count or len(vals)
-    threshold = 0.4 if n >= 6 else 0.5 if n >= 4 else 0.75
-    score = sum(vals) / len(vals)
-    if score >= threshold and not listing_only:
+
+    def v(i: int) -> float:
+        return vals[i] if i < len(vals) else 0.0
+
+    req_idx = [i for i, k in enumerate(kps) if k.get("kind") != "example"]
+    ex_idx = [i for i, k in enumerate(kps) if k.get("kind") == "example"]
+
+    req_score = (sum(v(i) for i in req_idx) / len(req_idx)) if req_idx else 1.0
+    req_all_ok = all(v(i) >= 0.75 for i in req_idx)
+    ex_hits = sum(1 for i in ex_idx if v(i) >= 0.75)
+    ex_need = (1 if len(ex_idx) <= 2 else 2) if ex_idx else 0
+
+    if req_all_ok and ex_hits >= ex_need and not listing_only:
         return "correct"
-    return "partial"          # 覆盖不足 / 只有罗列 → 部分正确
+    if req_score >= 0.3 or ex_hits >= 1:
+        return "partial"
+    return "wrong"
 
 
 def partial_excerpt(text: str) -> str:
@@ -314,16 +362,27 @@ def main():
     for idx, (rec, kind, ans, expect) in enumerate(samples, 1):
         # 判分清单 = 参考来源的必踩点（方案 13.3 修正后：以参考来源为中心，其他来源独有内容进 bonus）
         cores = rec["keypoints"]
-        kp_lines = "\n".join(f"{j+1}. {k.get('text')}" for j, k in enumerate(cores))
-        vari = [b.get("text") for b in rec.get("bonus", []) if b.get("text")]
-        extra = f"其他来源的独有表述（学生答出可作加分，不作必答要求）：{'; '.join(vari[:6])}\n\n" if vari else ""
-        prompt = PROMPT.format(term=rec["term"], n=len(cores), keypoints=kp_lines,
-                               extra=extra, answer=ans)
+
+        # 要素行与线上一致：★ 主干 / · 举例；**英文表述在前作判定依据**，中文仅作参考说明
+        def kp_line(j: int, k: dict) -> str:
+            mark = "·" if k.get("kind") == "example" else "★"
+            if k.get("en"):
+                return f"{j+1}. {mark} {k.get('en')}　（中文说明，仅供参考：{k.get('text')}）"
+            return f"{j+1}. {mark} {k.get('text')}　（该要素暂无英文表述，请按此中文含义判断）"
+
+        kp_lines = "\n".join(kp_line(j, k) for j, k in enumerate(cores))
+        # 参考原文（英文）：与线上一样作为"语义等价"的参照依据
+        prefer = rec.get("reference") or "main"
+        ref_text = ref_definition(rec["term"], prefer)
+        refs = (f"\n参考原文（英文，来自权威来源，供你判断语义等价用）：\n"
+                f"- [{SOURCE_LABEL.get(prefer, prefer)}] {ref_text.strip()}\n"
+                ) if ref_text.strip() else ""
+        prompt = PROMPT.format(term=rec["term"], refs=refs, list=kp_lines, answer=ans)
         verdicts, rec_coverage, rec_reason, rec_conf = [], [], "", ""
         for _ in range(args.repeat):
             v = parse_verdict(complete(prompt))
             if v:
-                verdicts.append(verdict_from_coverage(v.get("coverage"), bool(v.get("listing_only"))))
+                verdicts.append(verdict_from_keypoints(v.get("coverage"), cores, bool(v.get("listing_only"))))
                 rec_reason = v.get("reason", "")
                 rec_conf = v.get("confidence", "")
                 rec_coverage = v.get("coverage", [])
