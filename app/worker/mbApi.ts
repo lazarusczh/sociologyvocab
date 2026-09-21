@@ -447,19 +447,51 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
         // 写入后页面上可见的按钮 / 是否在表单里（每个学生记一条，用于判断提交机制）
         const postWriteUi: string[] = [];
         for (const t of located) {
-          if (!t.ok || !t.inputId) {
+          if (!t.ok) {
             written.push({ row: t.row, ok: false, reason: t.reason ?? '定位失败' });
             continue;
           }
-          const typed = await typeIntoScoreInput(cdp, t.inputId, t.score ?? '');
+          const want = t.score ?? '';
+
+          // **每行独立走一遍「重新定位 → 写入 → 自校验」，最多两次**（2026-09-21 改）。
+          //
+          // 为什么不再用最开始那次 locate 拿到的 inputId：
+          //   写一行就会触发成绩册重渲染，后面那些行的 DOM 可能已经被替换，旧引用失效。
+          //   而 `typeIntoScoreInput` 是「先 Ctrl+A+Backspace 清空、再逐字符键入」——
+          //   一旦"清空成功、键入落空"，该行就从**有值变成空**，随后失焦把空值提交上去。
+          //   这正是教师看到的「十几个一起填，有几个读回是空值」，也解释了为什么
+          //   "重试几次能成两个、总剩一个进不去"（随机丢值，不是某行天生不可写）。
+          let rowOk = false;
+          let rowSteps: string[] = [];
+          let rowBefore = t.before;
+          for (let attempt = 1; attempt <= 2 && !rowOk; attempt++) {
+            if (attempt > 1) await sleep(600); // 让上一轮保存请求飞完、页面稳定下来
+            const fresh = JSON.parse(await cdp.text(locateExpr([{ row: t.row, score: want }]))) as {
+              ok: boolean;
+              reason?: string;
+              inputId?: string;
+              before?: string;
+            }[];
+            const hit = fresh[0];
+            if (!hit?.ok || !hit.inputId) {
+              rowSteps = rowSteps.concat(`第 ${attempt} 次定位失败：${hit?.reason ?? '未知'}`);
+              continue;
+            }
+            rowBefore = hit.before;
+            const typed = await typeIntoScoreInput(cdp, hit.inputId, want);
+            rowOk = typed.ok;
+            rowSteps = rowSteps.concat(typed.steps.map((s) => `[第 ${attempt} 次] ${s}`));
+          }
           written.push({
             row: t.row,
-            ok: typed.ok,
-            before: t.before,
-            after: typed.ok ? (t.score ?? '') : '',
-            steps: typed.steps,
-            reason: typed.ok ? undefined : '真实输入没有落到分数框',
+            ok: rowOk,
+            before: rowBefore,
+            after: rowOk ? want : '',
+            steps: rowSteps,
+            reason: rowOk ? undefined : '两次尝试都没能把值写进分数框',
           });
+          // 行间留一口气：每行失焦都会触发一次自动保存请求，紧接着操作下一行容易互相干扰
+          await sleep(350);
           // 写入后这个页面**到底有没有可供提交的按钮/表单**（仅诊断开关打开时）。
           // 放在写入之后 dump：有些界面是"改动后才亮出保存按钮"。
           const afterInfo = MB_WRITE_DIAG ? await cdp.text(`(() => {
@@ -775,6 +807,28 @@ function locateExpr(updates: { row: string; score?: string }[]): string {
  *
  * 每一步都记进 `steps`（含 rect、命中元素、可见性），失败时能直接看出卡在哪一环，不必靠猜。
  */
+/**
+ * 找一个「点下去不会碰到输入框/按钮/链接」的空白坐标，用来夺焦。
+ *
+ * 原来固定点 (4,4)：页面滚动后那个位置可能是**另一行的分数框** ——
+ * 点它等于给别的框焦点、把它当前的值（可能就是空的）一起提交。
+ * 2026-09-21 教师报「十几个一起填，有几个读回是空值」，这是嫌疑来源之一。
+ * 这里先探测若干候选点，挑第一个 `elementFromPoint` 命中的不是交互元素的。
+ */
+async function safeBlankSpot(cdp: Cdp): Promise<{ x: number; y: number } | null> {
+  const raw = await cdp.text(`(() => {
+    const interactive = (el) => !!el && !!el.closest('input, textarea, select, button, a, [contenteditable], label');
+    for (const y of [6, 30, 90, 200, 320]) {
+      for (const x of [6, 30, 90, 260]) {
+        const el = document.elementFromPoint(x, y);
+        if (el && !interactive(el)) return JSON.stringify({ x, y });
+      }
+    }
+    return '';
+  })()`);
+  return raw ? (JSON.parse(raw) as { x: number; y: number }) : null;
+}
+
 async function typeIntoScoreInput(
   cdp: Cdp,
   inputId: string,
@@ -870,14 +924,16 @@ async function typeIntoScoreInput(
     `(() => { window.__mbBlur = 0; const el = document.getElementById(${idLit}); `
     + `if (el) el.addEventListener('blur', () => { window.__mbBlur++; }, true); return 'ok'; })()`,
   );
-  await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: 4, y: 4, button: 'left', clickCount: 1 });
-  await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: 4, y: 4, button: 'left', clickCount: 1 });
+  // 挑一个安全的空白点夺焦（不再固定 (4,4) —— 滚动后那里可能是另一个分数框）
+  const spot = (await safeBlankSpot(cdp)) ?? { x: 4, y: 4 };
+  await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: spot.x, y: spot.y, button: 'left', clickCount: 1 });
+  await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: spot.x, y: spot.y, button: 'left', clickCount: 1 });
   const blurCount = await cdp.text('String(window.__mbBlur)');
   const activeAfter = await cdp.text(
     `(() => { const a = document.activeElement; return a ? (a.tagName + '#' + (a.id || '-')) : 'none'; })()`,
   );
   const finalVal = (await readVal()).trim();
-  steps.push(`点空白夺焦：blur次数=${blurCount} 活动元素=${activeAfter} 值='${finalVal}'`);
+  steps.push(`点空白(${spot.x},${spot.y})夺焦：blur次数=${blurCount} 活动元素=${activeAfter} 值='${finalVal}'`);
 
   return { ok: finalVal === text.trim() && blurCount !== '0', steps };
 }
