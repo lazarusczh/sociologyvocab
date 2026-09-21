@@ -59,8 +59,15 @@ const AGNES_VIA_CF = true;
 const AG_URL = 'https://apihub.agnes-ai.cn/v1/chat/completions';
 const AG_MODEL = 'agnes-2.5-flash';
 
-// OpenRouter（降级缓冲）：:free 池。gemma 系上游是 Google AI Studio 共享池，
-// 高峰期几乎必 429（实测）；NVIDIA nemotron-super-120b 上游池宽松且稳定 200。
+// OpenRouter（第二免费源，与 Agnes 并列）：:free 池。gemma 系上游是 Google AI Studio 共享池，
+// 高峰期几乎必 429（实测）。
+//
+// ★ 2026-09-21 换型：super-120b → **ultra-550b**（与判分档同步，见 worker/ai/text.ts 的 OR_MODEL）。
+//   依据：`nemotron-super-120b` 在**细粒度同义判断**上明显偏弱 —— 同一 prompt、同一案例，
+//   学生写 "men are less able to empathize with others" 对应要素「认为男性同情心较少」：
+//     super 判 0.0~0.5（不达标）   ultra / qwen / agnes 均判 1.0
+//   详见 `定义题-判分实验与改进方向.md` §7.3。子站问答虽是另一任务，但同门弱档没有保留的理由。
+//   （原注释把 super-120b 记为「上游池宽松且稳定 200」——那是**可用性**观察，不构成质量优势。）
 //
 // ★ 2026-09-21 起改用 `reasoning: { enabled: true, exclude: true }`：
 //   早年为避免「思考溢出到回答里」而直接关掉推理（reasoning.enabled=false），
@@ -69,8 +76,10 @@ const AG_MODEL = 'agnes-2.5-flash';
 //   注意 max_tokens 是**推理 + 可见输出共享**的预算 → 开推理后必须调大（见 msAsk 默认值），
 //   否则推理吃光预算会返回空 content。
 // 若该 id 掉出免费池，再回退到其他 :free 通用模型。
+// ⚠️ ultra 的上游池稳定性未经长期观察：若子站问答频繁出现 429（X-AI-Fail 可见 429），
+//    优先调整**降级链位置**，而不是退回弱档。
 const OR_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const OR_MODEL = 'nvidia/nemotron-3-super-120b-a12b:free';
+const OR_MODEL = 'nvidia/nemotron-3-ultra-550b-a55b:free';
 
 // ---- 以下三块依赖上面的全部模型常量，必须放在它们之后 ----
 //
@@ -285,7 +294,7 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
     if (main) return new Response(main.body, { headers: aiHeaders('qwen3-main', MS_MAIN) });
   }
 
-  // 4d) 降级②：OpenRouter :free（nemotron，开推理但不回传思考内容）
+  // 4d) 降级②：OpenRouter :free（nemotron-ultra-550b，开推理但不回传思考内容）
   if (orKey && !skipAuto) {
     const orRes = await msAsk(OR_MODEL, messages, orKey, {
       temperature: 0.6,
