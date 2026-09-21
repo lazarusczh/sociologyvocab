@@ -54,8 +54,14 @@ const AG_URL = 'https://apihub.agnes-ai.com/v1/chat/completions';
 const AG_MODEL = 'agnes-2.5-flash';
 
 // OpenRouter（降级缓冲）：:free 池。gemma 系上游是 Google AI Studio 共享池，
-// 高峰期几乎必 429（实测）；NVIDIA nemotron-super-120b 上游池宽松且稳定 200，
-// 但它默认输出推理过程——经 reasoning.enabled=false 关闭后即为干净答案（实测有效）。
+// 高峰期几乎必 429（实测）；NVIDIA nemotron-super-120b 上游池宽松且稳定 200。
+//
+// ★ 2026-09-21 起改用 `reasoning: { enabled: true, exclude: true }`：
+//   早年为避免「思考溢出到回答里」而直接关掉推理（reasoning.enabled=false），
+//   但那同时也丢掉了推理带来的判断质量。OpenRouter 的 `exclude` 参数可以「照常推理、
+//   但不返回思考内容」，于是两全：质量保留，思考不再外泄。
+//   注意 max_tokens 是**推理 + 可见输出共享**的预算 → 开推理后必须调大（见 msAsk 默认值），
+//   否则推理吃光预算会返回空 content。
 // 若该 id 掉出免费池，再回退到其他 :free 通用模型。
 const OR_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const OR_MODEL = 'nvidia/nemotron-3-super-120b-a12b:free';
@@ -207,7 +213,7 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
   // 4) 多级路由：
   //    评估/对比类 → 魔搭 Qwen3 Thinking（1 魔粒，深度已被长期验证）
   //    其余日常    → Agnes-2.5-flash（免费，不烧魔粒；推理链前端剥离）
-  //    逐级失败降级：魔搭快速档 → OpenRouter nemotron(:free 关推理) → Workers 8B
+  //    逐级失败降级：魔搭快速档 → OpenRouter nemotron(:free 开推理 + exclude) → Workers 8B
   // sseHeaders 已提到模块级（见文件上方），这里直接用，不再重复定义
   const msKey = env.MODELSCOPE_API_KEY;
   const agKey = env.AGNES_API_KEY;
@@ -235,7 +241,7 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
   if (orKey && tier === 'nemotron') {
     const orRes = await msAsk(OR_MODEL, messages, orKey, {
       temperature: 0.6,
-      reasoning: false,
+      reasoning: 'exclude',   // 开推理但不回传思考内容（前端只取 content，双保险）
       base: OR_URL,
       extraHeaders: { 'HTTP-Referer': 'https://9699vocab.cn', 'X-Title': '9699-sociology-skill' },
       onFail: rec('or-nemotron'),
@@ -263,11 +269,11 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
     if (main) return new Response(main.body, { headers: aiHeaders('qwen3-main', MS_MAIN) });
   }
 
-  // 4d) 降级②：OpenRouter :free（nemotron，关推理）
+  // 4d) 降级②：OpenRouter :free（nemotron，开推理但不回传思考内容）
   if (orKey && !skipAuto) {
     const orRes = await msAsk(OR_MODEL, messages, orKey, {
       temperature: 0.6,
-      reasoning: false, // nemotron 默认吐推理过程，这里关掉只留答案
+      reasoning: 'exclude', // 思考链不回传：既保留推理质量，又不会溢出到回答里
       base: OR_URL,
       extraHeaders: { 'HTTP-Referer': 'https://9699vocab.cn', 'X-Title': '9699-sociology-skill' },
       onFail: rec('or-nemotron'),
@@ -403,7 +409,14 @@ async function msAsk(
   key: string,
   opts: {
     thinking?: boolean;
-    reasoning?: boolean; // OpenRouter 推理模型开关：false 关闭思考链，只输出答案
+    /**
+     * OpenRouter 推理模型开关：
+     *   false     = 关思考，只输出答案
+     *   true      = 开思考（思考内容会出现在 reasoning 字段，可能被日志/前端看到）
+     *   'exclude' = **开思考但不返回思考内容**（OpenRouter 的 reasoning.exclude）——
+     *               两全其美：保留推理带来的质量，又不让思考链外泄或溢出到可见输出。
+     */
+    reasoning?: boolean | 'exclude';
     temperature?: number;
     maxTokens?: number;
     base?: string; // 默认 ModelScope；传 OR_URL 即走 OpenRouter
@@ -415,10 +428,16 @@ async function msAsk(
     model,
     messages,
     stream: true,
-    max_tokens: opts.maxTokens ?? 1500,
+    // 推理与可见输出**共享**这份预算：nemotron 开推理（exclude）后要留足思考空间，
+    // 否则思考吃光预算会返回空内容（OpenRouter 文档明确提醒的坑）。
+    max_tokens: opts.maxTokens ?? 3600,
   };
   if (opts.thinking !== undefined) body.enable_thinking = opts.thinking;
-  if (opts.reasoning !== undefined) body.reasoning = { enabled: opts.reasoning };
+  if (opts.reasoning !== undefined) {
+    body.reasoning = opts.reasoning === 'exclude'
+      ? { enabled: true, exclude: true }
+      : { enabled: opts.reasoning };
+  }
   if (opts.temperature !== undefined) body.temperature = opts.temperature;
   try {
     const r = await fetch(opts.base ?? MS_URL, {

@@ -68,7 +68,14 @@ async function callOnce(
   if (tier === 'nemotron') {
     url = OR_CHAT_URL; model = OR_MODEL; key = env.OPENROUTER_API_KEY ?? '';
     body.model = model;
-    body.reasoning = { enabled: false }; // nemotron 默认吐推理过程，关掉只留答案
+    // ⚠️ 保持关推理 —— 这是**实测结论**，不是历史遗留：
+    //   2026-09-21 用 16 个人工标注案例（同义改写/跨语言/方向相反）对 nemotron 做对照，
+    //   关推理 3 轮全 16/16，开推理（reasoning.exclude）3 轮为 14~15/16 ——
+    //   推理让模型更严格、爱逐子点核对（"未提长期失业""未提金钱"就压到 0.5），
+    //   反而伤害了本任务最需要的"宽容同义改写"。
+    //   详见 `定义题-判分实验与改进方向.md`。子站问答（长答、需深度推理）另走 worker.ts 的 exclude 档。
+    //   注：关推理同样能规避当年那个「思考溢出」问题。
+    body.reasoning = { enabled: false };
   } else if (tier === 'agnes') {
     url = AG_CHAT_URL; model = AG_MODEL; key = env.AGNES_API_KEY ?? '';
     body.model = model;
@@ -136,8 +143,13 @@ export async function completeText(
     if (!res.ok && (res.detail === 'empty content' || res.status === 0 || res.status >= 500)) {
       res = await callOnce(t, prompt, env, callOpts);
     }
-    if (res.ok) {
+    // 空文本按失败处理：开推理后「推理吃光 max_tokens」会返回空 content（且 exclude 时连思考也看不到），
+    // 不能当作成功返回，否则上层会拿到空判分结果 —— 继续走降级链。
+    if (res.ok && res.text.trim()) {
       return { ok: true, text: res.text, model: res.model, tier: t, ms: Date.now() - t0, detail: '', fellBack: i > 0 };
+    }
+    if (res.ok) {
+      console.error(`[ai/complete] ${t} returned empty text (likely reasoning ate the max_tokens budget)`);
     }
     console.error(`[ai/complete] ${t} failed: ${res.detail.slice(0, 120)}`);
     if (i === chain.length - 1) {
