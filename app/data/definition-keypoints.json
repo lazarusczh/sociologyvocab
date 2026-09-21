@@ -14,7 +14,7 @@
     "text": "历史时期为2010-2012年",
     "source": "main",
     "kind": "required",
-    "en": "historical period of 2010-2012"
+    "en": "The historical period of 2010-2012"
    },
    {
     "text": "发生在多个中东和北非阿拉伯国家",
@@ -195,7 +195,7 @@
     "text": "马克思主义和全球悲观主义认为援助可能是新殖民主义的工具",
     "source": "main",
     "kind": "example",
-    "en": "Financial help, usually provided by rich countries to poorer countries"
+    "en": "Marxism & Global pessimism believe that the aid could be a tool for neo-colonialism"
    }
   ],
   "bonus": [
@@ -203,13 +203,15 @@
     "text": "财政援助，通常由富裕国家提供给较贫穷国家",
     "sources": [
      "tb1"
-    ]
+    ],
+    "en": "Financial help, usually provided by rich countries to poorer countries"
    },
    {
     "text": "可以是不需偿还的补助金、有条件援助或带利息的贷款形式",
     "sources": [
      "tb1"
-    ]
+    ],
+    "en": "It can come in the form grants (which do not need to be paid back), tied aid or loans with interest"
    }
   ],
   "sources": [
@@ -382,7 +384,7 @@
     "text": "成立于1993年",
     "source": "main",
     "kind": "required",
-    "en": "was founded in 1993"
+    "en": "was founded in 1993 to furtherly unite European nation-states and avoid the repetitions of past World Wars"
    },
    {
     "text": "旨在进一步团结欧洲国家",
@@ -430,13 +432,13 @@
     "text": "向国家提供货币贷款",
     "source": "main",
     "kind": "required",
-    "en": "provide monetary loans to countries"
+    "en": "provide monetary loans to countries to guarantee macro-level financial stability"
    },
    {
     "text": "保障宏观层面金融稳定",
     "source": "main",
     "kind": "required",
-    "en": "to guarantee macro-level financial stability"
+    "en": "it often promotes neoliberal economical projects and policies"
    },
    {
     "text": "常推动新自由主义经济项目和政策",
@@ -694,7 +696,7 @@
     "text": "常推广新自由主义经济项目和政策",
     "source": "main",
     "kind": "example",
-    "en": "promotes neoliberal economical projects and policies"
+    "en": "often promotes neoliberal economical projects and policies"
    }
   ],
   "bonus": [],
@@ -724,7 +726,7 @@
     "text": "国际政府组织",
     "source": "main",
     "kind": "required",
-    "en": "international governmental organisation"
+    "en": "An international governmental organisation"
    },
    {
     "text": "规范全球贸易",
@@ -977,12 +979,13 @@
     "text": "它迫使人们作为难民迁移到另一个国家",
     "source": "main",
     "kind": "example",
-    "en": "They do not know whether they and their children will be alive tomorrow, next week or next year"
+    "en": "push them to migrate to another country as refugees"
    },
    {
     "text": "人们不确定自己和孩子是否能够活到明天、下周或明年",
     "source": "main",
-    "kind": "example"
+    "kind": "example",
+    "en": "They do not know whether they and their children will be alive tomorrow, next week or next year"
    }
   ],
   "bonus": [],
@@ -1054,12 +1057,13 @@
     "text": "倾向于退出全球化",
     "source": "main",
     "kind": "required",
-    "en": "tends to retreat from globalisation and put the immediate interests of the home country first and foremost"
+    "en": "tends to retreat from globalisation"
    },
    {
     "text": "首要考虑本国的直接利益",
     "source": "main",
-    "kind": "required"
+    "kind": "required",
+    "en": "put the immediate interests of the home country first and foremost"
    }
   ],
   "bonus": [],
@@ -1212,13 +1216,13 @@
     "text": "初级劳动部门特征为高薪",
     "source": "main",
     "kind": "required",
-    "en": "characterised by high pay and stability"
+    "en": "characterised by high pay"
    },
    {
     "text": "初级劳动部门特征为稳定性",
     "source": "main",
     "kind": "required",
-    "en": "characterised by high pay and stability"
+    "en": "characterised by stability"
    },
    {
     "text": "通常由本土工人占据",
@@ -1292,7 +1296,7 @@
     "text": "迫使移民离开本国的因素",
     "source": "main",
     "kind": "required",
-    "en": "The factors that force migrants away to emigrate from a country"
+    "en": "factors that force migrants away"
    }
   ],
   "bonus": [
@@ -1301,7 +1305,7 @@
     "sources": [
      "igcse0495"
     ],
-    "en": "The factors that force migrants away to emigrate from a country"
+    "en": "to emigrate from a country"
    }
   ],
   "sources": [
@@ -1348,7 +1352,7 @@
     "text": "为发展中国家提供宝贵的外汇",
     "source": "main",
     "kind": "example",
-    "en": "provide LEDCs with precious foreign currencies"
+    "en": "They also provide LEDCs with precious foreign currencies"
    }
   ],
   "bonus": [],
@@ -1448,7 +1452,7 @@
     "text": "通常由移民工人占据",
     "source": "main",
     "kind": "example",
-    "en": "usually occupied by migrant workers"
+    "en": "is usually occupied by migrant workers"
    }
   ],
   "bonus": [],
@@ -1549,7 +1553,7 @@
     "text": "由于某些资格缺乏国际认可，高技能移民工人从事低技能工作",
     "source": "main",
     "kind": "required",
-    "en": "due to the lack of international recognition of some qualifications, some high-skill migrant workers are taking jobs of lower skill"
+    "en": "A phenomenon that, due to the lack of international recognition of some qualifications, some high-skill migrant workers are taking jobs of lower skill"
    }
   ],
   "bonus": [
@@ -1641,7 +1645,7 @@
     "text": "公众对某社会群体的（通常是不必要的）恐惧",
     "source": "main",
     "kind": "required",
-    "en": "The (usually unecessary) public fears for a social group"
+    "en": "(usually unecessary) public fears for a social group"
    },
    {
     "text": "由媒体的夸张报道引发",
@@ -1716,7 +1720,7 @@
     "text": "目标是联合国或其他方禁止购买武器的国家和/或组织",
     "source": "main",
     "kind": "required",
-    "en": "countries and/or organisations where the UN or other parties have banned from buying weapons"
+    "en": "to countries and/or organisations where the UN or other parties have banned from buying weapons"
    }
   ],
   "bonus": [],
@@ -1884,7 +1888,8 @@
    {
     "text": "属于全球性犯罪行为",
     "source": "main",
-    "kind": "example"
+    "kind": "example",
+    "en": "A type of global crime"
    }
   ],
   "bonus": [],
@@ -1920,7 +1925,7 @@
     "text": "马克思主义认为资本主义具有此种特性",
     "source": "tb1",
     "kind": "required",
-    "en": "Marxism believes that capitalism causes crimes by its natures, and the globalisation of capitalism is inevitable to lead to more global crimes"
+    "en": "Marxism believes that capitalism causes crimes by its natures"
    }
   ],
   "bonus": [
@@ -2001,13 +2006,13 @@
     "text": "马克思主义认为资本主义全球化导致激进不平等",
     "source": "main",
     "kind": "example",
-    "en": "globalisation of capitalism leads to radical inequalities"
+    "en": "Marxism believes that globalisation of capitalism leads to radical inequalities"
    },
    {
     "text": "贫困人口通过犯罪寻求补偿或逃避",
     "source": "main",
     "kind": "example",
-    "en": "people in poverty seek for compensations or escapes through committing crimes"
+    "en": "make people in poverty seek for compensations or escapes through committing crimes"
    }
   ],
   "bonus": [],
@@ -2037,7 +2042,7 @@
     "text": "马克思主义认为全球化的资本主义导致激进的不平等",
     "source": "main",
     "kind": "required",
-    "en": "globalisation of capitalism leads to radical inequalities"
+    "en": "Marxism believes that globalisation of capitalism leads to radical inequalities"
    },
    {
     "text": "富人有意识或无意识地参与全球犯罪活动",
@@ -2078,23 +2083,25 @@
     "text": "通过万维网（World Wide Web）实施的犯罪",
     "source": "main",
     "kind": "required",
-    "en": "Global crimes that are committed through the World Wide Web, including (but not limited to) hacking, identity thefts and illegal trades online"
+    "en": "Global crimes that are committed through the World Wide Web"
    },
    {
     "text": "包括黑客攻击（hacking）",
     "source": "main",
     "kind": "example",
-    "en": "Crime involving use of new technologies, such as computers."
+    "en": "including (but not limited to) hacking"
    },
    {
     "text": "包括身份盗窃（identity thefts）",
     "source": "main",
-    "kind": "example"
+    "kind": "example",
+    "en": "including (but not limited to) identity thefts"
    },
    {
     "text": "包括在线非法交易（illegal trades online）",
     "source": "main",
-    "kind": "example"
+    "kind": "example",
+    "en": "including (but not limited to) illegal trades online"
    }
   ],
   "bonus": [
@@ -2102,7 +2109,8 @@
     "text": "涉及使用新技术，如计算机",
     "sources": [
      "igcse0495"
-    ]
+    ],
+    "en": "Crime involving use of new technologies, such as computers"
    }
   ],
   "sources": [
@@ -2175,7 +2183,7 @@
     "text": "涉及非法药物的生产、贩运和销售",
     "source": "main",
     "kind": "required",
-    "en": "production, trafficking and selling of illegal drugs"
+    "en": "involves the production, trafficking and selling of illegal drugs"
    }
   ],
   "bonus": [],
@@ -2211,12 +2219,13 @@
     "text": "将罪犯送回其本国以受制裁",
     "source": "main",
     "kind": "required",
-    "en": "lack of extradition treaties among many countries"
+    "en": "An agreement between nation-states to send back the global criminals to their home countries to be sanctioned"
    },
    {
     "text": "许多国家之间缺乏引渡条约",
     "source": "main",
-    "kind": "example"
+    "kind": "example",
+    "en": "there is a lack of extradition treaties among many countries"
    },
    {
     "text": "缺乏引渡条约增加了打击全球犯罪的难度",
@@ -2348,13 +2357,13 @@
     "text": "一种全球性犯罪",
     "source": "main",
     "kind": "required",
-    "en": "A type of global crime that involves the deliberate and planned elimination of an entire racial / ethnic group."
+    "en": "A type of global crime that involves the deliberate and planned elimination of an entire racial / ethnic group"
    },
    {
     "text": "涉及故意和计划性的行为",
     "source": "main",
     "kind": "required",
-    "en": "The deliberate killing of a large group of people, especially those of a particular nation or ethnic group."
+    "en": "The deliberate killing of a large group of people, especially those of a particular nation or ethnic group"
    },
    {
     "text": "消灭整个种族/民族群体",
@@ -2536,13 +2545,13 @@
     "text": "全球性犯罪",
     "source": "main",
     "kind": "required",
-    "en": "global crime"
+    "en": "A type of global crime"
    },
    {
     "text": "非法捕获、移动或贩卖人员",
     "source": "main",
     "kind": "example",
-    "en": "illegally capturing, moving and sometimes selling humans"
+    "en": "involves illegally capturing, moving and sometimes selling humans"
    }
   ],
   "bonus": [],
@@ -2649,7 +2658,7 @@
     "text": "它在国际刑法框架内运作",
     "source": "main",
     "kind": "required",
-    "en": "operates within the framework of international criminal laws"
+    "en": "operates within the framework of international criminal laws to trial and judge individuals who have committed crimes like war crimes and violation of human rights"
    },
    {
     "text": "负责审判和裁决犯有战争罪等罪行的个人",
@@ -2727,7 +2736,7 @@
     "text": "针对穆斯林及来自伊斯兰国家的移民的公众恐惧（一种道德恐慌），有时导致仇恨言论与犯罪",
     "source": "main",
     "kind": "required",
-    "en": "A type of moral panics; the public fears for the ethnic minority groups and immigrants that have religious belief of Islam and/or originate from Islamic countries; sometimes lead to hate speeches and crimes"
+    "en": "the public fears for the ethnic minority groups and immigrants that have religious belief of Islam and/or originate from Islamic countries; sometimes lead to hate speeches and crimes"
    }
   ],
   "bonus": [
@@ -2736,7 +2745,7 @@
     "sources": [
      "tb1"
     ],
-    "en": "Dislike of or prejudice against Islam or Muslims, especially as a political force."
+    "en": "Dislike of or prejudice against Islam or Muslims, especially as a political force"
    }
   ],
   "sources": [
@@ -2805,19 +2814,19 @@
     "text": "非法收入被伪装成合法收入",
     "source": "main",
     "kind": "required",
-    "en": "global crime"
+    "en": "illegal incomes are disguised as legal incomes"
    },
    {
     "text": "通过多个复杂过程实现",
     "source": "main",
     "kind": "required",
-    "en": "illegal incomes are disguised as legal incomes"
+    "en": "through a number of complex processes"
    },
    {
     "text": "属于全球性犯罪行为",
     "source": "main",
     "kind": "example",
-    "en": "through a number of complex processes"
+    "en": "A type of global crime"
    }
   ],
   "bonus": [],
@@ -2853,7 +2862,7 @@
     "text": "涉及抢劫和/或劫持船只",
     "source": "main",
     "kind": "example",
-    "en": "involves robbing and/or hijacking ships"
+    "en": "that involves robbing and/or hijacking ships"
    }
   ],
   "bonus": [],
@@ -2924,18 +2933,19 @@
     "text": "国家警察部队向其他国际刑警组织成员发出的请求",
     "source": "main",
     "kind": "required",
-    "en": "The request sent by nation-states' police force to other members of Interpol to co-operate in arresting global criminals"
+    "en": "The request sent by nation-states' police force to other members of Interpol"
    },
    {
     "text": "旨在协作逮捕全球罪犯",
     "source": "main",
     "kind": "required",
-    "en": "sometimes would be abused for political reasons rather than actual crimes"
+    "en": "to co-operate in arresting global criminals"
    },
    {
     "text": "有时会被滥用于政治目的而非实际犯罪",
     "source": "main",
-    "kind": "example"
+    "kind": "example",
+    "en": "sometimes would be abused for political reasons rather than actual crimes"
    }
   ],
   "bonus": [],
@@ -3007,7 +3017,7 @@
     "text": "公司和富裕个人是主要行为主体",
     "source": "main",
     "kind": "required",
-    "en": "companies and rich individuals"
+    "en": "under-reporting income & registering in tax havens"
    },
    {
     "text": "少报收入是常见手段",
@@ -3271,7 +3281,7 @@
     "text": "可以通过结合技能来实现集体智慧",
     "source": "main",
     "kind": "required",
-    "en": "combine our skills"
+    "en": "we can put the pieces together if we combine our skills"
    }
   ],
   "bonus": [],
@@ -3301,7 +3311,7 @@
     "text": "技术进步使信号能够被压缩",
     "source": "main",
     "kind": "example",
-    "en": "technology advancement have enabled the signals to be compressed"
+    "en": "The technology advancement have enabled the signals to be compressed"
    },
    {
     "text": "压缩后可腾出更多空间以容纳更多频道",
@@ -3415,13 +3425,13 @@
     "text": "大大夸大某社会群体对社会的负面影响",
     "source": "main",
     "kind": "required",
-    "en": "To greatly exaggerate the negative impacts a social group has on the society and make them the targets of attacks"
+    "en": "To greatly exaggerate the negative impacts a social group has on the society"
    },
    {
     "text": "使该群体成为攻击的目标",
     "source": "main",
     "kind": "required",
-    "en": "The social practice of treating some groups as if they were ‘social problems’ or a threat to those who belong to mainstream law-abiding society."
+    "en": "make them the targets of attacks"
    }
   ],
   "bonus": [
@@ -3429,7 +3439,8 @@
     "text": "将某些群体视为‘社会问题’或对守法主流社会的威胁",
     "sources": [
      "tb1"
-    ]
+    ],
+    "en": "The social practice of treating some groups as if they were ‘social problems’ or a threat to those who belong to mainstream law-abiding society."
    }
   ],
   "sources": [
@@ -3460,13 +3471,13 @@
     "text": "媒体效应：观众长期接触媒体中的暴力和偏差内容",
     "source": "main",
     "kind": "required",
-    "en": "exposed to violences and deviancies on media for too many times"
+    "en": "A media effect that when audience are exposed to violences and deviancies on media for too many times"
    },
    {
     "text": "导致对暴力的敏感度降低",
     "source": "main",
     "kind": "required",
-    "en": "lose the sensitivity and consider violences in real life normal"
+    "en": "they will lose the sensitivity and consider violences in real life normal"
    },
    {
     "text": "开始将现实中的暴力视为正常现象",
@@ -3501,13 +3512,13 @@
     "text": "媒体对偏差行为的夸张报道",
     "source": "main",
     "kind": "required",
-    "en": "the exaggerated reporting of deviancy"
+    "en": "the exaggerated reporting of deviancy would cause stricter policing that leads to more deviant behaviours of labelled group"
    },
    {
     "text": "导致更严格的警务或社会控制",
     "source": "main",
     "kind": "required",
-    "en": "stricter policing that leads to more deviant behaviours of labelled group"
+    "en": "When the response to norm-breaking behaviour leads to more of that behaviour"
    },
    {
     "text": "进而引发被标签群体更多的偏差行为",
@@ -3665,12 +3676,13 @@
     "text": "以便更易传输",
     "source": "main",
     "kind": "required",
-    "en": "more easily transmitted and saved"
+    "en": "so that they can be more easily transmitted"
    },
    {
     "text": "以便更易保存",
     "source": "main",
-    "kind": "required"
+    "kind": "required",
+    "en": "so that they can be more easily saved"
    }
   ],
   "bonus": [],
@@ -3700,7 +3712,7 @@
     "text": "媒体效应：观众看到英雄通过暴力而非规则和法律解决问题",
     "source": "main",
     "kind": "required",
-    "en": "see how 'heroes' solve the problems throught violence rather than rules and laws"
+    "en": "A media effect that when audience see how 'heroes' solve the problems throught violence rather than rules and laws"
    },
    {
     "text": "观众最终相信暴力可以是可行的解决方案",
@@ -3736,19 +3748,19 @@
     "text": "通过使用媒体来满足需求",
     "source": "main",
     "kind": "required",
-    "en": "A demand that is fulfilled by the use of media to divert from real life and obtain the experiences that the real life failed to offer"
+    "en": "A demand that is fulfilled by the use of media"
    },
    {
     "text": "转移注意力以逃离现实生活",
     "source": "main",
     "kind": "required",
-    "en": "A demand that is fulfilled by the use of media to divert from real life and obtain the experiences that the real life failed to offer"
+    "en": "to divert from real life and obtain the experiences that the real life failed to offer"
    },
    {
     "text": "获得现实生活中未能提供的体验",
     "source": "main",
     "kind": "required",
-    "en": "A demand that is fulfilled by the use of media to divert from real life and obtain the experiences that the real life failed to offer"
+    "en": "reading romantic novels when there is a lack of romance in real life"
    },
    {
     "text": "例如在现实生活缺乏浪漫时阅读浪漫小说",
@@ -3820,13 +3832,13 @@
     "text": "数字悲观主义认为数字媒体和互联网的发展导致信息过载",
     "source": "main",
     "kind": "required",
-    "en": "A digital pessimist view that with the develop of digital media and the Internet, the informational abundance has produced 'the dumbest generation'"
+    "en": "A digital pessimist view that with the develop of digital media and the Internet, the informational abundance"
    },
    {
     "text": "信息丰富反而产生了'最愚蠢的一代'",
     "source": "main",
     "kind": "required",
-    "en": "A digital pessimist view that with the develop of digital media and the Internet, the informational abundance has produced 'the dumbest generation'"
+    "en": "the informational abundance has produced 'the dumbest generation'"
    }
   ],
   "bonus": [],
@@ -3944,12 +3956,13 @@
     "text": "媒体模拟与真实事物难以分离",
     "source": "main",
     "kind": "required",
-    "en": "media images have come to constitute such an important part of reality"
+    "en": "media simulations and the real things"
    },
    {
     "text": "媒体图像成为现实的重要组成部分",
     "source": "main",
-    "kind": "required"
+    "kind": "required",
+    "en": "media images have come to constitute such an important part of reality"
    }
   ],
   "bonus": [],
@@ -4077,13 +4090,13 @@
     "text": "互动频率更高",
     "source": "main",
     "kind": "example",
-    "en": "higher frequencies"
+    "en": "are now of higher frequencies"
    },
    {
     "text": "互动更便利",
     "source": "main",
     "kind": "example",
-    "en": "convenience"
+    "en": "and convenience"
    }
   ],
   "bonus": [],
@@ -4149,7 +4162,7 @@
     "text": "技术进步在压缩信号方面使得更多专门化频道成为可能",
     "source": "main",
     "kind": "required",
-    "en": "technology advancement in compressing the signals have enabled more specialised channels for specific contents"
+    "en": "The technology advancement in compressing the signals have enabled more specialised channels"
    },
    {
     "text": "这些频道仅播放特定内容，如音乐、电影、新闻或体育",
@@ -4263,7 +4276,7 @@
     "text": "用于决定哪些事件被报道为新闻",
     "source": "main",
     "kind": "required",
-    "en": "A set of criteria that is used in the social construction of news to decide which events to be reported as news"
+    "en": "to decide which events to be reported as news"
    }
   ],
   "bonus": [
@@ -4451,13 +4464,13 @@
     "text": "观众可能与媒体产品中的虚构角色产生紧密认同",
     "source": "main",
     "kind": "example",
-    "en": "closely identify with fictional characters in media products"
+    "en": "Audience may closely identify with fictional characters in media products"
    },
    {
     "text": "观众可能与在线社区的其他成员产生紧密认同",
     "source": "main",
     "kind": "example",
-    "en": "closely identify with...other members of online communities"
+    "en": "Audience may closely identify with other members of online communities"
    }
   ],
   "bonus": [],
@@ -4523,7 +4536,7 @@
     "text": "观众分享节目的‘代码’（即其价值观、态度、信念和假设的意义体系）",
     "source": "main",
     "kind": "required",
-    "en": "The viewer shares the programme's 'code' (its meaning system of values, attitudes, beliefs and assumptions)."
+    "en": "The viewer shares the programme's 'code' (its meaning system of values, attitudes, beliefs and assumptions)"
    }
   ],
   "bonus": [],
@@ -4595,13 +4608,13 @@
     "text": "事件与著名或重要个人相关",
     "source": "main",
     "kind": "required",
-    "en": "related to a famous or important individual"
+    "en": "If an event is related to a famous or important individual"
    },
    {
     "text": "因此更具新闻价值",
     "source": "main",
     "kind": "example",
-    "en": "more newsworthy"
+    "en": "it is more newsworthy and therefore more likely to become a piece of news"
    },
    {
     "text": "更有可能成为新闻",
@@ -4708,13 +4721,13 @@
     "text": "观众不会仅仅无条件地接受所接收到的信息",
     "source": "main",
     "kind": "required",
-    "en": "do not necessarily simply absorb unquestioningly the messages they receive"
+    "en": "Audience members do not necessarily simply absorb unquestioningly the messages they receive"
    },
    {
     "text": "观众可能对所接收到的信息提出质疑或挑战",
     "source": "main",
     "kind": "required",
-    "en": "may challenge them"
+    "en": "but may challenge them"
    }
   ],
   "bonus": [],
@@ -4744,7 +4757,7 @@
     "text": "根据接受分析模型，受众不会记住不符合其既有世界观的媒体内容",
     "source": "main",
     "kind": "required",
-    "en": "the audience will not remember the contents of media that do not fit in their pre-existing world view"
+    "en": "According to reception analysis model, the audience will not remember the contents of media that do not fit in their pre-existing world view."
    }
   ],
   "bonus": [],
@@ -4774,13 +4787,13 @@
     "text": "媒体使用不同语调的词语刺激受众的感觉和情感",
     "source": "main",
     "kind": "required",
-    "en": "different tones of word"
+    "en": "Media would use different tones of word, colour filters and/or background music to stimulate audience's sensations and emotions"
    },
    {
     "text": "媒体使用色彩滤镜刺激受众的感觉和情感",
     "source": "main",
     "kind": "required",
-    "en": "colour filters"
+    "en": "Media would use different tones of word, colour filters and/or background music to stimulate audience's sensations and emotions and convey a biased attitude towards the media message"
    },
    {
     "text": "媒体使用背景音乐刺激受众的感觉和情感",
@@ -4828,7 +4841,7 @@
     "text": "媒体模拟对现实产生逆向影响",
     "source": "main",
     "kind": "required",
-    "en": "Signs (words, images and so on) which no longer bear any connection to the real world."
+    "en": "the reversed influence from media simulations onto reality"
    }
   ],
   "bonus": [
@@ -4836,7 +4849,8 @@
     "text": "符号（如词语、图像等）不再与现实世界建立任何联系",
     "sources": [
      "tb1"
-    ]
+    ],
+    "en": "Signs (words, images and so on) which no longer bear any connection to the real world."
    }
   ],
   "sources": [
@@ -5074,7 +5088,7 @@
     "text": "政府可以决定媒体上展示的内容",
     "source": "main",
     "kind": "required",
-    "en": "can decide what to be displayed on media"
+    "en": "the government can decide what to be displayed on media"
    },
    {
     "text": "政府删除其认为不适当的内容",
@@ -5158,12 +5172,13 @@
     "text": "这些价值观被视为不可否认的真理",
     "source": "main",
     "kind": "required",
-    "en": "Domination or rule maintained through ideological or cultural means"
+    "en": "in which different parties of a competition should be compared"
    },
    {
     "text": "在竞争中不同派别应基于此标准进行比较",
     "source": "main",
-    "kind": "required"
+    "kind": "required",
+    "en": "Domination or rule maintained through ideological or cultural means"
    }
   ],
   "bonus": [
@@ -5318,7 +5333,7 @@
     "text": "新马克思主义在媒体领域反驳了传统马克思主义认为受众完全被动的观点",
     "source": "main",
     "kind": "required",
-    "en": "audience are fully passive"
+    "en": "Neo-Marxism refuted conventional Marxist idea that audience are fully passive"
    },
    {
     "text": "新马克思主义认为媒体对受众的影响是间接且隐蔽的",
@@ -5479,7 +5494,7 @@
     "text": "城市地区指城市（cities）",
     "source": "main",
     "kind": "required",
-    "en": "An increase in population in cities and towns versus rural areas."
+    "en": "An increase in population in cities and towns versus rural areas"
    }
   ],
   "bonus": [
@@ -5488,14 +5503,14 @@
     "sources": [
      "tb1"
     ],
-    "en": "An increase in population in cities and towns versus rural areas."
+    "en": "The growth of cities; when a higher proportion of the population live in cities"
    },
    {
     "text": "城市增长；更高比例人口居住在城市",
     "sources": [
      "igcse0495"
     ],
-    "en": "The growth of cities; when a higher proportion of the population live in cities."
+    "en": "The growth of cities; when a higher proportion of the population live in cities"
    }
   ],
   "sources": [
@@ -5534,7 +5549,7 @@
     "text": "家庭成员在不同工作场所工作并赚取工资",
     "source": "main",
     "kind": "example",
-    "en": "family members work in separate workplaces and earn salaries to purchase the needed products"
+    "en": "the family members work in separate workplaces and earn salaries to purchase the needed products"
    },
    {
     "text": "通过工资购买所需产品",
@@ -5619,18 +5634,19 @@
     "text": "父亲承担工具性角色（instrumental roles）",
     "source": "main",
     "kind": "required",
-    "en": "fathers play instrumental roles and mothers play expressive roles, and there are no disputes within the family"
+    "en": "fathers play instrumental roles"
    },
    {
     "text": "母亲承担表达性角色（expressive roles）",
     "source": "main",
     "kind": "required",
-    "en": "The stereotypical nuclear family of mother, father and children with traditional gender roles, often shown in advertisements"
+    "en": "mothers play expressive roles"
    },
    {
     "text": "家庭内部无争议（no disputes within the family）",
     "source": "main",
-    "kind": "example"
+    "kind": "example",
+    "en": "there are no disputes within the family"
    }
   ],
   "bonus": [
@@ -5638,19 +5654,22 @@
     "text": "刻板印象的核心家庭（stereotypical nuclear family）",
     "sources": [
      "igcse0495"
-    ]
+    ],
+    "en": "The stereotypical nuclear family"
    },
    {
     "text": "由父亲、母亲和子女组成（mother, father and children）",
     "sources": [
      "igcse0495"
-    ]
+    ],
+    "en": "mother, father and children"
    },
    {
     "text": "常见于广告中呈现（often shown in advertisements）",
     "sources": [
      "igcse0495"
-    ]
+    ],
+    "en": "often shown in advertisements"
    }
   ],
   "sources": [
@@ -5863,7 +5882,7 @@
     "text": "生产活动集中在工厂进行",
     "source": "main",
     "kind": "required",
-    "en": "The process in history in which societies changed from being mainly rural and based on agriculture to being urban and with more people working in industries."
+    "en": "The process in history in which societies changed from being mainly rural and based on agriculture to being urban and with more people working in industries"
    }
   ],
   "bonus": [
@@ -5995,12 +6014,13 @@
     "text": "以可接受的方式释放不满",
     "source": "main",
     "kind": "required",
-    "en": "in an acceptable way so that they do not threaten the ruling class"
+    "en": "in an acceptable way"
    },
    {
     "text": "使不满不威胁统治阶级",
     "source": "main",
-    "kind": "required"
+    "kind": "required",
+    "en": "so that they do not threaten the ruling class"
    }
   ],
   "bonus": [],
@@ -6030,7 +6050,7 @@
     "text": "（前工业时代的大家庭）同时满足成员的多种需求",
     "source": "main",
     "kind": "required",
-    "en": "fulfill multiple needs of members at the same time"
+    "en": "Pre-industrial age extended families need to fulfill multiple needs of members at the same time"
    },
    {
     "text": "照顾儿童、老人和病人",
@@ -6231,14 +6251,14 @@
     "sources": [
      "tb1"
     ],
-    "en": "A type of marriage organised or arranged by the parents of the couple and/or matchmakers"
+    "en": "A type of marriage organised or arranged by the parents of the couple and/or matchmakers."
    },
    {
     "text": "婚姻伙伴由年长的家庭成员选择，而非个人自行选择",
     "sources": [
      "igcse0495"
     ],
-    "en": "A marriage in which the partners are chosen by older family members, rather than people choosing their own marriage partner"
+    "en": "A marriage in which the partners are chosen by older family members, rather than people choosing their own marriage partner."
    }
   ],
   "sources": [
@@ -6293,7 +6313,7 @@
      "tb1",
      "igcse0495"
     ],
-    "en": "children leave home, but ... they are forced to return to live with their parents"
+    "en": "children leave home, but because of circumstances beyond their control they are forced to return to live with their parents as young adults"
    },
    {
     "text": "返回时为年轻成年阶段",
@@ -6401,7 +6421,7 @@
     "text": "夫妻仍然保持婚姻关系",
     "source": "main",
     "kind": "required",
-    "en": "still married"
+    "en": "A couple that is still married"
    },
    {
     "text": "夫妻之间没有爱或感情",
@@ -6456,13 +6476,13 @@
     "text": "核心家庭（nuclear family）向外延伸",
     "source": "main",
     "kind": "required",
-    "en": "extends from nuclear family to include uncles and aunts and cousins"
+    "en": "extends from nuclear family to include"
    },
    {
     "text": "包括叔伯、姑姑（uncles and aunts）",
     "source": "main",
     "kind": "example",
-    "en": "uncles and aunts"
+    "en": "uncles and aunts and cousins"
    },
    {
     "text": "包括堂表兄弟姐妹（cousins）",
@@ -6520,7 +6540,7 @@
     "text": "通过现代技术（如互联网）保持联系",
     "source": "main",
     "kind": "required",
-    "en": "An extended family who have close ties but do not all live together."
+    "en": "An extended family who have close ties but do not all live together"
    }
   ],
   "bonus": [
@@ -6613,7 +6633,7 @@
     "text": "由一男一女已婚夫妇组成",
     "source": "main",
     "kind": "required",
-    "en": "a family that contains a married couple of two different genders"
+    "en": "a married couple of two different genders"
    },
    {
     "text": "包含他们的生物学和受抚养子女，子女数量可为任意数量",
@@ -6635,7 +6655,7 @@
     "sources": [
      "igcse0495"
     ],
-    "en": "an adult man and an adult woman who are married, or in a relationship, and living together"
+    "en": "Made up of an adult man and an adult woman who are married, or in a relationship, and living together"
    }
   ],
   "sources": [
@@ -6677,14 +6697,14 @@
     "sources": [
      "tb1"
     ],
-    "en": "A cultural norm which allows spouses to have more than one husband or wife."
+    "en": "A cultural norm which allows spouses to have more than one husband or wife"
    },
    {
     "text": "例如，一个男人有几个妻子或一个女人有几个丈夫",
     "sources": [
      "igcse0495"
     ],
-    "en": "Being married to more than one person at the same time; for example, a man with several wives or a woman with several husbands."
+    "en": "Being married to more than one person at the same time; for example, a man with several wives or a woman with several husbands"
    }
   ],
   "sources": [
@@ -6717,13 +6737,13 @@
     "text": "由再婚形成的家庭",
     "source": "main",
     "kind": "required",
-    "en": "A family formed by remarriage and has at least one child brought forward by his/her parent from a previous marriage"
+    "en": "A family formed by remarriage"
    },
    {
     "text": "至少有一个孩子是父母从之前婚姻中带来的",
     "source": "main",
     "kind": "required",
-    "en": "A family formed by remarriage and has at least one child brought forward by his/her parent from a previous marriage"
+    "en": "has at least one child brought forward by his/her parent from a previous marriage"
    }
   ],
   "bonus": [
@@ -6732,14 +6752,14 @@
     "sources": [
      "main"
     ],
-    "en": "Also called a step-family - a family unit where one or both parents have children from a previous relationship but have combined to form a new family"
+    "en": "Also called a step-family"
    },
    {
     "text": "一方或双方父母有来自之前关系的孩子，共同组成新家庭",
     "sources": [
      "tb1"
     ],
-    "en": "Also called a step-family - a family unit where one or both parents have children from a previous relationship but have combined to form a new family"
+    "en": "a family unit where one or both parents have children from a previous relationship but have combined to form a new family"
    },
    {
     "text": "在离婚或伴侣死亡后再婚而形成的新家庭",
@@ -6801,7 +6821,7 @@
     "sources": [
      "igcse0495"
     ],
-    "en": "When someone has more than one marriage partner during their life, but only one at a time"
+    "en": "has more than one marriage partner during their life, but only one at a time"
    }
   ],
   "sources": [
@@ -6845,7 +6865,8 @@
    {
     "text": "少数情况下为自愿选择（如未婚单亲）",
     "source": "main",
-    "kind": "example"
+    "kind": "example",
+    "en": "or in minority of cases, voluntary choices"
    }
   ],
   "bonus": [
@@ -6872,7 +6893,7 @@
     "sources": [
      "igcse0495"
     ],
-    "en": "this may be caused by divorce, the death of partner, or in minority of cases, voluntary choices"
+    "en": "A family that has only one father or mother and his/her dependent child(ren)"
    }
   ],
   "sources": [
@@ -6909,7 +6930,7 @@
     "text": "包括祖父母 + 父母 + 子女",
     "source": "main",
     "kind": "required",
-    "en": "A family with parent(s) and children living with relatives from one or more other generations (for example, grandparents)."
+    "en": "A family with parent(s) and children living with relatives from one or more other generations (for example, grandparents)"
    }
   ],
   "bonus": [
@@ -6985,7 +7006,7 @@
     "text": "一种垂直延伸的家庭类型，包含3代或以上",
     "source": "main",
     "kind": "required",
-    "en": "A type of vertically extended family that has 3 or more generations but very few members in each generation"
+    "en": "A type of vertically extended family that has 3 or more generations"
    },
    {
     "text": "每代成员非常少",
@@ -7216,7 +7237,7 @@
     "text": "涉及两个人之间的婚姻关系",
     "source": "main",
     "kind": "required",
-    "en": "involves marriage between two people"
+    "en": "marriage between two people"
    },
    {
     "text": "不包含子女（尚未有子女）",
@@ -7334,7 +7355,7 @@
     "text": "子女离开家庭建立自己的家庭",
     "source": "main",
     "kind": "required",
-    "en": "children have left to establish their own families"
+    "en": "have left to establish their own families"
    },
    {
     "text": "父母独自留在家中",
@@ -7379,7 +7400,7 @@
     "text": "不同民族文化对理想家庭有不同看法",
     "source": "main",
     "kind": "example",
-    "en": "different ethnic cultures would have different views on ideal family"
+    "en": "Different ethnic cultures would have different views on ideal family"
    },
    {
     "text": "不同民族群体/社会在家庭结构上呈现多种形式和模式",
@@ -7621,25 +7642,25 @@
     "text": "认为快速变化使现代性进入晚期形式",
     "source": "main",
     "kind": "required",
-    "en": "rapid changes have brought modernity to its late forms"
+    "en": "believes rapid changes have brought modernity to its late forms"
    },
    {
     "text": "认为后现代性对现代性的描述被夸大",
     "source": "main",
     "kind": "required",
-    "en": "postmodernity has been exaggerating"
+    "en": "believes postmodernity has been exaggerating"
    },
    {
     "text": "认为核心家庭仍然重要",
     "source": "main",
     "kind": "example",
-    "en": "nuclear family is still important"
+    "en": "believes that nuclear family is still important"
    },
    {
     "text": "但核心家庭越来越难以形成或维持",
     "source": "main",
     "kind": "example",
-    "en": "increasingly difficult to form or maintain"
+    "en": "believes that nuclear family is ... increasingly difficult to form or maintain"
    }
   ],
   "bonus": [],
@@ -7669,7 +7690,7 @@
     "text": "不同家庭形式出现在人生的不同阶段",
     "source": "main",
     "kind": "required",
-    "en": "Different families are formed on differet stages of life"
+    "en": "Different families are formed on different stages of life"
    }
   ],
   "bonus": [],
@@ -7699,13 +7720,13 @@
     "text": "家庭主要由女性成员组成",
     "source": "main",
     "kind": "required",
-    "en": "A family that is made up of mainly female members, and the decisions are also made by female members"
+    "en": "A family that is made up of mainly female members"
    },
    {
     "text": "决策由女性成员做出",
     "source": "main",
     "kind": "required",
-    "en": "A society or culture based on the mother as the head of the family or household."
+    "en": "the decisions are also made by female members"
    }
   ],
   "bonus": [
@@ -7713,7 +7734,8 @@
     "text": "以母亲为家庭或户主的头领",
     "sources": [
      "tb1"
-    ]
+    ],
+    "en": "A society or culture based on the mother as the head of the family or household"
    }
   ],
   "sources": [
@@ -7744,23 +7766,25 @@
     "text": "出生时间为 1981-1996 年的一代人",
     "source": "main",
     "kind": "required",
-    "en": "born in 1981-1996"
+    "en": "A generation of people who were born in 1981-1996"
    },
    {
     "text": "持有更进步和新颖的家庭观",
     "source": "main",
     "kind": "example",
-    "en": "holds more progressive and new views of family"
+    "en": "It holds more progressive and new views of family"
    },
    {
     "text": "婚姻率较低",
     "source": "main",
-    "kind": "example"
+    "kind": "example",
+    "en": "lower marriage rate"
    },
    {
     "text": "替代性家庭形式比例较高，如 DINK 和同性婚姻",
     "source": "main",
-    "kind": "example"
+    "kind": "example",
+    "en": "higher proportions of alternative families e.g. DINK and same-sex marriage"
    }
   ],
   "bonus": [],
@@ -7796,7 +7820,7 @@
     "text": "大多数人在生命中的某个阶段会以儿童或成人的身份生活在这种家庭类型中",
     "source": "main",
     "kind": "required",
-    "en": "most of us will live as a child or adult in this type of family at some point in our lives"
+    "en": "According to Chester, most of us will live as a child or adult in this type of family at some point in our lives"
    }
   ],
   "bonus": [],
@@ -7856,7 +7880,7 @@
     "text": "一妻多夫制，指一名女性可以同时与多名男性结婚",
     "source": "main",
     "kind": "required",
-    "en": "One wife can be married to be married to more than one husbands"
+    "en": "One wife can be married to more than one husbands"
    }
   ],
   "bonus": [
@@ -7993,7 +8017,7 @@
     "sources": [
      "tb1"
     ],
-    "en": "Also known as gay marriage - the marriage of same-sex couples recognised by law as having the same status and rights as marriage of opposite-sex couples."
+    "en": "Also known as gay marriage - the marriage of same-sex couples recognised by law as having the same status and rights as marriage of opposite-sex couples"
    },
    {
     "text": "由法律承认具有与异性婚姻相同的地位和权利",
@@ -8132,7 +8156,7 @@
     "text": "社会在提升儿童的社会地位",
     "source": "main",
     "kind": "required",
-    "en": "enhancing children's social positions"
+    "en": "The society is enhancing children's social positions"
    },
    {
     "text": "社会重视儿童的安全和福祉",
@@ -8174,7 +8198,7 @@
     "text": "糖尿病的增加是对儿童社会地位持续进步观点的反例",
     "source": "main",
     "kind": "example",
-    "en": "a counter example against the view of march of progress in children's social statuses"
+    "en": "which is a counter example against the view of march of progress in children's social statuses"
    }
   ],
   "bonus": [],
@@ -8261,7 +8285,7 @@
     "sources": [
      "tb1"
     ],
-    "en": "children should have a great respect for their elders, especially parents and grandparents"
+    "en": "great respect for their elders, especially parents and grandparents"
    }
   ],
   "sources": [
@@ -8373,7 +8397,8 @@
    {
     "text": "肥胖是对儿童权利‘March of Progress’的反论点",
     "source": "main",
-    "kind": "example"
+    "kind": "example",
+    "en": "a counter argument against the March of Progress of children's rights"
    }
   ],
   "bonus": [],
@@ -8445,7 +8470,7 @@
     "text": "学前教育的学校化",
     "source": "main",
     "kind": "example",
-    "en": "schoolification of early childhood"
+    "en": "featuring schoolification of early childhood"
    },
    {
     "text": "高强度的学业压力",
@@ -8541,7 +8566,7 @@
     "text": "年龄身份被视为独立个体",
     "source": "main",
     "kind": "required",
-    "en": "independent individuals"
+    "en": "considered to be independent individuals"
    },
    {
     "text": "被视为社会的合格成员",
@@ -8605,7 +8630,7 @@
     "sources": [
      "igcse0495"
     ],
-    "en": "Prejudice and discrimination against people based on how old they are"
+    "en": "discrimination that is related to age"
    }
   ],
   "sources": [
@@ -8665,7 +8690,7 @@
     "text": "指的是老年人",
     "source": "main",
     "kind": "required",
-    "en": "elderly"
+    "en": "The elderly"
    },
    {
     "text": "有资格领取退休人员福利",
@@ -8840,7 +8865,8 @@
     "text": "角色由男性和女性伴侣在婚姻或同居关系中扮演",
     "sources": [
      "tb1"
-    ]
+    ],
+    "en": "The family roles played by husbands and wives within their marriages"
    },
    {
     "text": "角色来源于家庭内部的劳动分工，通常由丈夫和妻子承担",
@@ -8877,19 +8903,19 @@
     "text": "家庭内部的身体虐待",
     "source": "main",
     "kind": "required",
-    "en": "Physical, emotional and sexual abuses within family"
+    "en": "Physical"
    },
    {
     "text": "家庭内部的情感虐待",
     "source": "main",
     "kind": "required",
-    "en": "Physical, emotional and sexual abuses within family"
+    "en": "emotional"
    },
    {
     "text": "家庭内部的性虐待",
     "source": "main",
     "kind": "required",
-    "en": "Physical, emotional and sexual abuses within family"
+    "en": "sexual"
    }
   ],
   "bonus": [
@@ -8905,7 +8931,7 @@
     "sources": [
      "igcse0495"
     ],
-    "en": "Violence within the family, usually – but not always – by males against females; the term refers not only to physical violence but also to patterns of controlling behaviour that may include emotional manipulation."
+    "en": "the term refers not only to physical violence but also to patterns of controlling behaviour that may include emotional manipulation"
    },
    {
     "text": "通常但不总是由男性对女性实施",
@@ -9000,13 +9026,13 @@
     "text": "丈夫和妻子平等分担所有家务事项",
     "source": "main",
     "kind": "required",
-    "en": "The husbands and wives equally share all items of housework (no housework task is solely done by one party), and there is no longer distinction between their conjugal roles"
+    "en": "The husbands and wives equally share all items of housework (no housework task is solely done by one party)"
    },
    {
     "text": "没有任何家务任务仅由一方单独承担",
     "source": "main",
     "kind": "required",
-    "en": "The husbands and wives equally share all items of housework (no housework task is solely done by one party), and there is no longer distinction between their conjugal roles"
+    "en": "there is no longer distinction between their conjugal roles"
    },
    {
     "text": "不再存在他们之间的配偶角色区分",
@@ -9069,7 +9095,7 @@
     "sources": [
      "tb1"
     ],
-    "en": "The partners in a family take distinct roles (for example, the husband as breadwinner); assumed to be normal in the traditional nuclear family."
+    "en": "The partners in a family take distinct roles"
    },
    {
     "text": "家庭内部伙伴（通常是丈夫和妻子）所承担的角色，源于家庭内部的劳动分工",
@@ -9162,7 +9188,7 @@
     "text": "女性需要承担无偿的家务劳动",
     "source": "main",
     "kind": "required",
-    "en": "Women have to do ... unpaid housework"
+    "en": "unpaid housework"
    },
    {
     "text": "女性需要在私人领域进行情感劳动",
@@ -9245,7 +9271,7 @@
     "text": "夫妻双方或父母双方均有全职工作",
     "source": "main",
     "kind": "required",
-    "en": "both of the couple / parent have full-time jobs"
+    "en": "A family where both of the couple / parent have full-time jobs"
    }
   ],
   "bonus": [],
@@ -9275,12 +9301,13 @@
     "text": "情感劳动是指女性常被要求进行的无形家务劳动",
     "source": "main",
     "kind": "example",
-    "en": "The invisible housework labour that women are often required to do to comfort other family members and to provide company to them"
+    "en": "The invisible housework labour that women are often required to do to comfort other family members"
    },
    {
     "text": "其目的是为了安慰其他家庭成员",
     "source": "main",
-    "kind": "example"
+    "kind": "example",
+    "en": "The invisible housework labour that women are often required to do to provide company to them"
    },
    {
     "text": "并为家庭成员提供陪伴",
@@ -9315,19 +9342,19 @@
     "text": "照顾家庭成员的家务劳动",
     "source": "main",
     "kind": "required",
-    "en": "care for the housework"
+    "en": "care for the housework and emotional needs of family members"
    },
    {
     "text": "满足家庭成员的情感需求",
     "source": "main",
     "kind": "required",
-    "en": "emotional needs of family members"
+    "en": "usually played by females (wives and mothers)"
    },
    {
     "text": "通常由女性（妻子和母亲）承担",
     "source": "main",
     "kind": "example",
-    "en": "usually played by females (wives and mothers)"
+    "en": "= 'breadmaker'"
    },
    {
     "text": "等同于 'breadmaker'（家庭经济支柱角色的对应概念）",
@@ -9364,13 +9391,13 @@
     "text": "认为社会主要冲突是性别之间的冲突",
     "source": "main",
     "kind": "required",
-    "en": "An ideology that the major conflict in society is the one between genders, and that the women's rights should be upheld against sexism and patriarchy"
+    "en": "An ideology that the major conflict in society is the one between genders"
    },
    {
     "text": "主张维护女性权利以对抗性别歧视和父权制",
     "source": "main",
     "kind": "required",
-    "en": "A political movement and sociological perspective advocating equality of the sexes."
+    "en": "and that the women's rights should be upheld against sexism and patriarchy"
    }
   ],
   "bonus": [
@@ -9378,13 +9405,15 @@
     "text": "是一场政治运动和社会学视角",
     "sources": [
      "igcse0495"
-    ]
+    ],
+    "en": "A political movement and sociological perspective advocating equality of the sexes"
    },
    {
     "text": "倡导两性平等",
     "sources": [
      "igcse0495"
-    ]
+    ],
+    "en": "advocating equality of the sexes"
    }
   ],
   "sources": [
@@ -9457,7 +9486,7 @@
     "text": "密集型角色意味着女性每日从事有偿工作和无偿家务及育儿的高强度安排",
     "source": "main",
     "kind": "required",
-    "en": "they have very intense daily schedules from paid work to unpaid housework and childcare (dual burden / triple shift)"
+    "en": "which means they have very intense daily schedules from paid work to unpaid housework and childcare (dual burden / triple shift)"
    },
    {
     "text": "这种安排构成双重负担或三重班次（dual burden / triple shift）",
@@ -9537,7 +9566,7 @@
     "sources": [
      "tb1"
     ],
-    "en": "They are seen to be ‘left on the shelf’"
+    "en": "A term used in China to describe women who are still not married by the age of 27. They are seen to be ‘left on the shelf’"
    }
   ],
   "sources": [
@@ -9568,13 +9597,13 @@
     "text": "关注通过提高公众意识来解放和保护妇女权利",
     "source": "main",
     "kind": "required",
-    "en": "liberating and protecting women's rights through raising the public awareness and, most importantly, changing the laws and regulations within the liberal democracy"
+    "en": "liberating and protecting women's rights through raising the public awareness"
    },
    {
     "text": "最重要的是改变自由民主中的法律和法规",
     "source": "main",
     "kind": "required",
-    "en": "highlighted gender inequality in areas such as education and put pressure on governments to challenge it by introducing equal rights and opportunities legislation and social policies"
+    "en": "changing the laws and regulations within the liberal democracy"
    }
   ],
   "bonus": [
@@ -9582,13 +9611,15 @@
     "text": "强调教育等领域的性别不平等",
     "sources": [
      "tb1"
-    ]
+    ],
+    "en": "highlighted gender inequality in areas such as education"
    },
    {
     "text": "施压政府通过平等权利和机会立法及社会政策来挑战不平等",
     "sources": [
      "tb1"
-    ]
+    ],
+    "en": "put pressure on governments to challenge it by introducing equal rights and opportunities legislation and social policies"
    }
   ],
   "sources": [
@@ -9619,7 +9650,7 @@
     "text": "认为资本主义制度是女性所有压迫的真正根源",
     "source": "main",
     "kind": "required",
-    "en": "the capitalist system is the true origin of all oppressions on women"
+    "en": "believes the capitalist system is the true origin of all oppressions on women"
    },
    {
     "text": "要完全解放女性必须推翻资本主义制度",
@@ -9707,7 +9738,7 @@
     "sources": [
      "tb1"
     ],
-    "en": "often seen as men-hating because it is hyper-critical of what it saw as male exploitation and oppression of women"
+    "en": "was often seen as men-hating because it is hyper-critical of what it saw as male exploitation and oppression of women"
    }
   ],
   "sources": [
@@ -9768,7 +9799,7 @@
     "text": "处于传统家庭与平等对称家庭之间的家庭类型",
     "source": "main",
     "kind": "required",
-    "en": "A type of family that sits between traditional family and egalitarian symmetrical family on the symmetrical family on the route of family revolution"
+    "en": "A type of family that sits between traditional family and egalitarian symmetrical family on the route of family revolution"
    },
    {
     "text": "女性承担密集角色并承担双重负担/三重班",
@@ -9879,7 +9910,7 @@
     "text": "抵抗传统男性权力",
     "source": "main",
     "kind": "required",
-    "en": "they resist traditional male powers"
+    "en": "they resist traditional male powers but do not threatens to overthrow such powers"
    },
    {
     "text": "不试图推翻或威胁传统男性权力的结构",
@@ -9915,7 +9946,7 @@
     "text": "这种女性气质侧重于职业成就",
     "source": "main",
     "kind": "required",
-    "en": "focuses on career achievement"
+    "en": "The femininity that focuses on career achievement"
    },
    {
     "text": "女性以男性的标准与男性竞争",
@@ -9927,7 +9958,7 @@
     "text": "具有这种女性气质的女性不太可能参与终身承诺（如婚姻）",
     "source": "main",
     "kind": "required",
-    "en": "unlikely to be involved in life-long commitments (like marriage)"
+    "en": "women with such femininity are unlikely to be involved in life-long commitments (like marriage)"
    },
    {
     "text": "甚至更不可能成为母亲",
@@ -10041,12 +10072,13 @@
     "text": "期望男性擅长数学计算",
     "source": "main",
     "kind": "required",
-    "en": "expect men to be good at numerical calculations and sensible thinking"
+    "en": "expect men to be good at numerical calculations"
    },
    {
     "text": "期望男性具备理性思维能力",
     "source": "main",
-    "kind": "required"
+    "kind": "required",
+    "en": "expect men to be good at sensible thinking"
    }
   ],
   "bonus": [],
@@ -10118,12 +10150,13 @@
     "text": "期望男性渴望竞争",
     "source": "main",
     "kind": "required",
-    "en": "expect men to eager competitions and winning over other males"
+    "en": "expect men to eager competitions"
    },
    {
     "text": "期望男性战胜其他男性",
     "source": "main",
-    "kind": "required"
+    "kind": "required",
+    "en": "winning over other males"
    }
   ],
   "bonus": [],
@@ -10241,25 +10274,25 @@
     "text": "传统女性气质的另一种说法",
     "source": "main",
     "kind": "required",
-    "en": "Traditional femininity"
+    "en": "a.k.a Traditional femininity"
    },
    {
     "text": "社会对女性的传统期待",
     "source": "main",
     "kind": "required",
-    "en": "the traditional social expectations on women"
+    "en": "the traditional social expectations on women that they are / should be more emotional, sensitive, careful and caring"
    },
    {
     "text": "女性应更情绪化",
     "source": "main",
     "kind": "example",
-    "en": "should be more emotional"
+    "en": "they are / should be more emotional"
    },
    {
     "text": "女性应更敏感、细心和关怀他人",
     "source": "main",
     "kind": "example",
-    "en": "sensitive, careful and caring"
+    "en": "they are / should be more emotional, sensitive, careful and caring"
    }
   ],
   "bonus": [],
@@ -10289,13 +10322,13 @@
     "text": "与女性生物学性别相关的特征",
     "source": "main",
     "kind": "required",
-    "en": "The characteristics linked to the biological sex of female, and the social expectations imposed on females"
+    "en": "The characteristics linked to the biological sex of female"
    },
    {
     "text": "施加在女性身上的社会期望",
     "source": "main",
     "kind": "example",
-    "en": "The attitudes and behaviour associated with being a woman in a particular culture."
+    "en": "The social expectations imposed on females"
    }
   ],
   "bonus": [
@@ -10303,7 +10336,8 @@
     "text": "与在特定文化中成为女性相关联的态度和行为",
     "sources": [
      "igcse0495"
-    ]
+    ],
+    "en": "The attitudes and behaviour associated with being a woman in a particular culture"
    }
   ],
   "sources": [
@@ -10433,14 +10467,14 @@
     "sources": [
      "tb1"
     ],
-    "en": "The unseen, yet unbreachable, barrier"
+    "en": "The unseen, yet unbreachable, barrier that keeps women from rising to the upper rungs of the corporate ladder"
    },
    {
     "text": "阻止女性晋升至公司高层",
     "sources": [
      "tb1"
     ],
-    "en": "keeps women from rising to the upper rungs of the corporate ladder"
+    "en": "regardless of their qualifications or achievements"
    },
    {
     "text": "无论其资质或成就如何",
@@ -10528,13 +10562,13 @@
     "text": "男性和女性被认为适合从事不同类型的工作",
     "source": "main",
     "kind": "required",
-    "en": "Males and females are considered to be suitable for different types of jobs, i.e. male for police and female for nurses"
+    "en": "Males and females are considered to be suitable for different types of jobs"
    },
    {
     "text": "例如男性适合做警察，女性适合做护士",
     "source": "main",
     "kind": "example",
-    "en": "Differences in the number of people from different groups (such as the sexes) in different employment sectors."
+    "en": "Differences in the number of people from different groups (such as the sexes) in different employment sectors"
    }
   ],
   "bonus": [
@@ -10578,12 +10612,13 @@
     "text": "认为男性同情心较少",
     "source": "main",
     "kind": "example",
-    "en": "believes men have less sympathy and are therefore more objective"
+    "en": "believes men have less sympathy"
    },
    {
     "text": "因此更客观",
     "source": "main",
-    "kind": "required"
+    "kind": "required",
+    "en": "are therefore more objective"
    }
   ],
   "bonus": [],
@@ -10643,13 +10678,13 @@
     "text": "与男性生物学性别相关的特征",
     "source": "main",
     "kind": "required",
-    "en": "The characteristics linked to the biological sex of male, and the social expectations imposed on males"
+    "en": "The characteristics linked to the biological sex of male"
    },
    {
     "text": "施加于男性的社会期望",
     "source": "main",
     "kind": "example",
-    "en": "The attitudes and behaviour associated with being a man in a particular culture."
+    "en": "The social expectations imposed on males"
    }
   ],
   "bonus": [
@@ -10657,7 +10692,8 @@
     "text": "与在特定文化中成为男人相关的态度和行为",
     "sources": [
      "igcse0495"
-    ]
+    ],
+    "en": "The attitudes and behaviour associated with being a man in a particular culture."
    }
   ],
   "sources": [
@@ -10723,7 +10759,7 @@
     "text": "异性恋的城市男性",
     "source": "main",
     "kind": "required",
-    "en": "heterosexual urban man"
+    "en": "A heterosexual urban man"
    },
    {
     "text": "非常关注并精心打理自己的外表",
@@ -10765,7 +10801,7 @@
     "text": "不仅仅是两种性别（通常超过两种）",
     "source": "main",
     "kind": "required",
-    "en": "Not only (usually more than) two."
+    "en": "Not only (usually more than) two"
    }
   ],
   "bonus": [],
@@ -11115,13 +11151,13 @@
     "text": "居民所在的地理区域",
     "source": "main",
     "kind": "required",
-    "en": "A geographical area within which the residents"
+    "en": "A geographical area"
    },
    {
     "text": "该区域内的居民可以申请对应的州立学校学位",
     "source": "main",
     "kind": "required",
-    "en": "can apply for a place in the corresponding state school"
+    "en": "within which the residents can apply for a place in the corresponding state school"
    }
   ],
   "bonus": [],
@@ -11201,7 +11237,7 @@
     "text": "旨在接收所有能力水平的学生",
     "source": "main",
     "kind": "required",
-    "en": "designed to take in students ... of all levels of abilities"
+    "en": "designed to take in students of all levels of abilities"
    },
    {
     "text": "旨在促进教育平等",
@@ -11243,12 +11279,13 @@
     "text": "一些大学会降低录取标准",
     "source": "main",
     "kind": "example",
-    "en": "lower their admission standards if the applicant can prove that they are from a disadvantaged background"
+    "en": "some universities would lower their admission standards"
    },
    {
     "text": "前提是申请者能证明自己来自弱势背景",
     "source": "main",
-    "kind": "example"
+    "kind": "example",
+    "en": "if the applicant can prove that they are from a disadvantaged background"
    }
   ],
   "bonus": [],
@@ -11278,7 +11315,7 @@
     "text": "学校由宗教组织运营",
     "source": "main",
     "kind": "required",
-    "en": "A school that is run by religious organisations"
+    "en": "is run by religious organisations"
    }
   ],
   "bonus": [
@@ -11287,13 +11324,14 @@
     "sources": [
      "igcse0495"
     ],
-    "en": "A school that is run by religious organisations"
+    "en": "is run by religious organisations"
    },
    {
     "text": "通过校园文化和课程推广该宗教信仰",
     "sources": [
      "igcse0495"
-    ]
+    ],
+    "en": "is run by religious organisations"
    }
   ],
   "sources": [
@@ -11322,25 +11360,25 @@
     "text": "政府慈善计划",
     "source": "main",
     "kind": "required",
-    "en": "governmental charity scheme"
+    "en": "A governmental charity scheme"
    },
    {
     "text": "面向 disadvantaged students（弱势学生）",
     "source": "main",
     "kind": "required",
-    "en": "disadvantaged students"
+    "en": "for disadvantaged students"
    },
    {
     "text": "解决营养不良的物质剥夺问题",
     "source": "main",
     "kind": "required",
-    "en": "solve their material deprivation of malnutrition"
+    "en": "to solve their material deprivation of malnutrition"
    },
    {
     "text": "鼓励家长送子女上学",
     "source": "main",
     "kind": "example",
-    "en": "encourage their parents to send the children to schools"
+    "en": "as well as to encourage their parents to send the children to schools"
    }
   ],
   "bonus": [],
@@ -11382,13 +11420,13 @@
     "text": "因而学生生源质量较高",
     "source": "main",
     "kind": "required",
-    "en": "consequently has better student intake"
+    "en": "consequently has better student intake and educational quality"
    },
    {
     "text": "教育质量较好",
     "source": "main",
     "kind": "required",
-    "en": "educational quality"
+    "en": "consequently has better student intake and educational quality"
    },
    {
     "text": "如今常被中产阶级学生就读",
@@ -11466,13 +11504,13 @@
     "text": "官方对学校的评价",
     "source": "main",
     "kind": "required",
-    "en": "official evaluations of a school"
+    "en": "The official evaluations of a school"
    },
    {
     "text": "揭示学校的质量",
     "source": "main",
     "kind": "required",
-    "en": "reveals its qualities to parents who are considering school choices"
+    "en": "that reveals its qualities to parents who are considering school choices"
    },
    {
     "text": "供考虑学校选择的家长参考",
@@ -11638,7 +11676,8 @@
     "text": "学校不受政府运营或控制",
     "sources": [
      "igcse0495"
-    ]
+    ],
+    "en": "not operated or controlled by the government"
    }
   ],
   "sources": [
@@ -11836,7 +11875,8 @@
     "text": "只接受男性或女性学习者",
     "sources": [
      "igcse0495"
-    ]
+    ],
+    "en": "A school that enrolls only boys or girls"
    }
   ],
   "sources": [
@@ -12029,7 +12069,7 @@
     "text": "由学生家长支付",
     "source": "main",
     "kind": "example",
-    "en": "by the parents of students"
+    "en": "paid to private schools by the parents of students"
    }
   ],
   "bonus": [],
@@ -12114,7 +12154,7 @@
     "text": "为学生特定工作、职业和职业生涯做准备",
     "source": "main",
     "kind": "required",
-    "en": "A type and route of education that prepares its students for a specific job, vocation and career"
+    "en": "Education and training designed to prepare young people for employment and to teach work skills to meet the needs of industry"
    }
   ],
   "bonus": [
@@ -12123,21 +12163,21 @@
     "sources": [
      "tb1"
     ],
-    "en": "Education and training designed to prepare young people for employment and to teach work skills to meet the needs of industry."
+    "en": "Education and training designed to prepare young people for employment and to teach work skills to meet the needs of industry"
    },
    {
     "text": "教授工作技能以满足工业需求",
     "sources": [
      "tb1"
     ],
-    "en": "Education and training designed to prepare young people for employment and to teach work skills to meet the needs of industry."
+    "en": "Education and training designed to prepare young people for employment and to teach work skills to meet the needs of industry"
    },
    {
     "text": "培训人们从事特定工作或职业",
     "sources": [
      "igcse0495"
     ],
-    "en": "Vocational education that prepares people for work or trains them for particular jobs or careers."
+    "en": "Vocational education that prepares people for work or trains them for particular jobs or careers"
    }
   ],
   "sources": [
@@ -12215,7 +12255,7 @@
     "sources": [
      "tb1"
     ],
-    "en": "A feeling of being cut off from and unable to find satisfaction from work."
+    "en": "a feeling of being cut off from and unable to find satisfaction from work"
    }
   ],
   "sources": [
@@ -12287,7 +12327,8 @@
    {
     "text": "教育必须在学校进行",
     "source": "main",
-    "kind": "required"
+    "kind": "required",
+    "en": "during a certain period (this period may vary between countries)"
    },
    {
     "text": "义务教育期限有一定时长",
@@ -12335,7 +12376,7 @@
     "text": "目的是培养学生成为未来合格的劳动者",
     "source": "main",
     "kind": "required",
-    "en": "students are trained to become qualified workers in the future"
+    "en": "so that the students are trained to become qualified workers in the future"
    },
    {
     "text": "学生被训练为服从且疏离的工人",
@@ -12420,7 +12461,7 @@
     "text": "从小学开始",
     "source": "main",
     "kind": "required",
-    "en": "Education that takes place in classrooms, with professional teachers and set content to be taught and learnt."
+    "en": "Education that takes place in classrooms, with professional teachers and set content to be taught and learnt"
    }
   ],
   "bonus": [
@@ -12570,7 +12611,8 @@
    {
     "text": "资本家通过 meritocracy 来证明社会不平等的合理性",
     "source": "main",
-    "kind": "required"
+    "kind": "required",
+    "en": "capitalists are promoting the idea of meritocracy only to instill false class consciousness and justify social inequalities"
    }
   ],
   "bonus": [
@@ -12832,7 +12874,7 @@
     "text": "认为存在多种主观的现实接受和解释版本",
     "source": "main",
     "kind": "required",
-    "en": "believes in multiple versions of subjective receptions and interpretations of reality"
+    "en": "believes in multple versions of subjective receptions and interpretations of reality"
    },
    {
     "text": "属于认识论（哲学思想）的一种",
@@ -12901,7 +12943,7 @@
     "text": "相信科学方法可以证明社会事实的客观存在",
     "source": "main",
     "kind": "required",
-    "en": "An epistemology (a philosophical thought) that believes in the scientific methods to prove the objective existences of social facts"
+    "en": "believes in the scientific methods to prove the objective existences of social facts"
    },
    {
     "text": "属于认识论（哲学思想）",
@@ -12937,7 +12979,7 @@
     "sources": [
      "igcse0495"
     ],
-    "en": "An approach to sociology which takes a macro (large-scale) view of society and is based on studying society in a scientific manner, using quantitative methods"
+    "en": "An approach to sociology which ... is based on studying society in a scientific manner"
    }
   ],
   "sources": [
@@ -12979,14 +13021,14 @@
     "sources": [
      "tb1"
     ],
-    "en": "As used by Weber, an approach for interpreting the meanings and motives that direct individual action."
+    "en": "As used by Weber, an approach for interpreting the meanings and motives that direct individual action"
    },
    {
     "text": "理解研究参与者的情况，正如他们自己所理解的那样",
     "sources": [
      "tb1"
     ],
-    "en": "understanding research participants’ situations as they themselves understand them."
+    "en": "understanding research participants’ situations as they themselves understand them"
    },
    {
     "text": "识别与另一个人或群体产生共鸣，并从他们的角度看待事物",
@@ -13129,13 +13171,13 @@
     "text": "无法做出精确预测",
     "source": "main",
     "kind": "required",
-    "en": "accurate predictions cannot be made but the underlying mechanisms of past events can be scientifically studied"
+    "en": "accurate predictions cannot be made"
    },
    {
     "text": "但可对过去事件的底层机制进行科学研究",
     "source": "main",
     "kind": "required",
-    "en": "accurate predictions cannot be made but the underlying mechanisms of past events can be scientifically studied"
+    "en": "the underlying mechanisms of past events can be scientifically studied"
    },
    {
     "text": "例如气象学、革命性生物学、经济学和社会学",
@@ -13200,7 +13242,7 @@
     "text": "这些假设在后来的时代可能被证明为错误，从而导致范式转移",
     "source": "main",
     "kind": "required",
-    "en": "A framework of concepts and theories which states how the natural world operates"
+    "en": "These assumptions might turn out to be false in later era, leading to a paradigm shift"
    }
   ],
   "bonus": [
@@ -13208,7 +13250,8 @@
     "text": "概念和理论的框架，说明自然世界如何运作",
     "sources": [
      "tb1"
-    ]
+    ],
+    "en": "A framework of concepts and theories which states how the natural world operates"
    }
   ],
   "sources": [
@@ -13239,7 +13282,7 @@
     "text": "存在多个竞争的政党",
     "source": "tb1",
     "kind": "required",
-    "en": "competing interest groups"
+    "en": "a wide range of competing interest groups"
    },
    {
     "text": "这些政党在政治体制中共存",
@@ -13284,7 +13327,7 @@
     "text": "现实主义认为存在独立于人类思想之外的客观现实",
     "source": "main",
     "kind": "required",
-    "en": "existence of a reality external to human minds"
+    "en": "believes in the existence of a reality external to human minds"
    },
    {
     "text": "该客观现实的机制可以通过科学方法进行研究",
@@ -13350,13 +13393,13 @@
     "text": "错误地认为自己的文化实践和规范在世界上是普遍的",
     "source": "main",
     "kind": "required",
-    "en": "To wrongly assume that one's own cultural practices and norms are universal in the world, and that other cultures are wrong and inferior"
+    "en": "To wrongly assume that one's own cultural practices and norms are universal in the world"
    },
    {
     "text": "认为其他文化是错误的和低劣的",
     "source": "main",
     "kind": "required",
-    "en": "The belief that one’s own culture or ethnic group is superior to others"
+    "en": "and that other cultures are wrong and inferior"
    }
   ],
   "bonus": [
@@ -13365,13 +13408,14 @@
     "sources": [
      "tb1"
     ],
-    "en": "The belief that the people, customs and traditions of your own race or country are better than those of other races or countries"
+    "en": "The belief that one’s own culture or ethnic group is superior to others"
    },
    {
     "text": "认为自己种族或国家的人、习俗和传统优于其他种族或国家",
     "sources": [
      "igcse0495"
-    ]
+    ],
+    "en": "The belief that the people, customs and traditions of your own race or country are better than those of other races or countries"
    }
   ],
   "sources": [
@@ -13412,7 +13456,7 @@
     "text": "原因是个人的民族/种族出身",
     "source": "main",
     "kind": "example",
-    "en": "Racial prejudice or discrimination that has become established as normal behaviour within a society or organisation."
+    "en": "Racial prejudice or discrimination that has become established as normal behaviour within a society or organisation"
    }
   ],
   "bonus": [
@@ -13421,7 +13465,7 @@
     "sources": [
      "tb1"
     ],
-    "en": "When the functioning of an institution or organisation involves systems and expectations that lead to discrimination against an ethnic group."
+    "en": "When the functioning of an institution or organisation involves systems and expectations that lead to discrimination against an ethnic group"
    },
    {
     "text": "机构的运作涉及导致对民族群体歧视的系统和期望",
@@ -13628,7 +13672,7 @@
     "text": "按种族和文化起源将人类社会划分为等级的一种方式",
     "source": "main",
     "kind": "example",
-    "en": "The state of belonging to a particular group with a shared culture, including language, beliefs, history and traditions."
+    "en": "The state of belonging to a particular group with a shared culture, including language, beliefs, history and traditions"
    }
   ],
   "bonus": [
@@ -13674,13 +13718,13 @@
     "text": "世界各地人们的文化和身份差异消失",
     "source": "main",
     "kind": "required",
-    "en": "When the differences between cultures and identities of people around the world disappear, so they become similar."
+    "en": "When the differences between cultures and identities of people around the world disappear, so they become similar"
    },
    {
     "text": "人们变得相似",
     "source": "main",
     "kind": "required",
-    "en": "The process of being or becoming the same."
+    "en": "The process of being or becoming the same"
    }
   ],
   "bonus": [
@@ -13866,7 +13910,7 @@
     "text": "将不同种族的人分配到分隔的地理位置",
     "source": "main",
     "kind": "required",
-    "en": "allocate people of different races to seperated geographical locations"
+    "en": "To allocate people of different races to seperated geographical locations"
    },
    {
     "text": "在公共场所的不同区域进行种族隔离",
@@ -13941,13 +13985,13 @@
     "text": "同一民族群体的成员共享对历史事件的记忆",
     "source": "main",
     "kind": "required",
-    "en": "same memories"
+    "en": "share same memories on historical events"
    },
    {
     "text": "同一民族群体的成员共享对历史事件的看法",
     "source": "main",
     "kind": "required",
-    "en": "views on historical events"
+    "en": "share same views on historical events"
    }
   ],
   "bonus": [],
@@ -14050,13 +14094,13 @@
     "text": "西方文化在世界其他地区变得流行",
     "source": "main",
     "kind": "required",
-    "en": "The process in which Western culture becomes popular in the rest of the world and threatens to wipe out local cultures"
+    "en": "The process in which Western culture becomes popular in the rest of the world"
    },
    {
     "text": "威胁到抹去地方文化",
     "source": "main",
     "kind": "example",
-    "en": "The process whereby cultures adopt American or European ways of thinking or cultural practices."
+    "en": "The process whereby cultures adopt American or European ways of thinking or cultural practices"
    }
   ],
   "bonus": [
@@ -14101,12 +14145,13 @@
     "text": "该指数用于表明一个人的智力水平和能力",
     "source": "main",
     "kind": "required",
-    "en": "indicates one's intelligence level and ability, and predict their future achievements"
+    "en": "indicates one's intelligence level and ability"
    },
    {
     "text": "该指数可用于预测个人未来的成就",
     "source": "main",
-    "kind": "example"
+    "kind": "example",
+    "en": "and predict their future achievements"
    }
   ],
   "bonus": [],
@@ -14244,7 +14289,7 @@
     "text": "目的是获取原材料、廉价劳动力（甚至奴隶）和更大的产品市场",
     "source": "main",
     "kind": "required",
-    "en": "obtain raw materials, cheap labour forces (even slavery) and larger market of products"
+    "en": "Western empires discover and occupy colonies via military conquering in order to obtain raw materials, cheap labour forces (even slavery) and larger market of products"
    },
    {
     "text": "殖民地的统治是直接的",
@@ -14360,14 +14405,14 @@
     "sources": [
      "tb1"
     ],
-    "en": "an ethnic group subculture is absorbed into a wider culture"
+    "en": "The process in which an ethnic group subculture is absorbed into a wider culture"
    },
    {
     "text": "少数民族要么自愿要么被迫放弃其传统文化的一些方面",
     "sources": [
      "tb1"
     ],
-    "en": "either voluntarily or being forced to give up traditional aspects of their culture"
+    "en": "It involves ethnic groups either voluntarily or being forced to give up traditional aspects of their culture"
    },
    {
     "text": "少数民族的文化逐渐与多数群体的文化相似",
@@ -14417,7 +14462,7 @@
     "text": "已从左翼运动转向右翼民粹运动，具有本土主义特征",
     "source": "main",
     "kind": "example",
-    "en": "It has since shifted from left-wing movement to a right-wing populist movement featuring nativism"
+    "en": "has since shifted from left-wing movement to a right-wing populist movement featuring nativism"
    }
   ],
   "bonus": [
@@ -14623,17 +14668,19 @@
     "text": "常被马克思主义者讨论",
     "source": "main",
     "kind": "required",
-    "en": "Applying an economic value to a range of human activities"
+    "en": "often discussed by Marxists"
    },
    {
     "text": "例如全球教育的商品化（Rikowski）",
     "source": "main",
-    "kind": "example"
+    "kind": "example",
+    "en": "examples include commodification of global education (Rikowski) and commodification of social media connections and uses (Fuchs)"
    },
    {
     "text": "例如社交媒体联系和使用的商品化（Fuchs）",
     "source": "main",
-    "kind": "example"
+    "kind": "example",
+    "en": "Applying an economic value to a range of human activities"
    }
   ],
   "bonus": [
@@ -14708,7 +14755,7 @@
     "text": "殖民地的土著文化，尤其是语言，在殖民者的新文化影响下产生",
     "source": "main",
     "kind": "required",
-    "en": "the colonies' indigeneous cultures, especially languages, emerge with the new culture (from the colonisers)"
+    "en": "A process in which the colonies' indigeneous cultures, especially languages, emerge with the new culture (from the colonisers)"
    }
   ],
   "bonus": [],
@@ -14771,7 +14818,7 @@
     "sources": [
      "tb1"
     ],
-    "en": "high suicide ... rates"
+    "en": "high suicide rates"
    },
    {
     "text": "精神健康状况差",
@@ -14809,13 +14856,13 @@
     "text": "全球文化日益融合为一种文化",
     "source": "main",
     "kind": "required",
-    "en": "The phenomena that the global cultures increasingly integrate into one culture - usually the Western culture"
+    "en": "global cultures increasingly integrate into one culture - usually the Western culture"
    },
    {
     "text": "通常指西方文化成为主导的融合趋势",
     "source": "main",
     "kind": "example",
-    "en": "The process by which different cultures become very similar or the same."
+    "en": "The process by which different cultures become very similar or the same"
    }
   ],
   "bonus": [
@@ -14896,13 +14943,13 @@
     "text": "全球文化日益多样化",
     "source": "main",
     "kind": "required",
-    "en": "The phenomena that the global cultures become increasingly diversified, and local cultures are preserved and/or kept independent from each other"
+    "en": "The phenomena that the global cultures become increasingly diversified"
    },
    {
     "text": "地方文化被保存和/或相互独立",
     "source": "main",
     "kind": "example",
-    "en": "The process by which cultures become different from one another or even come into conflict with one another."
+    "en": "local cultures are preserved and/or kept independent from each other"
    }
   ],
   "bonus": [
@@ -14910,7 +14957,8 @@
     "text": "文化彼此不同甚至产生冲突的过程",
     "sources": [
      "tb1"
-    ]
+    ],
+    "en": "The process by which cultures become different from one another or even come into conflict with one another"
    }
   ],
   "sources": [
@@ -14983,18 +15031,19 @@
     "text": "Dependency Theory 是一种马克思主义理论",
     "source": "main",
     "kind": "required",
-    "en": "A Marxist theory that the globalisation of capitalism has created a world order where LEDCs are heavily dependent on MEDCs"
+    "en": "A Marxist theory"
    },
    {
     "text": "全球化的资本主义创造了一个世界秩序，其中低收入经济体（LEDCs）高度依赖高收入经济体（MEDCs）",
     "source": "main",
     "kind": "required",
-    "en": "The dependency is maintained through neo-colonialism"
+    "en": "the globalisation of capitalism has created a world order where LEDCs are heavily dependent on MEDCs"
    },
    {
     "text": "这种依赖关系通过新殖民主义（neo-colonialism）得以维持",
     "source": "main",
-    "kind": "required"
+    "kind": "required",
+    "en": "The dependency is maintained through neo-colonialism"
    }
   ],
   "bonus": [],
@@ -15166,13 +15215,13 @@
     "text": "日本文化思想",
     "source": "main",
     "kind": "required",
-    "en": "A Japanese cultural idea to organically intergrate Western and traditional Japanese cultures"
+    "en": "A Japanese cultural idea"
    },
    {
     "text": "有机融合西方与传统日本文化",
     "source": "main",
     "kind": "example",
-    "en": "such as living styles, cultural values, designs, etc."
+    "en": "to organically integrate Western and traditional Japanese cultures, such as living styles, cultural values, designs, etc.."
    },
    {
     "text": "涉及生活方式、文化价值观、设计等方面",
@@ -15249,13 +15298,13 @@
     "text": "非常保守的宗教版本，认为上帝的话语和宗教文本是绝对正确且需按字面解释",
     "source": "main",
     "kind": "required",
-    "en": "A very conservative version of religion which believes that God's word and religious texts are infallible and need to be interpreted literally. In globalisation, a retreat to fundamentalism shows a trend of cultural divergence."
+    "en": "A very conservative version of religion which believes that God's word and religious texts are infallible and need to be interpreted literally"
    },
    {
     "text": "在全球化中回归原教旨主义表现为文化分歧的趋势",
     "source": "main",
     "kind": "required",
-    "en": "A form of a religion, especially Islam or Protestant Christianity, that believes in and acts upon a literal interpretation of holy texts."
+    "en": "In globalisation, a retreat to fundamentalism shows a trend of cultural divergence"
    }
   ],
   "bonus": [
@@ -15263,7 +15312,8 @@
     "text": "特指伊斯兰教或新教基督教等形式的宗教",
     "sources": [
      "tb1"
-    ]
+    ],
+    "en": "A form of a religion, especially Islam or Protestant Christianity, that believes in and acts upon a literal interpretation of holy texts"
    }
   ],
   "sources": [
@@ -15294,13 +15344,13 @@
     "text": "支持资本主义和新自由主义的全球化趋势",
     "source": "main",
     "kind": "required",
-    "en": "It supports the current trend of globalisation of capitalism and neoliberalism."
+    "en": "It supports the current trend of globalisation of capitalism and neoliberalism"
    },
    {
     "text": "主张所有国家应效仿西方的发展模式和文化",
     "source": "main",
     "kind": "required",
-    "en": "It believes that all countries should follow the Western model of development and culture."
+    "en": "It believes that all countries should follow the Western model of development and culture"
    }
   ],
   "bonus": [],
@@ -15393,14 +15443,14 @@
     "sources": [
      "tb1"
     ],
-    "en": "A combination of the words ‘globalisation’ and ‘localisation’, used to describe a product or service that is developed and distributed globally, but is also adjusted to accommodate the user or consumer in a local market. The term is also used more generally as a hybrid fusing of the global and local, as in ‘Bollywood’"
+    "en": "a hybrid fusing of the global and local, as in ‘Bollywood’"
    },
    {
     "text": "产品或服务在全球开发分发，但需根据当地市场用户或消费者进行调整",
     "sources": [
      "tb1"
     ],
-    "en": "A product or service that is developed and distributed globally, but is also adjusted to accommodate the user or consumer in a local market"
+    "en": "a product or service that is developed and distributed globally, but is also adjusted to accommodate the user or consumer in a local market"
    }
   ],
   "sources": [
@@ -15437,7 +15487,7 @@
     "text": "存在一种适用于所有国家的标准发展模式",
     "source": "main",
     "kind": "example",
-    "en": "there is a standard model of development that fits all countries"
+    "en": "that there is a standard model of development that fits all countries"
    }
   ],
   "bonus": [],
@@ -15545,18 +15595,19 @@
     "text": "通过控制其他国家来扩张本国全球权力的计划或方案",
     "source": "main",
     "kind": "required",
-    "en": "The scheme (plan) to expand a country's power globally by controlling other countries, either through physical occupation or mental and cultural influences"
+    "en": "The scheme (plan) to expand a country's power globally by controlling other countries"
    },
    {
     "text": "可以通过实际的物理占领实现控制",
     "source": "main",
     "kind": "example",
-    "en": "Rule by an empire - for example, the British Empire."
+    "en": "either through physical occupation or mental and cultural influences"
    },
    {
     "text": "也可以通过精神和文化影响实现控制",
     "source": "main",
-    "kind": "example"
+    "kind": "example",
+    "en": "Rule by an empire - for example, the British Empire."
    }
   ],
   "bonus": [
@@ -15603,7 +15654,8 @@
     "text": "世界上最贫穷的国家",
     "sources": [
      "tb1"
-    ]
+    ],
+    "en": "Least Economically Developed Country"
    }
   ],
   "sources": [
@@ -15633,13 +15685,13 @@
     "text": "自由民主制结合了自由主义政治哲学和民主政治制度",
     "source": "main",
     "kind": "required",
-    "en": "A Western-style political regime that combines liberal political philosophy and a democratic political system (which features representative politics, universal elections, etc.)"
+    "en": "A Western-style political regime that combines liberal political philosophy and a democratic political system"
    },
    {
     "text": "其特点包括代表政治、普选等",
     "source": "main",
     "kind": "example",
-    "en": "A form of nation-state in which people have the right to vote their leaders in and out of power."
+    "en": "people have the right to vote their leaders in and out of power"
    }
   ],
   "bonus": [
@@ -15873,13 +15925,13 @@
     "text": "认为欠发达国家受传统落后文化阻碍",
     "source": "main",
     "kind": "required",
-    "en": "are hindered by their traditional backward cultures"
+    "en": "believes the underdeveloped countries are hindered by their traditional backward cultures"
    },
    {
     "text": "主张欠发达国家应采纳西方文化和价值观以实现 'take-off'",
     "source": "main",
     "kind": "required",
-    "en": "should take up Western cultures and values to 'take-off'"
+    "en": "they should take up Western cultures and values to 'take-off'"
    }
   ],
   "bonus": [],
@@ -15909,13 +15961,13 @@
     "text": "独立的国家",
     "source": "main",
     "kind": "required",
-    "en": "independent state"
+    "en": "An independent state"
    },
    {
     "text": "由单一民族群体组成",
     "source": "main",
     "kind": "required",
-    "en": "people from one particular national group"
+    "en": "consists of people from one particular national group"
    }
   ],
   "bonus": [],
@@ -16059,7 +16111,7 @@
     "text": "基督教的一个宗派（常为非裔美国人／加勒比黑人群体信仰，兼具文化防卫与新移民支持网络作用）",
     "source": "main",
     "kind": "required",
-    "en": "A sect of Christianity that is often shared by African American / Black Carribean ethnic group, contributing to the cultural defence as well as serving as the supportive network for new migrants"
+    "en": "A sect of Christianity that is often shared by African American / Black Carribean ethnic group"
    }
   ],
   "bonus": [],
@@ -16089,13 +16141,13 @@
     "text": "在世界体系中，外围国家只能提供廉价原材料和低技能/无技能劳动力",
     "source": "main",
     "kind": "required",
-    "en": "can only provide cheap raw materials and low-skilled / unskilled labour forces"
+    "en": "peripheral countries are the ones that can only provide cheap raw materials and low-skilled / unskilled labour forces"
    },
    {
     "text": "外围国家被新殖民主义严重剥削",
     "source": "main",
     "kind": "required",
-    "en": "are heavily exploited by neo-colonialism"
+    "en": "They are heavily exploited by neo-colonialism"
    }
   ],
   "bonus": [],
@@ -16125,13 +16177,13 @@
     "text": "情感被高于理性地推广",
     "source": "main",
     "kind": "required",
-    "en": "emotions are promoted over reasons"
+    "en": "emotions are promoted over reasons by populist politicians"
    },
    {
     "text": "民粹政治家推动情感优先于理性",
     "source": "main",
     "kind": "required",
-    "en": "populist politicians"
+    "en": "the expertise opinions are challenged and contempted by normal people's arbitrary or anecdotal opinions"
    },
    {
     "text": "专家意见被质疑和轻视",
@@ -16173,19 +16225,19 @@
     "text": "政府允许私营公司接管一些国家服务",
     "source": "main",
     "kind": "required",
-    "en": "government should allow private companies to take over some national services"
+    "en": "the government should allow private companies to take over some national services"
    },
    {
     "text": "政府允许私营公司接管国有企业",
     "source": "main",
     "kind": "required",
-    "en": "government should allow private companies to take over state-owned enterprises"
+    "en": "the government should allow private companies to take over state-owned enterprises"
    },
    {
     "text": "政府允许私营公司接管养老金",
     "source": "main",
     "kind": "example",
-    "en": "government should allow private companies to take over pensions"
+    "en": "the government should allow private companies to take over pensions"
    }
   ],
   "bonus": [
@@ -16223,13 +16275,13 @@
     "text": "知识、真理和道德相对于文化、历史背景甚至个人观点和经验而存在",
     "source": "main",
     "kind": "required",
-    "en": "knowledge, truth and morality exist in relation to culture, historical context, and even personal opinion and experience, and consequently cannot be absolute or unquestionable"
+    "en": "knowledge, truth and morality exist in relation to culture, historical context, and even personal opinion and experience"
    },
    {
     "text": "因此知识、真理和道德不能是绝对的或不可质疑的",
     "source": "main",
     "kind": "required",
-    "en": "there is no such thing as absolute truth and that all opinions and experiences have validity"
+    "en": "consequently cannot be absolute or unquestionable"
    }
   ],
   "bonus": [
@@ -16237,13 +16289,15 @@
     "text": "认为不存在绝对真理",
     "sources": [
      "tb1"
-    ]
+    ],
+    "en": "there is no such thing as absolute truth"
    },
    {
     "text": "所有观点和经验都有效",
     "sources": [
      "tb1"
-    ]
+    ],
+    "en": "all opinions and experiences have validity"
    }
   ],
   "sources": [
@@ -16274,18 +16328,19 @@
     "text": "文化从世界其他地区流向西方世界",
     "source": "main",
     "kind": "required",
-    "en": "cultural flow from the rest of the world to Western world"
+    "en": "The cultural flow from the rest of the world to Western world"
    },
    {
     "text": "例如非洲音乐融入美国音乐",
     "source": "main",
     "kind": "example",
-    "en": "African music's integration into American music, Chinese food and acupuncture's popularity in the West"
+    "en": "African music's integration into American music"
    },
    {
     "text": "例如中国食物和针灸在西方的流行",
     "source": "main",
-    "kind": "example"
+    "kind": "example",
+    "en": "Chinese food and acupuncture's popularity in the West"
    }
   ],
   "bonus": [],
@@ -16327,7 +16382,7 @@
     "text": "属于依赖理论（dependency theory）的一部分",
     "source": "main",
     "kind": "required",
-    "en": "dependency theory"
+    "en": "in the dependency theory"
    }
   ],
   "bonus": [],
@@ -16398,13 +16453,13 @@
     "text": "国家在其领土内拥有统治的权利",
     "source": "main",
     "kind": "required",
-    "en": "right"
+    "en": "The right"
    },
    {
     "text": "国家在其领土内拥有统治的权力",
     "source": "main",
     "kind": "required",
-    "en": "power"
+    "en": "The power"
    }
   ],
   "bonus": [],
@@ -16434,7 +16489,7 @@
     "text": "全球化不是不可逆转的",
     "source": "main",
     "kind": "required",
-    "en": "globalisation is not irreversible"
+    "en": "the globalisation is not irreversible"
    },
    {
     "text": "不同文化的交往不会导致西方化",
@@ -16548,17 +16603,19 @@
     "text": "认为存在由核心国家、半边缘国家和边缘国家组成的世界体系",
     "source": "main",
     "kind": "required",
-    "en": "The system is characterised by a one-way dependency from which core countries benefit"
+    "en": "believes in the existence of a world system consists of core countries, semi-peripheral countries and peripheral countries"
    },
    {
     "text": "该体系具有单向依赖关系",
     "source": "main",
-    "kind": "required"
+    "kind": "required",
+    "en": "The system is characterised by a one-way dependency"
    },
    {
     "text": "核心国家从该依赖关系中获益",
     "source": "main",
-    "kind": "required"
+    "kind": "required",
+    "en": "core countries benefit"
    }
   ],
   "bonus": [],
@@ -16708,13 +16765,13 @@
     "text": "研究者隐藏自己的身份",
     "source": "main",
     "kind": "required",
-    "en": "the researcher hide his/her identity"
+    "en": "the researcher hide his/her identity so that the participants do not know that they are being observed"
    },
    {
     "text": "参与者不知道自己正在被观察",
     "source": "main",
     "kind": "required",
-    "en": "the participants do not know that they are being observed"
+    "en": "the observer’s true identity and the purpose of their study are hidden from participants"
    }
   ],
   "bonus": [
@@ -16723,14 +16780,14 @@
     "sources": [
      "tb1"
     ],
-    "en": "the observer’s true identity and the purpose of their study are hidden from participants"
+    "en": "the group being studied is unaware of the research"
    },
    {
     "text": "被研究的群体 unaware of the research；covert 意为 'hidden'",
     "sources": [
      "igcse0495"
     ],
-    "en": "the group being studied is unaware of the research"
+    "en": "covert means ‘hidden’"
    }
   ],
   "sources": [
@@ -16947,7 +17004,7 @@
     "text": "没有预设选项",
     "source": "main",
     "kind": "required",
-    "en": "do not have pre-coded options"
+    "en": "Questions that do not have pre-coded options"
    },
    {
     "text": "允许受访者自由表达自己的想法",
@@ -17058,14 +17115,14 @@
     "sources": [
      "tb1"
     ],
-    "en": "A qualitative method in which the researcher gathers data by joining a group and taking part in its activities."
+    "en": "A qualitative method in which the researcher gathers data by joining a group and taking part in its activities"
    },
    {
     "text": "研究者通过加入群体并像他们一样生活来研究群体",
     "sources": [
      "igcse0495"
     ],
-    "en": "When a researcher studies a group by joining them and living as they do."
+    "en": "When a researcher studies a group by joining them and living as they do"
    }
   ],
   "sources": [
@@ -17098,13 +17155,13 @@
     "text": "有问题提纲但不要求严格按提纲提问",
     "source": "main",
     "kind": "required",
-    "en": "an outline for interview questions, but it does not require the interviewer to strictly follow the given questions"
+    "en": "A qualitative interview where there would be an outline for interview questions, but it does not require the interviewer to strictly follow the given questions and enables the interviewer to improvise"
    },
    {
     "text": "允许面试者即兴发挥",
     "source": "main",
     "kind": "required",
-    "en": "enables the interviewer to improvise"
+    "en": "A qualitative interview where there would be an outline for interview questions, but it does not require the interviewer to strictly follow the given questions and enables the interviewer to improvise"
    }
   ],
   "bonus": [
@@ -17162,14 +17219,14 @@
     "sources": [
      "tb1"
     ],
-    "en": "A questionnaire which the interviewer read outs and fills in and fills in"
+    "en": "A questionnaire which the interviewer read outs and fills in."
    },
    {
     "text": "问题标准化（相同顺序提问），回答组织以产生定量数据",
     "sources": [
      "igcse0495"
     ],
-    "en": "An interview in which the questions are standardised (the same questions are asked in the same order) and the responses organised to produce quantitative data"
+    "en": "An interview in which the questions are standardised (the same questions are asked in the same order) and the responses organised to produce quantitative data."
    }
   ],
   "sources": [
@@ -17346,7 +17403,7 @@
     "text": "政府通常进行的大规模研究",
     "source": "main",
     "kind": "required",
-    "en": "large-scale research that is usually carried out by government"
+    "en": "A type of large-scale research that is usually carried out by government"
    },
    {
     "text": "生成定量数据",
@@ -17358,7 +17415,7 @@
     "text": "具有高度代表性",
     "source": "main",
     "kind": "required",
-    "en": "highly representative"
+    "en": "is highly representative"
    }
   ],
   "bonus": [],
@@ -17515,12 +17572,13 @@
     "text": "一种小组访谈形式，受访者被给定一个话题并可自由讨论",
     "source": "main",
     "kind": "required",
-    "en": "A type of group interview where the interviewees are given a topic and are free to discuss among themselves."
+    "en": "A type of group interview where the interviewees are given a topic and are free to discuss among themselves"
    },
    {
     "text": "讨论内容会被记录为定性数据",
     "source": "main",
-    "kind": "required"
+    "kind": "required",
+    "en": "The discussions would be recorded as qualitative data"
    }
   ],
   "bonus": [
@@ -17529,7 +17587,7 @@
     "sources": [
      "tb1"
     ],
-    "en": "A group discussion about one particular theme or topic guided by a moderator; it explores how participants interact and respond to each other’s views."
+    "en": "A group discussion about one particular theme or topic guided by a moderator"
    },
    {
     "text": "探讨参与者如何相互互动并回应彼此的观点",
@@ -17567,18 +17625,19 @@
     "text": "目标研究群体中能够给予研究者进入群体机会的个体",
     "source": "main",
     "kind": "required",
-    "en": "The individual in the target research group who can give researcher access to the group and introduce the researcher to other members of the group"
+    "en": "The individual in the target research group who can give researcher access to the group"
    },
    {
     "text": "能够向研究者介绍群体其他成员的个体",
     "source": "main",
     "kind": "required",
-    "en": "The individual in the target research group who can give researcher access to the group and introduce the researcher to other members of the group"
+    "en": "introduce the researcher to other members of the group"
    },
    {
     "text": "通常在参与观察中是必需的",
     "source": "main",
-    "kind": "required"
+    "kind": "required",
+    "en": "usually required in a participant observation"
    }
   ],
   "bonus": [],
@@ -17662,7 +17721,7 @@
     "text": "研究者能够严格控制变量",
     "source": "main",
     "kind": "required",
-    "en": "An experiment conducted in a specially designed setting."
+    "en": "An experiment conducted in a specially designed setting"
    }
   ],
   "bonus": [
@@ -17707,7 +17766,7 @@
     "text": "旨在引导受访者给出某种特定回答",
     "source": "main",
     "kind": "required",
-    "en": "lead the respondents towards giving a certain response"
+    "en": "to lead the respondents towards giving a certain response"
    }
   ],
   "bonus": [],
@@ -17749,7 +17808,7 @@
     "text": "在同一研究中结合使用",
     "source": "main",
     "kind": "example",
-    "en": "in one research"
+    "en": "Using both quantitative and qualitative research methods in one research"
    }
   ],
   "bonus": [],
@@ -17821,7 +17880,7 @@
     "text": "研究是由研究者本人或其团队亲自进行",
     "source": "main",
     "kind": "required",
-    "en": "carried out by the researcher him/herself or his/her team"
+    "en": "The research that is carried out by the researcher him/herself or his/her team"
    },
    {
     "text": "研究是为特定研究目的而开展的",
@@ -17951,25 +18010,25 @@
     "text": "访谈者与被访谈者之间建立良好的关系",
     "source": "main",
     "kind": "required",
-    "en": "A good relationship between the interviewer and the interviewee that the interviewee can trust the interviewer and give honest answers but would not give only socially desirable answers"
+    "en": "A good relationship between the interviewer and the interviewee"
    },
    {
     "text": "被访谈者能够信任访谈者",
     "source": "main",
     "kind": "required",
-    "en": "A good relationship between the interviewer and the interviewee that the interviewee can trust the interviewer and give honest answers but would not give only socially desirable answers"
+    "en": "the interviewee can trust the interviewer"
    },
    {
     "text": "被访谈者愿意给出诚实的回答",
     "source": "main",
     "kind": "required",
-    "en": "A good relationship between the interviewer and the interviewee that the interviewee can trust the interviewer and give honest answers but would not give only socially desirable answers"
+    "en": "give honest answers"
    },
    {
     "text": "被访谈者不会仅仅提供社会期望性的答案",
     "source": "main",
     "kind": "required",
-    "en": "A good relationship between the interviewer and the interviewee that the interviewee can trust the interviewer and give honest answers but would not give only socially desirable answers"
+    "en": "would not give only socially desirable answers"
    }
   ],
   "bonus": [
@@ -17978,7 +18037,7 @@
     "sources": [
      "tb1"
     ],
-    "en": "A friendly, trusting and understanding relationship."
+    "en": "A friendly, trusting and understanding relationship"
    }
   ],
   "sources": [
@@ -18142,7 +18201,7 @@
     "sources": [
      "tb1"
     ],
-    "en": "same results"
+    "en": "obtain the same results"
    },
    {
     "text": "研究可被重复以产生类似反应",
@@ -18191,14 +18250,14 @@
     "sources": [
      "tb1"
     ],
-    "en": "Data are valid if they represent a true or accurate measurement."
+    "en": "Data are valid if they represent a true or accurate measurement"
    },
    {
     "text": "研究结果反映现实并给出真实画面的程度",
     "sources": [
      "igcse0495"
     ],
-    "en": "The extent to which research findings reflect reality and give a true picture."
+    "en": "The extent to which research findings reflect reality and give a true picture"
    }
   ],
   "sources": [
@@ -18270,7 +18329,7 @@
     "sources": [
      "igcse0495"
     ],
-    "en": "When a researcher is not neutral in carrying out their research."
+    "en": "When a researcher is not neutral in carrying out their research"
    }
   ],
   "sources": [
@@ -18478,7 +18537,7 @@
     "sources": [
      "igcse0495"
     ],
-    "en": "When the findings about a sample can be said to apply to a larger group of people sharing the same characteristics."
+    "en": "When the findings about a sample can be said to apply to a larger group of people sharing the same characteristics"
    }
   ],
   "sources": [
@@ -18616,7 +18675,8 @@
     "text": "偏差源于参与者希望在回答中体现被普遍视为正确行为方式的欲望",
     "sources": [
      "tb1"
-    ]
+    ],
+    "en": "The participant of a research may act / answer questions in a way that conforms to social expectations rather than their true thoughts"
    }
   ],
   "sources": [
@@ -18737,13 +18797,13 @@
     "text": "用于发现研究设计中可能存在的缺陷",
     "source": "main",
     "kind": "required",
-    "en": "to find out the possible flaws in the research design"
+    "en": "in order to find out the possible flaws in the research design"
    },
    {
     "text": "用于发现可能提出的新问题",
     "source": "main",
     "kind": "required",
-    "en": "new possible questions to be asked"
+    "en": "and new possible questions to be asked"
    }
   ],
   "bonus": [
@@ -18752,7 +18812,7 @@
     "sources": [
      "tb1"
     ],
-    "en": "to check the suitability of the methods to be used in the main study"
+    "en": "A small-scale study to check the suitability of the methods to be used in the main study"
    },
    {
     "text": "在主要研究进行前对研究方法的小规模测试",
@@ -18841,13 +18901,13 @@
     "text": "抽样方法中样本是随机选择的",
     "source": "main",
     "kind": "required",
-    "en": "A sampling method where the sample is chosen randomly; each person of the target population has equal opportunity of being selected"
+    "en": "A sampling method where the sample is chosen randomly"
    },
    {
     "text": "目标人群中的每个人都有平等的机会被选中",
     "source": "main",
     "kind": "required",
-    "en": "A sampling method where the sample is chosen randomly; each person of the target population has equal opportunity of being selected"
+    "en": "each person of the target population has equal opportunity of being selected"
    }
   ],
   "bonus": [
@@ -18856,7 +18916,7 @@
     "sources": [
      "tb1"
     ],
-    "en": "A sampling technique in which every member of the sampling frame has a known chance of being selected"
+    "en": "every member of the sampling frame has a known chance of being selected"
    }
   ],
   "sources": [
@@ -18889,13 +18949,13 @@
     "text": "目标人群的所有成员的完整名单",
     "source": "main",
     "kind": "required",
-    "en": "A complete list of all members of target population to be chosen from"
+    "en": "A complete list of all members of target population"
    },
    {
     "text": "用于抽样的来源",
     "source": "main",
     "kind": "required",
-    "en": "A list of members of the research population."
+    "en": "A list of members of the research population"
    }
   ],
   "bonus": [
@@ -18904,14 +18964,14 @@
     "sources": [
      "igcse0495"
     ],
-    "en": "A list of all (or most) members of a target population from which the sample is chosen."
+    "en": "A list of all (or most) members of a target population from which the sample is chosen"
    },
    {
     "text": "研究人群成员的列表",
     "sources": [
      "tb1"
     ],
-    "en": "A list of members of the research population."
+    "en": "A list of members of the research population"
    }
   ],
   "sources": [
@@ -19052,7 +19112,7 @@
     "text": "量化该概念，使其成为可变的变量",
     "source": "main",
     "kind": "required",
-    "en": "Translate abstract concepts into a form that can be measured."
+    "en": "Translate abstract concepts into a form that can be measured"
    },
    {
     "text": "该变量可以是因变量或自变量",
@@ -19102,7 +19162,7 @@
     "text": "所选样本最有可能证明假设",
     "source": "main",
     "kind": "required",
-    "en": "most likely to prove the hypothesis"
+    "en": "that is most likely to prove the hypothesis"
    },
    {
     "text": "若假设仍未被证明，则可确信该现象不存在",
@@ -19239,7 +19299,7 @@
     "text": "在性别社会化过程中，父母会根据孩子的生物学性别安排其活动、衣物、玩具等",
     "source": "main",
     "kind": "required",
-    "en": "parents would arrange for their children (i.e. activities, clothes, toys, etc.) according to their biological sex"
+    "en": "In gendered socialisation, parents would arrange for their children (i.e. activities, clothes, toys, etc.) according to their biological sex"
    }
   ],
   "bonus": [
@@ -19248,7 +19308,7 @@
     "sources": [
      "tb1"
     ],
-    "en": "parents encourage behaviour which is culturally acceptable for boys or girls but discourage behaviour that might be interpreted as not fitting cultural norms"
+    "en": "A component of gender role socialisation in which parents encourage behaviour which is culturally acceptable for boys or girls but discourage behaviour that might be interpreted as not fitting cultural norms."
    }
   ],
   "sources": [
@@ -19528,14 +19588,14 @@
     "sources": [
      "tb1"
     ],
-    "en": "Behaviour that is regarded as either offensive or odd to a social group or society and is therefore regarded as requiring some form of formal or informal regulation."
+    "en": "Behaviour that is regarded as either offensive or odd to a social group or society and is therefore regarded as requiring some form of formal or informal regulation"
    },
    {
     "text": "行为违背群体的规范或价值观",
     "sources": [
      "igcse0495"
     ],
-    "en": "Behaviour that goes against the norms or values of a group."
+    "en": "Behaviour that goes against the norms or values of a group"
    }
   ],
   "sources": [
@@ -19577,21 +19637,21 @@
     "sources": [
      "tb1"
     ],
-    "en": "Children who have been deprived of interaction with other humans because they have been abandoned into the wild (and, in some cases, allegedly raised by animals) or kept in isolation."
+    "en": "Children who have been deprived of interaction with other humans because they have been abandoned into the wild"
    },
    {
     "text": "在某些情况下，据称被动物抚养长大",
     "sources": [
      "tb1"
     ],
-    "en": "Children who have been deprived of interaction with other humans because they have been abandoned into the wild (and, in some cases, allegedly raised by animals) or kept in isolation."
+    "en": "Children who have been deprived of interaction with other humans because they have been abandoned into the wild (and, in some cases, allegedly raised by animals)"
    },
    {
     "text": "儿童被关在孤立环境中",
     "sources": [
      "tb1"
     ],
-    "en": "Children who have been deprived of interaction with other humans because they have been abandoned into the wild (and, in some cases, allegedly raised by animals) or kept in isolation."
+    "en": "Children who have been deprived of interaction with other humans because they have been abandoned into the wild (and, in some cases, allegedly raised by animals) or kept in isolation"
    },
    {
     "text": "‘野生’儿童未经社会化",
@@ -19974,19 +20034,19 @@
     "text": "继续进行的社会化过程",
     "source": "main",
     "kind": "required",
-    "en": "The further socialisations that continue after primary socialisation"
+    "en": "The further socialisations that continue after primary socialisation and last for a life time"
    },
    {
     "text": "发生在初级社会化之后",
     "source": "main",
     "kind": "required",
-    "en": "after primary socialisation"
+    "en": "The socialisation that takes place during later life, for example, within schools and workplaces"
    },
    {
     "text": "持续一生",
     "source": "main",
     "kind": "required",
-    "en": "last for a life time"
+    "en": "The further socialisations that continue after primary socialisation and last for a life time"
    }
   ],
   "bonus": [
@@ -19995,14 +20055,14 @@
     "sources": [
      "tb1"
     ],
-    "en": "within schools and workplaces"
+    "en": "The socialisation that takes place during later life, for example, within schools and workplaces"
    },
    {
     "text": "学习特定身份和角色的具体规范",
     "sources": [
      "igcse0495"
     ],
-    "en": "learn more specific norms for particular statuses and roles"
+    "en": "Later socialisation, when people learn more specific norms for particular statuses and roles"
    }
   ],
   "sources": [
@@ -20035,13 +20095,13 @@
     "text": "宗教对日常生活的影响下降",
     "source": "main",
     "kind": "required",
-    "en": "The decline of religion's influence on our daily life and on society"
+    "en": "decline of religion's influence on our daily life"
    },
    {
     "text": "宗教对社会的影响下降",
     "source": "main",
     "kind": "required",
-    "en": "The decline of religion's influence on our daily life and on society"
+    "en": "decline of religion's influence on... society"
    }
   ],
   "bonus": [
@@ -20050,21 +20110,21 @@
     "sources": [
      "tb1"
     ],
-    "en": "A general decline in religious belief in God and religious practices such as regularly going to church"
+    "en": "A general decline in religious belief in God"
    },
    {
     "text": "如定期去教堂等宗教实践的下降",
     "sources": [
      "tb1"
     ],
-    "en": "A general decline in religious belief in God and religious practices such as regularly going to church"
+    "en": "religious practices such as regularly going to church"
    },
    {
     "text": "在现代工业社会中，许多人日常生活中宗教变得不那么重要",
     "sources": [
      "igcse0495"
     ],
-    "en": "The process by which religion has become less important in the daily lives of many people in modern industrial societies"
+    "en": "religion has become less important in the daily lives of many people in modern industrial societies"
    }
   ],
   "sources": [
@@ -20097,13 +20157,13 @@
     "text": "小文化在大文化之内/之下，拥有自己的一套价值观",
     "source": "main",
     "kind": "required",
-    "en": "The smaller culture within / under a big culture that has its own set of values, sometimes at odds with mainstream values."
+    "en": "The smaller culture within / under a big culture that has its own set of values, sometimes at odds with mainstream values"
    },
    {
     "text": "其价值观有时与主流价值观相冲突",
     "source": "main",
     "kind": "required",
-    "en": "Subcultures used to be seen as causing deviances; nowadays, they are normalised."
+    "en": "Subcultures used to be seen as causing deviances; nowadays, they are normalised"
    },
    {
     "text": "过去被视为导致偏差行为的原因；如今被视为正常现象",
@@ -20118,7 +20178,7 @@
      "tb1",
      "igcse0495"
     ],
-    "en": "The distinctive norms and values of a particular social group."
+    "en": "The distinctive norms and values of a particular social group"
    }
   ],
   "sources": [
@@ -20295,13 +20355,13 @@
     "text": "实验故意破坏社会规则",
     "source": "main",
     "kind": "required",
-    "en": "deliberately break the social rules"
+    "en": "Experiments that deliberately break the social rules"
    },
    {
     "text": "旨在揭示社会规则仅存在于人们的思想中",
     "source": "main",
     "kind": "required",
-    "en": "reveal how the rules are only in our minds"
+    "en": "to reveal how the rules are only in our minds"
    }
   ],
   "bonus": [],
@@ -20331,13 +20391,13 @@
     "text": "通过使人们害怕后果来防止某些行为的发生",
     "source": "main",
     "kind": "required",
-    "en": "The methods used to prevent people from carrying out certain behaviours by making them afraid of what will happen to happen to them if they do it"
+    "en": "The methods used to prevent people from carrying out certain behaviours by making them afraid of what will happen to them if they do it"
    },
    {
     "text": "采用某种方法来威慑人们不去实施特定行为",
     "source": "main",
     "kind": "required",
-    "en": "A punishment intended to discourage offenders or others from committing an offence"
+    "en": "A punishment intended to discourage offenders or others from committing an offence."
    }
   ],
   "bonus": [
@@ -20375,13 +20435,13 @@
     "text": "使用数字技术",
     "source": "main",
     "kind": "required",
-    "en": "The use of digital technology to observe and control behaviour"
+    "en": "The use of digital technology to observe"
    },
    {
     "text": "观察行为",
     "source": "main",
     "kind": "required",
-    "en": "The use of digital technology to observe and control behaviour"
+    "en": "The use of digital technology to control behaviour"
    },
    {
     "text": "控制行为",
@@ -20417,7 +20477,7 @@
     "text": "由学校提供的正规教育，包括在校学到的知识与经历",
     "source": "main",
     "kind": "required",
-    "en": "The formal education, the knowledge learned and experiences encountered in schools"
+    "en": "The formal education"
    }
   ],
   "bonus": [],
@@ -20530,7 +20590,7 @@
     "text": "按照自己的意愿行事",
     "source": "main",
     "kind": "required",
-    "en": "do as one pleases"
+    "en": "to do as one pleases"
    }
   ],
   "bonus": [],
@@ -20791,24 +20851,25 @@
     "text": "媒体是社会化的第二代理人",
     "source": "main",
     "kind": "required",
-    "en": "A secondary agency of socialisation where media messages convey the values and norms of society to audience"
+    "en": "A secondary agency of socialisation"
    },
    {
     "text": "媒体信息传递社会的价值观和规范给受众",
     "source": "main",
     "kind": "required",
-    "en": "Positive sanction could be public praises"
+    "en": "media messages convey the values and norms of society to audience"
    },
    {
     "text": "积极制裁可表现为公开表扬",
     "source": "main",
     "kind": "example",
-    "en": "Negative sanction could be public ridicule"
+    "en": "Positive sanction could be public praises"
    },
    {
     "text": "消极制裁可表现为公开嘲笑",
     "source": "main",
-    "kind": "example"
+    "kind": "example",
+    "en": "negative sanction could be public ridicule"
    }
   ],
   "bonus": [],
@@ -20844,7 +20905,7 @@
     "text": "生物因素的影响",
     "source": "main",
     "kind": "required",
-    "en": "influences of biological factors"
+    "en": "influence of biological factors"
    }
   ],
   "bonus": [
@@ -20853,7 +20914,7 @@
     "sources": [
      "igcse0495"
     ],
-    "en": "in the nature–nurture debate"
+    "en": "(In the nature–nurture debate) the influence of biological factors on human behaviour"
    }
   ],
   "sources": [
@@ -20964,7 +21025,7 @@
     "text": "将个体从群体中排除或排斥",
     "source": "main",
     "kind": "required",
-    "en": "The exclusion of someone from a community or group."
+    "en": "The exclusion of someone from a community or group"
    }
   ],
   "bonus": [
@@ -21032,13 +21093,13 @@
     "text": "通过同伴推动或强迫其成员",
     "source": "main",
     "kind": "required",
-    "en": "push or force its members to conform to the rules and values"
+    "en": "A mechanism through which the peer could push or force its members"
    },
    {
     "text": "使其成员遵守群体的规则和价值观",
     "source": "main",
     "kind": "required",
-    "en": "influence of a group of people of the same age and status, to force or persuade its members to conform"
+    "en": "to conform to the rules and values"
    }
   ],
   "bonus": [
@@ -21046,13 +21107,15 @@
     "text": "影响来源为同龄且地位相同的人群",
     "sources": [
      "igcse0495"
-    ]
+    ],
+    "en": "The influence of a group of people of the same age and status"
    },
    {
     "text": "通过施压或说服使成员从众",
     "sources": [
      "igcse0495"
-    ]
+    ],
+    "en": "to force or persuade its members to conform"
    }
   ],
   "sources": [
@@ -21228,18 +21291,19 @@
     "text": "宗教是社会化的次要机构",
     "source": "main",
     "kind": "required",
-    "en": "A secondary agency of socialisation where it teaches their believers about values and norms through classical texts and ceremonies."
+    "en": "A secondary agency of socialisation"
    },
    {
     "text": "通过宗教文本和仪式教授信徒价值观和规范",
     "source": "main",
     "kind": "required",
-    "en": "Rewards and punishments are only effective those who believe."
+    "en": "where it teaches their believers about values and norms through classical texts and ceremonies"
    },
    {
     "text": "奖惩仅对信徒有效",
     "source": "main",
-    "kind": "example"
+    "kind": "example",
+    "en": "Rewards and punishments are only effective those who believe"
    }
   ],
   "bonus": [
@@ -21248,14 +21312,14 @@
     "sources": [
      "tb1"
     ],
-    "en": "Often defined narrowly as a belief system related to supernatural beings or divine forces."
+    "en": "Often defined narrowly as a belief system related to supernatural beings or divine forces"
    },
    {
     "text": "宗教的定义包括实质性、功能性和社会建构主义方法",
     "sources": [
      "tb1"
     ],
-    "en": "However, there are several ways of defining religion including substantive, functional and social constructionist approaches."
+    "en": "there are several ways of defining religion including substantive, functional and social constructionist approaches"
    }
   ],
   "sources": [
@@ -21525,7 +21589,7 @@
     "text": "家庭中的社会化不足和/或不充分",
     "source": "main",
     "kind": "required",
-    "en": "insufficient and/or inadequate socialisations in families"
+    "en": "the insufficient and/or inadequate socialisations in families have been the main reason behind deviant behaviours"
    },
    {
     "text": "是偏差行为产生的主要原因",
@@ -21627,19 +21691,19 @@
     "text": "活产婴儿数量",
     "source": "main",
     "kind": "required",
-    "en": "The number of live births per 1,000 of the population per year"
+    "en": "The number of live births"
    },
    {
     "text": "每年统计",
     "source": "main",
     "kind": "required",
-    "en": "The number of live births per 1000 of the population per year"
+    "en": "per year"
    },
    {
     "text": "按每 1000 人口计算",
     "source": "main",
     "kind": "required",
-    "en": "The number of live births per 1000 people in the population in one year"
+    "en": "per 1,000 of the population"
    }
   ],
   "bonus": [],
@@ -21673,7 +21737,7 @@
     "text": "活产婴儿数量",
     "source": "main",
     "kind": "required",
-    "en": "live births"
+    "en": "The number of live births"
    },
    {
     "text": "每 1000 名妇女",
@@ -21734,7 +21798,7 @@
     "text": "与总人口相关的统计数据",
     "source": "main",
     "kind": "required",
-    "en": "The statistics related to the general population"
+    "en": "statistics related to the general population"
    },
    {
     "text": "出生率",
@@ -21882,7 +21946,7 @@
     "sources": [
      "igcse0495"
     ],
-    "en": "no longer living as husband and wife (or same-sex equivalents)"
+    "en": "When a marriage breaks down so the couple are no longer living as husband and wife (or same-sex equivalents); some breakdowns lead to divorce"
    },
    {
     "text": "部分婚姻破裂会导致离婚",
@@ -21920,13 +21984,13 @@
     "text": "婚姻数量按每年计算",
     "source": "main",
     "kind": "required",
-    "en": "the number of marriages per year"
+    "en": "The number of marriages per 1,000 people per year"
    },
    {
     "text": "以每 1,000 人为基准",
     "source": "main",
     "kind": "required",
-    "en": "per 1,000 people"
+    "en": "The number of marriages per 1000 people per year"
    }
   ],
   "bonus": [],
@@ -22063,7 +22127,7 @@
     "sources": [
      "igcse0495"
     ],
-    "en": "The view that we now live in a new type of society, different from the modern society that came before"
+    "en": "we now live in a new type of society, different from the modern society that came before"
    }
   ],
   "sources": [
@@ -22094,7 +22158,7 @@
     "text": "社会基于一套普遍同意的价值观而顺利运作",
     "source": "main",
     "kind": "required",
-    "en": "society smoothly operates upon the basis of a set of universally agreed values"
+    "en": "the society smoothly operates upon the basis of a set of universally agreed values"
    }
   ],
   "bonus": [
@@ -22103,14 +22167,14 @@
     "sources": [
      "tb1"
     ],
-    "en": "Agreement about the main values of society"
+    "en": "Agreement about the main values of society."
    },
    {
     "text": "对价值观的广泛一致",
     "sources": [
      "igcse0495"
     ],
-    "en": "Widespread agreement on values"
+    "en": "Widespread agreement on values."
    }
   ],
   "sources": [
@@ -22144,7 +22208,7 @@
     "text": "人类社会的正常状态是社会群体之间的冲突和对抗",
     "source": "main",
     "kind": "required",
-    "en": "the normal status of human society is the conflicts and confrontations between social groups"
+    "en": "The theory that the normal status of human society is the conflicts and confrontations between social groups"
    }
   ],
   "bonus": [],
@@ -22293,7 +22357,7 @@
     "text": "经济和物质基础",
     "source": "main",
     "kind": "required",
-    "en": "economic and material foundation"
+    "en": "The economic and material foundation of human society"
    }
   ],
   "bonus": [
@@ -22302,7 +22366,7 @@
     "sources": [
      "tb1"
     ],
-    "en": "basic physical and organisational structures and facilities (for example, buildings, roads, power supplies)"
+    "en": "The basic physical and organisational structures and facilities (for example, buildings, roads, power supplies) needed for the operation of a society or enterprise."
    },
    {
     "text": "为社会或企业的运作所必需",
@@ -22341,13 +22405,13 @@
     "text": "研究个体如何相互互动",
     "source": "main",
     "kind": "required",
-    "en": "studies how individuals interact with each other"
+    "en": "how individuals interact with each other"
    },
    {
     "text": "研究个体如何理解社会行为和意义",
     "source": "main",
     "kind": "required",
-    "en": "make sense of the social actions and meanings"
+    "en": "how individuals make sense of the social actions and meanings"
    }
   ],
   "bonus": [
@@ -22388,7 +22452,7 @@
     "text": "自我身份的发展不仅通过对自身的理解，还通过与他人的互动",
     "source": "main",
     "kind": "required",
-    "en": "their self identity not only through their understandings of themselves but also their interactions with others"
+    "en": "develop their self identity not only through their understandings of themselves but also their interactions with others"
    },
    {
     "text": "他人对个体的看法和评价在塑造自我身份中起重要作用",
@@ -22431,7 +22495,7 @@
     "text": "在社会学中，马克思主义关注社会阶级之间的冲突",
     "source": "main",
     "kind": "example",
-    "en": "in sociology, focus on the conflicts between social classes"
+    "en": "focus on the conflicts between social classes"
    }
   ],
   "bonus": [
@@ -22440,7 +22504,7 @@
     "sources": [
      "igcse0495"
     ],
-    "en": "conflict between classes as the most important feature of society"
+    "en": "sees conflict between classes as the most important feature of society"
    }
   ],
   "sources": [
@@ -22507,7 +22571,7 @@
     "text": "社会制度通过武力确保对资本主义秩序的顺从",
     "source": "main",
     "kind": "required",
-    "en": "the social institutions that guarantee the conformity to capitalist order by force"
+    "en": "Alongside ISA, the social institutions that guarantee the conformity to capitalist order by force"
    }
   ],
   "bonus": [],
@@ -22544,7 +22608,7 @@
     "text": "他们的观点和看法被我们高度重视",
     "source": "main",
     "kind": "required",
-    "en": "whose opinions and views of us are highly valued"
+    "en": "whose opinions and views of us are highly valued and incorporated into our understandings of ourselves"
    },
    {
     "text": "这些观点被纳入我们对自我的理解中",
@@ -22617,13 +22681,13 @@
     "text": "工人阶级男生共享的不满感",
     "source": "main",
     "kind": "required",
-    "en": "A sense of discontent shared by the working-class school boys"
+    "en": "A sense of discontent shared by the working-class school boys who wanted to promote to middle class but failed"
    },
    {
     "text": "他们渴望升入中产阶级但未能成功",
     "source": "main",
     "kind": "required",
-    "en": "wanted to promote to middle class but failed"
+    "en": "feel frustrated because they are unable to achieve respect from their peers due to their position in society"
    }
   ],
   "bonus": [
@@ -22668,7 +22732,7 @@
     "text": "结构对人类施加不可避免的结构力量",
     "source": "main",
     "kind": "required",
-    "en": "impose inevitable structural forces on human"
+    "en": "impose inevitable structural forces on human to control their behaviours"
    },
    {
     "text": "这些结构力量控制人类的行为",
@@ -22742,7 +22806,7 @@
     "text": "社会地位是通过个人努力和辛勤工作获得的",
     "source": "main",
     "kind": "required",
-    "en": "efforts and hardwork"
+    "en": "The social statuses that are earned by individuals through efforts and hardwork"
    }
   ],
   "bonus": [
@@ -22751,13 +22815,14 @@
     "sources": [
      "tb1"
     ],
-    "en": "on the basis of individual talents or merit"
+    "en": "Status or positions in society that are earned on the basis of individual talents or merit."
    },
    {
     "text": "社会地位是个人通过自身努力获得的",
     "sources": [
      "igcse0495"
-    ]
+    ],
+    "en": "A position in society that an individual acquires through their own effort."
    }
   ],
   "sources": [
@@ -22790,7 +22855,7 @@
     "text": "社会地位是由出生决定的",
     "source": "main",
     "kind": "required",
-    "en": "given to individuals by birth"
+    "en": "The social statuses that are given to individuals by birth"
    },
    {
     "text": "获得该地位不需要个人付出努力",
@@ -22805,21 +22870,21 @@
     "sources": [
      "tb1"
     ],
-    "en": "unchanging over time"
+    "en": "Status or positions in society that are fixed at birth and unchanging over time"
    },
    {
     "text": "包括与家族背景相关的世袭头衔（如国王、公主）",
     "sources": [
      "tb1"
     ],
-    "en": "hereditary titles linked to family background (for example, King or Princess)"
+    "en": "including hereditary titles linked to family background (for example, King or Princess)"
    },
    {
     "text": "个体对该地位通常几乎没有控制力",
     "sources": [
      "igcse0495"
     ],
-    "en": "little or no control"
+    "en": "people usually have little or no control over ascribed statuses"
    }
   ],
   "sources": [
@@ -22852,7 +22917,7 @@
     "text": "把任务分解并分配给不同类型的人",
     "source": "main",
     "kind": "required",
-    "en": "break down the tasks and allocate them to different types of people"
+    "en": "To break down the tasks and allocate them to different types of people"
    }
   ],
   "bonus": [
@@ -22897,13 +22962,13 @@
     "text": "国家和人民在全球范围内日益相互连接",
     "source": "main",
     "kind": "required",
-    "en": "countries and people across the globe become increasingly inter-connected"
+    "en": "countries and people across the globe become increasingly inter-connected and interdependent"
    },
    {
     "text": "国家和人民在全球范围内日益相互依赖",
     "source": "main",
     "kind": "required",
-    "en": "countries and people across the globe become increasingly interdependent"
+    "en": "societies, cultures and economies become increasingly interconnected"
    }
   ],
   "bonus": [
@@ -22912,7 +22977,7 @@
     "sources": [
      "tb1"
     ],
-    "en": "societies, cultures and economies become increasingly interconnected"
+    "en": "different cultures around the world are increasingly aware of, interact with and influence each other"
    },
    {
     "text": "世界各地不同文化日益增强相互认识、互动和相互影响",
@@ -22952,12 +23017,13 @@
     "text": "两个或两个以上的弱势社会身份之间的重叠",
     "source": "main",
     "kind": "required",
-    "en": "overlaps of disadvantages between / among two or more disadvantaged social identities"
+    "en": "The overlaps of disadvantages between / among two or more disadvantaged social identities"
    },
    {
     "text": "这些重叠导致劣势的叠加或交叉",
     "source": "main",
-    "kind": "required"
+    "kind": "required",
+    "en": "The idea that factors such as class, gender and ethnicity interact and combine to shape people’s identities and experiences"
    }
   ],
   "bonus": [
@@ -22966,7 +23032,7 @@
     "sources": [
      "tb1"
     ],
-    "en": "factors such as class, gender and ethnicity interact and combine to shape people's identities and experiences"
+    "en": "Ways in which different forms of stratification and inequality interact with each other"
    },
    {
     "text": "不同形式的分层和不平等相互作用的方式",
@@ -23006,7 +23072,7 @@
     "text": "人类社会创造一个概念以服务于社会目的",
     "source": "main",
     "kind": "required",
-    "en": "the human society creates a concept to serve a social purpose"
+    "en": "The process in which the human society creates a concept to serve a social purpose"
    }
   ],
   "bonus": [
@@ -23015,14 +23081,14 @@
     "sources": [
      "tb1"
     ],
-    "en": "behaviour that is thought to be natural but is actually the product of cultural expectations and processes"
+    "en": "An interactionist concept that refers to behaviour that is thought to be natural but is actually the product of cultural expectations and processes"
    },
    {
     "text": "社会情境和事件是由社会构建的；它们在自然中不以独立事物的形式存在",
     "sources": [
      "igcse0495"
     ],
-    "en": "social situations and events are made by societies; they do not exist in nature as independent things"
+    "en": "The idea that social situations and events are made by societies; they do not exist in nature as independent things"
    }
   ],
   "sources": [
@@ -23091,7 +23157,7 @@
     "text": "两个身份群体之间的确定性差异",
     "source": "main",
     "kind": "required",
-    "en": "definitive differences between two identity groups"
+    "en": "The definitive differences between two identity groups"
    }
   ],
   "bonus": [],
@@ -23121,19 +23187,19 @@
     "text": "一种意识形态，优先考虑消费行为",
     "source": "main",
     "kind": "required",
-    "en": "An ideology that prioritises consumptions"
+    "en": "An ideology that prioritises consumptions and promotes a 'consumer mindset' that everyone makes choices and decisions only to please themselves"
    },
    {
     "text": "推广一种'消费心态'，即人们的选择和决定仅仅是为了取悦自己",
     "source": "main",
     "kind": "required",
-    "en": "promotes a 'consumer mindset' that everyone makes choices and decisions only to please themselves"
+    "en": "linked to postmodernism and individualism"
    },
    {
     "text": "与后现代主义和个人主义相关联",
     "source": "main",
     "kind": "required",
-    "en": "linked to postmodernism and individualism"
+    "en": "The preoccupation of society with the acquisition of consumer goods"
    }
   ],
   "bonus": [
@@ -23173,13 +23239,13 @@
     "text": "以不平等和恶劣的方式对待某人",
     "source": "main",
     "kind": "required",
-    "en": "Treat a person unequally and badly"
+    "en": "To treat a person unequally and badly due to his / her belonging to a specific social group"
    },
    {
     "text": "原因是该人属于特定社会群体",
     "source": "main",
     "kind": "required",
-    "en": "belonging to a specific social group"
+    "en": "Treating a person or group of people differently to other people, often based on prejudice"
    }
   ],
   "bonus": [
@@ -23248,7 +23314,7 @@
     "text": "关注减轻痛苦",
     "source": "main",
     "kind": "required",
-    "en": "reducing suffering"
+    "en": "Concerned with reducing suffering"
    },
    {
     "text": "改善人们的生活条件",
@@ -23290,7 +23356,7 @@
     "text": "衡量社会发展水平的指标",
     "source": "main",
     "kind": "required",
-    "en": "an indicator of a society's developmental level"
+    "en": "It is an indicator of a society's developmental level"
    }
   ],
   "bonus": [],
@@ -23320,13 +23386,13 @@
     "text": "能够读写的人口比例",
     "source": "main",
     "kind": "required",
-    "en": "The proportion of people that can read and write"
+    "en": "The proportion of people that can read and write in a society"
    },
    {
     "text": "衡量社会发展水平的指标",
     "source": "main",
     "kind": "example",
-    "en": "an indicator of a society's developmental level"
+    "en": "It is an indicator of a society's developmental level"
    }
   ],
   "bonus": [],
@@ -23362,7 +23428,7 @@
     "text": "反映社会发展水平的指标",
     "source": "main",
     "kind": "required",
-    "en": "an indicator of a society's developmental level"
+    "en": "It is an indicator of a society's developmental level"
    }
   ],
   "bonus": [],
@@ -23392,7 +23458,7 @@
     "text": "意识到社会群体之间存在差异",
     "source": "main",
     "kind": "required",
-    "en": "awareness of differences between social groups"
+    "en": "The awareness of differences between social groups"
    },
    {
     "text": "这些差异定义了群体之间的界限",
@@ -23467,7 +23533,7 @@
     "sources": [
      "igcse0495"
     ],
-    "en": "especially about a particular group of people"
+    "en": "An unfair and unreasonable opinion or feeling, especially about a particular group of people, that is formed without knowledge and often based on stereotypes."
    },
    {
     "text": "形成于缺乏知识的情况下",
@@ -23613,7 +23679,7 @@
     "text": "Bourdieu 认为教育是一个领域，其中不同类型的资本既可以被再生产，也可以相互转化",
     "source": "main",
     "kind": "required",
-    "en": "education as a field where different types of capitals can be reproduced as well as changed into each other"
+    "en": "Bourdieu sees education as a field where different types of capitals can be reproduced as well as changed into each other"
    },
    {
     "text": "经济资本可以转化为更多的社会资本和文化资本",
@@ -23735,7 +23801,7 @@
     "text": "中产阶级的文化资本体现，能看到长期收益",
     "source": "main",
     "kind": "required",
-    "en": "A middle-class cultural capital that they can see the long-term returns"
+    "en": "A middle-class cultural capital that they can see the long-term returns of"
    },
    {
     "text": "选择多年教育而非早退学以获得长期回报",
@@ -23791,7 +23857,7 @@
     "text": "是教育场景中使用的语言",
     "source": "main",
     "kind": "required",
-    "en": "the language of education"
+    "en": "it is the language of education"
    },
    {
     "text": "仅由中产阶级和上层阶级学生具备的技能",
@@ -23877,7 +23943,7 @@
     "text": "这些因素可能与物质因素和文化因素重叠",
     "source": "main",
     "kind": "example",
-    "en": "there can be overlaps with material and cultural factors"
+    "en": "there can be overlaps with material and cultural factors, such as a lack of computer / internet at home, and parental attitudes towards education"
    },
    {
     "text": "例如家中缺乏电脑或互联网",
@@ -23956,23 +24022,25 @@
     "text": "只关注短期利益而忽视长期收益",
     "source": "main",
     "kind": "required",
-    "en": "The focus on short-term returns"
+    "en": "The focus on short-term returns and the inability to plan for the longer future"
    },
    {
     "text": "这是一种文化剥夺的表现",
     "source": "main",
-    "kind": "example"
+    "kind": "example",
+    "en": "Focusing on the pleasures of the moment rather than putting them off for future reward"
    },
    {
     "text": "工人阶级家长和学生常见此倾向",
     "source": "main",
-    "kind": "example"
+    "kind": "example",
+    "en": "Focusing on the pleasures of the moment rather than putting them off for future reward"
    },
    {
     "text": "这种倾向阻碍了他们取得教育成功",
     "source": "main",
     "kind": "example",
-    "en": "Focusing on the pleasures of the moment rather than putting them off for future reward"
+    "en": "The focus on short-term returns and the inability to plan for the longer future"
    }
   ],
   "bonus": [
@@ -23980,7 +24048,8 @@
     "text": "更注重当下的快乐而推迟未来的奖励",
     "sources": [
      "tb1"
-    ]
+    ],
+    "en": "Focusing on the pleasures of the moment rather than putting them off for future reward"
    }
   ],
   "sources": [
@@ -24023,7 +24092,7 @@
     "text": "学生与教师之间的互动（如标签化）",
     "source": "main",
     "kind": "example",
-    "en": "between students and teachers (e.g. labelling)"
+    "en": "interactions between students and teachers (e.g. labelling)"
    }
   ],
   "bonus": [],
@@ -24054,13 +24123,13 @@
     "text": "任意（不公平）地假设某些特征与学生之间存在关联",
     "source": "main",
     "kind": "required",
-    "en": "arbitrarily (unfairly) presume a link between certain characteristics and a student"
+    "en": "To arbitrarily (unfairly) presume a link between certain characteristics and a student because of his / her socio-economic backgrounds (i.e. class, gender, ethnicity, etc.)"
    },
    {
     "text": "该假设基于学生的社会经济背景（如阶级、性别、种族等）",
     "source": "main",
     "kind": "required",
-    "en": "because of his / her socio-economic backgrounds (i.e. class, gender, ethnicity, etc.)"
+    "en": "Defining a person or group in a particular way."
    }
   ],
   "bonus": [
@@ -24110,13 +24179,13 @@
     "text": " 导致身体发展受到负面影响",
     "source": "main",
     "kind": "required",
-    "en": "their physical development negatively influenced"
+    "en": "have their physical development ... negatively influenced"
    },
    {
     "text": " 导致教育成绩受到负面影响",
     "source": "main",
     "kind": "required",
-    "en": "their educational attainment negatively influenced"
+    "en": "have their educational attainment ... negatively influenced"
    }
   ],
   "bonus": [
@@ -24125,7 +24194,7 @@
     "sources": [
      "tb1"
     ],
-    "en": "Not having enough to eat or not eating enough of the 'right' things"
+    "en": "Not having enough to eat or not eating enough of the ‘right’ things."
    }
   ],
   "sources": [
@@ -24156,7 +24225,7 @@
     "text": "影响学生教育成就的物质条件",
     "source": "main",
     "kind": "required",
-    "en": "material conditions that influence students' educational attainments"
+    "en": "The material conditions that influence students' educational attainments"
    }
   ],
   "bonus": [],
@@ -24222,13 +24291,13 @@
     "text": "毕业生之间的社交网络",
     "source": "main",
     "kind": "required",
-    "en": "the social network of students after they graduate from schools"
+    "en": "The social network of students after they graduate from schools"
    },
    {
     "text": "通常由男子私立学校校友组成",
     "source": "main",
     "kind": "required",
-    "en": "among boys-only private school alumni"
+    "en": "usually among boys-only private school alumni"
    }
   ],
   "bonus": [],
@@ -24264,7 +24333,7 @@
     "text": "语言模式短、简单、直接",
     "source": "main",
     "kind": "required",
-    "en": "short, simple, direct"
+    "en": "that is short, simple, direct"
    },
    {
     "text": "基于说话者和听者之间共享的常识",
@@ -24276,7 +24345,7 @@
     "text": "在教育语境中不受欢迎",
     "source": "main",
     "kind": "example",
-    "en": "unwelcomed in educational contexts"
+    "en": "it is unwelcomed in educational contexts"
    }
   ],
   "bonus": [
@@ -24320,7 +24389,7 @@
     "text": "在社会学中，也是互动主义的观点：人们会远离他人贴上的标签，以证明他人错了",
     "source": "main",
     "kind": "required",
-    "en": "in sociology, it is also an interactionist idea that people will behave away from the labels that others give them to prove others wrong"
+    "en": "it is also an interactionist idea that people will behave away from the labels that others give them to prove others wrong"
    },
    {
     "text": "是贴标签效应的一种表现",
@@ -24362,7 +24431,7 @@
     "text": "其价值观与学校主流文化不同",
     "source": "main",
     "kind": "required",
-    "en": "different values from school culture"
+    "en": "with different values from school culture"
    },
    {
     "text": "典型例子是反校园亚文化（counter-school subculture），如 Willis 的研究",
@@ -24440,25 +24509,25 @@
     "text": "学生在学校学到的但课堂外的内容，如与同学相处",
     "source": "main",
     "kind": "required",
-    "en": "The things students learn in schools but outside of classroom, i.e. dealing with schoolmates"
+    "en": "students learn in schools but outside of classroom, i.e. dealing with schoolmates, organising student societies, voting / being voted for student union, collective identity and social solidarity etc."
    },
    {
     "text": "组织学生社团",
     "source": "main",
     "kind": "example",
-    "en": "organising student societies"
+    "en": "students learn in schools but outside of classroom, i.e. dealing with schoolmates, organising student societies, voting / being voted for student union, collective identity and social solidarity etc."
    },
    {
     "text": "参与学生会选举或被选为学生会成员",
     "source": "main",
     "kind": "example",
-    "en": "voting / being voted for student union"
+    "en": "students learn in schools but outside of classroom, i.e. dealing with schoolmates, organising student societies, voting / being voted for student union, collective identity and social solidarity etc."
    },
    {
     "text": "培养集体身份认同和社会团结感",
     "source": "main",
     "kind": "example",
-    "en": "collective identity and social solidarity"
+    "en": "students learn in schools but outside of classroom, i.e. dealing with schoolmates, organising student societies, voting / being voted for student union, collective identity and social solidarity etc."
    }
   ],
   "bonus": [
@@ -24467,14 +24536,14 @@
     "sources": [
      "tb1"
     ],
-    "en": "The messages schools transmit which are not part of the standard taught curriculum and which are largely hidden from teachers and students"
+    "en": "The messages schools transmit which are not part of the standard taught curriculum and which are largely hidden from teachers and students."
    },
    {
     "text": "学习遵守规则的重要性及不遵守规则的后果",
     "sources": [
      "igcse0495"
     ],
-    "en": "the importance of following rules and the consequences of not doing so"
+    "en": "What learners learn in school, apart from the content of lessons, such as the importance of following rules and the consequences of not doing so."
    }
   ],
   "sources": [
@@ -24590,7 +24659,7 @@
     "text": "可以是习惯系统（habitus）的一部分",
     "source": "main",
     "kind": "example",
-    "en": "a part of habitus"
+    "en": "can be a part of habitus and cultural capital"
    },
    {
     "text": "可以是文化资本的一部分",
@@ -24636,7 +24705,8 @@
     "text": "某些群体在教育成就方面所需的条件上存在匮乏或不足",
     "sources": [
      "tb1"
-    ]
+    ],
+    "en": "a lack of mainstream values"
    }
   ],
   "sources": [
@@ -24687,7 +24757,7 @@
     "sources": [
      "tb1"
     ],
-    "en": "responsible for the organisation of capitalism"
+    "en": "is responsible for the organisation of capitalism"
    },
    {
     "text": "有时被称为统治阶级",
@@ -24727,13 +24797,13 @@
     "text": "文化经历、品味和技能",
     "source": "main",
     "kind": "required",
-    "en": "cultural experiences, tastes and skills"
+    "en": "The cultural experiences, tastes and skills that can be transformed into wealth, income, power and prestige"
    },
    {
     "text": "可转化为财富、收入、权力和声望",
     "source": "main",
     "kind": "example",
-    "en": "can be transformed into wealth, income, power and prestige"
+    "en": "The social, intellectual and cultural assets of a person that contribute to their educational success or social mobility, for example, knowing how to ‘dress for success’"
    }
   ],
   "bonus": [
@@ -24742,7 +24812,7 @@
     "sources": [
      "tb1"
     ],
-    "en": "The social, intellectual and cultural assets of a person that contribute to their educational success or social mobility"
+    "en": "The knowledge, taste and values associated with the higher classes"
    },
    {
     "text": "例如知道如何‘为成功而着装’",
@@ -24789,7 +24859,7 @@
     "text": "文化特指底层人群",
     "source": "main",
     "kind": "required",
-    "en": "the culture of underclass people"
+    "en": "underclass people"
    },
    {
     "text": "高度依赖政府提供的福利和救济",
@@ -24801,13 +24871,13 @@
     "text": "丧失自我照顾的能力",
     "source": "main",
     "kind": "required",
-    "en": "lose the ability... of looking after themselves"
+    "en": "lose the ability"
    },
    {
     "text": "丧失自我照顾的意识",
     "source": "main",
     "kind": "required",
-    "en": "lose the awareness... of looking after themselves"
+    "en": "lose the awareness"
    }
   ],
   "bonus": [
@@ -24816,21 +24886,21 @@
     "sources": [
      "tb1"
     ],
-    "en": "New Right sociologists"
+    "en": "According to New Right sociologists"
    },
    {
     "text": "导致人们失去自我照顾欲望或能力的价值观集合",
     "sources": [
      "igcse0495"
     ],
-    "en": "a set of values leading people to lose the desire or ability to look after themselves"
+    "en": "A set of values leading people to lose the desire or ability to look after themselves"
    },
    {
     "text": "例如依赖福利救济",
     "sources": [
      "igcse0495"
     ],
-    "en": "for example, on welfare benefits"
+    "en": "dependent, for example, on welfare benefits"
    }
   ],
   "sources": [
@@ -24912,13 +24982,13 @@
     "text": "不拥有任何资本或生产资料",
     "source": "main",
     "kind": "required",
-    "en": "do not own any capitals or means of productions"
+    "en": "People who do not own any capitals or means of productions"
    },
    {
     "text": "只能通过出售劳动力来维持生存",
     "source": "main",
     "kind": "required",
-    "en": "can only survive through selling out their physical labours"
+    "en": "so that they can only survive through selling out their physical labours"
    }
   ],
   "bonus": [
@@ -24927,14 +24997,14 @@
     "sources": [
      "igcse0495"
     ],
-    "en": "working-class people"
+    "en": "In the theory of Marxism, the proletariat are working-class people who must work to survive"
    },
    {
     "text": "劳动或工作阶级",
     "sources": [
      "tb1"
     ],
-    "en": "labouring or working class"
+    "en": "The labouring or working class"
    }
   ],
   "sources": [
@@ -24989,7 +25059,7 @@
     "sources": [
      "igcse0495"
     ],
-    "en": "A shared economic and social status"
+    "en": "A shared economic and social status; for example, working class, middle class or upper class."
    }
   ],
   "sources": [
@@ -25022,7 +25092,7 @@
     "text": "社会可以被划分为等级制度",
     "source": "main",
     "kind": "required",
-    "en": "divided into a hierarchy"
+    "en": "The ways in which the society can be divided into a hierarchy"
    }
   ],
   "bonus": [
@@ -25031,7 +25101,7 @@
     "sources": [
      "tb1"
     ],
-    "en": "structured or divided into hierarchical layers or strata, with the most privileged at the top and the least privileged at the bottom"
+    "en": "The way that society is structured or divided into hierarchical layers or strata, with the most privileged at the top and the least privileged at the bottom"
    },
    {
     "text": "例如种姓制度和社会阶级",
@@ -25045,7 +25115,7 @@
     "sources": [
      "igcse0495"
     ],
-    "en": "groups have different statuses and different levels of privilege"
+    "en": "A hierarchy in which groups have different statuses and different levels of privilege"
    }
   ],
   "sources": [
@@ -25113,7 +25183,7 @@
     "sources": [
      "igcse0495"
     ],
-    "en": "effectively cut off from the rest of society"
+    "en": "A group below the working class that is effectively cut off from the rest of society"
    }
   ],
   "sources": [
@@ -25146,7 +25216,7 @@
     "text": "政府系统向社会中处于不利地位的人分配福利和救济",
     "source": "main",
     "kind": "required",
-    "en": "distributes welfare and benefit to the disadvantaged people"
+    "en": "A government system that distributes welfare and benefit to the disadvantaged people in the society"
    }
   ],
   "bonus": [
@@ -25155,14 +25225,14 @@
     "sources": [
      "tb1"
     ],
-    "en": "the state undertakes to protect the health and well-being of its citizens, especially those in financial or social need, by means of grants, pensions and other benefits"
+    "en": "A system whereby the state undertakes to protect the health and well-being of its citizens, especially those in financial or social need, by means of grants, pensions and other benefits"
    },
    {
     "text": "政府提供服务（如免费教育和医疗）并给予需要经济支持的人财政援助（如失业者和长期病患），由税收资助",
     "sources": [
      "igcse0495"
     ],
-    "en": "provides services (such as free education and healthcare) and gives financial support to those who need it (such as the unemployed and the long-term sick), paid for by taxes"
+    "en": "A system in which the government of a country provides services (such as free education and healthcare) and gives financial support to those who need it (such as the unemployed and the long-term sick), paid for by taxes"
    }
   ],
   "sources": [
@@ -25195,7 +25265,7 @@
     "text": "缺乏基本生活必需品，如食物",
     "source": "main",
     "kind": "required",
-    "en": "A lack of basic necessities of life such as food"
+    "en": "lack of basic necessities of life such as food"
    },
    {
     "text": "缺乏安全饮用水",
@@ -25249,7 +25319,7 @@
     "text": "贵族阶级因被王室奖励而获得土地所有权",
     "source": "main",
     "kind": "required",
-    "en": "rewarded with the ownership of a land by the royalty"
+    "en": "A noble class that has been rewarded with the ownership of a land by the royalty"
    },
    {
     "text": "该身份可以世袭继承",
@@ -25321,13 +25391,13 @@
     "text": "蓝领工人属于工人阶级人群",
     "source": "main",
     "kind": "required",
-    "en": "Working class people"
+    "en": "Working class people who work in factories"
    },
    {
     "text": "他们通常在工厂工作",
     "source": "main",
     "kind": "example",
-    "en": "work in factories"
+    "en": "They usually wear blue uniforms"
    },
    {
     "text": "他们通常穿蓝色工作服",
@@ -25363,13 +25433,13 @@
     "text": "一种宗教和 ascribed（天赋）的分层制度，主要存在于印度及海外印度社群",
     "source": "tb1",
     "kind": "required",
-    "en": "A religious and ascribed system of stratification mainly found in India and Indian communities abroad"
+    "en": "An example of closed system historically enforced in India where people are born into different castes; mobilities and interactions, including intermarriages, between castes are strictly forbiddened"
    },
    {
     "text": "将人们划分为五个身份群体",
     "source": "tb1",
     "kind": "required",
-    "en": "categorises people into five status groups"
+    "en": "A religious and ascribed system of stratification mainly found in India and Indian communities abroad that categorises people into five status groups, which determine their occupation and the Hindu concept of religious purity."
    },
    {
     "text": "这些群体决定了人们的职业",
@@ -25428,7 +25498,7 @@
     "text": "对自身阶级身份的认识",
     "source": "main",
     "kind": "required",
-    "en": "awareness of one's class identity"
+    "en": "The awareness of one's class identity"
    },
    {
     "text": "认识到自身阶级与其他阶级之间的不平等",
@@ -25480,13 +25550,13 @@
     "text": "现代化理论认为其阻碍了 LEDCs 的发展",
     "source": "main",
     "kind": "example",
-    "en": "a value that modernisation theory believes to have hindered the development of LEDCs"
+    "en": "It is a value that modernisation theory believes to have hindered the development of LEDCs"
    },
    {
     "text": "日本和中国的实际例子证明了这一观点并不成立",
     "source": "main",
     "kind": "example",
-    "en": "real-life examples of Japan and China proved otherwise"
+    "en": "However, real-life examples of Japan and China proved otherwise"
    }
   ],
   "bonus": [
@@ -25526,7 +25596,7 @@
     "text": "社会地位无法向上或向下流动",
     "source": "main",
     "kind": "required",
-    "en": "impossible to change one's social status, neither upward nor downward"
+    "en": "it is impossible to change one's social status, neither upward nor downward"
    }
   ],
   "bonus": [
@@ -25535,7 +25605,7 @@
     "sources": [
      "igcse0495"
     ],
-    "en": "individuals' social roles and statuses are fixed"
+    "en": "individuals’ social roles and statuses are fixed"
    }
   ],
   "sources": [
@@ -25574,7 +25644,7 @@
     "sources": [
      "tb1"
     ],
-    "en": "Expenditure on, and consumption of, luxuries on a lavish scale"
+    "en": "Expenditure on, and consumption of, luxuries on a lavish scale in an attempt to enhance one’s prestige."
    },
    {
     "text": "旨在提升个人声望或声望",
@@ -25632,13 +25702,15 @@
     "text": "通过决定延迟满足以获得以后更大的回报",
     "sources": [
      "tb1"
-    ]
+    ],
+    "en": "focus on long-term returns and the ability to suppress the desire for short-term benefits"
    },
    {
     "text": "例如为未来储蓄或攻读学位",
     "sources": [
      "tb1"
-    ]
+    ],
+    "en": "focus on long-term returns and the ability to suppress the desire for short-term benefits"
    }
   ],
   "sources": [
@@ -25668,13 +25740,13 @@
     "text": "传统意义上的资本形式",
     "source": "main",
     "kind": "required",
-    "en": "the traditional notion of capital"
+    "en": "The traditional notion of capital"
    },
    {
     "text": "涉及金钱或财务资源",
     "source": "main",
     "kind": "example",
-    "en": "involves money"
+    "en": "that involves money"
    }
   ],
   "bonus": [],
@@ -25704,7 +25776,7 @@
     "text": "社会中受教育程度较高的群体",
     "source": "main",
     "kind": "required",
-    "en": "well educated group in society"
+    "en": "well educated"
    },
    {
     "text": "在社会中占据主导地位的群体",
@@ -25794,7 +25866,7 @@
     "text": "企业家可被视为上层阶级的成员",
     "source": "main",
     "kind": "example",
-    "en": "members of upper class"
+    "en": "to qualify as members of upper class"
    }
   ],
   "bonus": [],
@@ -25824,13 +25896,13 @@
     "text": "对自身社会阶级与其他阶级之间不平等的错误认识",
     "source": "main",
     "kind": "required",
-    "en": "An incorrect awareness of the inequalities between one's own social class and other classes"
+    "en": "An incorrect awareness or even an unawareness of the inequalities between one's own social class and other classes"
    },
    {
     "text": "甚至可能完全 unaware（未意识到）这种不平等的存在",
     "source": "main",
     "kind": "required",
-    "en": "even an unawareness of the inequalities between one's own social class and other classes"
+    "en": "A false picture of society that disguises the exploitation of the subject class (the proletariat in capitalist societies)"
    }
   ],
   "bonus": [
@@ -25879,7 +25951,7 @@
     "sources": [
      "tb1"
     ],
-    "en": "people and families physically moving across the country, usually in search of work or education"
+    "en": "Refers to people and families physically moving across the country, usually in search of work or education."
    }
   ],
   "sources": [
@@ -25916,7 +25988,7 @@
     "text": "这些方式并非天生自然决定，而是通过社会化过程形成",
     "source": "main",
     "kind": "required",
-    "en": "not naturally decided"
+    "en": "it is innate in a sense that it is not naturally decided but is very difficult to be changed through nurturing"
    },
    {
     "text": "一旦形成，habitus 极难通过后天培育（ nurturing ）改变",
@@ -25952,13 +26024,13 @@
     "text": "上层阶级人士广泛享受的文化活动",
     "source": "main",
     "kind": "required",
-    "en": "The cultural activities that are widely enjoyed by the upper class people"
+    "en": "The cultural activities that are widely enjoyed by the upper class people, such as equestrian, fine arts, orchestra, etc."
    },
    {
     "text": "例如骑马、美术、管弦乐等",
     "source": "main",
     "kind": "example",
-    "en": "such as equestrian, fine arts, orchestra, etc."
+    "en": "Cultural products, such as art and literature, that are regarded as rare, unique and the product of exceptional talent."
    }
   ],
   "bonus": [
@@ -26034,13 +26106,13 @@
     "text": "把自身利益置于一切之首",
     "source": "main",
     "kind": "required",
-    "en": "put the interests of oneself in the forefront of everything"
+    "en": "To put the interests of oneself in the forefront of everything, to reject self-sacrifice, and to compete against other individuals for as much self-interest as possible."
    },
    {
     "text": "拒绝自我牺牲",
     "source": "main",
     "kind": "required",
-    "en": "reject self-sacrifice"
+    "en": "Being free from external pressures such as tradition and duty and being able to pursue one’s own interests (sometimes at the expense of others)."
    },
    {
     "text": "与他人竞争以获取尽可能多的自身利益",
@@ -26093,7 +26165,7 @@
     "text": "跨代的；父母与子女之间的",
     "source": "main",
     "kind": "required",
-    "en": "Across generations; between parents and children"
+    "en": "Across generations"
    }
   ],
   "bonus": [],
@@ -26159,13 +26231,13 @@
     "text": "上层阶级人士的财富和地位迅速增长，几乎一夜之间",
     "source": "main",
     "kind": "required",
-    "en": "their wealths and statuses grows up rapidly - almost over night"
+    "en": "A type of upper class people who have their wealths and statuses grows up rapidly - almost over night"
    },
    {
     "text": "典型例子包括著名歌手、演员/女演员和运动员",
     "source": "main",
     "kind": "example",
-    "en": "famous singers, actors / actresses and atheletes"
+    "en": "Typical examples are famous singers, actors / actresses and atheletes"
    }
   ],
   "bonus": [],
@@ -26195,13 +26267,13 @@
     "text": "一个人在其一生中可以获得的机会",
     "source": "main",
     "kind": "required",
-    "en": "The opportunities one can get within his/her lifetime"
+    "en": "The opportunities one can get within his/her lifetime to achieve his/her goals"
    },
    {
     "text": "用于实现个人目标的机会",
     "source": "main",
     "kind": "required",
-    "en": "to achieve his/her goals"
+    "en": "The opportunities people have to improve their lives"
    }
   ],
   "bonus": [
@@ -26241,7 +26313,7 @@
     "text": "需要体力的劳动和工作",
     "source": "main",
     "kind": "required",
-    "en": "labour and jobs that require physical power"
+    "en": "The labour and jobs that require physical power"
    }
   ],
   "bonus": [],
@@ -26271,7 +26343,7 @@
     "text": "需要智力能力的劳动",
     "source": "main",
     "kind": "required",
-    "en": "labours and jobs that require intellectual abilities"
+    "en": "Labours and jobs that require intellectual abilities"
    },
    {
     "text": "主要在脑力层面进行而非体力劳动",
@@ -26307,13 +26379,13 @@
     "text": "以脑力劳动为特征",
     "source": "main",
     "kind": "required",
-    "en": "characterised by mental labour"
+    "en": "characterised by mental labour and relatively higher income"
    },
    {
     "text": "收入相对较高",
     "source": "main",
     "kind": "required",
-    "en": "relatively higher income"
+    "en": "Those occupations that require a professional qualification or who manage capitalism on behalf of the capitalist class. This group tends to be highly rewarded in terms of income and status."
    }
   ],
   "bonus": [
@@ -26360,7 +26432,7 @@
     "text": "社会阶层之间的界限容易跨越",
     "source": "main",
     "kind": "required",
-    "en": "boundaries between social classes are easy to cross"
+    "en": "A society where boundaries between social classes are easy to cross"
    }
   ],
   "bonus": [
@@ -26369,7 +26441,7 @@
     "sources": [
      "igcse0495"
     ],
-    "en": "individuals can move between social roles and change statuses"
+    "en": "A society in which individuals can move between social roles and change statuses."
    }
   ],
   "sources": [
@@ -26405,7 +26477,7 @@
     "text": "例如足球、橄榄球、流行音乐等",
     "source": "main",
     "kind": "example",
-    "en": "such as football, rugby, popular music"
+    "en": "such as football, rugby, popular music, etc."
    }
   ],
   "bonus": [
@@ -26449,13 +26521,13 @@
     "text": "陷入贫困后难以逃脱",
     "source": "main",
     "kind": "required",
-    "en": "difficult to escape from poverty once one falls into it"
+    "en": "it is difficult to escape from poverty once one falls into it"
    },
    {
     "text": "因为作为穷人生活成本高",
     "source": "main",
     "kind": "required",
-    "en": "expensive to live as a poor person"
+    "en": "because 'it is expensive to live as a poor person'"
    }
   ],
   "bonus": [],
@@ -26486,13 +26558,13 @@
     "text": "新型无产阶级",
     "source": "main",
     "kind": "required",
-    "en": "A new type of proletariats"
+    "en": "A new type of proletariats characterised by low skilled manual labour jobs, low pay and low job security"
    },
    {
     "text": "低技能体力劳动工作",
     "source": "main",
     "kind": "required",
-    "en": "low skilled manual labour jobs"
+    "en": "People whose employment and income are insecure, especially when considered as a class"
    },
    {
     "text": "低工资",
@@ -26550,13 +26622,13 @@
     "text": "被日益剥削",
     "source": "main",
     "kind": "required",
-    "en": "exploited"
+    "en": "most people in a society, especially middle class people, are increasingly exploited"
    },
    {
     "text": "逐步沦为无产阶级",
     "source": "main",
     "kind": "required",
-    "en": "to become proletariats"
+    "en": "most people in a society, especially middle class people, are increasingly poor and exploited to become proletariats"
    }
   ],
   "bonus": [],
@@ -26586,7 +26658,7 @@
     "text": "相对贫困是指在同一社会中，与他人相比而表现出的贫困",
     "source": "main",
     "kind": "required",
-    "en": "Relative poverty"
+    "en": "Poverty that is evident in comparison to others in the same society"
    }
   ],
   "bonus": [],
@@ -26616,13 +26688,13 @@
     "text": "封闭系统中的一种形式",
     "source": "main",
     "kind": "required",
-    "en": "An example of closed system"
+    "en": "An example of closed system where some people are enslaved and therefore impossible to improve their social statuses"
    },
    {
     "text": "一些人被奴役",
     "source": "main",
     "kind": "required",
-    "en": "some people are enslaved"
+    "en": "A stratification system in which one group or individual is treated as the legal property of another group or individual."
    },
    {
     "text": "因此无法提升其社会地位",
@@ -26674,13 +26746,13 @@
     "text": "通过社会关系和联系获得的有用材料",
     "source": "main",
     "kind": "required",
-    "en": "helpful materials"
+    "en": "The helpful materials and intangible assistances (i.e. insider information) that one can get from his/her social connections and contacts"
    },
    {
     "text": "通过社会关系和联系获得的无形帮助（如内部信息）",
     "source": "main",
     "kind": "required",
-    "en": "intangible assistances"
+    "en": "The helpful materials and intangible assistances (i.e. insider information) that one can get from his/her social connections and contacts"
    }
   ],
   "bonus": [
@@ -26728,7 +26800,7 @@
     "sources": [
      "igcse0495"
     ],
-    "en": "The movement of individuals or groups up or down the social hierarchy"
+    "en": "The movement of individuals or groups up or down the social hierarchy."
    }
   ],
   "sources": [
@@ -26819,19 +26891,19 @@
     "text": "社会地位最高的阶层",
     "source": "main",
     "kind": "required",
-    "en": "highest status in society"
+    "en": "A social class that is characterised by high social status"
    },
    {
     "text": "收入和财富最高的阶层",
     "source": "main",
     "kind": "required",
-    "en": "highest income and wealth"
+    "en": "highest income and wealth in a society"
    },
    {
     "text": "包括土地贵族、企业家和‘喷气式上层社会’等群体",
     "source": "main",
     "kind": "example",
-    "en": "landed aristocrats, entrepreneurs and 'jet set' upper class"
+    "en": "including (but not limited to) landed aristocrats, entrepreneurs and 'jet set' upper class"
    }
   ],
   "bonus": [
@@ -26840,14 +26912,14 @@
     "sources": [
      "tb1"
     ],
-    "en": "status is often inherited"
+    "en": "This status is often inherited"
    },
    {
     "text": "常被称为‘统治阶级’",
     "sources": [
      "tb1"
     ],
-    "en": "ruling class"
+    "en": "It is often called the ‘ruling class’"
    }
   ],
   "sources": [
@@ -26878,13 +26950,13 @@
     "text": "累积的金钱及其他财产",
     "source": "main",
     "kind": "required",
-    "en": "The accumulated money and other properties"
+    "en": "The accumulated money and other properties, such as houses, cars, jewelry, art collections, etc."
    },
    {
     "text": "房屋等财产",
     "source": "main",
     "kind": "example",
-    "en": "houses"
+    "en": "Money, savings and property that can be bought and sold to generate income."
    },
    {
     "text": "汽车等财产",
@@ -26948,7 +27020,7 @@
     "text": "政府向社会弱势群体提供的金钱援助",
     "source": "main",
     "kind": "required",
-    "en": "pecuniary aid (money) that a government gives"
+    "en": "The pecuniary aid (money) that a government gives to the disadvantaged people in the society"
    }
   ],
   "bonus": [],
@@ -26978,13 +27050,13 @@
     "text": "在办公室从事脑力劳动的工作者",
     "source": "main",
     "kind": "required",
-    "en": "The mental labour workers in offices"
+    "en": "mental labour workers in offices"
    },
    {
     "text": "穿着白色制服（如白衬衫）",
     "source": "main",
     "kind": "example",
-    "en": "who wear white uniforms (shirts)"
+    "en": "wear white uniforms (shirts)"
    }
   ],
   "bonus": [],
@@ -27014,7 +27086,7 @@
     "text": "以体力劳动为特征",
     "source": "main",
     "kind": "required",
-    "en": "characterised by manual labour"
+    "en": "manual labour"
    },
    {
     "text": "收入相对较低",

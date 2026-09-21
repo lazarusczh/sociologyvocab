@@ -26,7 +26,14 @@ const AG_CHAT_URL = 'https://apihub.agnes-ai.com/v1/chat/completions';
 // ★ 2026-09-17 更换：原 `Qwen/Qwen3-235B-A22B` 已被魔搭下架（400 `has no provider supported`）。
 // 这里是主站 /app-api/ai/complete 的「魔搭兜底档」——它排在 OpenRouter/Agnes 之后，只在免费档都失败时才烧魔粒。
 const MS_MODEL = 'Qwen/Qwen3.5-122B-A10B';
-const OR_MODEL = 'nvidia/nemotron-3-super-120b-a12b:free';
+// ★ 2026-09-21 换型：super-120b → **ultra-550b**。
+//   实测（同一 prompt、同一数据、同一案例）：细粒度同义判断上 super 明显不足 ——
+//   要素「认为男性同情心较少 / believes men have less sympathy」，学生写
+//   "men are less able to empathize with others"：
+//     super 判 0.0~0.5（不达标）✗   ultra 判 1.0 ✓   qwen3.8-27b 判 1.0 ✓   Qwen3.5-122B（魔搭）判 1.0 ✓
+//   即「同义改写识别」是模型能力差异，不是 prompt 措辞问题（prompt 已明确要求近义词算覆盖）。
+//   降级链不变：ultra → agnes（CF 出口被拒，实际常跳过）→ 魔搭。
+const OR_MODEL = 'nvidia/nemotron-3-ultra-550b-a55b:free';
 const AG_MODEL = 'agnes-2.5-flash';
 
 export interface TextResult {
