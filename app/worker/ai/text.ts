@@ -87,6 +87,14 @@ async function callOnce(
   } else if (tier === 'agnes') {
     url = AG_CHAT_URL; model = AG_MODEL; key = env.AGNES_API_KEY ?? '';
     body.model = model;
+    // ★ 2026-09-21 加：强制 JSON 输出。实测（本地直连 .cn，判分用同一 prompt）：
+    //   不加时 Agnes 会把 JSON 包在 ```json 围栏里（`parseJsonLoose` 虽能剥掉，但多一层脆性）；
+    //   加上后返回**干净 JSON、无围栏无前言**，端到端解析成功率更稳。
+    //   该参数被 Agnes 接受（不报 400），且不影响判分质量（同案例 coverage 判定一致）。
+    // ⚠️ 无法关闭 Agnes 的推理：实测 `enable_thinking:false` 被忽略（reasoning_tokens 仍 140~255），
+    //    推理与正文**共享 max_tokens 预算** —— 所以 maxTokens 必须留足（判分传 1000，实测占用 ~220~340，余量充足）。
+    //    万一仍被截断，前端 `parseJsonLoose` 有截断补全兜底（且长度不符会判为解析失败、走重试/降级，不会错判）。
+    body.response_format = { type: 'json_object' };
   } else {
     url = MS_CHAT_URL; model = MS_MODEL; key = env.MODELSCOPE_API_KEY ?? '';
     body.model = model;

@@ -221,18 +221,31 @@ ${list}
 只输出 JSON（不要 markdown、不要解释）：
 {"restate":["学生表达的含义1","含义2"],"coverage":[1.0,0.0],"listing_only":false,"reason":"不超过40字的中文理由","confidence":0.0}`;
 
-  // maxTokens 留足：判分要求先输出 restate（学生表达的含义）再给 coverage
-  const { text, model, tier, ms } = await callComplete(prompt, { maxTokens: 1000, ...opts });
-  const parsed = parseJsonLoose<{ coverage?: unknown; listing_only?: boolean; reason?: string }>(text) ?? {};
-  const listingOnly = Boolean(parsed.listing_only);
-  const coverage = (Array.isArray(parsed.coverage) ? parsed.coverage : []).map((x) => Number(x));
-  return {
-    verdict: verdictFromKeypoints(parsed.coverage, keypoints, listingOnly),
-    coverage,
-    listingOnly,
-    reason: String(parsed.reason ?? ''),
-    model,
-    tier,
-    ms,
-  };
+  // 判分必须"要素数一致"：模型偶发返回缺项 / 被截断的 JSON（免费档推理吃预算时更常见），
+  // 而 verdictFromKeypoints 对缺失索引是按 0 计（`vals[i] ?? 0`）——那会把学生**静默误判**成答得少。
+  // 所以这里做严格长度校验，不符就整轮重判一次，而不是带着缺项继续算分。
+  let lastBad = '';
+  for (let attempt = 0; attempt < 2; attempt++) {
+    // maxTokens 留足：判分要求先输出 restate（学生表达的含义）再给 coverage；
+    // Agnes 的推理无法关闭（enable_thinking 被忽略），推理与正文共享这份预算。
+    const { text, model, tier, ms } = await callComplete(prompt, { maxTokens: 1000, ...opts });
+    const parsed = parseJsonLoose<{ coverage?: unknown; listing_only?: boolean; reason?: string }>(text) ?? {};
+    const listingOnly = Boolean(parsed.listing_only);
+    const coverage = (Array.isArray(parsed.coverage) ? parsed.coverage : []).map((x) => Number(x));
+    // 条数与要素数一致，且逐项都是有效数字 —— 否则视为判分结果不可用
+    if (coverage.length === keypoints.length && coverage.every((x) => Number.isFinite(x))) {
+      return {
+        verdict: verdictFromKeypoints(coverage, keypoints, listingOnly),
+        coverage,
+        listingOnly,
+        reason: String(parsed.reason ?? ''),
+        model,
+        tier,
+        ms,
+      };
+    }
+    lastBad = `得到 ${coverage.length} 项、应有 ${keypoints.length} 项`;
+    console.error(`[grade] 判分结果要素数不符（${lastBad}），重判一次`);
+  }
+  throw new Error(`判分结果格式异常（${lastBad}），请重试`);
 }

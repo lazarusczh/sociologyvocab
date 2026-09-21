@@ -87,12 +87,18 @@ def toks(s: str):
     return {stem(w) for w in re.findall(r"[a-z][a-z\-]{2,}", s) if w not in STOP}
 
 
-def call_llm(prompt: str, base: str, model: str, key: str, max_tokens=500, retries=3):
+def call_llm(prompt: str, base: str, model: str, key: str, max_tokens=1200, retries=3):
     body = {"model": model, "messages": [{"role": "user", "content": prompt}],
             "stream": False, "max_tokens": max_tokens, "temperature": 0.2,
             "enable_thinking": False}
     if "openrouter" in base:                              # nemotron 默认吐推理，需关掉
         body["reasoning"] = {"enabled": False}
+    # ★ 2026-09-21：Agnes 强制 JSON 输出（与线上 worker/ai/text.ts 保持一致，便于对照可比）。
+    #   实测不加时它把 JSON 包在 ```json 围栏里；其推理**无法关闭**（enable_thinking 被忽略，
+    #   reasoning 与正文共享 max_tokens，实测一次用 140~255），故 max_tokens 默认提到 1200。
+    if "agnes-ai" in base:
+        body["response_format"] = {"type": "json_object"}
+        body.pop("enable_thinking", None)
     data = json.dumps(body).encode("utf-8")
     for attempt in range(retries):
         req = urllib.request.Request(base, data=data, method="POST", headers={
