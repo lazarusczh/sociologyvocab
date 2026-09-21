@@ -123,7 +123,9 @@ def main():
     ap.add_argument("--retry-failed", action="store_true")
     ap.add_argument("--sleep", type=float, default=0.0)
     ap.add_argument("--concurrency", type=int, default=4, help="并发请求数（免费档限流时调小）")
-    ap.add_argument("--provider", default="openrouter", choices=sorted(PROVIDERS))
+    ap.add_argument("--provider", default="agnes", choices=sorted(PROVIDERS),
+                    help="默认 agnes（本地直连、免费）——**批处理不要用 openrouter**："
+                         "它的免费额度（1000 次/日）要留给线上学生判分（见 project-memory）")
     ap.add_argument("--apply", action="store_true", help="把 jsonl 结果合并回 definition-keypoints.json")
     args = ap.parse_args()
 

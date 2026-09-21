@@ -90,7 +90,9 @@ def parse(txt: str):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=400)
-    ap.add_argument("--provider", default="openrouter", choices=sorted(PROVIDERS))
+    ap.add_argument("--provider", default="agnes", choices=sorted(PROVIDERS),
+                    help="默认 agnes（本地直连、免费）——**批处理不要用 openrouter**："
+                         "它的免费额度（1000 次/日）要留给线上学生判分（见 project-memory）")
     ap.add_argument("--out", default="C:/Users/rebir/AppData/Local/Temp/kinds.jsonl")
     ap.add_argument("--resume", action="store_true")
     ap.add_argument("--retry-failed", action="store_true")
