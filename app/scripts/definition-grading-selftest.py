@@ -31,8 +31,13 @@ UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
 PROVIDERS = {
     "ms": ("https://api-inference.modelscope.cn/v1/chat/completions", "Qwen/Qwen3-235B-A22B",
            "MODELSCOPE_API_KEY"),
+    # ★ 2026-09-21：默认模型对齐线上判分档（super-120b → ultra-550b，见 worker/ai/text.ts 的 OR_MODEL）
     "openrouter": ("https://openrouter.ai/api/v1/chat/completions",
-                   "nvidia/nemotron-3-super-120b-a12b:free", "OPENROUTER_API_KEY"),
+                   "nvidia/nemotron-3-ultra-550b-a55b:free", "OPENROUTER_API_KEY"),
+    # ★ 2026-09-21 新增：Agnes 国内节点（.cn）。本地直连与 CF 出口都已实测可用，
+    #   免费、不限量，故纳入对照组 —— 用于回答「agnes 与 ultra 谁更适合判分」。
+    "agnes": ("https://apihub.agnes-ai.cn/v1/chat/completions",
+              "agnes-2.5-flash", "AGNES_API_KEY"),
 }
 STOP = {"the", "a", "an", "of", "and", "in", "for", "to", "on", "with", "by", "as", "is", "are"}
 
@@ -207,7 +212,7 @@ def main():
     ap.add_argument("--api-tier", default="nemotron", choices=["nemotron", "agnes", "ms", "auto"])
     ap.add_argument("--fallback", action="store_true", help="允许跨档降级（默认关，便于观测单档表现）")
     ap.add_argument("--max-tokens", type=int, default=600)
-    ap.add_argument("--provider", default="auto", choices=["auto", "ms", "openrouter"])
+    ap.add_argument("--provider", default="auto", choices=["auto", "ms", "openrouter", "agnes"])
     ap.add_argument("--repeat", type=int, default=1, help="同一答案重复判几次（测一致性）")
     ap.add_argument("--model", default="", help="覆盖默认模型 id")
     ap.add_argument("--seed", type=int, default=11)

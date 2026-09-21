@@ -100,6 +100,9 @@ const AI_TIER_CATALOG = [
   { code: 'fast', label: '快速', model: MS_MAIN, fallbacks: [], note: '强制快速档，不自动切深度' },
   { code: 'think', label: '深度', model: MS_THINK, fallbacks: [], note: '强制深度档，适合评估/对比类长答' },
   { code: 'nemotron', label: 'Nemo', model: OR_MODEL, fallbacks: [], note: 'OpenRouter 免费缓冲源（评测用）' },
+  // ★ 2026-09-21 新增：Agnes 国内节点经实测从 CF 出口可用（2026-09-21 探测 200），故开放为手动档，
+  //   与「自动链里的 4b 日常主力」是同一档；失败仍回落自动链，无副作用。
+  { code: 'agnes', label: 'Agnes', model: AG_MODEL, fallbacks: [], note: 'Agnes 2.5-flash 免费档（国内节点 apihub.agnes-ai.cn），日常主力' },
   { code: 'llama', label: '兜底', model: CHAT_MODEL, fallbacks: [], note: 'Cloudflare Workers AI 兜底，成本趋零' },
 ];
 
@@ -256,6 +259,10 @@ async function handleAsk(request: Request, env: Env): Promise<Response> {
       onFail: rec('or-nemotron'),
     });
     if (orRes) return new Response(orRes.body, { headers: aiHeaders('openrouter', OR_MODEL) });
+  }
+  if (agKey && tier === 'agnes') {
+    const ag = await msAsk(AG_MODEL, messages, agKey, { base: AG_URL, maxTokens: 1800, onFail: rec('agnes') });
+    if (ag) return new Response(ag.body, { headers: aiHeaders('agnes', AG_MODEL) });
   }
   // 手动选 llama = 直接走 Workers 8B；其它手动档失败仍走下方自动链兜底
   const skipAuto = tier === 'llama';
