@@ -6,6 +6,7 @@
 // 判分口径（与 scripts/definition-grading-selftest.py 对齐）：
 //   档位不由模型裁量，而是"模型判逐要素覆盖度 → 代码算档位"，保证可复现、可审计。
 import { supabase } from './supabase';
+import { apiUrl } from './apiBase';
 
 export type AiTier = 'auto' | 'nemotron' | 'agnes' | 'ms';
 
@@ -33,7 +34,7 @@ export async function callComplete(prompt: string, opts: CompleteOpts = {}): Pro
   let lastErr = '';
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const res = await fetch('/app-api/ai/complete', {
+      const res = await fetch(apiUrl('/app-api/ai/complete'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ prompt, ...opts }),

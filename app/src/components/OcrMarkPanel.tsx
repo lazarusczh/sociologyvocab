@@ -12,6 +12,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '../lib/supabase';
+import { apiUrl } from '../lib/apiBase';
 import { useStore } from '../lib/store';
 import { buildFormTable, matchTranscript, summarize, type OcrHit } from '../lib/ocrHighlight';
 import {
@@ -349,7 +350,7 @@ export default function OcrMarkPanel() {
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token ?? '';
       if (!token) throw new Error('未登录');
-      const res = await fetch('/app-api/ai/transcribe', {
+      const res = await fetch(apiUrl('/app-api/ai/transcribe'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ image: page.src }),
@@ -400,7 +401,7 @@ export default function OcrMarkPanel() {
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token ?? '';
       if (!token) throw new Error('未登录');
-      const res = await fetch('/app-api/ai/vision-check', {
+      const res = await fetch(apiUrl('/app-api/ai/vision-check'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       });

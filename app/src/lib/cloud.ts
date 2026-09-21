@@ -1,5 +1,6 @@
 // 云同步层：登录后与 Supabase 的 student_data 表读写，及本地/云端数据合并
 import { supabase } from './supabase';
+import { apiUrl } from './apiBase';
 import type { CheckInState, Progress, WrongBook, VocabItem, Quiz, QuizSubmission, CorrectionResult, SurnameOverrides } from './types';
 import { classMatchesGrade, firstPaperNumber, gradeFromPapers, inferGrade, pickShortCode, shortCodeBase, type Grade, type RosterEntry } from './mbSync';
 
@@ -690,7 +691,7 @@ export async function matchMbTask(mbClassId: string, code: string): Promise<MbTa
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token ?? '';
   if (!token) throw new Error('未登录');
-  const res = await fetch('/app-api/mb/tasks', {
+  const res = await fetch(apiUrl('/app-api/mb/tasks'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify({ classId: mbClassId, code }),
@@ -727,7 +728,7 @@ export async function fetchMbMarks(mbClassId: string, taskId: string): Promise<M
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token ?? '';
   if (!token) throw new Error('未登录');
-  const res = await fetch('/app-api/mb/marks', {
+  const res = await fetch(apiUrl('/app-api/mb/marks'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify({ classId: mbClassId, taskId }),
@@ -788,7 +789,7 @@ export async function writeMbMarks(
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token ?? '';
   if (!token) throw new Error('未登录');
-  const res = await fetch('/app-api/mb/write', {
+  const res = await fetch(apiUrl('/app-api/mb/write'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify({ classId: mbClassId, taskId, updates }),

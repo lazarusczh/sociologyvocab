@@ -958,6 +958,13 @@ export default function QuizManager() {
                                 checked={l.checked}
                                 disabled={l.status !== 'diff' && l.status !== 'empty'}
                                 onChange={() => toggleLine(l.mbName)}
+                                /* 灰掉时必须说明原因，否则会让人以为"点不动就是坏了"（2026-09-21 反馈） */
+                                title={
+                                  l.status === 'same' ? '与 ManageBac 当前值一致，无需写入'
+                                    : l.status === 'noscore' ? '站内还没有这个学生的成绩'
+                                      : l.status === 'unlinked' ? '成绩册里找不到对应的站内学生'
+                                        : ''
+                                }
                               />
                             </td>
                             <td>

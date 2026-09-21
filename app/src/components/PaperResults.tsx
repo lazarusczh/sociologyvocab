@@ -487,8 +487,17 @@ export default function PaperResults() {
   const writeSync = async () => {
     if (!viewing || !mbPreview || !curLink || !mbClass?.mb_class_id) return;
     const todo = mbPreview.lines.filter((l) => l.checked && l.conv != null);
+    // 勾了却算不出折百分的行，原来被静默丢弃、只报一句"没有勾选任何可写入的行"，
+    // 教师会误以为是自己没勾上（2026-09-21 反馈「单个学生填不进去」）。
+    // 这里点名说清是哪几行、为什么写不了（多为本卷未设分数线 ⇒ conv 为 null）。
+    const dropped = mbPreview.lines.filter((l) => l.checked && l.conv == null);
     if (todo.length === 0) {
-      setError('没有勾选任何可写入的行');
+      setError(
+        dropped.length
+          ? `勾选的 ${dropped.length} 行都算不出折百分（多是本卷未设分数线），无法写入：`
+            + dropped.map((l) => l.mbName).join('、')
+          : '没有勾选任何可写入的行',
+      );
       return;
     }
     const go = confirm(
@@ -813,6 +822,13 @@ export default function PaperResults() {
                                 checked={l.checked}
                                 disabled={l.status !== 'diff' && l.status !== 'empty'}
                                 onChange={() => toggleLine(l.mbName)}
+                                /* 灰掉时必须说明原因，否则会让人以为"点不动就是坏了"（2026-09-21 反馈） */
+                                title={
+                                  l.status === 'same' ? '与 ManageBac 当前值一致，无需写入'
+                                    : l.status === 'noscore' ? '站内还没有这个学生的分数'
+                                      : l.status === 'unlinked' ? '成绩册里找不到对应的站内学生'
+                                        : ''
+                                }
                               />
                             </td>
                             <td>
