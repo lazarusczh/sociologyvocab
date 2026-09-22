@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useStore, useStudySession, useCelebrateCheckIn } from '../lib/store';
 import { sample, shuffle } from '../lib/shuffle';
-import { isCorrectAnswer, maskAnswer } from '../lib/answers';
+import { isCorrectAnswer, pickSpellingPrompt, type SpellingPrompt } from '../lib/answers';
 import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
 import type { VocabItem } from '../lib/types';
 
@@ -14,6 +14,8 @@ export default function Spelling() {
   const [units, setUnits] = useState<string[]>([]);
   const [typeFilter, setTypeFilter] = useState<'all' | 'term' | 'scholar'>('term');
   const [round, setRound] = useState<VocabItem[]>([]);
+  // 与 round 同序的题干（中文 / 脱敏英文释义随机取一）：在 start() 时固化，避免重渲染时跳变
+  const [prompts, setPrompts] = useState<SpellingPrompt[]>([]);
   const [idx, setIdx] = useState(0);
   const [input, setInput] = useState('');
   const [revealed, setRevealed] = useState(false);
@@ -40,7 +42,9 @@ export default function Spelling() {
   );
 
   const start = useCallback(() => {
-    setRound(shuffle(sample(filtered, Math.min(ROUND, filtered.length))));
+    const picked = shuffle(sample(filtered, Math.min(ROUND, filtered.length)));
+    setRound(picked);
+    setPrompts(picked.map((it) => pickSpellingPrompt(it)));
     setIdx(0);
     setInput('');
     setRevealed(false);
@@ -94,7 +98,7 @@ export default function Spelling() {
           onTypeChange={setTypeFilter}
         />
         <div className="card">
-          <p>看中文释义（或英文释义提示）拼写英文术语。每轮 {ROUND} 题，大小写和标点不影响判分。</p>
+          <p>题干随机取中文释义或英文释义提示，拼写对应的英文术语。每轮 {ROUND} 题，大小写和标点不影响判分。</p>
           <button className="primary" onClick={start} disabled={filtered.length === 0}>
             开始默写
           </button>
@@ -113,6 +117,9 @@ export default function Spelling() {
     );
   }
 
+  // 题干在 start() 时已固化；兜底仅用于热重载等极端情形
+  const prompt = prompts[idx] ?? pickSpellingPrompt(current);
+
   return (
     <div>
       <div className="row" style={{ marginBottom: '0.5rem' }}>
@@ -123,12 +130,15 @@ export default function Spelling() {
       </div>
 
       <div className="card">
-        <div className="muted" style={{ fontSize: '0.85rem' }}>请拼写对应的英文术语</div>
-        {current.chinese && <h2 style={{ color: 'var(--accent)' }}>{current.chinese}</h2>}
+        <div className="muted" style={{ fontSize: '0.85rem' }}>根据{prompt.label}拼写英文术语</div>
+        {prompt.label === '中文' ? (
+          <h2 style={{ color: 'var(--accent)' }}>{prompt.text}</h2>
+        ) : (
+          <p style={{ margin: '0.4rem 0', lineHeight: 1.5 }}>{prompt.text}</p>
+        )}
         {!current.chinese && current.theory && (
           <div className="badge" style={{ margin: '0.3rem 0' }}>{current.theory}</div>
         )}
-        <p className="muted" style={{ fontSize: '0.9rem' }}>释义提示：{maskAnswer(current, current.definition)}</p>
 
         <div className="row" style={{ marginTop: '0.8rem' }}>
           <input

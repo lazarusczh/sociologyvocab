@@ -3,6 +3,7 @@ import { supabase } from './supabase';
 import { apiUrl } from './apiBase';
 import type { CheckInState, Progress, WrongBook, VocabItem, Quiz, QuizSubmission, CorrectionResult, SurnameOverrides } from './types';
 import { classMatchesGrade, firstPaperNumber, gradeFromPapers, inferGrade, pickShortCode, shortCodeBase, type Grade, type RosterEntry } from './mbSync';
+import { getAcceptableKeys } from './answers';
 
 // 云端 student_data.data 里存储的 JSON 结构（checkin/progress/wrongBook 三块 + 姓名）
 export interface CloudStudentData {
@@ -170,6 +171,45 @@ export async function publishVocab(
   });
   if (error) throw error;
   return nextVersion;
+}
+
+// ---- 服务端答案判定表（vocab_answer_forms）----
+// 把「归一化后的可接受写法」物化到云端，供服务端 RPC 判分
+// （流程见项目根《实时多人在线功能规划.md》第九节附）。
+//
+// 口径与前端判定同源：直接复用 answers.ts 的 getAcceptableKeys，
+// 所以不会出现「平时练习判对、课堂竞赛判错」。
+//
+// 何时需要调用：
+//   1) 每次发布词库之后（ImportPanel 的发布流程已自动调用）
+//   2) 改过 answer-aliases.json（学者静态别名 / 姓氏覆盖）或判定规则之后 —— 用「重建判定表」按钮重跑
+//
+// 写入策略（先插新、再删旧，避免中途失败把表清空）：
+//   给本批新行统一打上 updated_at = 批次时间戳，插入成功后再删掉时间戳更早的旧行。
+//   这样即使插入失败，旧数据仍在（最多是过期数据，比空表安全）。
+export async function replaceAnswerForms(items: VocabItem[]): Promise<number> {
+  const rows: { term_id: string; form_normalized: string; updated_at: string }[] = [];
+  const batchTs = new Date().toISOString();
+  for (const it of items) {
+    for (const key of getAcceptableKeys(it)) {
+      rows.push({ term_id: it.id, form_normalized: key, updated_at: batchTs });
+    }
+  }
+  if (rows.length === 0) return 0;
+
+  const BATCH = 500;
+  for (let i = 0; i < rows.length; i += BATCH) {
+    const { error } = await supabase.from('vocab_answer_forms').insert(rows.slice(i, i + BATCH));
+    if (error) throw error;
+  }
+  // 清掉上一批（时间戳早于本批的）。若客户端时钟偏慢，可能残留少量旧行，
+  // 那也只是冗余数据（判定走 exists，不受影响），不会误判。
+  const { error: delError } = await supabase
+    .from('vocab_answer_forms')
+    .delete()
+    .lt('updated_at', batchTs);
+  if (delError) throw delError;
+  return rows.length;
 }
 
 // ---- 随堂测验 / 作业 ----

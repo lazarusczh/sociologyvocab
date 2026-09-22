@@ -32,6 +32,28 @@ export default defineConfig({
     __APP_VERSION__: JSON.stringify(BUILD_VERSION),
   },
   server: {
+    // 文件监视设置（踩坑记录 2026-09-22）：
+    //   app/android 是指向 C:\vocab-build\android 的 junction（见 CODEBUDDY.md）。在 OneDrive 路径下，
+    //   chokidar 默认「跟随符号链接」会去 stat 这个 junction 的目标，报 UNKNOWN(-4094) 并让 vite 进程直接崩掉
+    //   （表现为 dev server 起来 1 秒后无响应）。所以：① 关掉 followSymlinks；② 用函数式 ignored 精确排除
+    //   android / _ocrlab_out / dist / node_modules / .git（glob 字符串在 chokidar 4 下已不再生效）。
+    // 若设了环境变量 VITE_NO_WATCH=1，则完全禁用文件监视（HMR 关闭，改代码需手动刷新页面）。
+    // 用途：app/android 是指向 C:\vocab-build\android 的 junction，本机（OneDrive 路径 + Node 24）
+    // 下 chokidar 跟随它 stat 会抛 UNKNOWN(-4094) 并让 dev server 直接崩，而 server.watch.ignored
+    // 拦不住这个 watcher；此时用 `VITE_NO_WATCH=1 npm run dev` 绕开。
+    watch: process.env.VITE_NO_WATCH
+      ? null
+      : {
+          followSymlinks: false,
+          ignored: [
+            join(import.meta.dirname, 'android'),
+            join(import.meta.dirname, '_ocrlab_out'),
+            join(import.meta.dirname, 'dist'),
+            // 注意开头要允许没有分隔符的情况：chokidar 传进来的可能是相对路径（如 `android/...`），
+            // 只写 [\\/] 会导致根目录下的这一级匹配不上，ignore 形同虚设。
+            (p: string) => /(^|[\\/])(android|_ocrlab_out|dist|node_modules|\.git)([\\/]|$)/.test(p),
+          ],
+        },
     proxy: {
       // 本地开发：前端请求 /wb/* 由 Vite dev server 代理到 World Bank API，
       // 避免浏览器直连 api.worldbank.org 的网络/CORS 问题（部署后由 Worker 同路径代理）

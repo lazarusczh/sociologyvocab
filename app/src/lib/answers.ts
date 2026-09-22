@@ -329,6 +329,18 @@ export function maskAnswer(item: VocabItem, text: string): string {
   return out;
 }
 
+// 拼写题题干：在「中文」与「脱敏英文释义」之间随机取一。
+// 有中文的词条对半开；无中文（学者等）或释义缺失时回退另一种。
+// 依据《实时多人在线功能规划.md》第七节「配套的存量改造」：拼写题不再中文优先。
+export type SpellingPrompt = { text: string; label: '中文' | '释义' };
+export function pickSpellingPrompt(item: VocabItem): SpellingPrompt {
+  const def = maskAnswer(item, item.definition);
+  const useCn = !!item.chinese && (!def || Math.random() < 0.5);
+  if (useCn) return { text: item.chinese, label: '中文' };
+  if (def) return { text: def, label: '释义' };
+  return { text: item.chinese, label: '中文' };
+}
+
 // 词典检索：返回词条所有可检索的原文片段（术语含别名与中文翻译；学者含别名、姓氏与理论流派）
 export function getSearchableForms(item: VocabItem): string[] {
   const forms = new Set<string>();

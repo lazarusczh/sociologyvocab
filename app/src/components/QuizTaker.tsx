@@ -611,8 +611,8 @@ function SpellingAnswer({ q, value, onChange, onNext, isLast, onSubmit }: {
   const isTerm = q.itemType === 'term';
   return (
     <div>
-      {q.chinese && <p className="muted" style={{ fontSize: '0.9rem' }}>中文：{q.chinese}</p>}
-      <p className="muted" style={{ fontSize: '0.9rem' }}>释义提示：{q.definition}</p>
+      {/* 题干（q.prompt）已随机取「中文」或「脱敏英文释义」之一；此处不再把另一种也列出，
+          否则等于双份提示、让题干随机失去意义（2026-09-22 改造，见《实时多人在线功能规划.md》第七节） */}
       {/* 常驻类型标签：placeholder 会被输入内容覆盖，此标签不消失；颜色与题面 badge 同通道 */}
       <div className="row tight" style={{ marginTop: '0.7rem', gap: '0.4rem', alignItems: 'center' }}>
         <span className={`badge ${isTerm ? 'success' : 'warn'}`} style={{ height: '1.5rem', lineHeight: '1.5rem' }}>

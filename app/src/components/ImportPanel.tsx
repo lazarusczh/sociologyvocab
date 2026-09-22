@@ -1,6 +1,6 @@
 import { useState, useRef, type ReactNode } from 'react';
 import { useStore } from '../lib/store';
-import { publishVocab, pullLatestVocab } from '../lib/cloud';
+import { publishVocab, pullLatestVocab, replaceAnswerForms } from '../lib/cloud';
 import { saveVocabVersion } from '../lib/storage';
 import type { ImportResult } from '../lib/types';
 
@@ -53,12 +53,36 @@ export default function ImportPanel() {
     setPublishMsg('');
     try {
       const v = await publishVocab(vocab, undefined, unitOrder, surnameOverrides);
-      setPublishMsg(
-        `已发布 v${v}（${vocab.length} 条词条，含特殊姓氏覆盖 ${Object.keys(surnameOverrides).length} 条）`,
-      );
+      const base = `已发布 v${v}（${vocab.length} 条词条，含特殊姓氏覆盖 ${Object.keys(surnameOverrides).length} 条）`;
       clearVocabDirty();
+      // 发布后同步重建服务端答案判定表（课堂竞赛 / 猜词的服务端判分依赖它）。
+      // 这一步失败不影响词库发布本身，但要明确报出来（可点「重建判定表」重试）。
+      setPublishMsg(`${base}，正在重建答案判定表…`);
+      try {
+        const n = await replaceAnswerForms(vocab);
+        setPublishMsg(`${base}；答案判定表已重建（${n} 条可接受写法）`);
+      } catch (e) {
+        setPublishMsg(`${base}；但答案判定表重建失败：${(e as Error).message}（可点「重建判定表」重试）`);
+      }
     } catch (e) {
       setPublishMsg(`发布失败：${(e as Error).message}`);
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+  // 单独重建服务端答案判定表。
+  // 正常发布已自动重建；只有在「改过 answer-aliases.json（学者静态别名 / 姓氏覆盖）
+  // 或判定规则」时才需要手动重跑一次（那类改动不走词库发布）。
+  const handleRebuildForms = async () => {
+    if (vocab.length === 0) return;
+    setPublishing(true);
+    setPublishMsg('');
+    try {
+      const n = await replaceAnswerForms(vocab);
+      setPublishMsg(`答案判定表已重建（${n} 条可接受写法）。`);
+    } catch (e) {
+      setPublishMsg(`重建判定表失败：${(e as Error).message}`);
     } finally {
       setPublishing(false);
     }
@@ -163,6 +187,9 @@ export default function ImportPanel() {
           </button>
           <button className="ghost" disabled={restoring} onClick={() => setRestoreOpen(true)}>
             {restoring ? '恢复中…' : '从云端恢复'}
+          </button>
+          <button className="ghost" disabled={publishing || vocab.length === 0} onClick={handleRebuildForms} title="把当前词条的可接受写法重新物化到云端（发布词库时已自动做；改动判定规则或静态别名后才需手动重跑）">
+            重建判定表
           </button>
         </div>
         {publishMsg && <p className="muted" style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}>{publishMsg}</p>}

@@ -27,6 +27,8 @@ import DefinitionPractice from './components/DefinitionPractice';
 import LogicChain from './components/LogicChain';
 import ConceptMapView from './components/ConceptMapView';
 import PastPaperTopics from './components/PastPaperTopics';
+import LiveRoom from './components/LiveRoom';
+import LiveHistory from './components/LiveHistory';
 
 export type View =
   | 'home'
@@ -49,13 +51,36 @@ export type View =
   | 'papers'
   | 'backup'
   | 'profile'
+  | 'live'
+  | 'liveHistory'
   | 'dev';
 
 // 导航：一级 pill + 二级下拉。单入口 pill 直跳，多入口 pill 展开二级菜单
 // 2026-08-31 UI 改版：后台合并进右上角用户菜单、错题并入「练习」、
 // 进度改由首页底部入口进入（首页卡片已含进度信息，导航不再单列）
-interface NavItem { key: View | 'skill'; label: string; href?: string; authOnly?: boolean; }
+interface NavItem {
+  key: View | 'skill';
+  label: string;
+  href?: string;
+  authOnly?: boolean;
+  // 只对某类角色显示（「课堂活动」按角色给不同入口时用）
+  role?: 'teacher' | 'student';
+  // 同一入口对不同角色显示不同名字时用；当前未使用，保留该能力
+  teacherLabel?: string;
+}
 interface NavPill { group: string; items: NavItem[]; }
+
+// 导航项可见性：登录要求 + 角色要求
+const navVisible = (item: NavItem, hasUser: boolean, isTeacher: boolean): boolean => {
+  if (item.authOnly && !hasUser) return false;
+  if (item.role === 'teacher' && !isTeacher) return false;
+  if (item.role === 'student' && isTeacher) return false;
+  return true;
+};
+
+// 同一入口按角色显示不同名字（当前未使用，保留该能力）
+const navLabel = (item: NavItem, isTeacher: boolean): string =>
+  isTeacher && item.teacherLabel ? item.teacherLabel : item.label;
 
 const NAV_PILLS: NavPill[] = [
   { group: '主页', items: [
@@ -86,6 +111,15 @@ const NAV_PILLS: NavPill[] = [
     { key: 'data', label: '社会数据' },
     { key: 'conceptmap', label: '概念网络' },
     { key: 'skill', label: '教材 AI', href: '/skill/#/ask', authOnly: true },
+  ]},
+  // 课堂活动：放在最后（不挤占既有功能的排序）；一级名保持四字。
+  // 每类账号各看到 2 项（本角色入口 + 历史与成绩），所以会展开二级菜单而不是直跳。
+  // 刻意不给「创建/加入」加 authOnly：未登录也显示、点进去提示登录，免得「看不到入口」时
+  // 还要分辨是登录态问题还是部署问题。
+  { group: '课堂活动', items: [
+    { key: 'live', label: '创建课堂活动', role: 'teacher' },
+    { key: 'live', label: '加入课堂活动', role: 'student' },
+    { key: 'liveHistory', label: '历史与成绩' },
   ]},
 ];
 
@@ -312,10 +346,10 @@ function AppBody() {
                 </button>
                 <div className="nav-mobile-submenu-items">
                   {NAV_PILLS.find((p) => p.group === panelGroup)?.items
-                    .filter((i) => !i.authOnly || !!authUser)
+                    .filter((i) => navVisible(i, !!authUser, isTeacher))
                     .map((item) => (
                       <button
-                        key={item.key}
+                        key={`${item.key}-${item.label}`}
                         className={view === item.key ? 'active' : ''}
                         onClick={() => {
                           setExpandedGroup(null);
@@ -323,7 +357,7 @@ function AppBody() {
                         }}
                         disabled={inQuiz}
                       >
-                        {item.label}
+                        {navLabel(item, isTeacher)}
                       </button>
                     ))}
                 </div>
@@ -332,7 +366,7 @@ function AppBody() {
             {!panelGroup || panelExiting ? (
               <div className={`nav-mobile-top${panelExiting ? ' is-restoring' : ''}`}>
                 {NAV_PILLS.map((pill) => {
-                  const items = pill.items.filter((i) => !i.authOnly || !!authUser);
+                  const items = pill.items.filter((i) => navVisible(i, !!authUser, isTeacher));
                   if (items.length === 0) return null;
                   if (items.length === 1) {
                     const only = items[0];
@@ -343,7 +377,7 @@ function AppBody() {
                         onClick={() => openNav(only)}
                         disabled={inQuiz}
                       >
-                        {only.label}
+                        {navLabel(only, isTeacher)}
                       </button>
                     );
                   }
@@ -367,8 +401,8 @@ function AppBody() {
           {/* 桌面 pill 导航（窄屏隐藏）：单入口直跳，多入口下拉 */}
           <div className="nav-desktop">
             {NAV_PILLS.map((pill) => {
-              // authOnly 项仅对已登录用户展示（如「教材知识库」含版权内容）
-              const items = pill.items.filter((i) => !i.authOnly || !!authUser);
+              // authOnly 项仅对已登录用户展示（如「教材知识库」含版权内容）；role 项按角色展示
+              const items = pill.items.filter((i) => navVisible(i, !!authUser, isTeacher));
               if (items.length === 0) return null;
               const groupActive = items.some((i) => view === i.key);
               const expanded = expandedGroup === pill.group;
@@ -383,7 +417,7 @@ function AppBody() {
                     onClick={() => openNav(only)}
                     disabled={inQuiz}
                   >
-                    {only.label}
+                    {navLabel(only, isTeacher)}
                   </button>
                 );
               }
@@ -410,7 +444,7 @@ function AppBody() {
                     <div className="nav-group-items__inner">
                       {items.map((item) => (
                         <button
-                          key={item.key}
+                          key={`${item.key}-${item.label}`}
                           className={view === item.key ? 'active' : ''}
                           onClick={() => {
                             setExpandedGroup(null);
@@ -418,7 +452,7 @@ function AppBody() {
                           }}
                           disabled={inQuiz}
                         >
-                          {item.label}
+                          {navLabel(item, isTeacher)}
                         </button>
                       ))}
                     </div>
@@ -531,6 +565,8 @@ function AppBody() {
         {view === 'data' && <DataBoard />}
         {view === 'conceptmap' && <ConceptMapView />}
         {view === 'papers' && <PastPaperTopics />}
+        {view === 'live' && <LiveRoom />}
+        {view === 'liveHistory' && <LiveHistory />}
         {view === 'profile' && authUser && <ProfilePanel />}
         {view === 'dev' && isDeveloper && <DevPanel />}
       </main>

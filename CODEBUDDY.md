@@ -12,15 +12,19 @@
 顺序固定，不可调换：
 
 1. `git commit` + `push` —— **提交信息只能用 ASCII/英文**（中文经 PowerShell 传参会 GBK/UTF-8 双重乱码）
-2. 改 `app/android/app/build.gradle`：`versionCode` +1、`versionName` 递增（**已漏过两次，务必在打包前改**）
+2. 改 `app/android/app/build.gradle`：`versionCode` +1、`versionName` 递增（**已漏过两次，务必在打包前改**）。
+   注意：`app/android` **已不被本仓库跟踪**（它是指向 `C:\vocab-build\android` 的 junction，且另有自己的 git 仓库，2026-09-22），所以这个改动**不会出现在本仓库的 `git status` 里、也不需要提交** —— 只改文件本身（打包读它）
 3. `$env:CODEBUDDY_SAFE_DELETE_ENABLED='0'` 然后 `npm run ship`（在 `app/` 下）
 
 铁律：
 
-- **全程只允许一次构建。** `npm run ship` = `npm run release`（build → cap sync → gradlew assembleRelease → 自动发飞书 APK）+ `npx wrangler deploy`。**部署必须在 release 之后，且之后不得再 build**；若"先部署再 release"或"跑两次 build"，`vite.config.ts` 的 `BUILD_VERSION = Date.now()` 会产出两个版本号，导致 APK 内嵌 `version.json` 与线上不一致（2026-09-12 踩过）。所以**不要分步跑 `npm run build`**。
+- **全程只允许一次构建。** `npm run ship` = `npm run release` + `npx wrangler deploy`；其中 `release` = `build` → `node scripts/android-release.mjs` → 自动发飞书 APK。
+  **`android-release.mjs` 只做 `cap copy`（不跑 `cap sync`）**：它把 `dist` 复制到真实路径 `C:\vocab-build\android\app\src\main\assets\public`、把 gradle 里 `../node_modules` 的相对引用改写成绝对路径，再在真实路径跑 `gradlew.bat assembleRelease`。原因：**CodeBuddy 的进程在受限完整性级别下穿不过任何 mount point**（`WinError 448`），`cap sync android` 与 `cd android` 都会失败（老流程保留为 `npm run release:cap`，在普通终端里可用）。
+  ⇒ **新增或升级 Capacitor 插件之后**，必须先在**普通终端**里跑一次 `cd app && npx cap sync android` 同步原生依赖，再用本脚本打包；平时不用。**部署必须在 release 之后，且之后不得再 build**；若"先部署再 release"或"跑两次 build"，`vite.config.ts` 的 `BUILD_VERSION = Date.now()` 会产出两个版本号，导致 APK 内嵌 `version.json` 与线上不一致（2026-09-12 踩过）。所以**不要分步跑 `npm run build`**。
 - `CODEBUDDY_SAFE_DELETE_ENABLED='0'` 必设：IDE 安全删除层把删除改成"移入回收站"，OneDrive 路径下该操作会失败，构建清空 `app/dist/skill` 时直接挂（`[plugin vite:prepare-out-dir]`）。设上之后一条 ship 通常就跑通，**不需要预先 clean**。
 - **`app/android` 已整体移出 OneDrive（junction），不要当普通目录处理**（2026-09-17）：
-  - `app/android` 现在是个 **junction**，指向 `C:\vocab-build\android`。内容不在 OneDrive 内，OneDrive 看不见、不同步它。Gradle 与 `cap sync` 照常往 `app/android/...` 读写，完全无感；git 也能正常穿过（已实测工作区无差异）。
+  - `app/android` 现在是个 **junction**，指向 `C:\vocab-build\android`。内容不在 OneDrive 内，OneDrive 看不见、不同步它。
+  - **本仓库已不跟踪 `app/android`**（2026-09-22；它另有自己的 git 仓库）。所以对它内部的改动（例如版本号）不会出现在本仓库的 `git status` 里 —— 读到「改了 build.gradle 但 status 里没有」不要以为是没保存。
   - **不要删除、移动、或以普通目录的方式复制 `app/android` 本身** —— 会破坏联接。要换位置就删掉 junction 再重建。
   - 若它突然变成"无法访问的文件夹"：说明 `C:\vocab-build\android` 丢了，从 `C:\vocab-build\android.od-bak`（迁移前的完整副本，791 文件 / 44.8 MB）恢复即可；确认无需回退后可删该副本。
   - `app/android/app/build.gradle` 与 `app/android/build.gradle` 里的 `layout.buildDirectory.set(...)` **保留**，作为第二层保险。
@@ -28,8 +32,8 @@
   - **根治方向仍是把仓库移出 OneDrive**；junction 只是先把打包这条链摘出来。
 - **junction 实测有效（2026-09-18，1.7.23 打包）**：`:app:packageRelease` 所在的整条 `assembleRelease` **34 秒跑完**（`171 actionable tasks: 10 executed, 161 up-to-date`），`Unable to delete` 一次未现。对照此前：每次必挂在 `incremental/packageRelease/tmp`，且重试无效、耗时近 2 分钟。增量构建还能保留（`161 up-to-date`），所以不必每次全量重编。**若哪天又出现删除失败，先确认 `app/android` 还是不是 Junction 指向 `C:\vocab-build\android`。**
 - **`feishu:send-apk` 只能用工作区内的相对路径**：`lark-cli` 的 `--file` 拒收绝对路径（报 `invalid_argument: --file must be a relative path within the current directory`），所以脚本先 `copyFileSync` 到 `_ocrlab_out/app-release.apk` 再发。改了构建目录就必须同步改这个拷贝源，否则报文件不存在。
-- **ship 中途挂掉后的补救**：若前端 `npm run build` 已成功、只是后半段（打包 / 发 APK / 部署）失败，**不要重跑整条 `npm run ship`**（二次 build 会让版本号分叉），改为单独补跑缺的步骤：`cd android && gradlew.bat assembleRelease`、`npm run feishu:send-apk`、`npx wrangler deploy`，最后仍要校验 `app/dist/version.json` 与线上一致。
-- 版本号改完补一个提交：`chore: bump android versionCode N / versionName X.Y.Z`。
+- **ship 中途挂掉后的补救**：若前端 `npm run build` 已成功、只是后半段（打包 / 发 APK / 部署）失败，**不要重跑整条 `npm run ship`**（二次 build 会让版本号分叉），改为单独补跑缺的步骤：`node scripts/android-release.mjs`、`npm run feishu:send-apk`、`npx wrangler deploy`，最后仍要校验 `app/dist/version.json` 与线上一致。
+- 版本号**不需要提交**（`app/android` 不在本仓库里，见第 2 步）。旧约定「补一个 `chore: bump ...` 提交」已作废。
 - APK 落在 `C:/vocab-build/app/outputs/apk/release/app-release.apk`（构建目录已移出 OneDrive，见下方铁律）。
 - push 必须带代理：`git -c http.proxy=http://127.0.0.1:7897 -c https.proxy=http://127.0.0.1:7897 -c http.sslBackend=openssl push`。不要改 git config。
 - 收尾校验：`app/dist/version.json` 与 `curl.exe -s https://9699vocab.cn/version.json` 必须一致。
@@ -56,6 +60,7 @@ psql $conn -w -v ON_ERROR_STOP=1 -f db-migration-xxx.sql
 - 词条内容（term / 释义 / paper / category / unit / 答案容错）**只在云端改**：教师账号在 VocabManager 在线改 → 发布到 `vocab_releases`。
 - 本机数据源（`unit-mapping.json` / `answer-aliases.json` / `*.xlsx`）**只用于代码与结构改动**，改完也要重新发布到云端。
 - 若某指令可能让本机数据源与云端分叉：**停下并提示去云端改**，不要直接改本机数据源。
+- **答案判定口径在服务端有一份物化副本**（2026-09-22 建）：`vocab_answer_forms` 表 + `public.normalize_answer()` 函数，在教师端「发布词库」时自动重建（另有「重建判定表」按钮）。**两条纪律**：① 改了 `app/src/lib/answers.ts` 的判定规则（`normalizeKey` / 单复数 / 姓氏推导）或 `app/src/lib/answer-aliases.json`，必须在教师端点一次「重建判定表」；② 改完跑 `cd app; node scripts/answer-forms-check.mjs` 做 JS 与 SQL 的归一化对拍（当前 5508/5508 一致）—— 不一致会以「某个词学生写对了却判错」的形式**静默**出现。详见 `实时多人在线功能规划.md` 第九节附。
 
 ## 四、绝不能动的既有流程
 
@@ -72,6 +77,7 @@ psql $conn -w -v ON_ERROR_STOP=1 -f db-migration-xxx.sql
 - 学生端看不到教师功能；开关由云端 `isTeacher` 控制，不用本机 `IS_ADMIN`。
 - 教师后台：宽屏（≥1100px）左侧栏，窄屏两级药丸导航，两种宽度共用同一份位置记忆。
 - 横向滚动表格统一用 `.check-table`：首列冻结，投影**只在真正横滑时**出现（`app/src/lib/tableFreeze.ts` 用捕获阶段监听，一处管全站）。
+- **`CategoryFilter` 自带一层 `card`**：接入它的页面（拼写、选择题、课堂活动…）**不要再套一层 `<div className="card">`** —— 会变成卡片叠卡片。正确写法见 `Spelling.tsx`：`CategoryFilter` 与下面的说明/按钮区**并列**即可。
 - **不要用对勾、叉号之类的符号当强调**：回答文字、思考过程、代码注释、文档全都不要用。需要表达判断时正常写"可行 / 不可行"、"是 / 否"、"已过期"。
   项目早期文档里残留了一些这类符号（如 `定义题方案.md`、`DevPanel.tsx` 等）：**不要模仿，也不必为了对齐它们而使用**。
 
@@ -82,6 +88,20 @@ psql $conn -w -v ON_ERROR_STOP=1 -f db-migration-xxx.sql
 - **已修**：新增 `app/tsconfig.worker.json`（含 `worker.ts` 与 `worker/**/*.ts`，装 `@cloudflare/workers-types`，开 `strict` + `noUnusedLocals`），并**加入 `tsconfig.json` 的 `references`** —— 现在 `npm run build` / `npm run ship` 会连带检查 Worker。
 - **纪律**：改完 Worker 代码，除 `tsc -b` 外还要**实际发一次请求**验证。最快的判据：`curl -s -o NUL -w "%{http_code}" -X POST https://9699vocab.cn/skill-api/ask` 返回 **401**（走到鉴权）而非 500（模块加载就炸）。
 - 顺带：开 `noUnusedLocals` 后清掉了 `MS_V4`（从未接进任何调用分支的死代码）。
+
+## 六·六、本地 dev server（2026-09-22）
+
+- **必须用 `VITE_NO_WATCH=1 npm run dev` 启动**（PowerShell：`$env:VITE_NO_WATCH='1'; npm run dev`）。
+  原因：`app/android` 是指向 `C:\vocab-build\android` 的 junction（见第一节），本机（OneDrive 路径 + Node 24）下
+  chokidar 跟随它 stat 会抛 `UNKNOWN: stat '...\app\android'`，**让 dev server 刚打印 ready 就崩掉**。
+  `server.watch.ignored` 试过字符串 glob、绝对路径、正则、函数四种形式**都拦不住**这个 watcher，
+  只有 `server.watch: null` 有效 —— 已在 `app/vite.config.ts` 做成环境变量开关，不设变量时行为不变。
+- 代价：**HMR 关闭，而且 vite 也不会自己发现文件变化** —— 改完代码光刷新页面拿到的仍是**旧的编译结果**（现象酷似「改动没生效 / 新入口不见了」，2026-09-22 为此白查了一轮）。**改完前端代码必须重启 dev server**：
+  `$p=(Get-NetTCPConnection -LocalPort 5173 -State Listen -ErrorAction SilentlyContinue|Select-Object -First 1 -ExpandProperty OwningProcess); if($p){Stop-Process -Id $p -Force}; cd app; $env:VITE_NO_WATCH='1'; Start-Process npm.cmd -ArgumentList 'run','dev' -RedirectStandardOutput "$env:TEMP\vd-out.log" -RedirectStandardError "$env:TEMP\vd-err.log" -WindowStyle Hidden`
+- 端口固定 5173。`server.watch.ignored`（字符串 glob / 绝对路径 / 正则 / 函数，连锚点都补过）**都拦不住**那个 watcher，不要再回头去试 `ignored`，直接用 `VITE_NO_WATCH`。
+- 需要后台起并看日志时：
+  `cd app; $env:VITE_NO_WATCH='1'; Start-Process npm.cmd -ArgumentList 'run','dev' -RedirectStandardOutput "$env:TEMP\vocab-dev.log" -RedirectStandardError "$env:TEMP\vocab-dev.err.log" -WindowStyle Hidden`
+  然后 `Get-Content "$env:TEMP\vocab-dev.log" -Tail 20` 查看（注意别让命令文本里出现 watch 关键字，否则执行器会把它当成 watch 命令、吞掉输出）。
 
 ## 七、AI 通道（魔搭 ModelScope）
 

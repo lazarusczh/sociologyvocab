@@ -1,7 +1,7 @@
 // 随堂测验 / 作业：抽题、题目快照生成、判分、密码生成、乱序
 import type { VocabItem, Quiz, QuizSubmission, QuizQuestion, QuizQuestionType, QuizKind, QuizPair } from './types';
 import { shuffle, sample } from './shuffle';
-import { maskAnswer, isCorrectAnswer } from './answers';
+import { maskAnswer, isCorrectAnswer, pickSpellingPrompt } from './answers';
 
 // 生成 4 位数字密码（查重交由云端唯一约束兜底，冲突时由调用方重试）
 export function generateCode(): string {
@@ -27,11 +27,14 @@ function buildQuestion(item: VocabItem, type: QuizQuestionType, pool: VocabItem[
   const restPaper = pool.filter((p) => p.id !== item.id && p.type === item.type && p.paper !== item.paper);
 
   if (type === 'spelling') {
+    // 题干在「中文」与「脱敏英文释义」之间随机取一（不再中文优先）——
+    // 见《实时多人在线功能规划.md》第七节「配套的存量改造」
+    const { text, label } = pickSpellingPrompt(item);
     return {
       ...base,
       type: 'spelling',
-      prompt: item.chinese || maskedDef,
-      promptLabel: item.chinese ? '中文' : '释义',
+      prompt: text,
+      promptLabel: label,
     };
   }
   // choice（matching 由 buildMatchingBlock 单独处理）

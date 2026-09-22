@@ -9,6 +9,7 @@ import {
 } from '../lib/checkin';
 import StreakCard from './StreakCard';
 import type { View } from '../App';
+import { fetchRunningSession, type LiveSession } from '../lib/live';
 
 interface Props {
   go: (v: View) => void;
@@ -35,6 +36,21 @@ export default function Home({ go }: Props) {
   const { vocab, progress, wrongBook, checkin, isTeacher, vocabUpdateBanner, syncVocabFromCloud, dismissVocabBanner } = useStore();
 
   useEffect(() => { syncVocabFromCloud(); }, [syncVocabFromCloud]);
+
+  // 进行中的课堂活动 → 首页横幅提醒（老师发起后学生不必自己去找入口）
+  const [liveSession, setLiveSession] = useState<LiveSession | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      try {
+        const s = await fetchRunningSession();
+        if (alive) setLiveSession(s);
+      } catch {
+        // 未登录 / 网络异常都不该影响首页
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
 
   // 基础统计
   const validIds = useMemo(() => new Set(vocab.map((v) => v.id)), [vocab]);
@@ -101,6 +117,20 @@ export default function Home({ go }: Props) {
             <span>{vocabUpdateBanner}</span>
             <span className="spacer" />
             <button className="ghost" onClick={dismissVocabBanner}>关闭</button>
+          </div>
+        </div>
+      )}
+
+      {liveSession && (
+        <div className="card" style={{ marginBottom: '0.8rem', borderColor: 'var(--success, #16a34a)' }}>
+          <div className="row" style={{ alignItems: 'center' }}>
+            <span>
+              {isTeacher
+                ? `课堂活动进行中（${liveSession.title || '课堂活动'}），点击进入控制台。`
+                : `老师正在发起「${liveSession.title || '课堂活动'}」，点击加入。`}
+            </span>
+            <span className="spacer" />
+            <button className="primary" onClick={() => go('live')}>{isTeacher ? '进入' : '加入'}</button>
           </div>
         </div>
       )}
