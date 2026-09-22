@@ -25,3 +25,11 @@ data/ms-skill/keyterms/
 *.njsproj
 *.sln
 *.sw?
+
+# android/ 是指向 C:\vocab-build\android 的 junction（用来绕开 OneDrive 占位）。
+# 2026-09-22 起**不再跟踪**：CodeBuddy 的受限进程无法穿越 mount point
+# （WinError 448 ERROR_UNTRUSTED_MOUNT_POINT，已实测与 OneDrive / 项目无关），
+# 会让 git 把这 80 个文件误判成「已删除」，干扰所有会话的状态判断。
+# 该工程现在有自己的仓库：C:\vocab-build\android\.git（首个快照 a6818b9）。
+# Android 打包已改为走真实路径，见 scripts/android-release.mjs 与 package.json 的 release 脚本。
+android/
