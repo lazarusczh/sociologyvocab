@@ -7,7 +7,7 @@
 //   4. 挂 Beta 入口，先在日常打卡训练里跑，一段时间检验合格后再进作业。
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useStore, useStudySession, useCelebrateCheckIn } from '../lib/store';
-import { loadDefinitionItems, saveDefinitionAttempt, type DefinitionItem } from '../lib/definition';
+import { loadDefinitionItems, saveDefinitionAttempt, submitDefinitionDispute, type DefinitionItem } from '../lib/definition';
 import { gradeDefinition, SOURCE_LABEL, type GradeResult, type Verdict } from '../lib/ai';
 import { normalizeKey } from '../lib/answers';
 import { sample } from '../lib/shuffle';
@@ -48,6 +48,12 @@ export default function DefinitionPractice() {
   const [errMsg, setErrMsg] = useState('');
   const [stats, setStats] = useState<Record<Verdict, number>>({ correct: 0, partial: 0, wrong: 0 });
   const [showHint, setShowHint] = useState(false);
+  // 本次作答的日志 id：用于「我认为判错了」的质疑（没有它无法关联到具体这次判分）
+  const [attemptId, setAttemptId] = useState<number | null>(null);
+  // 质疑：说明 + 提交状态（提交成功后不再显示按钮，避免重复提交）
+  const [disputeNote, setDisputeNote] = useState('');
+  const [disputeState, setDisputeState] = useState<'idle' | 'sending' | 'sent'>('idle');
+  const [disputeErr, setDisputeErr] = useState('');
   // 范围分类：与其它题型一致（考卷 / 单元）
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
@@ -137,6 +143,7 @@ export default function DefinitionPractice() {
       if (cur.vocabId) {
         recordItem(cur.vocabId, res.verdict === 'correct', 'definition', { score: VERDICT_SCORE[res.verdict] });
       }
+      // 作答日志：拿到 id 才能支持「我认为判错了」的质疑；restate 一并存档（教师复核时能看到模型的理解）
       void saveDefinitionAttempt({
         itemId: cur.item.id,
         answer: answer.trim(),
@@ -144,10 +151,11 @@ export default function DefinitionPractice() {
         coverage: res.coverage,
         listingOnly: res.listingOnly,
         reason: res.reason,
+        restate: res.restate,
         model: res.model,
         tier: res.tier,
         ms: res.ms,
-      });
+      }).then((id) => { if (id) setAttemptId(id); });
       setPhase('graded');
     } catch (e) {
       setErrMsg(e instanceof Error ? e.message : String(e));
@@ -165,8 +173,29 @@ export default function DefinitionPractice() {
     setGrade(null);
     setErrMsg('');
     setShowHint(false);
+    setAttemptId(null);
+    setDisputeNote('');
+    setDisputeState('idle');
+    setDisputeErr('');
     setPhase('answering');
   }, [idx, round.length]);
+
+  // 提交质疑：写进该次作答记录（后台复核面板会优先显示被质疑的）
+  const sendDispute = useCallback(async () => {
+    if (!attemptId) {
+      setDisputeErr('作答记录尚未保存，请稍后再试。');
+      return;
+    }
+    setDisputeState('sending');
+    setDisputeErr('');
+    const err = await submitDefinitionDispute(attemptId, disputeNote);
+    if (err) {
+      setDisputeState('idle');
+      setDisputeErr(err);
+      return;
+    }
+    setDisputeState('sent');
+  }, [attemptId, disputeNote]);
 
   // ---------- 渲染 ----------
 
@@ -319,6 +348,17 @@ export default function DefinitionPractice() {
           </div>
           {grade.reason && <p className="muted" style={{ margin: '0.5rem 0 0.2rem' }}>{grade.reason}</p>}
 
+          {/* 模型的「理解」：它把这段答案读成了什么意思。
+              判错时这一行最关键 —— 它能区分「学生确实没说」与「模型理解错了」，两者要的处理完全不同。 */}
+          {grade.restate?.length ? (
+            <div className="muted" style={{ fontSize: '0.85rem', margin: '0.35rem 0 0' }}>
+              <span style={{ opacity: 0.75 }}>模型理解为：</span>
+              {grade.restate.map((s, i) => (
+                <span key={i}>{i > 0 ? '；' : ''}「{s}」</span>
+              ))}
+            </div>
+          ) : null}
+
           <div style={{ marginTop: '0.5rem' }}>
             <div className="muted" style={{ fontSize: '0.85rem' }}>必踩要素对照：</div>
             <ul style={{ margin: '0.3rem 0 0', paddingLeft: '1.1rem' }}>
@@ -366,6 +406,40 @@ export default function DefinitionPractice() {
               </ul>
             </div>
           ) : null}
+
+          {/* 提交质疑：判分由模型完成，可能判错。学生提出后会在教师后台的「定义题复核」里优先显示 */}
+          {disputeState === 'sent' ? (
+            <p className="muted" style={{ margin: '0.7rem 0 0', fontSize: '0.85rem' }}>
+              ✓ 已收到你的质疑，老师会在复核时看到。
+            </p>
+          ) : (
+            <div style={{ marginTop: '0.7rem', borderTop: '1px solid var(--c-hairline)', paddingTop: '0.6rem' }}>
+              <div className="muted" style={{ fontSize: '0.85rem', marginBottom: '0.35rem' }}>
+                觉得判得不对？可以说明理由，老师会在后台复核。
+              </div>
+              <div className="row" style={{ gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                <input
+                  placeholder="例如：这是同义表达 / 这条要素我其实答到了"
+                  value={disputeNote}
+                  onChange={(e) => setDisputeNote(e.target.value)}
+                  maxLength={500}
+                  style={{ flex: 1, minWidth: '14rem' }}
+                />
+                <button
+                  className="ghost"
+                  disabled={disputeState === 'sending' || !attemptId}
+                  onClick={() => void sendDispute()}
+                >
+                  {disputeState === 'sending' ? '提交中…' : '我认为判错了'}
+                </button>
+              </div>
+              {disputeErr && (
+                <p className="muted" style={{ color: 'var(--c-warn, #b45309)', fontSize: '0.82rem', margin: '0.3rem 0 0' }}>
+                  {disputeErr}
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="row" style={{ marginTop: '0.7rem' }}>
             <button className="primary" onClick={next}>

@@ -32,6 +32,12 @@ interface AttemptRow {
   review: string | null;
   reviewed_at: string | null;
   created_at: string;
+  /** 判分模型把学生答案理解成了哪些含义（判分提示词的第一步输出） */
+  restate: string[] | null;
+  /** 学生是否对本次判分提出了质疑（2026-09-22 新增） */
+  disputed: boolean | null;
+  dispute_note: string | null;
+  disputed_at: string | null;
 }
 
 interface ItemRow {
@@ -59,6 +65,16 @@ const DEFAULT_TIER_NOTE: Record<string, string> = {
   ms: '魔搭（烧魔粒）',
   none: '全部档位失败',
 };
+
+/**
+ * 「质疑被认定有价值」时签发的经验值。
+ *
+ * 存进**独立表** `student_xp_bonus`，而不是写进 `student_data`：
+ * XP 体系（见「练级与奖励体系方案.md」）尚未实现，且 XP 由本地累计、`student_data`
+ * 是整包覆盖 —— 教师写进去会被学生下一次同步覆盖掉。独立表由教师写、学生只读，
+ * 将来 XP 上线时只需 `总XP = 本地XP + sum(amount)` 即可合并。
+ */
+const XP_FOR_DISPUTE = 20;
 
 /** review 字段兼容两种写法：JSON（{\"verdict\",\"note\"}）或直接是 verdict 字符串 */
 function parseReview(raw: string | null): Review {
@@ -92,11 +108,15 @@ export default function DefinitionReviewPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [savingId, setSavingId] = useState<number | null>(null);
+  // 质疑奖励：已发过的不再重复发（DB 侧另有 attempt_id 唯一索引兜底）
+  const [awardingId, setAwardingId] = useState<number | null>(null);
+  const [awarded, setAwarded] = useState<Record<number, boolean>>({});
+  const [awardErr, setAwardErr] = useState<Record<number, string>>({});
 
   // 筛选条件
   const [fUser, setFUser] = useState('all');
   const [fVerdict, setFVerdict] = useState('all');
-  const [fReview, setFReview] = useState<'all' | 'todo' | 'done'>('todo');
+  const [fReview, setFReview] = useState<'all' | 'todo' | 'done' | 'disputed'>('todo');
   const [fText, setFText] = useState('');
 
   // 备注草稿（按作答 id 暂存，未保存前的输入）
@@ -108,7 +128,7 @@ export default function DefinitionReviewPanel() {
     // 教师/开发者身份由 RLS 放行，这里直接读全表（当前量级很小，取最近 1000 条足够）
     const { data, error: err } = await supabase
       .from('definition_attempts')
-      .select('id, user_id, item_id, answer, verdict, coverage, listing_only, reason, confidence, model, tier, ms, review, reviewed_at, created_at')
+      .select('id, user_id, item_id, answer, verdict, coverage, listing_only, reason, confidence, model, tier, ms, review, reviewed_at, created_at, restate, disputed, dispute_note, disputed_at')
       .order('created_at', { ascending: false })
       .limit(1000);
     if (err) {
@@ -128,6 +148,14 @@ export default function DefinitionReviewPanel() {
     // 学生邮箱映射（display 用；没有则退回 user_id 短标识）
     const { data: sd } = await supabase.from('student_data').select('user_id, email');
     setEmails(new Map(((sd ?? []) as { user_id: string; email: string }[]).map((r) => [r.user_id, r.email])));
+
+    // 已签发过奖励的作答（防重复发放；失败不影响主体）
+    const { data: bonusRows } = await supabase.from('student_xp_bonus').select('attempt_id');
+    const done: Record<number, boolean> = {};
+    ((bonusRows ?? []) as { attempt_id: number | null }[]).forEach((b) => {
+      if (b.attempt_id) done[b.attempt_id] = true;
+    });
+    setAwarded(done);
 
     setLoading(false);
   }, []);
@@ -174,15 +202,52 @@ export default function DefinitionReviewPanel() {
     [notes],
   );
 
+  /**
+   * 把一次质疑记为「有价值」并发经验值。
+   *
+   * 这是**教师签发**的奖励（服务端权威），不像本地 XP 那样可被学生改，
+   * 所以它天然适合当"鼓励质疑"的正反馈。重复发放由 `attempt_id` 唯一索引挡住。
+   */
+  const award = useCallback(async (row: AttemptRow) => {
+    setAwardingId(row.id);
+    setAwardErr((m) => ({ ...m, [row.id]: '' }));
+    const { data: auth } = await supabase.auth.getUser();
+    const { error: err } = await supabase.from('student_xp_bonus').insert({
+      user_id: row.user_id,
+      amount: XP_FOR_DISPUTE,
+      reason: `提出有价值的质疑（${row.item_id}）`,
+      attempt_id: row.id,
+      created_by: auth.user?.id ?? null,
+    });
+    setAwardingId(null);
+    if (err) {
+      setAwardErr((m) => ({
+        ...m,
+        [row.id]: /duplicate|unique/i.test(err.message) ? '已经奖励过了' : err.message,
+      }));
+      return;
+    }
+    setAwarded((a) => ({ ...a, [row.id]: true }));
+  }, []);
+
   // ===== 统计（基于全部作答，而非筛选后，避免筛选把分母改掉）=====
   const stats = useMemo(() => {
     const reviewed = rows.filter((r) => Boolean(parseReview(r.review).verdict));
     const agree = reviewed.filter((r) => parseReview(r.review).verdict === r.verdict);
+    // 被学生主动质疑的：老师的时间该优先花在这批上
+    const disputed = rows.filter((r) => r.disputed);
+    // 「质疑成立」= 学生提出质疑、且复核判定与模型不同 —— 即**模型确实判错了**
+    const disputeValid = disputed.filter((r) => {
+      const rv = parseReview(r.review).verdict;
+      return rv ? rv !== r.verdict : false;
+    });
     return {
       total: rows.length,
       reviewed: reviewed.length,
       agree: agree.length,
       rate: reviewed.length ? Math.round((agree.length / reviewed.length) * 100) : 0,
+      disputed: disputed.length,
+      disputeValid: disputeValid.length,
     };
   }, [rows]);
 
@@ -194,9 +259,10 @@ export default function DefinitionReviewPanel() {
 
   const shown = useMemo(() => {
     const kw = fText.trim().toLowerCase();
-    return rows.filter((r) => {
+    const list = rows.filter((r) => {
       if (fUser !== 'all' && r.user_id !== fUser) return false;
       if (fVerdict !== 'all' && r.verdict !== fVerdict) return false;
+      if (fReview === 'disputed') return Boolean(r.disputed);      // 只看被学生质疑的
       const rv = parseReview(r.review).verdict;
       if (fReview === 'todo' && rv) return false;
       if (fReview === 'done' && !rv) return false;
@@ -206,6 +272,16 @@ export default function DefinitionReviewPanel() {
         if (!hay.includes(kw)) return false;
       }
       return true;
+    });
+    // 排序：**被质疑的排最前**（时间优先给争议项），然后未复核在前，最后按时间倒序
+    return list.sort((a, b) => {
+      const da = a.disputed ? 0 : 1;
+      const db = b.disputed ? 0 : 1;
+      if (da !== db) return da - db;
+      const ra = parseReview(a.review).verdict ? 1 : 0;
+      const rb = parseReview(b.review).verdict ? 1 : 0;
+      if (ra !== rb) return ra - rb;
+      return String(b.created_at ?? '').localeCompare(String(a.created_at ?? ''));
     });
   }, [rows, fUser, fVerdict, fReview, fText, itemMap]);
 
@@ -229,10 +305,19 @@ export default function DefinitionReviewPanel() {
           <div className="stat"><span className="num">{stats.agree}</span><span className="label">与模型一致</span></div>
           <div className="stat"><span className="num">{stats.rate}%</span><span className="label">一致率</span></div>
         </div>
+        {/* 学生质疑：老师的时间优先给争议项。「质疑成立」= 复核判定与模型不同 ⇒ 模型确实判错了 */}
+        <div className="grid cols-4" style={{ marginTop: '0.4rem' }}>
+          <div className="stat"><span className="num">{stats.disputed}</span><span className="label">被学生质疑</span></div>
+          <div className="stat"><span className="num">{stats.disputeValid}</span><span className="label">其中质疑成立</span></div>
+        </div>
 
         <div className="tag-filter" style={{ marginTop: '0.6rem' }}>
           <span className="muted" style={{ fontSize: '0.85rem', alignSelf: 'center' }}>复核状态：</span>
           <button className={fReview === 'todo' ? 'active' : ''} onClick={() => setFReview('todo')}>待复核</button>
+          {/* 学生主动质疑的一档：最该先看的 */}
+          <button className={fReview === 'disputed' ? 'active' : ''} onClick={() => setFReview('disputed')}>
+            被质疑{stats.disputed ? `（${stats.disputed}）` : ''}
+          </button>
           <button className={fReview === 'done' ? 'active' : ''} onClick={() => setFReview('done')}>已复核</button>
           <button className={fReview === 'all' ? 'active' : ''} onClick={() => setFReview('all')}>全部</button>
           <span className="muted" style={{ fontSize: '0.85rem', alignSelf: 'center', marginLeft: '0.6rem' }}>模型判定：</span>
@@ -284,6 +369,15 @@ export default function DefinitionReviewPanel() {
               <strong>{it?.term ?? r.item_id}</strong>
               {it?.chinese && <span className="muted">{it.chinese}</span>}
               <span className={meta?.cls ?? 'badge'}>{meta?.label ?? r.verdict}</span>
+              {/* 学生主动质疑：最该优先看的一批 */}
+              {r.disputed && (
+                <span
+                  className="badge warn"
+                  title={r.disputed_at ? `学生于 ${new Date(r.disputed_at).toLocaleString()} 提出质疑` : '学生提出了质疑'}
+                >
+                  学生质疑
+                </span>
+              )}
               {agree === true && <span className="badge success" title="你的判定与模型一致">一致</span>}
               {agree === false && <span className="badge danger" title="你的判定与模型不同">不一致</span>}
               <span className="spacer" />
@@ -299,6 +393,18 @@ export default function DefinitionReviewPanel() {
               {r.listing_only ? ' · 仅罗列关键词' : ''}
               {r.reason ? ` · ${r.reason}` : ''}
             </p>
+            {/* 模型的「理解」：判错时能区分「学生没说」与「模型理解错」—— 前者是学生问题，后者是判分/要素问题 */}
+            {r.restate?.length ? (
+              <p className="muted" style={{ margin: '0.15rem 0', fontSize: '0.82rem' }}>
+                模型理解为：{r.restate.map((s, i) => `${i > 0 ? '；' : ''}「${s}」`).join('')}
+              </p>
+            ) : null}
+            {/* 学生的质疑说明（学生主动写的理由，判断是否有价值时先看这里） */}
+            {r.disputed && (
+              <p style={{ margin: '0.15rem 0', fontSize: '0.82rem', color: 'var(--c-warn, #b45309)' }}>
+                学生质疑：{r.dispute_note?.trim() || '（未写说明）'}
+              </p>
+            )}
             <p className="muted" style={{ margin: '0 0 0.5rem', fontSize: '0.76rem' }}>
               {DEFAULT_TIER_NOTE[r.tier ?? ''] ?? r.tier ?? '未知档'} · {r.model ?? '—'}
               {r.ms ? ` · ${(r.ms / 1000).toFixed(1)}s` : ''}
@@ -328,6 +434,29 @@ export default function DefinitionReviewPanel() {
                 style={{ flex: 1, minWidth: '12rem' }}
               />
             </div>
+
+            {/* 质疑有价值 → 签发经验值（写入 student_xp_bonus，XP 体系上线后自动并入总 XP） */}
+            {r.disputed && (
+              <div className="row" style={{ gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center', marginTop: '0.45rem' }}>
+                <button
+                  className={awarded[r.id] ? 'active' : 'ghost'}
+                  disabled={awardingId === r.id || Boolean(awarded[r.id])}
+                  onClick={() => void award(r)}
+                  title="把这次质疑记为「有价值」，给学生加经验值（鼓励 Beta 阶段主动质疑）"
+                >
+                  {awarded[r.id]
+                    ? `✓ 已奖励 +${XP_FOR_DISPUTE} XP`
+                    : awardingId === r.id
+                      ? '发放中…'
+                      : `质疑有价值 · +${XP_FOR_DISPUTE} XP`}
+                </button>
+                {awardErr[r.id] && (
+                  <span className="muted" style={{ color: 'var(--c-warn, #b45309)', fontSize: '0.8rem' }}>
+                    {awardErr[r.id]}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         );
       })}

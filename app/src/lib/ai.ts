@@ -137,6 +137,16 @@ export interface GradeResult {
   coverage: number[];
   listingOnly: boolean;
   reason: string;
+  /**
+   * 判分提示词的「第一步」输出：模型把学生答案理解成了哪些含义。
+   *
+   * 为什么要把它带出来：`coverage` 只说明「踩到/没踩到哪条要素」，学生或教师看到判错时
+   * **无法区分**「学生确实没说」与「模型理解错了」—— 那需要两种完全不同的处理
+   * （前者是学生的问题，后者是判分/要素的问题）。`restate` 就是模型的理解过程本身。
+   *
+   * 声明为可选：只在定义题判分里产出，其它复用 callComplete 的调用方不必理会。
+   */
+  restate?: string[];
   model: string;
   tier: string;
   ms: number;
@@ -230,7 +240,7 @@ ${list}
     // maxTokens 留足：判分要求先输出 restate（学生表达的含义）再给 coverage；
     // Agnes 的推理无法关闭（enable_thinking 被忽略），推理与正文共享这份预算。
     const { text, model, tier, ms } = await callComplete(prompt, { maxTokens: 1000, ...opts });
-    const parsed = parseJsonLoose<{ coverage?: unknown; listing_only?: boolean; reason?: string }>(text) ?? {};
+    const parsed = parseJsonLoose<{ coverage?: unknown; listing_only?: boolean; reason?: string; restate?: unknown }>(text) ?? {};
     const listingOnly = Boolean(parsed.listing_only);
     const coverage = (Array.isArray(parsed.coverage) ? parsed.coverage : []).map((x) => Number(x));
     // 条数与要素数一致，且逐项都是有效数字 —— 否则视为判分结果不可用
@@ -240,6 +250,10 @@ ${list}
         coverage,
         listingOnly,
         reason: String(parsed.reason ?? ''),
+        // 「模型理解」：也走长度校验之外 —— 缺失/格式异常只是没得展示，不影响判分本身
+        restate: Array.isArray(parsed.restate)
+          ? parsed.restate.map((x) => String(x).trim()).filter(Boolean)
+          : [],
         model,
         tier,
         ms,
