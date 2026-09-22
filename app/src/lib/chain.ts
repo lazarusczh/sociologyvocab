@@ -95,8 +95,27 @@ export function randomTargetPath(
 
 /**
  * 出当前步的选项：正确下一跳 + 干扰项。
- * 干扰优先「二度邻居」（隔一跳相关但不直接相邻，更难排除），不足再从全部无关节点补；
- * 干扰不足时选项数自动减少。
+ *
+ * 两种干扰口径（由 opts.target 决定）：
+ *
+ * ① **不传 target**（「仅起点」模式 / 自由探索）：干扰项**全部排除当前概念的邻居**。
+ *    ⇒ 选项里只有一个概念与当前概念相邻，而「相邻」正是唯一的判别特征，
+ *      学生只要看出哪个相邻就能作答。
+ *    这是 open 模式必须的做法 —— 它的规则本来就是「相邻即可前进」，
+ *    若选项里出现多个相邻概念就变成多解（全都合法）。
+ *
+ * ② **传 target**（「起点→终点」模式）：**额外混入一个「相邻但方向错误」的干扰项**。
+ *    ⇒ 选项里会出现两个「与当前概念相邻」的概念，学生无法再靠「是否相邻」作答，
+ *      **必须判断哪个才朝向终点** —— 这才是「找路径」真正该有的难度。
+ *    （2026-09-21 教师指出：原实现干扰项一眼就能看出不相邻，target 模式等于白给。）
+ *
+ *    只取 `dist(c,target) > dist(correct,target)` 的邻居，即**确实绕远**的那些；
+ *    刻意排除「另一条同样最短的路」（dist 相等），否则会出现两个都合理的选项、判分歧义。
+ *    ⚠ 与前一步无关：**每一步**都按「把 a 接到 cur 上之后，它离终点是否更远」判断，
+ *    学生要逐跳维持方向感，而不是只在开头选一次方向。
+ *
+ * 其余干扰项仍优先取「二度邻居」（相关但不直接相邻，更难排除），不足再从全图补。
+ * 任一来源不足时选项数自动减少（概念太少 / 邻居不足时不强凑）。
  */
 export function buildOptions(
   g: ConceptGraph,
@@ -104,6 +123,7 @@ export function buildOptions(
   cur: string,
   correct: string,
   limit = 4,
+  opts?: { target?: string | null },
 ): string[] {
   const nb = new Set(g.neighbors.get(cur) ?? []);
   const second = new Set<string>();
@@ -112,10 +132,26 @@ export function buildOptions(
       if (n2 !== cur && !nb.has(n2)) second.add(n2);
     }
   }
-  const pool = cids.filter((c) => c !== cur && c !== correct && !nb.has(c));
+
+  const wrongs: string[] = [];
+  const target = opts?.target ?? null;
+  if (target) {
+    const dCorrect = shortestDist(g, correct, target);
+    const badDir = [...nb].filter((c) => {
+      if (c === correct || c === cur || !cids.includes(c)) return false;
+      const d = shortestDist(g, c, target);
+      return d != null && dCorrect != null && d > dCorrect;
+    });
+    wrongs.push(...shuffle(badDir).slice(0, 1)); // 至多 1 个，保证「2 相邻 + 2 无关」的格局
+  }
+
+  const pool = cids.filter(
+    (c) => c !== cur && c !== correct && !nb.has(c) && !wrongs.includes(c),
+  );
   pool.sort((a, b) => Number(second.has(b)) - Number(second.has(a))); // 二度优先
-  const wrongs = shuffle(pool).slice(0, Math.max(0, limit - 1));
-  return shuffle([correct, ...wrongs]);
+  const rest = shuffle(pool).slice(0, Math.max(0, limit - 1 - wrongs.length));
+
+  return shuffle([correct, ...wrongs, ...rest]);
 }
 
 // ---- 默写输入模式助手 ----

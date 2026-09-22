@@ -143,7 +143,9 @@ export default function LogicChain() {
 
   const options = useMemo(() => {
     if (!cur || !correctCid) return [] as string[];
-    return buildOptions(graph, cids, cur, correctCid, 4);
+    // target 模式把终点传进去：干扰项会混入「相邻但方向错误」的概念（见 chain.ts 注释），
+    // 学生无法再靠「谁相邻」作答，必须逐跳判断前进方向。open 模式传 null，维持原口径。
+    return buildOptions(graph, cids, cur, correctCid, 4, { target: run?.target ?? null });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [run, stepIdx, graph, cids, cur, correctCid]);
 
