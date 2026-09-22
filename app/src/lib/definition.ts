@@ -96,9 +96,24 @@ export async function submitDefinitionDispute(attemptId: number, note: string): 
   return error ? error.message : null;
 }
 
-/** 本人获得的经验值加分（教师签发的「质疑奖励」等）；XP 体系上线后与本地 XP 合并 */
+/**
+ * 本人获得的经验值加分（教师签发的「质疑奖励」等）；XP 体系上线后与本地 XP 合并。
+ *
+ * ⚠️ **必须显式按 `user_id` 过滤，不能只靠 RLS**（2026-09-22 修）：
+ * `student_xp_bonus` 有两条 select 策略 —— 学生走 `read_own`（`auth.uid() = user_id`），
+ * **教师/开发者走 `read_staff`（返回全校）**。原先只写 `select('amount')`，
+ * 于是同一个函数在教师身份下会返回**全校总分**，与函数名「我的」严重不符，
+ * 将来教师端页面顺手调用就会算错。过滤条件放在这里，身份无关、行为确定。
+ *
+ * ⚠️ **使用的唯一纪律：现算相加，永不落盘。** 返回值只用于「展示时相加」，
+ * 绝不可写进 `socio_vocab_xp.xp` 或 `student_data.data.xp` ——
+ * 一旦落盘（尤其随整包上传），下次读又会再加一遍，形成无限重复累加。
+ */
 export async function loadMyXpBonus(): Promise<number> {
-  const { data, error } = await supabase.from('student_xp_bonus').select('amount');
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid) return 0;
+  const { data, error } = await supabase.from('student_xp_bonus').select('amount').eq('user_id', uid);
   if (error) return 0;
   return ((data ?? []) as { amount: number }[]).reduce((s, r) => s + (r.amount ?? 0), 0);
 }
