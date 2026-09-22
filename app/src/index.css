@@ -661,7 +661,9 @@ input:focus, textarea:focus, select:focus {
 }
 .mode-card:hover { background: var(--c-surface-soft); border-color: var(--c-hairline); }
 .mode-card .icon { font-size: 1.5rem; }
-/* 练习模式图标（WorkBuddy 出图，320 viewBox 的彩色 SVG） */
+/* 练习模式图标（WorkBuddy 出图；实际为 140×140 viewBox 的彩色 SVG，文件在 public/mode-icons/）
+   规范：主蓝 #4361EE / 弱化线 #C9D2F5 / 强调橙 #FF7A59 / 次绿 #3AA65F，白圆角卡描边 3.5。
+   新增模式时按同一套画，文件名必须与 Home.tsx 里 MODES 的 key 一致（`/mode-icons/{key}.svg`）。 */
 .mode-card__icon { width: 44px; height: 44px; display: block; margin-bottom: 0.2rem; }
 .mode-card strong { font-size: 0.98rem; font-weight: 600; }
 .mode-card .desc { color: var(--c-steel); font-size: 0.85rem; line-height: 1.4; }
