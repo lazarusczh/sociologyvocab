@@ -144,8 +144,7 @@ def call_llm(prompt: str, base: str, model: str, key: str, max_tokens=1200, retr
                 payload = json.loads(r.read().decode("utf-8"))
             choices = payload.get("choices") or []
             if not choices:                                     # OpenRouter 偶发返回无 choices
-                if verbose:
-                    print(f"  BAD PAYLOAD: {str(payload)[:160]}")
+                print(f"  BAD PAYLOAD: {str(payload)[:160]}")
                 time.sleep(3 * (attempt + 1))
                 continue
             return (choices[0].get("message") or {}).get("content", "")
