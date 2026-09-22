@@ -60,6 +60,10 @@ export default function DefinitionPractice() {
   const [units, setUnits] = useState<string[]>([]);
 
   // 计时：仅在作答/判分阶段计入学习时长（与其它练习一致）
+  // ⚠️ XP-C 待办（2026-09-22，《XP-C档改造方案.md》§8 新口径）：elapsed_ms 要求**只覆盖 answering**
+  //    （判分等待是服务端响应时间，不算学生投入）。但**不能现在就把 `grading` 摘掉** ——
+  //    打卡目前仍是**本地权威**，摘掉会立刻减少学生的打卡时长、拉低达标率，且与「打卡切服务端」
+  //    不同步。**必须与「打卡服务端化」同批上线时再拆**，不可提前。
   useStudySession(phase === 'answering' || phase === 'grading');
   useCelebrateCheckIn(phase === 'done');
 
@@ -140,6 +144,11 @@ export default function DefinitionPractice() {
       setGrade(res);
       setStats((s) => ({ ...s, [res.verdict]: s[res.verdict] + 1 }));
       // 计分：correct = 1 题、partial = 0.5 题（计入正确率，掌握度不变、不进错题本）、wrong = 0 题
+      // XP-C 待办（2026-09-22）：上报事件时还须带 **elapsed_ms（仅 answering 阶段的作答用时）**。
+      //   现状 `recordItem` 的 opts 只有 `score`（见 lib/store.tsx）⇒ 需 XP 体系会话扩展 opts
+      //   增加 `elapsedMs`，本处再传入。**`mode='definition'` 与 `score`（1 / 0.5 / 0）已天然满足**
+      //   方案要求（VERDICT_SCORE 正是 1 / 0.5 / 0），无需改动。
+      //   注意 elapsed_ms 是**每题一次**（与本题的 recordItem 一一对应），不是整轮。
       if (cur.vocabId) {
         recordItem(cur.vocabId, res.verdict === 'correct', 'definition', { score: VERDICT_SCORE[res.verdict] });
       }
