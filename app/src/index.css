@@ -580,6 +580,17 @@ input:focus, textarea:focus, select:focus {
   .option-btn { min-height: var(--h-option-m); padding: var(--sp-3) var(--sp-4); }
 }
 
+/* 打卡核验：月度日历格（**三态**，2026-09-22 教师要求）
+   为什么是三态而不是「打了/没打」：实测中约 45% 的练习日**有作答但没够线**
+   （10 分钟 + 20 题），那与「整天没练」是完全不同的行为，核验全勤时混为一谈会误判态度。 */
+.mg-wrap { display: flex; gap: 2px; align-items: center; }
+.mg-cell { width: 12px; height: 12px; border-radius: 2px; display: inline-block; flex: 0 0 auto; }
+.mg-ok      { background: var(--success); }
+.mg-makeup  { background: var(--accent); }
+.mg-partial { background: var(--warn); }
+.mg-none    { background: var(--c-track); }
+.mg-future  { background: transparent; border: 1px dashed var(--border); }
+
 /* 核验数据表 */
 .check-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
 .check-table th, .check-table td { text-align: left; padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
