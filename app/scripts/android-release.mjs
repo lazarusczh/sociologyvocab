@@ -24,7 +24,7 @@
  *       node scripts/android-release.mjs --copy-only # 只复制（不跑 gradle，用于快速自检）
  */
 import { execFileSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, rmSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -75,6 +75,35 @@ if (copyOnly) {
   console.log('\n--copy-only：跳过 gradle。\n');
   process.exit(0);
 }
+
+// ---- 关键修正：把 gradle 里对 node_modules 的【相对】引用改成【绝对】----
+//
+// 背景：`capacitor.settings.gradle` 由 `cap sync` 生成，内容是
+//     project(':capacitor-android').projectDir = new File('../node_modules/@capacitor/android/capacitor')
+// 这个 `..` 是相对 **gradle 的启动目录** 而言的：
+//   · 过去从 `app/android`（junction 视角）启动 → `..` = `app/` → 能找到 `app/node_modules` ✓
+//   · 现在从真实路径 `C:\vocab-build\android` 启动 → `..` = `C:\vocab-build` → **没有 node_modules** ✗
+//     （表现为 `Could not resolve project :capacitor-android ... No variants exist`）
+// 所以这里在打包前把相对引用改写为指向仓库里的 node_modules 的绝对路径。
+// 幂等：已改过就不会重复处理；`cap sync` 覆盖后，下次打包会再改一遍。
+step('2.5 修正 gradle 的 node_modules 引用（相对 → 绝对）');
+const NM_ABS = path.join(APP, 'node_modules').replace(/\\/g, '/');   // gradle 字符串里用正斜杠，避免转义问题
+const GRADLE_FILES = ['capacitor.settings.gradle', 'app/build.gradle', 'build.gradle', 'app/capacitor.build.gradle'];
+let patched = 0;
+for (const rel of GRADLE_FILES) {
+  const f = path.join(ANDROID_REAL, rel);
+  if (!existsSync(f)) continue;
+  let t;
+  try { t = readFileSync(f, 'utf8'); } catch { continue; }
+  if (!t.includes('../node_modules')) continue;
+  const next = t.replaceAll("new File('../node_modules/", `new File('${NM_ABS}/`);
+  if (next !== t) {
+    writeFileSync(f, next, 'utf8');
+    info(`已改写 ${rel} → 绝对路径`);
+    patched++;
+  }
+}
+if (patched === 0) info('无需改写（已是绝对路径，或本工程未使用 node_modules 依赖）');
 
 // ---- 在真实路径下跑 gradle ----
 step('3. gradle assembleRelease（在真实路径下执行）');
