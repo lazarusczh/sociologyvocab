@@ -972,7 +972,7 @@
    {
     "text": "存在主义危机是一种推动因素，威胁人们的生命",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "A type of push factor that threatens the lives of people"
    },
    {
@@ -984,7 +984,7 @@
    {
     "text": "人们不确定自己和孩子是否能够活到明天、下周或明年",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "They do not know whether they and their children will be alive tomorrow, next week or next year"
    }
   ],
@@ -1511,19 +1511,20 @@
    {
     "text": "社会支持网络是迁移的拉动因素",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "A pull factor of migration"
    },
    {
     "text": "当存在支持性的家庭或同乡网络时，人们更可能迁移",
     "source": "main",
-    "kind": "example",
-    "en": "when there is a supportive network of family or compatriots, people are more likely to migrate because the difficulty and stress of migration can be reduced"
+    "kind": "required",
+    "en": "when there is a supportive network of family or compatriots, people are more likely to migrate"
    },
    {
     "text": "该网络能够降低迁移过程中的困难和压力",
     "source": "main",
-    "kind": "example"
+    "kind": "required",
+    "en": "because the difficulty and stress of migration can be reduced"
    }
   ],
   "bonus": [],
@@ -1888,7 +1889,7 @@
    {
     "text": "属于全球性犯罪行为",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "A type of global crime"
    }
   ],
@@ -2005,13 +2006,13 @@
    {
     "text": "马克思主义认为资本主义全球化导致激进不平等",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "Marxism believes that globalisation of capitalism leads to radical inequalities"
    },
    {
     "text": "贫困人口通过犯罪寻求补偿或逃避",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "make people in poverty seek for compensations or escapes through committing crimes"
    }
   ],
@@ -2825,7 +2826,7 @@
    {
     "text": "属于全球性犯罪行为",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "A type of global crime"
    }
   ],
@@ -3310,19 +3311,19 @@
    {
     "text": "技术进步使信号能够被压缩",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "The technology advancement have enabled the signals to be compressed"
    },
    {
     "text": "压缩后可腾出更多空间以容纳更多频道",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "more 'spaces' can be made for more channels"
    },
    {
     "text": "与窄播（narrow-cast）相关",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "related to 'narrow-cast'"
    }
   ],
@@ -3568,19 +3569,20 @@
    {
     "text": "数字自恋是数字悲观主义的一部分",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "A part of the digital pessimism"
    },
    {
     "text": "用户使用数字社交媒体不是为了学习新事物",
     "source": "main",
-    "kind": "example",
-    "en": "do not use it in a way to learn about new things but to use it to share the trivials of their daily life"
+    "kind": "required",
+    "en": "the users of digital social media do not use it in a way to learn about new things"
    },
    {
     "text": "而是用来分享日常生活中的琐事",
     "source": "main",
-    "kind": "example"
+    "kind": "required",
+    "en": "but to use it to share the trivials of their daily life"
    }
   ],
   "bonus": [],
@@ -3913,7 +3915,7 @@
    {
     "text": "事件比长期过程更具新闻价值",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "Events are more newsworthy than a long-term process"
    },
    {
@@ -4421,7 +4423,7 @@
    {
     "text": "人们可能使用媒体来改造或修改自己的身份",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "People may use the media to 'make over' or to modify their identity"
    },
    {
@@ -5296,7 +5298,7 @@
    {
     "text": "大型媒体公司通常拥有多种不同类型的媒体",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "The bigger media companies often own a diverse range of types of media"
    },
    {
@@ -5926,7 +5928,7 @@
    {
     "text": "其他专门的社会制度取代了家庭承担某些功能",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "Other specialised social institutions have taken the place of family in performing certain functions"
    },
    {
@@ -8385,13 +8387,13 @@
    {
     "text": "肥胖是一种健康问题",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "A health problem"
    },
    {
     "text": "肥胖在儿童中日益普遍",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "increasingly common among children"
    },
    {
@@ -9300,19 +9302,20 @@
    {
     "text": "情感劳动是指女性常被要求进行的无形家务劳动",
     "source": "main",
-    "kind": "example",
-    "en": "The invisible housework labour that women are often required to do to comfort other family members"
+    "kind": "required",
+    "en": "The invisible housework labour that women are often required to do"
    },
    {
-    "text": "其目的是为了安慰其他家庭成员",
+    "text": "为了安慰其他家庭成员",
     "source": "main",
-    "kind": "example",
-    "en": "The invisible housework labour that women are often required to do to provide company to them"
+    "kind": "required",
+    "en": "to comfort other family members"
    },
    {
     "text": "并为家庭成员提供陪伴",
     "source": "main",
-    "kind": "example"
+    "kind": "required",
+    "en": "to provide company to them"
    }
   ],
   "bonus": [],
@@ -10107,13 +10110,13 @@
    {
     "text": "传统女性气质的一部分",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "A part of traditional femininity"
    },
    {
     "text": "女性应当或应该更擅长照顾他人",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "women are / should be better at taking care of others"
    }
   ],
@@ -11031,13 +11034,13 @@
    {
     "text": "Affirmative Action 是 compensatory education 的一部分",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "A part of compensatory education"
    },
    {
     "text": "政策确保一定比例的弱势学生必须被录取",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "policy ensures a certain proportion of disadvantaged students must be enrolled"
    }
   ],
@@ -11067,19 +11070,19 @@
    {
     "text": "学生在 C 和 D 等级之间徘徊",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "Students who wander around grade C and D"
    },
    {
     "text": "获得教师最高关注和额外辅导",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "receive highest attentions and additional efforts from the teachers to improve schools' league table rankings"
    },
    {
     "text": "旨在提升学校联赛表排名",
     "source": "main",
-    "kind": "example"
+    "kind": "required"
    }
   ],
   "bonus": [],
@@ -11272,19 +11275,19 @@
    {
     "text": "情境录取是一种积极歧视的例子",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "An example of positive discrimination"
    },
    {
     "text": "一些大学会降低录取标准",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "some universities would lower their admission standards"
    },
    {
     "text": "前提是申请者能证明自己来自弱势背景",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "if the applicant can prove that they are from a disadvantaged background"
    }
   ],
@@ -20773,13 +20776,13 @@
    {
     "text": "系统负责警察和惩罚犯罪",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "police and punish the crimes"
    },
    {
     "text": "系统负责隔离和改造罪犯",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "isolate and rehabilitate the criminals"
    }
   ],
@@ -21540,13 +21543,13 @@
    {
     "text": "Bandura 通过 Bobo Doll 实验得出社会学习理论",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "Bandura concluded his 'Bobo Doll' experiment with the Social Learning Theory"
    },
    {
     "text": "儿童会模仿他们看到的成人行为，尤其是父母的行为",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "children would imitate adults' behaviours they see, especially their parents"
    },
    {
@@ -25847,7 +25850,7 @@
    {
     "text": "企业家是大公司的所有者（有时也是创始人）",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "Owners (and sometimes founders) of large corporations"
    },
    {
@@ -25865,7 +25868,7 @@
    {
     "text": "企业家可被视为上层阶级的成员",
     "source": "main",
-    "kind": "example",
+    "kind": "required",
     "en": "to qualify as members of upper class"
    }
   ],
