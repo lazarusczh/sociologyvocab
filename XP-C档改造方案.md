@@ -1105,6 +1105,79 @@ on conflict (user_id, day_key) do update               -- ★ 幂等：重跑覆
 **被补签两人的归属**（导入时对照）：`chenzh` = `developer + teacher` ⇒ **排除**；
 `jinmy` = **无角色记录** ⇒ **保留**。
 
+### ⚠⚠ `correct` 口径不一致（不修的话，`apply_makeup` 与三源合并都会算错）
+
+**问题**（2026-09-23 定义题会话发现，成立，已逐条核实）：
+
+**本地的 `DayStudy.correct` 不是「答对数」，而是「score 累加」**：
+
+```ts
+// checkin.ts:79,84  —— recordFormalAnswer
+const add = typeof score === 'number' ? score : (score ? 1 : 0);
+// …correct: cur.correct + add
+```
+
+定义题「部分正确」记 **0.5**；`weeklyStats` 用它算出**浮点**正确率，
+喂给 `canEarnMakeup` 的 **80%** 门槛（`checkin.ts:123`）。
+
+**而 `get_daily_study` 现在返回的是 `count(*) filter (where kind='answer' and correct)`
+—— 布尔版**（`xp_events.correct` 是 `boolean`，定义题 partial 记 `false`、
+真正的分值只在 `score = 0.5` 里）。两个后果：
+
+| # | 后果 |
+|---|---|
+| ① | **补签判定比本地更严**：一周 10 题全 partial ⇒ 本地 **50%**，布尔版 **0%** |
+| ② | **三源相加出错**：`checkin_baselines.correct` 是 `numeric(6,2)`（含 0.5），与布尔版 `union all` 后按 `day_key` 求和 ⇒ **两种口径直接相加，数值无意义** |
+
+**裁决：事件侧改用 `sum(score) filter (where kind = 'answer')`**，理由三条：
+
+1. 与本地 `DayStudy.correct` **同口径**（都是 score 累加）⇒ **切服务端时数值不跳变**；
+2. 与 `checkin_baselines.correct` **同类型**（`numeric`）⇒ 相加有意义，`numeric(6,2)` 也容得下；
+3. `sum(score)` 天然不含 `chain_complete`（它 `score = 1` 但不是「作答」），
+   但仍**显式加 `filter (where kind='answer')`** —— 与 `questions` / `ms` 保持**同一个过滤条件**，
+   免得日后有人改一处忘一处。
+
+**另外保留一个布尔计数**（新增字段，不替换主字段）—— 教师端要区分
+「真答对」与「部分正确」时会用到：
+
+| 字段 | 类型 | 含义 |
+|---|---|---|
+| `correct` | `numeric` | **`sum(score)`** —— 与本地、基线同口径，**正确率的分子** |
+| `correct_full` | `integer` | `count(*) filter (where kind='answer' and correct)` —— 全对题数 |
+
+⚠ **`apply_makeup` 的「≥100 题且 ≥80% 正确率」必须用同一口径**（分子取 `sum(score)`）。
+否则会出现「本地判得过、服务端判不过」，学生的体感就是
+**「我明明够条件了，却补不了签」** —— 这类不一致最难排查。
+
+### `week_start` 的「周一」必须与 `day_key` 同源（`Asia/Shanghai`）
+
+`day_key` 本身已按 `Asia/Shanghai` 折算（见 `submit_xp_events`），
+所以取周一只需在 `day_key` 上直接截断：
+
+```sql
+date_trunc('week', p_day_key)::date   -- 周一；p_day_key 已是上海日期，不要再做时区转换
+```
+
+⚠ **不要**用「服务器当前时间」或带时区转换的写法去推周一：
+跨周边界的补签会落到**错误的周**，`unique(user_id, week_start)` 因此可能误拒或误放。
+
+### ⚠ 单位坑：基线的 `seconds` 是「秒」，而事件侧是「毫秒」
+
+设计迁移时发现：**`checkin_baselines.seconds` 存的是「秒」**（来源即本地
+`DayStudy.seconds`），而 **`xp_events.elapsed_ms` 与 `get_daily_study()` 返回的 `ms`
+都是「毫秒」**。
+
+⇒ 三源合并时**必须** `seconds * 1000`。否则基线的时长会被**低估 1000 倍**，
+表现为「历史打卡时长全部趋近 0」，进而**把原本已达标的历史日误判为未达标** ——
+而历史日正是`checkin_baselines`唯一的用途，这个错误会让整张表失去意义。
+
+⚠ **同理，基线不含「布尔全对计数」**：`checkin_baselines.correct` 只存了
+`numeric` 的 score 累加，没有对等的 `correct_full`。合并时**只能对基线部分记 `NULL`**，
+**不要用 `floor(correct)` 近似** —— 有 partial 的日子会算错
+（如 `correct = 8.5` 时 `floor` 给 8，而真实全对数可能是 7）。
+
+⇒ **`correct_full` 是「仅事件侧可得」的指标**；教师端若展示它，需注明基线部分不含。
+
 ### 上线判据清单（教师定日期时逐条核对）
 
 | # | 判据 |
