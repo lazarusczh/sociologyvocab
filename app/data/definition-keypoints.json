@@ -25449,21 +25449,24 @@
     "source": "main",
     "kind": "required",
     "en": "mobility and interaction between castes, including intermarriage, are strictly forbidden"
-   },
+   }
+  ],
+  "bonus": [
    {
     "text": "将人们划分为五个身份群体，这些群体决定其职业",
-    "source": "tb1",
-    "kind": "example",
+    "sources": [
+     "tb1"
+    ],
     "en": "categorised into five status groups which determine their occupation"
    },
    {
     "text": "与印度教的宗教纯洁概念相关",
-    "source": "tb1",
-    "kind": "example",
+    "sources": [
+     "tb1"
+    ],
     "en": "the Hindu concept of religious purity"
    }
   ],
-  "bonus": [],
   "sources": [
    "main",
    "tb1"
