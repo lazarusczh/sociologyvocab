@@ -21,6 +21,11 @@ import { vocabSnapshotKey } from './vocabSnapshot';
 import { exportBackupJson, performImport } from './backup';
 import { supabase } from './supabase';
 import { pullCloudData, pushCloudData, mergeStudentData, type CloudStudentData, getLatestVocabVersion, pullLatestVocab } from './cloud';
+// XP 体系（C 档）：事件构造与本地队列。设计与契约见《XP-C档改造方案.md》。
+// 这里只做「产出一条事件并入队」，不做任何算分 —— 算分全在服务端，
+// 故改分值不必发前端版本，也不会出现新旧客户端口径分叉。
+import { buildAnswerEvent } from './xp';
+import { enqueueXpEvents, requestXpFlush, startXpSync } from './xpQueue';
 
 const STUDY_TICK_SECONDS = 10;
 
@@ -199,11 +204,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         .catch(() => {
           // 内置词库加载失败时保持空，用户可手动导入
         });
-    }
-  }, []);
+        }
+        }, []);
 
-  // 恢复已有登录会话（刷新/重开 App 后自动登录并同步）
-  useEffect(() => {
+        // XP 补报心跳：启动即试发一次（补上次没发完的），之后在「联网 / 回到前台 / 定时」各试一次。
+        // 与登录状态解耦 —— 队列里的事件自带 uid，未登录时原样保留，登录后再发。
+        useEffect(() => startXpSync(), []);
+
+        // 恢复已有登录会话（刷新/重开 App 后自动登录并同步）
+        useEffect(() => {
     supabase.auth
       .getSession()
       .then(async ({ data }) => {
@@ -466,25 +475,56 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   // 记录一次正式练习结果：同时更新掌握度（按模式权重）、当日打卡题数、错题本。
   // opts.score 支持小数（定义题「部分正确」= 0.5）：计入正确率、掌握度不变、也不进错题本。
-  const recordItem = useCallback((itemId: string, correct: boolean, mode: PracticeMode, opts?: { score?: number }) => {
-    const score = opts?.score ?? (correct ? 1 : 0);
-    setProgress((prev) => {
-      const next = recordAnswer(itemId, correct, mode, prev, score);
-      saveProgress(next);
-      return next;
-    });
-    setCheckin((prev) => {
-      const next = recordFormalAnswer(prev, score);
-      saveCheckIn(next);
-      return next;
-    });
-    setWrongBook((prev) => {
-      // 半对不进错题本（只是没答全，不算不会）
-      const next = applyWrongAnswer(prev, itemId, score >= 0.5);
-      saveWrongBook(next);
-      return next;
-    });
-  }, []);
+  // opts.elapsedMs 为该题用时，会随 XP 事件上报（服务端据此累计打卡时长、并判异常刷分）。
+  //   ⚠ 它**不影响本地打卡**：本机时长仍由学习计时器累计（addStudySeconds），
+  //     两条链路并行不悖，等切换口径时再合并。
+  // opts.sessionId 供接龙使用（一局一个 session，服务端靠它保证「一局只结算一次」）。
+  const recordItem = useCallback(
+    (
+      itemId: string,
+      correct: boolean,
+      mode: PracticeMode,
+      opts?: { score?: number; elapsedMs?: number; sessionId?: string },
+    ) => {
+      const score = opts?.score ?? (correct ? 1 : 0);
+      setProgress((prev) => {
+        const next = recordAnswer(itemId, correct, mode, prev, score);
+        saveProgress(next);
+        return next;
+      });
+      setCheckin((prev) => {
+        const next = recordFormalAnswer(prev, score);
+        saveCheckIn(next);
+        return next;
+      });
+      setWrongBook((prev) => {
+        // 半对不进错题本（只是没答全，不算不会）
+        const next = applyWrongAnswer(prev, itemId, score >= 0.5);
+        saveWrongBook(next);
+        return next;
+      });
+
+      // XP 事件：入队 + 节流补报。**不 await** —— 练习节奏不能被网络拖慢。
+      // 未登录（游客）不入队：XP 按 auth.uid() 归属，服务端会拒绝匿名写入。
+      if (authUser) {
+        enqueueXpEvents(
+          [
+            buildAnswerEvent({
+              itemId,
+              mode,
+              correct,
+              score,
+              elapsedMs: opts?.elapsedMs,
+              sessionId: opts?.sessionId,
+            }),
+          ],
+          authUser.id,
+        );
+        requestXpFlush();
+      }
+    },
+    [authUser],
+  );
 
   const resetProgress = useCallback(() => {
     setProgress({});
