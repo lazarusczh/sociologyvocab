@@ -336,16 +336,11 @@ export default function Crossword() {
     }
   };
 
-  if (vocab.length === 0) {
-    return <div className="empty-state"><div className="big">⊞</div><p>请先导入词汇表</p></div>;
-  }
-
-  const across = puzzle?.clues.filter((c) => c.direction === 'across').sort((a, b) => a.number - b.number) ?? [];
-  const down = puzzle?.clues.filter((c) => c.direction === 'down').sort((a, b) => a.number - b.number) ?? [];
-  const gridStyle = { '--cw': `${cellSize}px` } as CSSProperties;
-  const numFont = cellSize < 20 ? 6 : 8;
-
-  // 每条线索随机选择中文或英文提示（有一方为空则用另一方），并在生成谜题期间保持不变
+  // 每条线索随机选择中文或英文提示（有一方为空则用另一方），并在生成谜题期间保持不变。
+  //
+  // ⚠ 这个 useMemo 必须在下面「词库为空就提前 return」的**前面**：
+  //   Hook 不允许出现在条件 return 之后。否则 vocab 从空变为非空时本次渲染的
+  //   hook 数量会变，React 会抛 "Rendered more hooks than during the previous render"。
   const clueText = useMemo(() => {
     const map: Record<string, string> = {};
     if (!puzzle) return map;
@@ -356,6 +351,15 @@ export default function Crossword() {
     }
     return map;
   }, [puzzle]);
+
+  if (vocab.length === 0) {
+    return <div className="empty-state"><div className="big">⊞</div><p>请先导入词汇表</p></div>;
+  }
+
+  const across = puzzle?.clues.filter((c) => c.direction === 'across').sort((a, b) => a.number - b.number) ?? [];
+  const down = puzzle?.clues.filter((c) => c.direction === 'down').sort((a, b) => a.number - b.number) ?? [];
+  const gridStyle = { '--cw': `${cellSize}px` } as CSSProperties;
+  const numFont = cellSize < 20 ? 6 : 8;
 
   return (
     <div>
