@@ -25429,50 +25429,41 @@
   "unit": [
    "阶级认同"
   ],
-  "reference": "tb1",
-  "reference_reason": "main 来源存在拼写错误（forbiddened）且表述不够完整，tb1 更准确且权威",
+  "reference": "main",
+  "reference_reason": "学生日常练习依据 main（exposure 最高）⇒ 判分口径须与所学一致，故以 main 为要素来源；main 的拼写瑕疵（forbiddened）不影响要素判定，tb1 更完整的补充内容（五个身份群体、决定职业、印度教纯洁概念）降为示例。",
   "keypoints": [
    {
-    "text": "一种宗教和 ascribed（天赋）的分层制度，主要存在于印度及海外印度社群",
-    "source": "tb1",
+    "text": "一种封闭的、与生俱来（ascribed）的分层制度，历史上在印度实行",
+    "source": "main",
     "kind": "required",
-    "en": "An example of closed system historically enforced in India where people are born into different castes; mobilities and interactions, including intermarriages, between castes are strictly forbiddened"
+    "en": "a closed and ascribed system of stratification, historically enforced in India"
    },
-   {
-    "text": "将人们划分为五个身份群体",
-    "source": "tb1",
-    "kind": "required",
-    "en": "A religious and ascribed system of stratification mainly found in India and Indian communities abroad that categorises people into five status groups, which determine their occupation and the Hindu concept of religious purity."
-   },
-   {
-    "text": "这些群体决定了人们的职业",
-    "source": "tb1",
-    "kind": "required",
-    "en": "which determine their occupation"
-   },
-   {
-    "text": "与印度教的宗教纯洁概念相关",
-    "source": "tb1",
-    "kind": "required",
-    "en": "the Hindu concept of religious purity"
-   }
-  ],
-  "bonus": [
    {
     "text": "人们出生时即被分配到不同种姓",
-    "sources": [
-     "main"
-    ],
+    "source": "main",
+    "kind": "required",
     "en": "people are born into different castes"
    },
    {
     "text": "种姓之间的流动和互动（包括通婚）被严格禁止",
-    "sources": [
-     "main"
-    ],
-    "en": "mobilities and interactions, including intermarriages, between castes are strictly forbiddened"
+    "source": "main",
+    "kind": "required",
+    "en": "mobility and interaction between castes, including intermarriage, are strictly forbidden"
+   },
+   {
+    "text": "将人们划分为五个身份群体，这些群体决定其职业",
+    "source": "tb1",
+    "kind": "example",
+    "en": "categorised into five status groups which determine their occupation"
+   },
+   {
+    "text": "与印度教的宗教纯洁概念相关",
+    "source": "tb1",
+    "kind": "example",
+    "en": "the Hindu concept of religious purity"
    }
   ],
+  "bonus": [],
   "sources": [
    "main",
    "tb1"
