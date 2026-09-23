@@ -78,17 +78,32 @@ select jsonb_pretty(public.submit_xp_events('[
 ]'::jsonb));
 
 \echo ''
-\echo '===== 10) 防线 #9 异常标记：一批 >3 条且 elapsed_ms 全相同 ⇒ suspicious ====='
+\echo '===== 10a) 防线 #9 异常标记：一批 >3 条、用时全同且贴着下限(500) ⇒ suspicious ====='
 -- 时间用「当前时刻往前推 10 分钟」这类相对时间，避免因测试跑在当天的早晨而被判 future_time
 select jsonb_pretty(public.submit_xp_events((
   select jsonb_agg(jsonb_build_object(
     'event_id', ('cccccccc-0000-0000-0000-' || lpad(i::text, 12, '0'))::uuid,
     'kind','answer','item_id','sus-' || i, 'mode','choice',
-    'correct',true,'score',1,'elapsed_ms',7777,
+    'correct',true,'score',1,'elapsed_ms',500,
     'answered_at', now() - interval '10 minutes'))
   from generate_series(1, 4) i
 )));
 select count(*) as suspicious_rows_should_be_4 from public.xp_events
+ where user_id = '00000000-0000-0000-0000-0000000000aa' and suspicious = true;
+
+\echo ''
+\echo '===== 10b) 反例：批量题型的「均摊」会让用时全同，但**不该**被标异常 ====='
+-- 这正是 2026-09-23 收紧判据的原因：填空/填字/作业/订正都是整批提交、用时均摊，
+-- 若只凭「全同」判定，这些正常行为会被一律标成可疑，让真正的异常淹没在噪声里。
+select jsonb_pretty(public.submit_xp_events((
+  select jsonb_agg(jsonb_build_object(
+    'event_id', ('eeeeeeee-0000-0000-0000-' || lpad(i::text, 12, '0'))::uuid,
+    'kind','answer','item_id','avg-' || i, 'mode','cloze',
+    'correct',true,'score',1,'elapsed_ms',3000,
+    'answered_at', now() - interval '9 minutes'))
+  from generate_series(1, 5) i
+)));
+select count(*) as suspicious_must_still_be_4 from public.xp_events
  where user_id = '00000000-0000-0000-0000-0000000000aa' and suspicious = true;
 
 \echo ''

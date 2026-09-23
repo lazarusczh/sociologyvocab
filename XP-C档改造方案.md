@@ -766,6 +766,80 @@ create table if not exists public.checkin_baselines (
 
 ---
 
+## 六之六、各题型接入（2026-09-23）
+
+**接入原则**：只新增一个 hook（`useElapsedTimer`）与 `recordItem` 的一个参数，
+所有练习组件按**同一模式**接入，避免每种题型各写一套计时逻辑。
+
+### 计时：`useElapsedTimer()` 一个 hook 覆盖两种场景
+
+| 方法 | 语义 | 谁用 |
+|---|---|---|
+| `lap()` | **结算并重置** | 逐题题型（选择 / 错题练习 / 拼写 / 匹配 / 接龙每步）|
+| `peek()` | 只读不重置 | **定义题**（见下）|
+| `reset()` | 归零 | 开始新一轮 / 切到下一题 / 回退 |
+
+**为什么定义题不能只用 `lap()`**：它的用时必须在「点击提交」那一刻取
+（判分等待是服务端响应时间，不算学生投入），但此刻**不能重置** ——
+万一判分失败学生要重答，那段重答时间得继续累加
+（约定：**累计本题所有 answering 段**；判分失败是系统问题，不该让学生损失时长）。
+只有上报真的成功了才 `reset()`。
+
+### 两类题型的用时策略
+
+| 类型 | 文件 | 策略 |
+|---|---|---|
+| **逐题** | `MultipleChoice` / `WrongPractice` / `Spelling` / `Matching` / `LogicChain` | 每题 `lap()`；起点在「开始」与 `next()` / `advance()` |
+| **批量** | `Cloze`（一段多空）/ `Crossword`（整盘线索）/ `QuizTaker`（整套作业）/ `CorrectionPractice`（整套订正）| 提交时 `lap()` 取整段用时，**均摊**到每道题 |
+
+**为什么批量用均摊**：这些题型本来就是「一起提交」，无法分辨哪一题花了多久。
+均摊保证**总时长不失真**（服务端累加后即真实投入），代价是单题用时不准 ——
+但「一起提交」本就无从精确，均摊是唯一合理的近似。
+
+### ⚠ 均摊逼出的一处服务端修正（重要）
+
+原「防线 #9」判据是**「一批 >3 条且 `elapsed_ms` 全相同 ⇒ 可疑」**。
+接上均摊后，批量题型的一批事件**用时天然全相同** ⇒ 会被**一律误标为刷分**，
+真正的异常反而淹没在噪声里。
+
+**已收紧为「全同 **且** 贴着下限（≤500ms）」**：
+服务端会把 `<500ms` 截断成 500，所以脚本刷出来的批次清一色是 500；
+而均摊出的真实用时（整段 ÷ 空数）基本在数秒以上。
+
+冒烟测试新增一对正反例（`app/scripts/xp-smoke-test.sql`）：
+
+| 用例 | 输入 | 期望 | 实测 |
+|---|---|---|---|
+| **10a** | 4 条，用时全同且 = 500 | 标记为可疑 | `suspicious_rows_should_be_4` = **4** ✅ |
+| **10b** | 5 条，用时全同且 = 3000（均摊值）| **不**标记 | `suspicious_must_still_be_4` = **4**（不增）✅ |
+
+### ✅ 一并更正方案 §2.1.1 的一处实现要点
+
+原文说接龙要「`recordItem` 支持 `opts.skipXp`」。实装时确认**服务端早已处理**：
+`xp_of()` 里写着 `when p_mode = 'chain' then 0` —— 接龙每步的 `answer` 事件计 **0 XP**，
+但**照常计入题数与时长**。
+
+⇒ 客户端**不需要 `skipXp`**，每步照常上报即可。
+**反倒是若用 `skipXp` 把事件整个跳过，会断掉打卡题数与当日时长** —— 与初衷相反。
+
+**接龙的完成结算**：走完整条线后发一条 `kind='chain_complete'`
+（带 `session_id` / `chain_mode` / `chain_kind`），服务端按路线与作答方式查表给分，
+并靠 `unique(user_id, session_id)` 的部分唯一索引保证**一局只结算一次**。
+中途放弃（`giveUp`）不发 ⇒ **自然一分不得，无需额外判罚**。
+
+### 接入覆盖清单（11 个调用点 → 8 个文件）
+
+| 文件 | 题型 | 用时 |
+|---|---|---|
+| `DefinitionPractice.tsx` | definition | `peek`（提交时取，失败不重置）|
+| `MultipleChoice.tsx` / `WrongPractice.tsx` | choice | 逐题 `lap` |
+| `Spelling.tsx` | spelling | 逐题 `lap`（含「不会，看答案」分支）|
+| `Matching.tsx` | matching | 每对 `lap`（判定在 `useEffect` 里）|
+| `LogicChain.tsx` | chain | 每步 `lap`，另发 `chain_complete` |
+| `Cloze.tsx` / `Crossword.tsx` / `QuizTaker.tsx` / `CorrectionPractice.tsx` | 批量 | 整段 `lap` 后均摊 |
+
+---
+
 ## 七、未决事项
 
 **⇒ 四组问题已全部裁决完毕，无遗留待定项。**

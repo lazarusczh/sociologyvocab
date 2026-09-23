@@ -214,12 +214,20 @@ begin
     v_floor := (v_floor - interval '1 month')::date;
   end if;
 
-  -- 防线 #9 预扫描：整批 elapsed_ms 是否全相同（脚本批量刷的典型特征）
+  -- 防线 #9 预扫描：疑似脚本批量刷分。
+  --
+  -- ⚠ 判据必须**同时**满足「用时全相同」与「用时贴着下限」两个条件
+  --   （2026-09-23 接入客户端时修正）：
+  --   客户端对**批量提交**的题型（填空 / 填字 / 作业 / 订正）采用**均摊**——
+  --   一批事件的用时天然全相同，那是正常行为，不是刷分。
+  --   而脚本刷分除了全同，还会贴着客户端下限：服务端会把 < 500ms 截断成 500，
+  --   所以刷出来的批次清一色是 500。均摊出的真实用时（整段 ÷ 空数）基本在数秒以上。
+  --   故加上 `v_first_ms <= 500` 这一条，避免把正常均摊误标为异常。
   select count(distinct x.elapsed_ms), min(x.elapsed_ms)
     into v_ms_count, v_first_ms
     from jsonb_to_recordset(p_events) as x(elapsed_ms integer)
    where x.elapsed_ms is not null;
-  v_all_same := (v_ms_count = 1) and (v_n > 3);
+  v_all_same := (v_ms_count = 1) and (v_n > 3) and v_first_ms <= 500;
 
   for v_rec in
     select * from jsonb_to_recordset(p_events) as x(
