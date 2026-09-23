@@ -862,6 +862,109 @@ try {
 
 ---
 
+## 六之七、第④步的范围与一处缺口裁决（2026-09-23 与定义题会话）
+
+### 裁决 1：教师端用 **staff-only RPC**，不建视图（口径唯一优先）
+
+**问题**：`get_daily_study(p_user_id)` 是**单用户**函数
+（`v_target := coalesce(p_user_id, v_uid)`），而 `TeacherCheckPanel` 需要**一次拿全班**
+—— 走现有 RPC 就是 20 人 20 次往返。
+
+**结论**：新增 **`get_daily_study_all(p_from, p_to)`**，仅 `teacher` / `developer` 可调，
+一次返回全班；**不建视图**。
+
+**理由**：视图会把「基线 + 事件 + 补签」的合并口径**复制成第二份实现**，
+而学生端走的是 RPC ⇒ **两套口径迟早分叉**。
+教师端的读者是 React 面板（本来就走 RPC），视图的便利只在「SQL 直查 / 导出」；
+真有那种需求时再加，且**那时也应基于同一个内部函数**。
+
+**实现约束（采纳定义题会话提出的要点）**：
+
+- 三个来源 `union all` 后**按 `day_key` 求和**（基线 + 事件），**不取 max**；
+- ⚠ **`correct` 类型必须统一**：`checkin_baselines.correct` 是 `numeric(6,2)`，
+  而 `xp_events` 侧是 `count(*)`（整数）⇒ 合并时统一到 `numeric`；
+- **`p_user_id` 的语义保持不变**（`null` ⇒ 读自己），学生端在用；
+  全班版本**另开函数**，不改现有行为。
+
+### 裁决 2：⚠ **补签必须一并服务端化**（原方案漏了）
+
+**问题**（定义题会话提出，成立）：教师月度核验的「达标天数」**必须把补签算进去**
+（`TeacherCheckPanel.summarizeMonth` 专门处理，并注明「补签日可能完全没有 `study` 记录」）。
+但服务端只有 `xp_events`（纯练习事件）与 `checkin_baselines`（历史），
+**新的补签没有落点**。
+
+**为什么是实质问题**：补签直接改变「达标天数」⇒ 若不服务端化，
+第④步之后**仍有一条本地可改的路径影响全勤奖** —— 而全勤奖是**实物出口**。
+
+**⚠ 更要紧的一点**：本地 `makeup` 只是一个 `{ dayKey: true }` 映射（`types.ts:75`），
+**插一条就多一天达标**，比伪造 `study` 记录**容易得多**。
+
+**一处措辞更正**：定义题会话提到「补签卡余额 `cards`」—— 现库中**没有** `cards` 字段，
+`CheckInState` 只有 `study / makeup / earnedMakeupWeeks / bestStreak`（`types.ts:73-78`）。
+当前机制是「**本周练习 ≥100 题且正确率 ≥80% ⇒ 自动获得一次补签机会**」（`canEarnMakeup`）；
+「补签卡」是《练级与奖励体系方案》里**尚未实装**的等级奖励。
+**但这不影响结论** —— 无论形态是「每周机会」还是「卡」，补签都必须服务端化。
+
+**方案**：
+
+**① 新表 `checkin_makeups`**
+
+```sql
+create table if not exists public.checkin_makeups (
+  user_id    uuid        not null,
+  day_key    date        not null,      -- 被补签的那一天
+  week_start date        not null,      -- 该天所在周的周一
+  created_at timestamptz not null default now(),
+  primary key (user_id, day_key),
+  unique (user_id, week_start)          -- 一周只能补一次（替代 earnedMakeupWeeks）
+);
+```
+
+**② RPC `apply_makeup(p_day_key date)`**（`security definer`，**服务端校验**）
+
+把 `applyMakeup` 的两道判断搬到服务端，**客户端不再自行判定**：
+
+1. `p_day_key` **早于今天**，且落在**本周**内（沿用「只补本周漏签日」的现有规则）；
+2. 该天**尚未达标**（由 `xp_events` 现算 + 不在 `checkin_makeups`）；
+3. 本周**尚未补过**（`unique(user_id, week_start)`）；
+4. 本周练习 **≥100 题且正确率 ≥80%**（由 `xp_events` 现算，即 `canEarnMakeup` 的服务端口径）。
+
+**③ `get_daily_study` 扩展为合并三源**：
+`checkin_baselines ∪ xp_events ∪ checkin_makeups`，返回的每天带 `makeup` 标记
+（教师端日历格的「补签 / 已达标 / 有练习未达标 / 无记录」四态要用）。
+
+**④ `bestStreak` 与 `earnedMakeupWeeks` 不必落盘**：
+
+- `earnedMakeupWeeks` ≡ `checkin_makeups` 里出现过的 `week_start`；
+- `bestStreak` 由 `get_daily_study` 的日序列现算。
+
+⇒ 与「**总量现算、永不落盘**」的既有哲学一致。
+
+### 裁决 3：若第④步不做补签，必须显式记录这条分裂
+
+**默认不忽略。** 若最终决定暂不做，方案里要写明：
+
+> **练习服务端权威；补签仍本地权威。**
+> ⇒ 全勤奖的核验因此仍存在一条客户端可篡改的路径。
+
+**但建议做** —— 它本来就落在第④步范围内（「打卡切服务端」天然包含「达标天数的判定」），
+把它拆出去只会让口径变成两半。
+
+### 第④步的完整范围（据此更新）
+
+| # | 事项 | 状态 |
+|---|---|---|
+| 1 | 导入 `checkin-xp-audit-2026-09-21.json` → `checkin_baselines` | ⏳ 表已建，待导入 |
+| 2 | `checkin_makeups` 表 + `apply_makeup()` RPC | ⏳ 待做（本裁决新增） |
+| 3 | `get_daily_study` 合并三源（基线 / 事件 / 补签） | ⏳ 待做 |
+| 4 | `get_daily_study_all()`（staff 全班） | ⏳ 待做（本裁决新增） |
+| 5 | 打卡页与等级 UI 改读服务端 | ⏳ 待做 |
+| 6 | 门槛同步调整（时长 10 → 7 分钟） | ⏳ 待定，见 §8 |
+| 7 | **与定义题侧「摘掉 `grading` 计时」同批** | ⚠ 顺序约束，不可提前 |
+| 8 | 双跑验证期 → 撤掉本地 XP 持久化 | ⏳ 待做 |
+
+---
+
 ## 七、未决事项
 
 **⇒ 四组问题已全部裁决完毕，无遗留待定项。**
