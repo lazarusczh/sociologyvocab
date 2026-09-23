@@ -1237,6 +1237,24 @@ if (authUser && !opts?.skipXp) { enqueueXpEvents(...) }
 `CHECKIN_DAY_GOAL_SECONDS = 600`、`CHECKIN_DAY_GOAL_QUESTIONS = 20`、
 `MAKEUP_WEEK_QUESTIONS = 100`、`MAKEUP_WEEK_ACCURACY = 0.8`。
 
+### 造测试数据的两个坑（2026-09-23 实测踩到）
+
+写补签的冒烟测试时踩到两个，都会让**分支测不到却以为测过了**：
+
+1. **别把日期造到「本周的未来」** —— 例如按「本周一 + 4 天」构造，
+   若今天是周三，那就是周五，会被 `submit_xp_events` 的 `future_time` 防线**整批拒收**，
+   事件根本没进去，随后的断言看到的是「另一条分支」（如 `not_past_day`）而不是想测的那条。
+   ⇒ **要造「昨天」**：既落在本周内、又早于今天，才能通过 `apply_makeup` 的前两道校验，
+   真正走到 `already_checked` 这类后置分支。
+2. **测不同分支时记得切回 uid** —— 为造 `already_checked` 换了假学生后，
+   后续读取（`get_daily_study` / `checkin_makeups`）会以**新 uid** 的身份查，
+   于是读不到前一个 uid 的补签。⇒ 换过就切回来，或每个场景用独立 uid 并各自断言。
+
+⚠ 另一条**通用**教训（`returns table` 函数）：**`count(*)` 返回 `bigint`**，
+而输出列通常声明为 `integer` ⇒ 报错发生在**调用时**而非创建时
+（`structure of query does not match function result type`）。
+`daily_study_of` 第一版就是这么炸的，**静态读代码发现不了**。
+
 ### 上线判据清单（教师定日期时逐条核对）
 
 | # | 判据 |
