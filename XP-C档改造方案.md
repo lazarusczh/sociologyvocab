@@ -965,6 +965,96 @@ create table if not exists public.checkin_makeups (
 
 ---
 
+## 六之八、第④步的日期口径与导入细则（2026-09-23 与定义题会话核实）
+
+### 月度核验口径：**自然月**
+
+- 判据：`day_key` 属于该月（`summarizeMonth` 用 `startsWith('YYYY-MM')`）；
+- 达标天 = 该月内 `isDayChecked` 为真（**含补签**）；
+- 全勤线 = 当月达标 **≥28 天**；
+- ⚠ **核验可回看任意历史月份 ⇒ 基线必须覆盖全部历史，不是最近 N 个月。**
+
+### ⚠ 硬规则：**基线只到「上线日前一天」，上线当天 00:00 起只信事件**
+
+**原因**：新版前端**仍会写本地 `checkin`**（`recordFormalAnswer` 未移除；方案 §五第 8 条
+即「保留 `checkin` 作兜底与留痕、不再是权威」）。于是**上线之后，同一天会同时存在
+本地 `checkin` 与 `xp_events` 两份记录** —— 若基线含上线当天，服务端合并时就是**双倍**，
+全勤天数失真。
+
+**代价**：仅「上线当天用旧版前端练的那部分不计」。
+⇒ **建议把上线时点选在当天较早、学生尚未开始练习的时候。**
+
+### 历史补签的导入：**以 `makeup` 自身为准**
+
+**⚠ 审计 JSON 不足以还原补签**：它的 `daily` 字段是
+`{ date, questions, seconds, correct, checked }`，**没有 `makeup` 标记**；
+`makeupDays` 只是汇总数字，无法得知**具体哪几天**。
+
+**⇒ 直接从生产库取**：
+
+```sql
+select user_id, data->'checkin'->'makeup' as makeup
+  from public.student_data
+ where data->'checkin'->'makeup' not in ('{}'::jsonb, 'null'::jsonb);
+```
+
+**实测（2026-09-23）**：全库仅两条非空 ——
+
+| 账号 | `checkin.makeup` |
+|---|---|
+| `chenzh@dtd-edu.cn`（教师，**导入时排除**）| `{"2026-08-19": true, "2026-09-02": true}` |
+| `jinmy@student.dtd-edu.cn` | `{"2026-09-02": true, "2026-09-09": true}` |
+
+⇒ **真实学生 2 条**（均属 `jinmy`）。
+
+⚠ **关键**：`chenzh` 的 `08-19` **早于最早的 `study` 记录（08-20）** ——
+说明 `makeup` 里存在**独立于 `study` 的日子**。
+⇒ **导入必须以 `makeup` 自身为准，不要用 `study` 的日期范围去框，否则会漏。**
+
+**`week_start` 由被补那天所在周反推**（机制是「只补本周漏签日」⇒ **动作周 == 被补天所在周**，无歧义）：
+
+| 被补日 | 所在周（周一）|
+|---|---|
+| 2026-08-19（周三）| 2026-08-17 |
+| 2026-09-02（周三）| 2026-08-31 |
+| 2026-09-09（周三）| 2026-09-07 |
+
+⇒ 两组各落不同周，**不违反 `unique(user_id, week_start)`**（已核）。
+
+### 导入的技术细节
+
+- ⚠ **`dayKey` 是浏览器本地时区字符串，与 `Asia/Shanghai` 一致 ⇒ 原样使用、勿二次换算**，
+  否则整体偏移一天。
+- ⚠ **`student_data.user_id` 是 `text`（不是 `uuid`）**，而 `checkin_baselines` /
+  `checkin_makeups` 用 `uuid` ⇒ 导入时需 `user_id::uuid`。
+  实测 **21/21 全部符合 uuid 格式**，转换安全。
+
+### 实测规模（2026-09-23）
+
+| 项 | 值 |
+|---|---|
+| `checkin.study` 逐日行合计 | **125** |
+| 日期范围 | **2026-08-20 ~ 2026-09-22** |
+| 按月 | 2026-08：28 行 / 2026-09：97 行 |
+| 非空 `makeup` | **2 名学生 + 1 名教师**（共 4 条）|
+
+⇒ **量很小**，导入是一次性轻量操作，**可在导入后立即复算校验**。
+
+⚠ 注意：库里的数据比审计 JSON **新一天**（JSON 导出于 09-21，库到 09-22）
+⇒ **导入应以库为准，不要用那份 JSON。**
+
+### ⚠ 该库缺失的函数（环境坑）
+
+`jsonb_object_length(jsonb)` **不存在**（尽管 `version()` 报 PostgreSQL 15.8，
+实为 **AnalyticDB for PostgreSQL 兼容版**）—— 需用
+`(select count(*) from jsonb_object_keys(x))` 替代。
+
+其余常用函数（`jsonb_to_recordset` / `jsonb_array_elements` / `jsonb_object_keys` /
+`jsonb_agg` / `jsonb_build_object` / `jsonb_pretty`）**均可用**，
+**现有 XP RPC 未受影响**（冒烟测试 15 项全通过即为证）。
+
+---
+
 ## 七、未决事项
 
 **⇒ 四组问题已全部裁决完毕，无遗留待定项。**
