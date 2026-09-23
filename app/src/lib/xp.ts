@@ -66,12 +66,24 @@ export interface XpSummary {
   daily: { day_key: string; practice_xp: number }[];
 }
 
-/** get_daily_study() 的返回（每日练习聚合，打卡判定用）。 */
+/** get_daily_study() 的返回（每日练习聚合，打卡判定用）。
+ *
+ * ⚠ 本类型的字段**必须与 `daily_study_of()` 的输出逐一对齐**（见该函数定义）：
+ *   它把「基线 ∪ 事件 ∪ 补签」三源按 `day_key` 求和合并，字段含义如下。
+ *   曾经漏过 `correct_full` / `makeup` 两个 —— 运行时数据里有、类型里没有，
+ *   于是 TS 侧访问会报错，而被误以为「服务端没返回」。 */
 export interface DailyStudy {
   day_key: string;
+  /** 题数（只计 `kind='answer'`）。基线日为历史题数。 */
   questions: number;
+  /** **毫秒**。⚠ 基线侧由「秒 × 1000」换算而来，事件侧本就是毫秒 —— 单位不统一会算错。 */
   ms: number;
+  /** **score 累加**（不是答对数）：定义题 partial 记 0.5，与本地 `DayStudy.correct` 同口径。 */
   correct: number;
+  /** 布尔全对计数。**基线日为 `null`**（历史数据没有这个维度，勿当 0）。 */
+  correct_full: number | null;
+  /** 该日是否有补签（补签日**直接算达标**，不看时长与题数）。 */
+  makeup: boolean;
 }
 
 // ---------- 事件构造 ----------
