@@ -5,7 +5,7 @@
 //   2. 判分走 /app-api/ai/complete：模型只判逐要素覆盖度，档位由代码确定性算出（可复现）；
 //   3. 结果写进掌握度与打卡（recordItem → 自动计入当日题数与错题本），作答日志落 definition_attempts；
 //   4. 挂 Beta 入口，先在日常打卡训练里跑，一段时间检验合格后再进作业。
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore, useStudySession, useCelebrateCheckIn, useElapsedTimer } from '../lib/store';
 import { loadDefinitionItems, saveDefinitionAttempt, submitDefinitionDispute, type DefinitionItem } from '../lib/definition';
 import { gradeDefinition, SOURCE_LABEL, type GradeResult, type Verdict } from '../lib/ai';
@@ -68,11 +68,17 @@ export default function DefinitionPractice() {
   useCelebrateCheckIn(phase === 'done');
 
   // 本题用时计时器（随 XP 事件上报为 elapsed_ms）。
-  // ⚠ 只用 peek/reset、**不用 lap** —— 定义题的用时必须在「点击提交」那一刻取
-  //   （判分等待是服务端响应时间，不算学生投入），但此刻**不能重置**：
-  //   万一判分失败学生要重答，那段重答时间得继续累加（约定：累计本题所有 answering 段，
-  //   判分失败是系统问题、不该让学生损失时长）。只有上报真的成功了才 reset。
+  // 定义题的用时必须在「点击提交」那一刻结算（判分等待是服务端响应时间，不算学生投入），
+  // 但**判分失败后学生要重答，那段重答时间得继续累加**（约定：累计本题所有 answering 段，
+  // 判分失败是系统问题、不该让学生损失时长）。
+  //
+  // ⚠ 实现要点（2026-09-23 复核修正）：**每一段都用 `lap()` 结算**（结算并重置），
+  //   取到的段长先并入 `carryMs`；成功上报时把 `carryMs` 清零，失败时只 `reset()`
+  //   丢弃「判分等待」那一段。这样各段准确相加，**判分等待不会被算成作答时间**。
+  //   早先的写法是「失败时不重置 + 下一次 `peek()`」，那会把失败那次的判分等待
+  //   （Agnes 档实测 7.5s、超时可达 30s+）一并算进学生的作答用时，与约定不符。
   const timer = useElapsedTimer();
+  const carryMs = useRef(0);
 
   const load = useCallback(async () => {
     setLoadErr('');
@@ -125,7 +131,8 @@ export default function DefinitionPractice() {
     setErrMsg('');
     setShowHint(false);
     setStats({ correct: 0, partial: 0, wrong: 0 });
-    timer.reset(); // 新的一轮：计时从第一题呈现时算起
+    carryMs.current = 0; // 新的一轮：清除上一轮结转的用时段
+    timer.reset();       // 计时从第一题呈现时算起
     setPhase('answering');
   }, [scoped, vocabByTerm, timer]);
 
@@ -140,9 +147,11 @@ export default function DefinitionPractice() {
 
   const submit = useCallback(async () => {
     if (!cur || !answer.trim()) return;
-    // 本题用时：**必须在进入 grading 之前取**，判分等待是服务端响应时间、不算学生投入。
-    // 此处只 peek 不 reset：万一判分失败学生要重答，那段重答时间得继续累加。
-    const elapsedMs = timer.peek();
+    // 本题用时：**必须在进入 grading 之前结算**，判分等待是服务端响应时间、不算学生投入。
+    // 用 `lap()`（结算并重置）取走这一段 answering，并立即并入 `carryMs`。
+    // 这样判分失败重答时，各段能准确相加，而失败那次的判分等待不会被算进去。
+    const elapsedMs = carryMs.current + timer.lap();
+    carryMs.current = elapsedMs;
     setPhase('grading');
     setErrMsg('');
     try {
@@ -156,14 +165,14 @@ export default function DefinitionPractice() {
       setStats((s) => ({ ...s, [res.verdict]: s[res.verdict] + 1 }));
       // 计分：correct = 1 题、partial = 0.5 题（计入正确率、掌握度不变、不进错题本）、wrong = 0 题。
       // elapsed_ms 是**每题一次**（与本题的 recordItem 一一对应），不是整轮，
-      // 取自上面「题目呈现 → 点击提交」那段 answering 用时。
+      // 取自本题「各段 answering 之和」（不含判分等待；失败重答的段已由 carryMs 累计）。
       if (cur.vocabId) {
         recordItem(cur.vocabId, res.verdict === 'correct', 'definition', {
           score: VERDICT_SCORE[res.verdict],
           elapsedMs,
         });
       }
-      timer.reset(); // 已上报 ⇒ 本题计时归零（判分失败走不到这里，故重答时间得以保留）
+      carryMs.current = 0; // 已上报 ⇒ 清空结转（计时器已在本函数开头 lap 归零）
       // 作答日志：拿到 id 才能支持「我认为判错了」的质疑；restate 一并存档（教师复核时能看到模型的理解）
       void saveDefinitionAttempt({
         itemId: cur.item.id,
@@ -180,8 +189,10 @@ export default function DefinitionPractice() {
       setPhase('graded');
     } catch (e) {
       setErrMsg(e instanceof Error ? e.message : String(e));
-      // 判分失败：**故意不 reset 计时器** —— 学生重答的时间继续累计到本题，
-      // 下次提交时一并上报（判分失败是系统问题，不该让学生损失时长）。
+      // 判分失败：`reset()` 丢弃「判分等待」这一段（从提交到失败返回），
+      // 而 `carryMs` 保留此前各段作答用时 —— 学生重答后一并上报。
+      // 即：**累计本题所有 answering 段，但不含服务端的判分耗时**。
+      timer.reset();
       setPhase('answering');
     }
   }, [cur, answer, recordItem, timer]);
@@ -200,7 +211,8 @@ export default function DefinitionPractice() {
     setDisputeNote('');
     setDisputeState('idle');
     setDisputeErr('');
-    timer.reset(); // 切到下一题：重新开始计本题用时
+    carryMs.current = 0; // 切题：清除本题此前结转的用时段
+    timer.reset();       // 重新开始计本题用时
     setPhase('answering');
   }, [idx, round.length, timer]);
 
