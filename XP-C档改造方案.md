@@ -775,15 +775,35 @@ create table if not exists public.checkin_baselines (
 
 | 方法 | 语义 | 谁用 |
 |---|---|---|
-| `lap()` | **结算并重置** | 逐题题型（选择 / 错题练习 / 拼写 / 匹配 / 接龙每步）|
-| `peek()` | 只读不重置 | **定义题**（见下）|
-| `reset()` | 归零 | 开始新一轮 / 切到下一题 / 回退 |
+| `lap()` | **结算并重置** | 逐题题型（选择 / 错题练习 / 拼写 / 匹配 / 接龙每步）**以及定义题的每一段** |
+| `peek()` | 只读不重置 | 目前无人使用（保留备用）|
+| `reset()` | 归零 | 开始新一轮 / 切到下一题 / 回退 / 丢弃「判分等待」段 |
 
-**为什么定义题不能只用 `lap()`**：它的用时必须在「点击提交」那一刻取
-（判分等待是服务端响应时间，不算学生投入），但此刻**不能重置** ——
-万一判分失败学生要重答，那段重答时间得继续累加
-（约定：**累计本题所有 answering 段**；判分失败是系统问题，不该让学生损失时长）。
-只有上报真的成功了才 `reset()`。
+**定义题为什么要单独处理**：它每次提交都可能判分失败、退回重答，而约定要求
+**累计本题所有 answering 段**（判分失败是系统问题，不该让学生损失时长）。
+
+⚠ **初版实现是错的**（2026-09-23 由定义题会话复核后修正，commit `f14b2fa`）：
+初版用「失败时不 `reset()` + 下次 `peek()`」，以为这样能把各段加起来 ——
+但 `peek()` 读的是**从上次重置到此刻的全部时间**，于是第二次提交拿到的是
+`A + G + B`，其中 **`G` 是那次判分等待**（Agnes 档实测约 7.5s，超时可达 30s+），
+**被错算成了学生的作答用时**，与约定不符。
+
+**正确做法：每段都用 `lap()` 结算，段长并入 `carryMs`**：
+
+```ts
+const elapsedMs = carryMs.current + timer.lap();  // lap 取走本段并立刻重置
+carryMs.current = elapsedMs;
+setPhase('grading');
+try {
+  // …上报…
+  carryMs.current = 0;      // 成功 ⇒ 清空结转
+} catch {
+  timer.reset();            // 失败 ⇒ 只丢弃「判分等待」那一段，已累计的段保留
+}
+```
+
+`lap()` 在进入判分前就把计时器重置了，判分等待因此天然落在下一次结算之外；
+`catch` 里的 `reset()` 只是让那段等待不残留。**各段准确相加，判分等待一次都不计入。**
 
 ### 两类题型的用时策略
 
@@ -831,7 +851,7 @@ create table if not exists public.checkin_baselines (
 
 | 文件 | 题型 | 用时 |
 |---|---|---|
-| `DefinitionPractice.tsx` | definition | `peek`（提交时取，失败不重置）|
+| `DefinitionPractice.tsx` | definition | 每段 `lap()` 并入 `carryMs`（判分等待不计；见上）|
 | `MultipleChoice.tsx` / `WrongPractice.tsx` | choice | 逐题 `lap` |
 | `Spelling.tsx` | spelling | 逐题 `lap`（含「不会，看答案」分支）|
 | `Matching.tsx` | matching | 每对 `lap`（判定在 `useEffect` 里）|
