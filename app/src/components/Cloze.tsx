@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useStore, useStudySession, useCelebrateCheckIn } from '../lib/store';
+import { useStore, useStudySession, useCelebrateCheckIn, useElapsedTimer } from '../lib/store';
 import { normalizeKey, isCorrectAnswer, getAcceptableKeys } from '../lib/answers';
 import { sample, shuffle } from '../lib/shuffle';
 import type { VocabItem } from '../lib/types';
@@ -119,6 +119,9 @@ export default function Cloze() {
   const [score, setScore] = useState(0);
   // 开始做题后才计时（筛选/准备阶段不计）
   useStudySession(round.length > 0);
+  // 每段用时（随 XP 事件上报）。一段含多个空、整段一起提交，
+  // 故把该段用时**均摊到每个空**（见 submit 的注释）。
+  const timer = useElapsedTimer();
 
   // 加载内置语境题库
   useEffect(() => {
@@ -162,7 +165,8 @@ export default function Cloze() {
     setQi(0);
     setRevealed(false);
     setScore(0);
-  }, [filtered, vocab, mode]);
+    timer.reset(); // 第一段的用时从此刻起算，不含前面的筛选/准备
+  }, [filtered, vocab, mode, timer]);
 
   const current = round[qi];
   const finished = round.length > 0 && qi >= round.length;
@@ -189,9 +193,15 @@ export default function Cloze() {
     );
     setRound((prev) => prev.map((it, idx) => (idx === qi ? { ...it, results } : it)));
     setRevealed(true);
+    // 用时按**均摊**处理：一段里的空是一起提交的，无法分辨「哪个空花了多久」。
+    // 均摊保证**该段的总时长不失真**（服务端累加后即这段的真实投入），
+    // 代价是单个空的用时不准 —— 但「一起提交」本身就无从精确，均摊是唯一合理的近似。
+    const total = timer.lap();
+    const n = Math.max(1, current.blanks.length);
+    const perMs = Math.max(0, Math.round(total / n));
     results.forEach((ok, i) => {
       const item = current.blanks[i].item;
-      if (item) recordItem(item.id, ok, 'cloze');
+      if (item) recordItem(item.id, ok, 'cloze', { elapsedMs: perMs });
     });
     setScore((s) => s + results.filter(Boolean).length);
   };
@@ -199,6 +209,8 @@ export default function Cloze() {
   const next = () => {
     setQi((i) => i + 1);
     setRevealed(false);
+    // 看答案与解析、再点「下一段」的时间不该算进下一段的作答用时
+    timer.reset();
   };
 
   useCelebrateCheckIn(finished);

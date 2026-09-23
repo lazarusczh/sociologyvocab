@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useStore, useStudySession, useCelebrateCheckIn } from '../lib/store';
+import { useStore, useStudySession, useCelebrateCheckIn, useElapsedTimer } from '../lib/store';
 import type { Quiz, QuizQuestion, QuizSubmission } from '../lib/types';
 import { getQuizByCode, getMySubmission, upsertSubmission, submitQuizSubmission, listMySubmissions } from '../lib/cloud';
 import { gradeQuiz, shuffleQuestionsBySeed, randomOrderSeed, formatDuration, TYPE_LABELS, KIND_LABELS, isAnswerCorrect, answerText, correctAnswerText, matchingCorrectCount, totalPoints, extractWrongItemIds } from '../lib/quiz';
@@ -139,6 +139,7 @@ export default function QuizTaker() {
       setDeadline(Date.now() + remainingSec * 1000);
       setInQuiz(true);
       setPhase('taking');
+      timer.reset(); // 整套的作答用时从进入 taking 起算（不含读说明、输码等准备时间）
     } catch (e) {
       setError((e as Error).message);
     }
@@ -147,6 +148,8 @@ export default function QuizTaker() {
 
   // 答题阶段（taking，未交卷中）计入每日打卡学习时长：作业时间与正式练习同口径
   useStudySession(phase === 'taking' && !submitted);
+  // 整套作业的作答用时（交卷时按题数均摊后随事件上报）。起点是进入 taking 那一刻。
+  const timer = useElapsedTimer();
   // 交卷成功且当天已达标时触发「打卡成功」庆祝（与完成一组正式练习一致）
   const quizFinished = phase === 'done' && submitted;
   useCelebrateCheckIn(quizFinished);
@@ -241,17 +244,24 @@ export default function QuizTaker() {
   // 交卷成功后：把每道题结果写入本地错题本/掌握度/打卡（方案 B）
   const recordQuizResults = useCallback(() => {
     if (!quiz) return;
+    // 用时**均摊**到每道题（匹配块按对数拆）：交卷是统一动作，无法分辨每题各花多久。
+    // 均摊保证整套的总时长不失真，代价是单题用时不准 —— 但「一次性交卷」本就无从精确。
+    const n = Math.max(
+      1,
+      questions.reduce((s, q) => s + (q.type === 'matching' && q.pairs ? q.pairs.length : 1), 0),
+    );
+    const perMs = Math.max(0, Math.round(timer.lap() / n));
     for (const q of questions) {
       if (q.type === 'matching' && q.pairs) {
         // 匹配块：逐对记录（对错按该对 itemId 是否配对正确）
         for (const p of q.pairs) {
-          recordItem(p.itemId, answers[p.itemId] === p.itemId, 'matching');
+          recordItem(p.itemId, answers[p.itemId] === p.itemId, 'matching', { elapsedMs: perMs });
         }
       } else {
-        recordItem(q.itemId, isAnswerCorrect(q, answers[q.itemId]), q.type);
+        recordItem(q.itemId, isAnswerCorrect(q, answers[q.itemId]), q.type, { elapsedMs: perMs });
       }
     }
-  }, [questions, answers, recordItem]);
+  }, [questions, answers, recordItem, timer]);
 
   // 交卷
   const doSubmit = useCallback(async () => {

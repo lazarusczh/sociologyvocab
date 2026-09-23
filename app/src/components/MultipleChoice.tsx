@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { useStore, useStudySession, useCelebrateCheckIn } from '../lib/store';
+import { useStore, useStudySession, useCelebrateCheckIn, useElapsedTimer } from '../lib/store';
 import { shuffle, sample } from '../lib/shuffle';
 import { maskAnswer } from '../lib/answers';
 import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
@@ -64,6 +64,8 @@ export default function MultipleChoice() {
   const [score, setScore] = useState(0);
   // 开始做题后才计时（筛选/准备阶段不计）
   useStudySession(questions.length > 0);
+  // 每题用时（随 XP 事件上报）。起点在 start() 与每次 next()，结算在 pick()。
+  const timer = useElapsedTimer();
 
   const onPaperChange = (p: string) => {
     setPaper(p);
@@ -89,7 +91,8 @@ export default function MultipleChoice() {
     setQi(0);
     setPicked(null);
     setScore(0);
-  }, [filtered]);
+    timer.reset(); // 第一题的用时从此刻起算，不含前面的筛选/准备
+  }, [filtered, timer]);
 
   const q = questions[qi];
 
@@ -98,12 +101,15 @@ export default function MultipleChoice() {
     setPicked(opt);
     const correct = opt === q.answer;
     if (correct) setScore((s) => s + 1);
-    recordItem(q.item.id, correct, 'choice');
+    // lap() 结算并重置：本题用时 = 从上一题起点到此刻
+    recordItem(q.item.id, correct, 'choice', { elapsedMs: timer.lap() });
   };
 
   const next = () => {
     setQi((i) => i + 1);
     setPicked(null);
+    // 看正误与解析、再点按钮的这段时间不该算进下一题的作答用时
+    timer.reset();
   };
 
   useCelebrateCheckIn(questions.length > 0 && !q);

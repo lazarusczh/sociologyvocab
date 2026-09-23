@@ -1,5 +1,6 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
-import { useStore, useStudySession, useCelebrateCheckIn } from '../lib/store';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { useStore, useStudySession, useCelebrateCheckIn, useElapsedTimer } from '../lib/store';
+import { newEventId } from '../lib/xp';
 import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
 import { conceptIdOf } from '../lib/relationSuggest';
 import {
@@ -27,7 +28,7 @@ interface InputRun {
 const betaTag = <span style={{ fontSize: '0.65rem', verticalAlign: 'super', color: 'var(--accent)', fontWeight: 700, letterSpacing: '0.02em' }}>Beta</span>;
 
 export default function LogicChain() {
-  const { vocab, recordItem, papers, categories } = useStore();
+  const { vocab, recordItem, recordChainComplete, papers, categories } = useStore();
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
   const [units, setUnits] = useState<string[]>([]);
@@ -49,6 +50,16 @@ export default function LogicChain() {
   const [iMsg, setIMsg] = useState<{ kind: 'ok' | 'warn'; text: string } | null>(null);
   const [hintCid, setHintCid] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // —— XP 结算相关 ——
+  // 一局接龙 = 一个 session。服务端靠 unique(user_id, session_id) 保证「一局只结算一次」，
+  // 所以这个 id 在一局开始时生成、整局内保持不变。
+  const sessionRef = useRef<string>('');
+  // 本局是否已结算过（React 严格模式下 effect 可能双跑；服务端唯一索引是最终兜底，
+  // 这里只是少发一次无用请求）。
+  const settledRef = useRef(false);
+  // 每步用时（随事件上报；服务端会累加进当日打卡时长）。
+  const timer = useElapsedTimer();
 
   const onPaperChange = (p: string) => { setPaper(p); setCat('all'); setUnits([]); };
   const onCatChange = (c: string) => { setCat(c); setUnits([]); };
@@ -76,7 +87,39 @@ export default function LogicChain() {
   useStudySession(inChoice || inInput);
   useCelebrateCheckIn(choiceDone || irunDone); // 放弃不算达成，不触发庆祝
 
+  // 走完整条线 ⇒ 结算一次 XP（**只此一次**）。
+  //
+  // 为什么分值在完成时才给：接龙每一步的 answer 事件，服务端 xp_of() 直接返回 0
+  // （见 db-migration-xp-c.sql：`when p_mode = 'chain' then 0`）—— 它只为掌握度、
+  // 打卡题数与时长而存在。真正的分只在 chain_complete 上结算，于是：
+  //   · 「回退刷分」（undoStep 不撤销已发的分）与「绕远刷分」（无步数上限地走相邻概念）
+  //     两个漏洞**自动失效**，无需单独修代码；
+  //   · 中途放弃（giveUp）自然一分不得，不必额外判罚。
+  // 分值取决于「路线 + 作答方式」，由服务端按 chain_mode / chain_kind 查表，客户端不指定。
+  useEffect(() => {
+    if (settledRef.current) return;
+    const sid = sessionRef.current;
+    if (!sid) return;
+    if (run && choiceDone) {
+      settledRef.current = true;
+      const itemId = itemOf(run.path[0])?.id;
+      if (itemId) recordChainComplete({ itemId, sessionId: sid, chainMode: run.mode, chainKind: 'choice' });
+    } else if (irun && irunDone) {
+      settledRef.current = true;
+      const itemId = itemOf(irun.history[0])?.id;
+      if (itemId) recordChainComplete({ itemId, sessionId: sid, chainMode: irun.mode, chainKind: 'input' });
+    }
+  }, [choiceDone, irunDone, run, irun, itemOf, recordChainComplete]);
+
   // ===== 开始 =====
+  // 开一局：换新的 session id（服务端按它保证「一局只结算一次」），
+  // 并重置「本局已结算」标记与每步计时。
+  const startSession = () => {
+    sessionRef.current = newEventId();
+    settledRef.current = false;
+    timer.reset();
+  };
+
   const startChoice = () => {
     setGenErr('');
     const attempt =
@@ -95,6 +138,7 @@ export default function LogicChain() {
     setChosen(null);
     setScore(0);
     setIrun(null);
+    startSession();
   };
 
   const startInput = () => {
@@ -126,6 +170,7 @@ export default function LogicChain() {
     setIMsg(null);
     setHintCid(null);
     setRun(null);
+    startSession();
   };
 
   const start = () => (kind === 'choice' ? startChoice() : startInput());
@@ -133,6 +178,8 @@ export default function LogicChain() {
   const exitRun = () => {
     setRun(null); setIrun(null); setChosen(null); setStepIdx(0); setScore(0);
     setIText(''); setIMsg(null); setHintCid(null); setGaveUp(false);
+    sessionRef.current = ''; // 退出本局：作废 session，避免残留状态再触发结算
+    settledRef.current = false;
   };
 
   // ===== 选择模式：作答 =====
@@ -154,11 +201,19 @@ export default function LogicChain() {
     const ok = cid === correctCid;
     setChosen(cid);
     if (ok) setScore((s) => s + 1);
-    recordItem(curItem.id, ok, 'chain');
+    // 每步照常上报：服务端对 mode='chain' 的 answer 计 0 XP
+    //（见 xp_of：`when p_mode = 'chain' then 0`），但**要**计题数与时长 ——
+    // 也唯有如此，打卡题数才不会漏掉接龙。真正给分的只有完成时的 chain_complete。
+    recordItem(curItem.id, ok, 'chain', {
+      sessionId: sessionRef.current || undefined,
+      elapsedMs: timer.lap(),
+    });
   };
   const advance = () => {
     setStepIdx((i) => i + 1);
     setChosen(null);
+    // 看正误与解析、再点「继续」的时间不该算进下一步的作答用时
+    timer.reset();
   };
 
   // ===== 默写输入模式：作答 =====
@@ -196,7 +251,12 @@ export default function LogicChain() {
       return;
     }
     // 走成功了
-    if (iCurItem) recordItem(iCurItem.id, true, 'chain');
+    if (iCurItem) {
+      recordItem(iCurItem.id, true, 'chain', {
+        sessionId: sessionRef.current || undefined,
+        elapsedMs: timer.lap(),
+      });
+    }
     setIrun({ ...irun, cur: m.cid, history: [...irun.history, m.cid] });
     setIText('');
     setIMsg(null);
@@ -216,7 +276,13 @@ export default function LogicChain() {
       setIMsg({ kind: 'warn', text: '这里似乎没有可走的概念了。' });
       return;
     }
-    if (iCurItem) recordItem(iCurItem.id, false, 'chain'); // 首次看提示记一次答错
+    if (iCurItem) {
+      // 首次看提示记一次答错（进错题本、扣掌握度）；与其它步一样只计题数、不计 XP
+      recordItem(iCurItem.id, false, 'chain', {
+        sessionId: sessionRef.current || undefined,
+        elapsedMs: timer.lap(),
+      });
+    }
     setHintCid(hint.cid);
     setIMsg({ kind: 'ok', text: `提示：可以接「${itemOf(hint.cid)?.term ?? hint.cid}」${hint.note}` });
   };
@@ -228,6 +294,9 @@ export default function LogicChain() {
     setIText('');
     setIMsg(null);
     setHintCid(null);
+    // 回退后重新计时。注意回退**不会**撤销已发出的题数与掌握度，也不会产生新 XP ——
+    // 因为 XP 只在一局走完时结算一次，回退重走不改变结算结果。
+    timer.reset();
   };
 
   // target 模式中途放弃：结束本局，直接看参考路线

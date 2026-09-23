@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { useStore, useStudySession, useCelebrateCheckIn } from '../lib/store';
+import { useStore, useStudySession, useCelebrateCheckIn, useElapsedTimer } from '../lib/store';
 import { sample, shuffle } from '../lib/shuffle';
 import { isCorrectAnswer, pickSpellingPrompt, type SpellingPrompt } from '../lib/answers';
 import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
@@ -24,6 +24,8 @@ export default function Spelling() {
   const inputRef = useRef<HTMLInputElement>(null);
   // 开始做题后才计时（筛选/准备阶段不计）
   useStudySession(round.length > 0);
+  // 每题用时（随 XP 事件上报）。起点在 start() 与每次 next()，结算在 submit()。
+  const timer = useElapsedTimer();
 
   const onPaperChange = (p: string) => {
     setPaper(p);
@@ -50,7 +52,8 @@ export default function Spelling() {
     setRevealed(false);
     setCorrect(null);
     setScore(0);
-  }, [filtered]);
+    timer.reset(); // 第一题的用时从此刻起算，不含前面的筛选/准备
+  }, [filtered, timer]);
 
   const current = round[idx];
 
@@ -66,7 +69,8 @@ export default function Spelling() {
     setCorrect(ok);
     setRevealed(true);
     if (ok) setScore((s) => s + 1);
-    recordItem(current.id, ok, 'spelling');
+    // lap() 结算并重置：本题用时 = 从上一题起点到此刻
+    recordItem(current.id, ok, 'spelling', { elapsedMs: timer.lap() });
   };
 
   const next = () => {
@@ -74,6 +78,8 @@ export default function Spelling() {
     setInput('');
     setRevealed(false);
     setCorrect(null);
+    // 看答案与解析、再点按钮的这段时间不该算进下一题的作答用时
+    timer.reset();
   };
 
   if (vocab.length === 0) {
@@ -163,7 +169,7 @@ export default function Spelling() {
         </div>
 
         {!revealed && (
-          <button className="ghost" style={{ marginTop: '0.4rem', fontSize: '0.85rem' }} onClick={() => { setRevealed(true); setCorrect(false); recordItem(current.id, false, 'spelling'); }}>
+          <button className="ghost" style={{ marginTop: '0.4rem', fontSize: '0.85rem' }} onClick={() => { setRevealed(true); setCorrect(false); recordItem(current.id, false, 'spelling', { elapsedMs: timer.lap() }); }}>
             不会，看答案
           </button>
         )}

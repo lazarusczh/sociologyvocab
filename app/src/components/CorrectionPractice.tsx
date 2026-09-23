@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState } from 'react';
-import { useStore, useStudySession } from '../lib/store';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useStore, useStudySession, useElapsedTimer } from '../lib/store';
 import type { Quiz, QuizSubmission, VocabItem, QuizQuestion, CorrectionResult } from '../lib/types';
 import { extractWrongItemIds, buildCorrectionQuestions, totalPoints, correctionBonus, applyGradingRules, isAnswerCorrect } from '../lib/quiz';
 import { getMySubmission, saveCorrection } from '../lib/cloud';
@@ -55,6 +55,12 @@ export default function CorrectionPractice({ quiz, submission, onDone, onCancel 
 
   // 订正答题期间计入每日打卡学习时长（与题量计入口径一致）
   useStudySession(questions.length > 0);
+  // 整套订正的作答用时（提交时按题数均摊后随事件上报）。
+  const timer = useElapsedTimer();
+  // 本组件没有显式的「开始」动作，题到即算开始，故用 effect 跟随题目装载来重置计时。
+  useEffect(() => {
+    if (questions.length > 0) timer.reset();
+  }, [questions.length, timer]);
 
   if (questions.length === 0) {
     return (
@@ -112,9 +118,12 @@ export default function CorrectionPractice({ quiz, submission, onDone, onCancel 
     const grading = applyGradingRules(quiz, submission, bonus);
     try {
       await saveCorrection(submission.id, correction, grading);
-      // 订正结果计入打卡/掌握度/错题本（只在云端保存成功后）
+      // 订正结果计入打卡/掌握度/错题本（只在云端保存成功后）。
+      // 用时**均摊**到每题：订正是统一提交的，无法分辨每题各花多久；
+      // 均摊保证本次订正的总时长不失真。
+      const perMs = Math.max(0, Math.round(timer.lap() / Math.max(1, questions.length)));
       for (const qq of questions) {
-        recordItem(qq.itemId, isAnswerCorrect(qq, fullAnswers[qq.itemId]), qq.type);
+        recordItem(qq.itemId, isAnswerCorrect(qq, fullAnswers[qq.itemId]), qq.type, { elapsedMs: perMs });
       }
       // 回读最新记录（含 correction/grading）后回调
       let updated: QuizSubmission = { ...submission, correction, grading };

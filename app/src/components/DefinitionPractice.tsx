@@ -6,7 +6,7 @@
 //   3. 结果写进掌握度与打卡（recordItem → 自动计入当日题数与错题本），作答日志落 definition_attempts；
 //   4. 挂 Beta 入口，先在日常打卡训练里跑，一段时间检验合格后再进作业。
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useStore, useStudySession, useCelebrateCheckIn } from '../lib/store';
+import { useStore, useStudySession, useCelebrateCheckIn, useElapsedTimer } from '../lib/store';
 import { loadDefinitionItems, saveDefinitionAttempt, submitDefinitionDispute, type DefinitionItem } from '../lib/definition';
 import { gradeDefinition, SOURCE_LABEL, type GradeResult, type Verdict } from '../lib/ai';
 import { normalizeKey } from '../lib/answers';
@@ -67,6 +67,13 @@ export default function DefinitionPractice() {
   useStudySession(phase === 'answering' || phase === 'grading');
   useCelebrateCheckIn(phase === 'done');
 
+  // 本题用时计时器（随 XP 事件上报为 elapsed_ms）。
+  // ⚠ 只用 peek/reset、**不用 lap** —— 定义题的用时必须在「点击提交」那一刻取
+  //   （判分等待是服务端响应时间，不算学生投入），但此刻**不能重置**：
+  //   万一判分失败学生要重答，那段重答时间得继续累加（约定：累计本题所有 answering 段，
+  //   判分失败是系统问题、不该让学生损失时长）。只有上报真的成功了才 reset。
+  const timer = useElapsedTimer();
+
   const load = useCallback(async () => {
     setLoadErr('');
     setPhase('loading');
@@ -118,8 +125,9 @@ export default function DefinitionPractice() {
     setErrMsg('');
     setShowHint(false);
     setStats({ correct: 0, partial: 0, wrong: 0 });
+    timer.reset(); // 新的一轮：计时从第一题呈现时算起
     setPhase('answering');
-  }, [scoped, vocabByTerm]);
+  }, [scoped, vocabByTerm, timer]);
 
   const cur = round[idx];
   const reqCount = cur ? cur.item.keypoints.filter((k) => k.kind !== 'example').length : 0;
@@ -132,6 +140,9 @@ export default function DefinitionPractice() {
 
   const submit = useCallback(async () => {
     if (!cur || !answer.trim()) return;
+    // 本题用时：**必须在进入 grading 之前取**，判分等待是服务端响应时间、不算学生投入。
+    // 此处只 peek 不 reset：万一判分失败学生要重答，那段重答时间得继续累加。
+    const elapsedMs = timer.peek();
     setPhase('grading');
     setErrMsg('');
     try {
@@ -143,15 +154,16 @@ export default function DefinitionPractice() {
       );
       setGrade(res);
       setStats((s) => ({ ...s, [res.verdict]: s[res.verdict] + 1 }));
-      // 计分：correct = 1 题、partial = 0.5 题（计入正确率，掌握度不变、不进错题本）、wrong = 0 题
-      // XP-C 待办（2026-09-22）：上报事件时还须带 **elapsed_ms（仅 answering 阶段的作答用时）**。
-      //   现状 `recordItem` 的 opts 只有 `score`（见 lib/store.tsx）⇒ 需 XP 体系会话扩展 opts
-      //   增加 `elapsedMs`，本处再传入。**`mode='definition'` 与 `score`（1 / 0.5 / 0）已天然满足**
-      //   方案要求（VERDICT_SCORE 正是 1 / 0.5 / 0），无需改动。
-      //   注意 elapsed_ms 是**每题一次**（与本题的 recordItem 一一对应），不是整轮。
+      // 计分：correct = 1 题、partial = 0.5 题（计入正确率、掌握度不变、不进错题本）、wrong = 0 题。
+      // elapsed_ms 是**每题一次**（与本题的 recordItem 一一对应），不是整轮，
+      // 取自上面「题目呈现 → 点击提交」那段 answering 用时。
       if (cur.vocabId) {
-        recordItem(cur.vocabId, res.verdict === 'correct', 'definition', { score: VERDICT_SCORE[res.verdict] });
+        recordItem(cur.vocabId, res.verdict === 'correct', 'definition', {
+          score: VERDICT_SCORE[res.verdict],
+          elapsedMs,
+        });
       }
+      timer.reset(); // 已上报 ⇒ 本题计时归零（判分失败走不到这里，故重答时间得以保留）
       // 作答日志：拿到 id 才能支持「我认为判错了」的质疑；restate 一并存档（教师复核时能看到模型的理解）
       void saveDefinitionAttempt({
         itemId: cur.item.id,
@@ -168,9 +180,11 @@ export default function DefinitionPractice() {
       setPhase('graded');
     } catch (e) {
       setErrMsg(e instanceof Error ? e.message : String(e));
+      // 判分失败：**故意不 reset 计时器** —— 学生重答的时间继续累计到本题，
+      // 下次提交时一并上报（判分失败是系统问题，不该让学生损失时长）。
       setPhase('answering');
     }
-  }, [cur, answer, recordItem]);
+  }, [cur, answer, recordItem, timer]);
 
   const next = useCallback(() => {
     if (idx + 1 >= round.length) {
@@ -186,8 +200,9 @@ export default function DefinitionPractice() {
     setDisputeNote('');
     setDisputeState('idle');
     setDisputeErr('');
+    timer.reset(); // 切到下一题：重新开始计本题用时
     setPhase('answering');
-  }, [idx, round.length]);
+  }, [idx, round.length, timer]);
 
   // 提交质疑：写进该次作答记录（后台复核面板会优先显示被质疑的）
   const sendDispute = useCallback(async () => {

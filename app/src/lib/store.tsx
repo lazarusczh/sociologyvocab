@@ -24,7 +24,7 @@ import { pullCloudData, pushCloudData, mergeStudentData, type CloudStudentData, 
 // XP 体系（C 档）：事件构造与本地队列。设计与契约见《XP-C档改造方案.md》。
 // 这里只做「产出一条事件并入队」，不做任何算分 —— 算分全在服务端，
 // 故改分值不必发前端版本，也不会出现新旧客户端口径分叉。
-import { buildAnswerEvent } from './xp';
+import { buildAnswerEvent, buildChainCompleteEvent, type ChainMode, type ChainKind } from './xp';
 import { enqueueXpEvents, requestXpFlush, startXpSync } from './xpQueue';
 
 const STUDY_TICK_SECONDS = 10;
@@ -71,7 +71,19 @@ interface StoreValue {
   moveUnit: (paper: string, sub: string, name: string, dir: -1 | 1) => void;
   renameUnit: (paper: string, sub: string, oldName: string, newName: string) => void;
   // 进度操作
-  recordItem: (itemId: string, correct: boolean, mode: PracticeMode, opts?: { score?: number }) => void;
+  recordItem: (
+    itemId: string,
+    correct: boolean,
+    mode: PracticeMode,
+    opts?: { score?: number; elapsedMs?: number; sessionId?: string; skipXp?: boolean },
+  ) => void;
+  // 逻辑接龙「走完整条线」时调用：只发 XP，不记题数（每步的题数/掌握度已由 recordItem 记过）
+  recordChainComplete: (p: {
+    itemId: string;
+    sessionId: string;
+    chainMode: ChainMode;
+    chainKind: ChainKind;
+  }) => void;
   resetProgress: () => void;
   // 打卡
   beginStudy: () => void;
@@ -484,7 +496,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       itemId: string,
       correct: boolean,
       mode: PracticeMode,
-      opts?: { score?: number; elapsedMs?: number; sessionId?: string },
+      opts?: { score?: number; elapsedMs?: number; sessionId?: string; skipXp?: boolean },
     ) => {
       const score = opts?.score ?? (correct ? 1 : 0);
       setProgress((prev) => {
@@ -506,7 +518,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
       // XP 事件：入队 + 节流补报。**不 await** —— 练习节奏不能被网络拖慢。
       // 未登录（游客）不入队：XP 按 auth.uid() 归属，服务端会拒绝匿名写入。
-      if (authUser) {
+      //
+      // opts.skipXp 供「逻辑接龙」使用：它每一步都要记（掌握度 / 题数 / 错题本），
+      // 但**不能每步发 XP** —— 分值只在走完整条线时结算一次（见方案 §2.1.1）。
+      // 凭借这一点，「回退刷分」（undoStep 不撤销已发的分）与「绕远刷分」
+      // （无步数上限地走相邻概念）两个漏洞**自动失效**，无需再单独修代码。
+      if (authUser && !opts?.skipXp) {
         enqueueXpEvents(
           [
             buildAnswerEvent({
@@ -522,6 +539,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         );
         requestXpFlush();
       }
+    },
+    [authUser],
+  );
+
+  // 逻辑接龙「走完整条线」时调用。**只发 XP，不记题数**：
+  // 每一步的题数 / 掌握度 / 错题本已由 recordItem 记过，这里再记一次会重复计数
+  // （那会虚增打卡题数、又让掌握度的 loss 翻倍）。
+  // 分值由服务端按 chain_mode / chain_kind 查表得出，客户端不指定数值。
+  const recordChainComplete = useCallback(
+    (p: { itemId: string; sessionId: string; chainMode: ChainMode; chainKind: ChainKind }) => {
+      if (!authUser) return;
+      enqueueXpEvents([buildChainCompleteEvent(p)], authUser.id);
+      requestXpFlush();
     },
     [authUser],
   );
@@ -661,6 +691,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     moveUnit,
     renameUnit,
     recordItem,
+    recordChainComplete,
     resetProgress,
     beginStudy,
     endStudy,
@@ -717,4 +748,41 @@ export function useCelebrateCheckIn(finished: boolean): void {
     if (finished && !prev.current) celebrateCheckIn();
     prev.current = finished;
   }, [finished, celebrateCheckIn]);
+}
+
+// 每题用时计时器。设计成 hook 而不是让 8 个练习组件各自记时间戳，是因为
+// 「下一题时重置」这一步极容易漏 —— 一旦漏掉，后面每一题都会把前面几题的时间
+// 累计进去，服务端就会看到几十秒的异常用时。
+//
+// 三个方法，对应两种用法：
+//   · `lap()`  —— **结算并重置**。绝大多数题型用这个（做完一题就取一次）。
+//   · `peek()` —— 只读不重置。
+//   · `reset()` —— 归零。
+//
+// 为什么要拆出 peek/reset 两种语义（而不是只有 lap）：**定义题**的用时必须在
+// 「点击提交」那一刻取（`peek`），因为判分等待是服务端响应时间、不该算学生投入；
+// 但此时还不能重置 —— 万一判分失败、学生要重答，那段重答时间得继续累加
+// （约定：累计本题所有 answering 段，判分失败是系统问题，不该让学生损失时长）。
+// 只有等上报真的成功了才 `reset()`。
+export function useElapsedTimer(): {
+  lap: () => number;
+  peek: () => number;
+  reset: () => void;
+} {
+  const t0 = useRef(Date.now());
+  // 用 ref 存这套方法，保证返回的引用**永远稳定**（否则每个渲染都是新对象，
+  // 依赖它的 useCallback 会全部失效）。
+  const api = useRef({
+    lap: () => {
+      const now = Date.now();
+      const ms = now - t0.current;
+      t0.current = now;
+      return ms;
+    },
+    peek: () => Date.now() - t0.current,
+    reset: () => {
+      t0.current = Date.now();
+    },
+  });
+  return api.current;
 }

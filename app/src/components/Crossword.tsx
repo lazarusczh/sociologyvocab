@@ -8,7 +8,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type FormEvent as ReactFormEvent,
 } from 'react';
-import { useStore, useStudySession, useCelebrateCheckIn } from '../lib/store';
+import { useStore, useStudySession, useCelebrateCheckIn, useElapsedTimer } from '../lib/store';
 import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
 import { generateCrossword, type GeneratedCrossword, type Clue } from '../lib/crossword';
 
@@ -39,6 +39,8 @@ export default function Crossword() {
   const [confirmLeave, setConfirmLeave] = useState<null | 'back' | 'regenerate'>(null);
   // 开始做题后才计时（筛选/准备阶段不计）
   useStudySession(puzzle != null);
+  // 本盘用时（reveal 结算时按线索数均摊后随事件上报）。
+  const timer = useElapsedTimer();
 
   // 显示答案（本局结束）时触发一次「打卡成功」达标检查（达标才弹）
   useCelebrateCheckIn(revealed);
@@ -70,7 +72,8 @@ export default function Crossword() {
     const p = generateCrossword(filtered, 8);
     setPuzzle(p);
     if (!p) setMsg('当前词库中可用的单词太少，无法生成填字。请换个主题或类型。');
-  }, [filtered]);
+    else timer.reset(); // 本盘用时从生成成功那一刻起算
+  }, [filtered, timer]);
 
   // 每个格子所属单词的横/纵方向集合（用于自动推进判断：只属于一个词的格子才能沿该方向推进）
   const cellDirs = useMemo(() => {
@@ -296,8 +299,13 @@ export default function Crossword() {
     // 一次性结算全部线索（在覆盖答案前按学生当前填写判定对错），只结算一次
     if (!settledRef.current) {
       settledRef.current = true;
+      // 用时**均摊**到每条线索：整盘是一起结算的，无法分辨每条线索各花了多久。
+      // 均摊保证本盘总时长不失真，代价是单条线索的用时不准 —— 但「一起结算」本就无从精确。
+      const total = timer.lap();
+      const clueCount = Math.max(1, puzzle.clues.filter((cl) => cl.id).length);
+      const perMs = Math.max(0, Math.round(total / clueCount));
       for (const cl of puzzle.clues) {
-        if (cl.id) recordItem(cl.id, clueIsCorrect(cl), 'crossword');
+        if (cl.id) recordItem(cl.id, clueIsCorrect(cl), 'crossword', { elapsedMs: perMs });
       }
     }
     const full: Record<string, string> = {};

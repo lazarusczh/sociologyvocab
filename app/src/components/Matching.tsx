@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { useStore, useStudySession, useCelebrateCheckIn } from '../lib/store';
+import { useStore, useStudySession, useCelebrateCheckIn, useElapsedTimer } from '../lib/store';
 import { sample, shuffle } from '../lib/shuffle';
 import { maskAnswer } from '../lib/answers';
 import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
@@ -23,6 +23,8 @@ export default function Matching() {
   const timeoutRef = useRef<number | null>(null);
   // 开始做题后才计时（筛选/准备阶段不计）
   useStudySession(left.length > 0);
+  // 每对用时（随 XP 事件上报）。起点在 start() 与每次配对判定后，结算在判定那一刻。
+  const timer = useElapsedTimer();
 
   const onPaperChange = (p: string) => {
     setPaper(p);
@@ -51,24 +53,28 @@ export default function Matching() {
     setMatched(new Set());
     setWrongPair(null);
     setMistakes(0);
-  }, [filtered]);
+    timer.reset(); // 第一对的用时从此刻起算
+  }, [filtered, timer]);
 
   // 无论先点左栏还是右栏，两侧都选中后即判定
   useEffect(() => {
     if (!selLeft || !selRight) return;
+    // lap() 结算并重置：这一对的用时 = 从上一对判定完到此刻。
+    // （配对是「选左 + 选右」两次点击合成一次作答，所以整盘 6 对的用时之和就是这一盘的作答时间。）
+    const elapsedMs = timer.lap();
     if (selLeft === selRight) {
       setMatched((prev) => new Set(prev).add(selLeft));
-      recordItem(selLeft, true, 'matching');
+      recordItem(selLeft, true, 'matching', { elapsedMs });
     } else {
       setWrongPair([selLeft, selRight]);
       setMistakes((m) => m + 1);
-      recordItem(selRight, false, 'matching');
+      recordItem(selRight, false, 'matching', { elapsedMs });
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = window.setTimeout(() => setWrongPair(null), 600);
     }
     setSelLeft(null);
     setSelRight(null);
-  }, [selLeft, selRight, recordItem]);
+  }, [selLeft, selRight, recordItem, timer]);
 
   const clickLeft = (lid: string) => {
     if (matched.has(lid)) return;
