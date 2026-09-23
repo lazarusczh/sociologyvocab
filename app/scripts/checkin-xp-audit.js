@@ -85,6 +85,11 @@
       name: r.data?.name || '',
       email: r.email,
       userId: r.user_id,
+      // ⚠⚠ `updatedAt` 是**死字段，不要用它判断活跃**（2026-09-23 同一坑踩了两次）：
+      //   `student_data` 上**没有任何 trigger**，`updated_at` 无人维护 ——
+      //   实测它停在 `2026-09-01` 不动的这三周里，学生**每天**都有练习记录
+      //   （09-22 有 2 人、09-21 有 7 人、09-19 有 8 人）。
+      //   ⇒ 判断活跃请用下面的 `lastDay` / `recordedDays`（都源自 `checkin.study`）。
       updatedAt: r.updated_at ?? '',
       // 汇总
       recordedDays: days.length,            // 有练习记录的天数
