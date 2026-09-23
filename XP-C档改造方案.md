@@ -1043,6 +1043,79 @@ select user_id, data->'checkin'->'makeup' as makeup
 ⚠ 注意：库里的数据比审计 JSON **新一天**（JSON 导出于 09-21，库到 09-22）
 ⇒ **导入应以库为准，不要用那份 JSON。**
 
+### ⚠ 导入的时序要求：**幂等 + 上线当天最后跑一次**（2026-09-23 定义题会话补充）
+
+基线源是**活数据** —— 学生在上线前会继续同步 `checkin`。所以两种写法都不安全：
+
+| 写法 | 问题 |
+|---|---|
+| 只在上线**前一天**导一次 | 之后（直到上线为止）的练习仍 `< 上线日`，会**漏掉** |
+| 只在**上线当天**跑、但语句无日期上限 | 上线当天**已被事件记录**的部分会**双计** |
+
+**⇒ 两个条件必须同时满足**：语句自带 `day_key < 上线日` 的硬上限 **+** `upsert` 幂等
+**+** 在上线当天跑最后一遍。
+
+```sql
+-- 幂等导入（可反复执行，结果一致）。:launch_day 由教师确定的上线日期传入。
+insert into public.checkin_baselines (user_id, day_key, questions, seconds, correct)
+select s.user_id::uuid,
+       kv.key::date,
+       coalesce((kv.value->>'questions')::int, 0),
+       coalesce((kv.value->'seconds')::int, 0),        -- 注意：integer 字段用 -> 即可
+       coalesce((kv.value->>'correct')::numeric, 0)
+  from public.student_data s
+  cross join lateral jsonb_each(coalesce(s.data->'checkin'->'study', '{}'::jsonb)) kv
+ where kv.key < :launch_day                            -- ★ 硬上限：绝不吃到上线当天及以后
+   and not exists (
+     select 1 from public.user_roles r
+      where r.user_id = s.user_id::uuid
+        and r.role in ('teacher', 'developer'))        -- ★ 排除教职工与测试号
+on conflict (user_id, day_key) do update               -- ★ 幂等：重跑覆盖而非累加
+  set questions = excluded.questions,
+      seconds   = excluded.seconds,
+      correct   = excluded.correct;
+```
+
+**实测（2026-09-23，只跑 select 不写入）**：`jsonb_each` 在本库**可用**；
+不设排除时 **125 行 / 20 人**，排除 staff 后 **101 行 / 18 人**。
+目标表 `checkin_baselines` 当前 **0 行**。
+
+### 排除判据要统一（一处小一致性隐患）
+
+**现状**：`TeacherCheckPanel` 只按 `role = 'developer'` 排除（`TeacherCheckPanel.tsx:189`）。
+
+**实测 `user_roles`（2026-09-23）共 5 条**：
+
+| 账号 | 角色 |
+|---|---|
+| `test.student@example.com` | `developer` |
+| `abc@example.com` | `developer` + `student` |
+| `chenzh@dtd-edu.cn` | `developer` + `teacher` |
+| *（`jinmy@student.dtd-edu.cn` 等真实学生）* | **无角色记录** |
+
+⇒ **唯一的 `teacher` 同时也是 `developer`**，故「按 `developer`」与「按 `teacher|developer`」
+**去重后都是同一批 3 个人，现状完全等价**。
+
+**但判据应当统一**，否则将来出现「只有 `teacher`、没有 `developer`」的账号时会分叉。
+
+- **本方案的导入与 RPC 一律按 `role in ('teacher','developer')`** —— 语义更正确：排除一切教职工；
+- **建议 `TeacherCheckPanel` 的排除也收紧为同一判据**（现状等价、不急，
+  随第④步的前端改动一起做即可）。
+
+**被补签两人的归属**（导入时对照）：`chenzh` = `developer + teacher` ⇒ **排除**；
+`jinmy` = **无角色记录** ⇒ **保留**。
+
+### 上线判据清单（教师定日期时逐条核对）
+
+| # | 判据 |
+|---|---|
+| 1 | 上线时点选在**当天较早**、学生尚未开始练习（把「旧版练习不计」的损失压到最小）|
+| 2 | **无并行封包**（避免版本号冲突）|
+| 3 | **版本号未被用过**（比对 APK 产物与 `build.gradle` 的修改时间，见 `project-memory`）|
+| 4 | 走完整 **`npm run ship`**（改动落在 `app/src/**`，不能只 `wrangler deploy`）|
+| 5 | 上线前跑**最后一遍导入**（幂等，可重复执行）|
+| 6 | 上线后验证：① 线上 `assets/index-*.js` 出现新特征串；② `xp_events` **开始出现新行** |
+
 ### ⚠ 该库缺失的函数（环境坑）
 
 `jsonb_object_length(jsonb)` **不存在**（尽管 `version()` 报 PostgreSQL 15.8，
