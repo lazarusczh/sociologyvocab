@@ -521,7 +521,9 @@ create table if not exists public.checkin_baselines (
    - `recordItem` 产出事件（含 `event_id`、`elapsed_ms`、`answered_at`、`session_id`）；
    - 离线队列 + 联网补报；
    - 等级/经验条改为读 `get_xp_summary`（不再读本地 XP）；
-4. **打卡判定切到服务端**：等级 UI 与打卡页读 `v_daily_study` + `checkin_baselines`；
+4. **打卡判定切到服务端**：等级 UI 与打卡页读 `get_daily_study()`（**RPC，不是视图** —— 理由见 §9.2）
+   + `checkin_baselines`（历史基线），两者**按 `day_key` 求和**（不是取 max）；
+   ⚠ 此处原先写的 `v_daily_study` 是早期版本的说法，**已废弃**，实际实现是 RPC。
 5. **同步调门槛**：时长 10 → 7 分钟（§8）；
 6. **双跑验证期**（建议 3~5 天）：本地算一份、服务端算一份，**对比差异**，
    差异大的学生逐个看是被哪道防线挡掉还是算错；

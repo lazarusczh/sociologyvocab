@@ -13,7 +13,8 @@
 --   ② xp_of()              服务端算分（XP 表的唯一实现）
 --   ③ submit_xp_events()   上报入口（9 道防线；**只截断、不拒收**）
 --   ④ get_xp_summary()     总 XP 出口（学生端与教师端共用，防口径分叉）
---   ⑤ get_daily_study()    每日打卡聚合（替代视图，见末尾说明）
+--   ⑤ get_daily_study()    每日打卡聚合（**替代视图**，见末尾说明）
+--   ⑥ checkin_baselines    历史打卡基线（一次性迁移，之后只读）
 -- ============================================================================
 
 
@@ -492,6 +493,50 @@ grant execute on function public.get_daily_study(uuid, date, date) to authentica
 
 comment on function public.get_daily_study(uuid, date, date) is
   '每日练习聚合（打卡判定用）。用 RPC 而非视图，避免视图绕过 RLS。';
+
+
+-- ============================================================================
+-- ⑥ checkin_baselines：历史打卡基线（一次性迁移，之后只读）
+--
+-- 为什么需要它：打卡判定要切到服务端（`get_daily_study` 从 xp_events 聚合），
+--   但事件流水是**从上线那天才开始记的** —— 在此之前学生已积累了大量打卡记录
+--   （2026-09-21 的审计导出：20 条记录 / 105 个练习日）。若不迁移，
+--   上线当天全体学生的「历史打卡」会集体归零，streak 与月度全勤都会断掉。
+--
+-- 口径：服务端最终值 = 本表 + `get_daily_study` 的当日值，**按 day_key 合并求和**
+--   （**不是取 max** —— 同一天可能既有历史基线、又有上线后的新事件）。
+--
+-- 数据来源：`checkin-xp-audit-2026-09-21.json`（逐日 questions / seconds / correct）。
+--   由脚本生成 INSERT，**一次性导入、之后只读**。
+-- ============================================================================
+create table if not exists public.checkin_baselines (
+  user_id   uuid         not null,
+  day_key   date         not null,
+  questions integer      not null default 0,
+  seconds   integer      not null default 0,
+  correct   numeric(6,2) not null default 0,
+  primary key (user_id, day_key)
+);
+
+-- RLS 与 xp_events 同口径：学生只读自己的，教师/开发者可读全校。
+-- 历史基线**不接受客户端写入**（只由迁移脚本导入），因此不设任何写策略。
+alter table public.checkin_baselines enable row level security;
+
+drop policy if exists checkin_baselines_read_own on public.checkin_baselines;
+create policy checkin_baselines_read_own on public.checkin_baselines
+  for select using (auth.uid() = user_id);
+
+drop policy if exists checkin_baselines_read_staff on public.checkin_baselines;
+create policy checkin_baselines_read_staff on public.checkin_baselines
+  for select using (exists (
+    select 1 from public.user_roles r
+     where r.user_id = auth.uid() and r.role in ('teacher','developer')));
+
+revoke truncate, references, trigger on public.checkin_baselines from authenticated;
+revoke all on public.checkin_baselines from anon;
+
+comment on table public.checkin_baselines is
+  '历史打卡基线（2026-09-21 审计导出一次性迁移，之后只读）。服务端口径 = 本表 + xp_events 当日聚合，按 day_key 求和。';
 
 
 -- ============================================================================
