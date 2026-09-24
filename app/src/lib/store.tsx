@@ -771,36 +771,67 @@ export function useElapsedTimer(): {
 } {
   const t0 = useRef(Date.now());
 
-  // ★ 页面隐藏期间**不计时**（2026-09-24 实测发现的真问题）
+  // ★ 离开页面期间**不计时**（2026-09-24 实测发现的真问题 + 当日晚些时候按教师判断扩展）
   //
-  // 计时从「题目呈现」起算，学生若在题目呈现后切标签 / 锁屏 / 关掉页面，
-  // **离开的那段时间会被算进该题**。实测两条真实记录：
-  //   6,938,167ms（115.6 分）与 8,820,004ms（147 分），
+  // 计时从「题目呈现」起算，学生若在题目呈现后离开，**离开的那段时间会被算进该题**。
+  // 实测两条真实记录：6,938,167ms（115.6 分）与 8,820,004ms（147 分），
   // 与它们各自**前一题的 `answered_at` 间隔逐毫秒吻合** —— 正是「离开页面」的时长。
   // 后果：打卡时长**虚高** ⇒ 未达标被算成达标。
   //
-  // 做法：隐藏时记下时刻，恢复可见时把这段时长**补回 `t0`**
-  // ⇒ 等价于「时钟在隐藏期间停摆」，`lap()`/`peek()` 只统计可见时间。
+  // ── 判据用「离开多久」而不是「是否离开」（教师 2026-09-24 的判断，成立）──
+  //   切走查个词是**秒级**，真的走开是**小时级** ⇒ 用一个较大的阈值就能精准区分，
+  //   而且**不会把"查词那 30 秒"也从学习时间里扣掉**（那也是在学）。
+  //   若改成"一失焦就不计"，等于惩罚正常的分屏/查词，反而**低估**学生投入。
+  //
+  // ── 覆盖范围：`hidden` 与 `blur` 合并为同一件事 ──
+  //   · `document.hidden`  —— 切标签 / 最小化 / 锁屏
+  //   · `window` 失焦       —— **切到别的窗口 / 分屏**（此时 hidden 仍为 false！）
+  //     后者是原先只监听 `visibilitychange` 时漏掉的一半，也是那个 42 倍 bug 的可能来源；
+  //     APK（Capacitor WebView）内切到别的 App 时是否置 `hidden` 依实现而定，`blur` 更可靠。
+  //   两者用**同一个状态**判断（`hidden || !hasFocus()`），避免出现
+  //   「切标签立刻扣、切窗口反而不扣」这种难以向学生解释的行为。
+  //
+  // ── 实现：**不在离开时决定，而在回来时按阈值追认** ──
+  //   离开刚开始时**无法预知会持续多久**，所以离开时只记时刻；回来时算出总时长再判断：
+  //     away >  阈值  ⇒ 把这段**补回 `t0`**（等价"时钟停摆"，该段不计入）
+  //     away ≤  阈值  ⇒ 不动（照常计入 —— 短暂离开属于学习过程的一部分）
+  //   ⇒ 无需任何"实时暂停"机制，与原先的 hidden 逻辑同构，只是多了阈值。
+  //   ⚠ `< 1 秒的瞬时失焦`天然落在阈值内、会被忽略 —— 这条很必要：
+  //     移动端软键盘收起会误触发 `window.blur`（`QuizTaker` 早先已踩过这个坑）。
+  //
   // 服务端另有 30 分钟上限兜底（防旧版客户端与其它异常来源），两者互补：
   // 这里让数据**本来就准**，服务端那道防的是**漏网的**。
-  const hiddenAt = useRef(0);
+  const awayAt = useRef(0);
   useEffect(() => {
-    const onVisibility = () => {
-      if (document.hidden) {
-        hiddenAt.current = Date.now();
-      } else if (hiddenAt.current) {
-        t0.current += Date.now() - hiddenAt.current;
-        hiddenAt.current = 0;
+    /** 阈值：10 分钟。取大不取小的理由 —— 误扣是**伤信任**的方向
+     *  （学生以为练了半小时、系统只记两分钟），而"离开数小时"远超此值，照样拦得住。 */
+    const AWAY_THRESHOLD_MS = 10 * 60 * 1000;
+    const isAway = () => document.hidden || !document.hasFocus();
+
+    /** 结算一段离开：只有**超过阈值**的部分才补回起点（等于不计） */
+    const settle = () => {
+      if (!awayAt.current) return;
+      const away = Date.now() - awayAt.current;
+      awayAt.current = 0;
+      if (away > AWAY_THRESHOLD_MS) t0.current += away;
+    };
+
+    const check = () => {
+      if (isAway()) {
+        if (!awayAt.current) awayAt.current = Date.now();
+      } else {
+        settle();
       }
     };
-    document.addEventListener('visibilitychange', onVisibility);
+
+    document.addEventListener('visibilitychange', check);
+    window.addEventListener('blur', check);
+    window.addEventListener('focus', check);
     return () => {
-      document.removeEventListener('visibilitychange', onVisibility);
-      // 卸载时若仍处于隐藏状态，把这段也补掉，避免残值影响下一次挂载的判断
-      if (hiddenAt.current) {
-        t0.current += Date.now() - hiddenAt.current;
-        hiddenAt.current = 0;
-      }
+      document.removeEventListener('visibilitychange', check);
+      window.removeEventListener('blur', check);
+      window.removeEventListener('focus', check);
+      settle(); // 卸载时结算，避免残值影响下一次挂载
     };
   }, []);
 
