@@ -770,6 +770,40 @@ export function useElapsedTimer(): {
   reset: () => void;
 } {
   const t0 = useRef(Date.now());
+
+  // ★ 页面隐藏期间**不计时**（2026-09-24 实测发现的真问题）
+  //
+  // 计时从「题目呈现」起算，学生若在题目呈现后切标签 / 锁屏 / 关掉页面，
+  // **离开的那段时间会被算进该题**。实测两条真实记录：
+  //   6,938,167ms（115.6 分）与 8,820,004ms（147 分），
+  // 与它们各自**前一题的 `answered_at` 间隔逐毫秒吻合** —— 正是「离开页面」的时长。
+  // 后果：打卡时长**虚高** ⇒ 未达标被算成达标。
+  //
+  // 做法：隐藏时记下时刻，恢复可见时把这段时长**补回 `t0`**
+  // ⇒ 等价于「时钟在隐藏期间停摆」，`lap()`/`peek()` 只统计可见时间。
+  // 服务端另有 30 分钟上限兜底（防旧版客户端与其它异常来源），两者互补：
+  // 这里让数据**本来就准**，服务端那道防的是**漏网的**。
+  const hiddenAt = useRef(0);
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.hidden) {
+        hiddenAt.current = Date.now();
+      } else if (hiddenAt.current) {
+        t0.current += Date.now() - hiddenAt.current;
+        hiddenAt.current = 0;
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      // 卸载时若仍处于隐藏状态，把这段也补掉，避免残值影响下一次挂载的判断
+      if (hiddenAt.current) {
+        t0.current += Date.now() - hiddenAt.current;
+        hiddenAt.current = 0;
+      }
+    };
+  }, []);
+
   // 用 ref 存这套方法，保证返回的引用**永远稳定**（否则每个渲染都是新对象，
   // 依赖它的 useCallback 会全部失效）。
   const api = useRef({
