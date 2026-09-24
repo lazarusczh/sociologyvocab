@@ -99,12 +99,20 @@ export async function flushXpQueue(): Promise<{
   if (flushing) return { sent: 0, remaining: readQueue().length, failed: false };
   flushing = true;
   try {
+    // ⚠ 先清理 + 看队列，**再**取会话。心跳每 60 秒调一次，而队列绝大多数时候是空的，
+    //   把空判断提前即可省掉一次无谓的 getSession() 等待（它读本地 storage、不发请求，
+    //   但仍是 async）。**行为与原先等价** —— 过期事件照样在这里清掉并写回。
+    let queue = dropExpired(readQueue());
+    if (queue.length === 0) {
+      writeQueue(queue);
+      return { sent: 0, remaining: 0, failed: false };
+    }
+
     const { data } = await supabase.auth.getSession();
     const uid = data.session?.user?.id ?? '';
 
-    let queue = dropExpired(readQueue());
     // 未登录：保留队列等登录后再发（不丢，也不替别人发）
-    if (!uid || queue.length === 0) {
+    if (!uid) {
       writeQueue(queue);
       return { sent: 0, remaining: queue.length, failed: false };
     }
