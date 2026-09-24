@@ -30,7 +30,10 @@ export default function XpShadowPanel() {
 
   // 留空 = 查自己；填 uid = 查指定学生（developer 属 staff，服务端允许）
   const [targetUid, setTargetUid] = useState('');
-  const [days, setDays] = useState(30);
+  // ⚠ 默认 7 天，不要用 30：服务端事件从上线日才开始记，而基线只覆盖到上线前一天，
+  //   更早的日子本地有记录、服务端两边都没有 ⇒ 一律显示成差异，一片红反而看不出真正的问题。
+  //   7 天足以覆盖 "上线前 + 上线后" 的衔接区，也正好是一个自然的观察周期。
+  const [days, setDays] = useState(7);
   const [server, setServer] = useState<DailyStudy[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -97,9 +100,18 @@ export default function XpShadowPanel() {
         const localSec = l?.seconds ?? 0;
         const serverSec = s ? Math.round(s.ms / 1000) : 0;
 
-        // 判定不一致：达标状态不同，或（自己时）题数/时长明显不等
+        // ★ 「差异」只定义为**达标状态不同** —— 那才是第④步真正要切的东西。
         const checkMismatch = localChecked !== null && localChecked !== serverChecked;
-        const dataMismatch = lookingAtSelf && (localQ !== serverQ || Math.abs(localSec - serverSec) > 5);
+
+        // 题数不等：**独立的次级提示**（反映事件是否到齐：队列未发 / 被拒 / 游客）。
+        // 不并入「差异」，因为它与「达标口径不一致」是两种完全不同的问题。
+        const qtyDiff = lookingAtSelf && localQ !== serverQ;
+
+        // ⚠ 时长**不参与任何判定**。两侧口径结构性不同：
+        //   本地 `seconds` 由 useStudySession 每 10 秒累加（含看解析、停顿、走神）；
+        //   服务端 `ms` 是每题「呈现→提交」区间之和（next() 会 reset，不含看解析）。
+        //   ⇒ 它们本来就不该相等，拿差值当判据只会天天误报。
+        //   何况表格按分钟显示，差 6~59 秒时"显示相同却报差异"，最容易被误读成 bug。
 
         return {
           day,
@@ -111,7 +123,8 @@ export default function XpShadowPanel() {
           serverChecked,
           localMakeup: lMakeup,
           serverMakeup: sMakeup,
-          mismatch: checkMismatch || dataMismatch,
+          mismatch: checkMismatch,
+          qtyDiff,
         };
       });
   }, [checkin, server, serverAsState, days, lookingAtSelf]);
@@ -122,7 +135,8 @@ export default function XpShadowPanel() {
       total: rows.length,
       localChecked: both.filter((r) => r.localChecked).length,
       serverChecked: rows.filter((r) => r.serverChecked).length,
-      mismatch: rows.filter((r) => r.mismatch).length,
+      mismatch: rows.filter((r) => r.mismatch).length,   // 达标口径不一致
+      qtyDiff: rows.filter((r) => r.qtyDiff).length,     // 题数不等（事件未到齐）
       localDays: lookingAtSelf ? Object.keys(checkin.study).length : 0,
       serverDays: (server ?? []).length,
     };
@@ -131,7 +145,9 @@ export default function XpShadowPanel() {
   const pending = lookingAtSelf ? pendingXpCount() : 0;
 
   return (
-    <div className="card" style={{ marginBottom: '0.8rem' }}>
+    // ⚠ 必须带 marginTop：上一张卡片（Realtime 自检）的 marginBottom 为 0，
+    //   只写 marginBottom 会让两张卡片贴在一起（外边距折叠只在相邻 margin 间发生）。
+    <div className="card" style={{ marginTop: '0.8rem', marginBottom: '0.8rem' }}>
       <div className="row">
         <h3 style={{ margin: 0 }}>XP 双跑对照</h3>
         <span className="spacer" />
@@ -142,7 +158,9 @@ export default function XpShadowPanel() {
 
       <p className="muted" style={{ fontSize: '0.85rem', marginTop: '0.35rem' }}>
         并排显示<strong>本地算</strong>与<strong>服务端算</strong>的打卡结果。
-        切换判定前，差异只应来自「游客练习」与「离线未补报」两类；出现其它差异需逐个排查。
+        <strong>「达标不一致」只表示两边结论不同</strong>（那才是切换判定真正要保证一致的）；
+        「题数不等」单独标出，反映事件是否到齐（队列未发 / 被拒 / 游客）；
+        <strong>时长不参与判定</strong> —— 本地按页面停留累计、服务端按作答区间求和，口径不同，本就无法相等。
       </p>
 
       <div className="row tight" style={{ marginTop: '0.5rem', flexWrap: 'wrap' }}>
@@ -163,7 +181,7 @@ export default function XpShadowPanel() {
             min={1}
             max={400}
             value={days}
-            onChange={(e) => setDays(Math.max(1, Math.min(400, Number(e.target.value) || 30)))}
+            onChange={(e) => setDays(Math.max(1, Math.min(400, Number(e.target.value) || 7)))}
             style={{ width: '4.5rem' }}
           />
           天
@@ -181,8 +199,13 @@ export default function XpShadowPanel() {
         <span className="badge">本地达标 {summary.localChecked}</span>
         <span className="badge success">服务端达标 {summary.serverChecked}</span>
         <span className={summary.mismatch > 0 ? 'badge danger' : 'badge success'}>
-          不一致 {summary.mismatch}
+          达标不一致 {summary.mismatch}
         </span>
+        {lookingAtSelf && (
+          <span className={summary.qtyDiff > 0 ? 'badge warn' : 'badge'}>
+            题数不等 {summary.qtyDiff}
+          </span>
+        )}
         {lookingAtSelf && <span className="badge">本地记录 {summary.localDays} 天</span>}
         <span className="badge">服务端记录 {summary.serverDays} 天</span>
         {lookingAtSelf && (
@@ -215,18 +238,25 @@ export default function XpShadowPanel() {
               {rows.map((r) => (
                 <tr
                   key={r.day}
-                  style={r.mismatch ? { background: 'rgba(220, 80, 80, 0.12)' } : undefined}
+                  style={
+                    r.mismatch
+                      ? { background: 'rgba(220, 80, 80, 0.12)' }   // 红：达标结论不同（要查）
+                      : r.qtyDiff
+                        ? { background: 'rgba(230, 170, 40, 0.12)' } // 黄：题数不齐（事件未到）
+                        : undefined
+                  }
                 >
                   <td>{r.day}</td>
                   <td>{lookingAtSelf ? r.localQ : '—'}</td>
                   <td>{r.serverQ}</td>
-                  <td>{lookingAtSelf ? formatMin(r.localSec) : '—'}</td>
-                  <td>{formatMin(r.serverSec)}</td>
+                  <td>{lookingAtSelf ? formatDur(r.localSec) : '—'}</td>
+                  <td>{formatDur(r.serverSec)}</td>
                   <td>{r.localChecked === null ? '—' : r.localChecked ? '✔' : '✘'}</td>
                   <td>{r.serverChecked ? '✔' : '✘'}</td>
                   <td style={{ fontSize: '0.8rem' }}>
                     {r.localMakeup || r.serverMakeup ? <span className="badge">补签</span> : ''}
-                    {r.mismatch ? <span className="badge danger">差异</span> : ''}
+                    {r.mismatch ? <span className="badge danger">达标不一致</span> : ''}
+                    {r.qtyDiff ? <span className="badge warn">题数不等</span> : ''}
                   </td>
                 </tr>
               ))}
@@ -238,8 +268,15 @@ export default function XpShadowPanel() {
   );
 }
 
-/** 秒 → 「Xm」显示（面板只用于比对，不需要秒级精度） */
-function formatMin(sec: number): string {
-  if (!sec) return '0m';
-  return `${Math.floor(sec / 60)}m`;
+/** 秒 → 时长文本。≥2 分钟显示 `Xm`（带余秒），否则显示 `Xs`。
+ *
+ *  ⚠ 两侧时长口径不同（本地按页面停留累计、服务端按作答区间求和），**不参与判定**。
+ *     这里保留秒级精度，只是为了让「差多少」一眼可见 —— 之前只显示到分钟，
+ *     导致"显示相同却报差异"的困惑。 */
+function formatDur(sec: number): string {
+  if (!sec) return '0s';
+  if (sec < 120) return `${sec}s`;
+  const m = Math.floor(sec / 60);
+  const r = sec % 60;
+  return r ? `${m}m${r}s` : `${m}m`;
 }
