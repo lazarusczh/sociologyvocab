@@ -1,9 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useStore } from '../lib/store';
+import { supabase } from '../lib/supabase';
 import { fetchDailyStudy, type DailyStudy } from '../lib/xp';
 import { pendingXpCount } from '../lib/xpQueue';
 import { isDayChecked } from '../lib/checkin';
 import type { CheckInState } from '../lib/types';
+
+/** 学生下拉里的一项（姓名用于人眼辨认，uid 才是查询键） */
+interface StudentOption {
+  userId: string;
+  name: string;
+  email: string;
+}
 
 /**
  * XP「双跑对照」面板（开发后台内，仅 developer 可见）
@@ -29,6 +37,10 @@ export default function XpShadowPanel() {
   const { checkin, authUser } = useStore();
 
   // 留空 = 查自己；填 uid = 查指定学生（developer 属 staff，服务端允许）
+  // 学生下拉列表（姓名 + 邮箱 + uid）。★ 不给输入框而给列表：实际场景是「想看某个学生」，
+  // 而没人记得 uid —— 靠手输 uid 等于让这个面板用不了。
+  const [students, setStudents] = useState<StudentOption[]>([]);
+  const [studentsErr, setStudentsErr] = useState('');
   const [targetUid, setTargetUid] = useState('');
   // ⚠ 默认 7 天，不要用 30：服务端事件从上线日才开始记，而基线只覆盖到上线前一天，
   //   更早的日子本地有记录、服务端两边都没有 ⇒ 一律显示成差异，一片红反而看不出真正的问题。
@@ -57,6 +69,42 @@ export default function XpShadowPanel() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // 拉学生名单：口径与教师后台「打卡核验」一致 —— 教师身份已由 RLS 放行，
+  // 这里用当前登录 session 读全部 student_data，并**排除 developer 账号**
+  // （避免把测试号列进下拉；本面板的"自己"另有独立选项）。
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      try {
+        const { data: devRows } = await supabase.from('user_roles').select('user_id').eq('role', 'developer');
+        const devIds = new Set(((devRows ?? []) as { user_id: string }[]).map((d) => d.user_id));
+        const { data, error: err } = await supabase
+          .from('student_data')
+          .select('user_id, email, data')
+          .order('email', { ascending: true });
+        if (!alive) return;
+        if (err) {
+          setStudentsErr(err.message);
+          return;
+        }
+        setStudents(
+          ((data ?? []) as { user_id: string; email: string | null; data: { name?: string } | null }[])
+            .filter((r) => !devIds.has(r.user_id))
+            .map((r) => ({
+              userId: r.user_id,
+              name: r.data?.name || '(未命名)',
+              email: r.email ?? '',
+            })),
+        );
+      } catch (e) {
+        if (alive) setStudentsErr(e instanceof Error ? e.message : String(e));
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   // 把服务端逐日数据装进 CheckInState 形状，**复用 isDayChecked** ⇒ 门槛与本地完全一致
   const serverAsState: CheckInState = useMemo(() => {
@@ -165,14 +213,19 @@ export default function XpShadowPanel() {
 
       <div className="row tight" style={{ marginTop: '0.5rem', flexWrap: 'wrap' }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.85rem' }}>
-          目标 uid
-          <input
-            type="text"
+          查看
+          <select
             value={targetUid}
             onChange={(e) => setTargetUid(e.target.value)}
-            placeholder="留空 = 自己"
-            style={{ width: '17rem', fontFamily: 'monospace', fontSize: '0.8rem' }}
-          />
+            style={{ maxWidth: '24rem', fontSize: '0.85rem' }}
+          >
+            <option value="">我自己</option>
+            {students.map((s) => (
+              <option key={s.userId} value={s.userId}>
+                {s.name}（{s.email}）
+              </option>
+            ))}
+          </select>
         </label>
         <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.85rem' }}>
           近
@@ -191,6 +244,12 @@ export default function XpShadowPanel() {
       {error && (
         <p className="badge danger" style={{ marginTop: '0.5rem' }}>
           服务端读取失败：{error}
+        </p>
+      )}
+
+      {studentsErr && (
+        <p className="badge warn" style={{ marginTop: '0.5rem' }}>
+          学生名单读取失败（下拉里只有「我自己」）：{studentsErr}
         </p>
       )}
 
