@@ -11,6 +11,23 @@ interface StudentOption {
   userId: string;
   name: string;
   email: string;
+  /** 该生上传的**本地口径快照**（`student_data.data.checkin`）。
+   *  ★ 这是查看学生时"本地侧"的**唯一来源** —— `useStore().checkin` 只有自己那份，
+   *    拿它去比学生等于没在对比（这正是双跑实验的意义所在）。
+   *  ⚠ 它是**前端防抖上传的快照**（checkin 变化后 800ms 上传），可能滞后于该生本机状态。 */
+  checkin: CheckInState | null;
+}
+
+/** 把云端读到的 checkin 规范化成 CheckInState（云端可能缺字段 / 不是对象） */
+function normalizeCheckin(raw: unknown): CheckInState | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const r = raw as Partial<CheckInState>;
+  return {
+    study: (r.study ?? {}) as CheckInState['study'],
+    makeup: (r.makeup ?? {}) as CheckInState['makeup'],
+    earnedMakeupWeeks: Array.isArray(r.earnedMakeupWeeks) ? r.earnedMakeupWeeks : [],
+    bestStreak: typeof r.bestStreak === 'number' ? r.bestStreak : 0,
+  };
 }
 
 /**
@@ -52,6 +69,18 @@ export default function XpShadowPanel() {
 
   const lookingAtSelf = !targetUid.trim() || targetUid.trim() === authUser?.id;
 
+  // ★ 「本地侧」的数据来源：
+  //   查自己 ⇒ 本机 `useStore().checkin`（最实时，含尚未上传的部分）
+  //   查学生 ⇒ **该生上传到 `student_data` 的 checkin 快照**
+  //     ⚠ 这一侧曾经是显示 "—" 的 —— 那等于把双跑实验最重要的对比挖掉了：
+  //       双跑要比的正是「学生的本地口径 vs 服务端口径」，看不到本地就无从对比。
+  const selectedStudent = useMemo(
+    () => students.find((s) => s.userId === targetUid.trim()) ?? null,
+    [students, targetUid],
+  );
+  const viewerCheckin: CheckInState | null = lookingAtSelf ? checkin : selectedStudent?.checkin ?? null;
+  const hasLocal = !!viewerCheckin;
+
   const load = useCallback(async () => {
     setLoading(true);
     setError('');
@@ -89,12 +118,17 @@ export default function XpShadowPanel() {
           return;
         }
         setStudents(
-          ((data ?? []) as { user_id: string; email: string | null; data: { name?: string } | null }[])
+          ((data ?? []) as {
+            user_id: string;
+            email: string | null;
+            data: { name?: string; checkin?: unknown } | null;
+          }[])
             .filter((r) => !devIds.has(r.user_id))
             .map((r) => ({
               userId: r.user_id,
               name: r.data?.name || '(未命名)',
               email: r.email ?? '',
+              checkin: normalizeCheckin(r.data?.checkin),
             })),
         );
       } catch (e) {
@@ -124,8 +158,8 @@ export default function XpShadowPanel() {
   /** 逐日对照行：取两侧日期并集，降序，只保留最近 `days` 天 */
   const rows = useMemo(() => {
     const all = new Set<string>();
-    for (const k of Object.keys(checkin.study)) all.add(k);
-    for (const k of Object.keys(checkin.makeup)) all.add(k);
+    for (const k of Object.keys(viewerCheckin?.study ?? {})) all.add(k);
+    for (const k of Object.keys(viewerCheckin?.makeup ?? {})) all.add(k);
     for (const d of server ?? []) all.add(d.day_key);
 
     return [...all]
@@ -133,14 +167,14 @@ export default function XpShadowPanel() {
       .reverse()
       .slice(0, days)
       .map((day) => {
-        // 本地（只有查自己时才有意义）
-        const l = lookingAtSelf ? checkin.study[day] : undefined;
-        const lMakeup = lookingAtSelf ? !!checkin.makeup[day] : false;
+        // 本地侧（查学生时来自其上传快照；没有快照则为空）
+        const l = viewerCheckin?.study[day];
+        const lMakeup = !!viewerCheckin?.makeup[day];
         // 服务端
         const s = (server ?? []).find((x) => x.day_key === day);
         const sMakeup = !!s?.makeup;
 
-        const localChecked = lookingAtSelf ? isDayChecked(checkin, day) : null;
+        const localChecked = viewerCheckin ? isDayChecked(viewerCheckin, day) : null;
         const serverChecked = isDayChecked(serverAsState, day);
 
         const localQ = l?.questions ?? 0;
@@ -153,7 +187,7 @@ export default function XpShadowPanel() {
 
         // 题数不等：**独立的次级提示**（反映事件是否到齐：队列未发 / 被拒 / 游客）。
         // 不并入「差异」，因为它与「达标口径不一致」是两种完全不同的问题。
-        const qtyDiff = lookingAtSelf && localQ !== serverQ;
+        const qtyDiff = hasLocal && localQ !== serverQ;
 
         // ⚠ 时长**不参与任何判定**。两侧口径结构性不同：
         //   本地 `seconds` 由 useStudySession 每 10 秒累加（含看解析、停顿、走神）；
@@ -175,7 +209,7 @@ export default function XpShadowPanel() {
           qtyDiff,
         };
       });
-  }, [checkin, server, serverAsState, days, lookingAtSelf]);
+  }, [viewerCheckin, server, serverAsState, days, hasLocal]);
 
   const summary = useMemo(() => {
     const both = rows.filter((r) => r.localChecked !== null);
@@ -185,10 +219,10 @@ export default function XpShadowPanel() {
       serverChecked: rows.filter((r) => r.serverChecked).length,
       mismatch: rows.filter((r) => r.mismatch).length,   // 达标口径不一致
       qtyDiff: rows.filter((r) => r.qtyDiff).length,     // 题数不等（事件未到齐）
-      localDays: lookingAtSelf ? Object.keys(checkin.study).length : 0,
+      localDays: Object.keys(viewerCheckin?.study ?? {}).length,
       serverDays: (server ?? []).length,
     };
-  }, [rows, checkin, server, lookingAtSelf]);
+  }, [rows, viewerCheckin, server]);
 
   const pending = lookingAtSelf ? pendingXpCount() : 0;
 
@@ -210,6 +244,17 @@ export default function XpShadowPanel() {
         「题数不等」单独标出，反映事件是否到齐（队列未发 / 被拒 / 游客）；
         <strong>时长不参与判定</strong> —— 本地按页面停留累计、服务端按作答区间求和，口径不同，本就无法相等。
       </p>
+      {!lookingAtSelf && !hasLocal && (
+        <p className="badge warn" style={{ marginTop: '0.5rem' }}>
+          该生尚无可读的本地快照（`student_data.data.checkin` 为空）—— 从未登录同步过，或数据未上传。
+        </p>
+      )}
+      {!lookingAtSelf && hasLocal && (
+        <p className="muted" style={{ fontSize: '0.78rem', marginTop: '0.35rem' }}>
+          ⚠ 本地侧读的是该生**上传到云端的 checkin 快照**（防抖上传，可能滞后于其本机状态），
+          因此最近几分钟的练习可能还没体现在本地列。
+        </p>
+      )}
 
       <div className="row tight" style={{ marginTop: '0.5rem', flexWrap: 'wrap' }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.85rem' }}>
@@ -260,12 +305,12 @@ export default function XpShadowPanel() {
         <span className={summary.mismatch > 0 ? 'badge danger' : 'badge success'}>
           达标不一致 {summary.mismatch}
         </span>
-        {lookingAtSelf && (
+        {hasLocal && (
           <span className={summary.qtyDiff > 0 ? 'badge warn' : 'badge'}>
             题数不等 {summary.qtyDiff}
           </span>
         )}
-        {lookingAtSelf && <span className="badge">本地记录 {summary.localDays} 天</span>}
+        {hasLocal && <span className="badge">本地记录 {summary.localDays} 天</span>}
         <span className="badge">服务端记录 {summary.serverDays} 天</span>
         {lookingAtSelf && (
           <span className={pending > 0 ? 'badge warn' : 'badge'}>待同步 {pending} 条</span>
@@ -306,9 +351,9 @@ export default function XpShadowPanel() {
                   }
                 >
                   <td>{r.day}</td>
-                  <td>{lookingAtSelf ? r.localQ : '—'}</td>
+                  <td>{hasLocal ? r.localQ : '—'}</td>
                   <td>{r.serverQ}</td>
-                  <td>{lookingAtSelf ? formatDur(r.localSec) : '—'}</td>
+                  <td>{hasLocal ? formatDur(r.localSec) : '—'}</td>
                   <td>{formatDur(r.serverSec)}</td>
                   <td>{r.localChecked === null ? '—' : r.localChecked ? '✔' : '✘'}</td>
                   <td>{r.serverChecked ? '✔' : '✘'}</td>
