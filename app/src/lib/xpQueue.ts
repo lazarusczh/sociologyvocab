@@ -56,22 +56,45 @@ function dropExpired(q: QueuedEvent[]): QueuedEvent[] {
   });
 }
 
+/** 待写入盘的事件缓冲（见 `enqueueXpEvents` 的合并说明）。 */
+let buf: QueuedEvent[] = [];
+let bufTimer = 0;
+
 /**
  * 入队（**同步、不抛**，可在练习流程里直接调）。
  * 传 uid 而非内部取 session：调用方（store）本来就知道当前用户，能省掉一次异步等待 ——
  * 异步等待期间若用户刷新页面，事件就丢了。
+ *
+ * ★ 同一 tick 内的多次调用**合并成一次写盘**（2026-09-26）：
+ *   `QuizTaker` 交卷时会**连续调用 `recordItem` 记整份作业**（通常 20 个词条），
+ *   若每条各读一次、各写一次 localStorage，就是 20 次同步 I/O；更要紧的是
+ *   ——写盘若分散在多个 tick，`flushXpQueue` 可能在**只落盘了一部分**时就启动，
+ *   于是只发出去一小部分（这正是 2026-09-24 那份作业丢 19/20 条的机制）。
+ *   合并后：一次写盘落全，`flushXpQueue` 读到的就是完整的这一批。
  */
 export function enqueueXpEvents(events: XpEvent[], uid: string): void {
   if (!uid || events.length === 0) return;
+  for (const e of events) buf.push({ ...e, uid });
+  if (bufTimer) return;
+  // 0ms 定时器：让同一同步块内的多次调用汇入同一批
+  bufTimer = setTimeout(flushEnqueueBuffer, 0) as unknown as number;
+}
+
+/** 把缓冲区一次性落到 localStorage（超限时丢最旧的）。 */
+function flushEnqueueBuffer(): void {
+  bufTimer = 0;
+  if (buf.length === 0) return;
+  const all = buf;
+  buf = [];
   const q = dropExpired(readQueue());
-  for (const e of events) q.push({ ...e, uid });
+  q.push(...all);
   // 超限丢最旧（数组尾是最新）
   writeQueue(q.length > QUEUE_MAX ? q.slice(q.length - QUEUE_MAX) : q);
 }
 
-/** 当前待补报条数（供 UI 提示「有 N 条待同步」）。 */
+/** 当前待补报条数（供 UI 提示「有 N 条待同步」）。**含尚未落盘的缓冲**（同步调用后立刻读也准确）。 */
 export function pendingXpCount(): number {
-  return readQueue().length;
+  return readQueue().length + buf.length;
 }
 
 /** 清空队列（仅测试/调试用；正常情况下不要调，会丢学生已积累的事件）。 */
@@ -96,20 +119,33 @@ export async function flushXpQueue(): Promise<{
   remaining: number;
   failed: boolean;
 }> {
-  if (flushing) return { sent: 0, remaining: readQueue().length, failed: false };
+  if (flushing) return { sent: 0, remaining: pendingXpCount(), failed: false };
   flushing = true;
   try {
-    // ⚠ 先清理 + 看队列，**再**取会话。心跳每 60 秒调一次，而队列绝大多数时候是空的，
-    //   把空判断提前即可省掉一次无谓的 getSession() 等待（它读本地 storage、不发请求，
-    //   但仍是 async）。**行为与原先等价** —— 过期事件照样在这里清掉并写回。
+    // ★ 先把入队缓冲落盘：它是 `setTimeout(0)` 写的**宏任务**，而本函数的 `await` 续跑是
+    //   **微任务**（会先于宏任务）—— 不先落盘，就读不到刚入队的那一批。
+    flushEnqueueBuffer();
+
+    // 预检：真的没活干才快速返回（心跳每 60 秒调一次，绝大多数时候是空的）
+    if (readQueue().length === 0) return { sent: 0, remaining: 0, failed: false };
+
+    const { data } = await supabase.auth.getSession();
+    const uid = data.session?.user?.id ?? '';
+
+    // ★★ 读队列**必须**在 `await` 之后，且要**再落一次缓冲** —— 这里曾是一个丢数据的 bug
+    //   （2026-09-26 找到）：`QuizTaker` 交卷时一次性调用 `recordItem` 记整份作业
+    //   （作业通常 20 个词条），若在 `await` 之前读，flush 会**抢跑**、手里只有最初那一两条
+    //   ⇒ 发出去 ⇒ 队列空 ⇒ 退出；剩余的要等 15 秒节流或 60 秒心跳，而学生**交卷后往往
+    //   立刻离开页面** ⇒ 事件留在 localStorage。
+    //   实测（学生 8eb7e807，2026-09-24）：作业 20 个词条 ⇒ 服务端只收到 **1 条**，丢 19 条；
+    //   而同一天**交卷前的 20 题日常练习（逐题、间隔几十秒）一条未丢** —— 逐题时每次 flush
+    //   都能拿到当时的全部。⇒ 只有「批量入队」会中招，且**与设备/网络无关**。
+    flushEnqueueBuffer();
     let queue = dropExpired(readQueue());
     if (queue.length === 0) {
       writeQueue(queue);
       return { sent: 0, remaining: 0, failed: false };
     }
-
-    const { data } = await supabase.auth.getSession();
-    const uid = data.session?.user?.id ?? '';
 
     // 未登录：保留队列等登录后再发（不丢，也不替别人发）
     if (!uid) {
@@ -193,18 +229,21 @@ export function startXpSync(intervalMs = 60_000): () => void {
   const tryFlush = () => {
     void flushXpQueue();
   };
-  const onVisible = () => {
+  // 回到前台补发；**转入后台也发一次** —— 学生切走/关页面前那一刻，刚做的题已在队列里，
+  // 这是最有可能成功的一次机会（`beforeunload` 太晚，异步请求常被浏览器中断）。
+  const onVisibility = () => {
     if (document.visibilityState === 'visible') tryFlush();
+    else void flushXpQueue();
   };
 
   window.addEventListener('online', tryFlush);
-  document.addEventListener('visibilitychange', onVisible);
+  document.addEventListener('visibilitychange', onVisibility);
   const timer = window.setInterval(tryFlush, intervalMs);
   tryFlush(); // 启动即补上次未发完的
 
   const stop = () => {
     window.removeEventListener('online', tryFlush);
-    document.removeEventListener('visibilitychange', onVisible);
+    document.removeEventListener('visibilitychange', onVisibility);
     window.clearInterval(timer);
     stopSync = null;
   };
