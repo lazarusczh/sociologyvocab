@@ -17,19 +17,21 @@ import { useXpSummary } from '../lib/xpSummary';
 import { isServerCheckinEnabled } from '../lib/checkinMode';
 
 /**
- * 档位色 token：每 10 级一档（方案 §4.2 的「每 10 级 / 每 25 级 / 大节点」里最细那一档）。
+ * 徽章色阶：**主色同系、由浅到深**，每 10 级升一档。
  *
- * ⚠ **引用 token，不写死色值** —— 项目的约定是「组件全部引用变量，无硬编码色值」
- *   （见 `UI设计.md` 第二节、`index.css` 顶部"设计令牌"说明）。
- *   写死的话不仅违反约定，而且**不会跟随深色模式切换**：档位色是纯色底 + 白字，
- *   浅色值在深底上会偏暗。两个值分别在 `index.css` 的 `:root` 与深色块里定义。
+ * ⚠ 「色阶」不是「档位命名」—— 徽章上除 `LV{n}` 外**不出现任何文字**（方案 §3.2：不做等级命名）。
+ *   这里只是让老生的徽章在视觉上更有分量，等级数字始终是主要信息。
+ *
+ * ⚠ 引用 token、**不写死色值**：项目约定「组件全部引用变量，无硬编码色值」
+ *   （`UI设计.md` 第二节 / `index.css` 顶部"设计令牌"）。写死不仅违反约定，
+ *   而且不随深色模式切换。两组值分别在 `index.css` 的 `:root` 与深色块里定义。
  */
-function tierVar(level: number): string {
-  if (level >= 50) return 'var(--c-tier-legend)';
-  if (level >= 30) return 'var(--c-tier-master)';
-  if (level >= 20) return 'var(--c-tier-gold)';
-  if (level >= 10) return 'var(--c-tier-silver)';
-  return 'var(--c-tier-bronze)';
+function levelColorVar(level: number): string {
+  if (level >= 50) return 'var(--c-level-5)';
+  if (level >= 30) return 'var(--c-level-4)';
+  if (level >= 20) return 'var(--c-level-3)';
+  if (level >= 10) return 'var(--c-level-2)';
+  return 'var(--c-level-1)';
 }
 
 // ⚠ 不再提供档位「名称」。
@@ -54,7 +56,7 @@ export default function XpCard() {
   if (!authUser) return null;
 
   const { level, totalXp, todayXp, monthXp, loading, error } = xp;
-  const color = tierVar(level.level);
+  const color = levelColorVar(level.level);
   const pct = Math.round((level.progress || 0) * 100);
 
   return (
