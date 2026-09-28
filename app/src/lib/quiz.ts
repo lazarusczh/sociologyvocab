@@ -292,6 +292,11 @@ export function correctionBonus(S: number, M: number, percent = 10): number {
 
 // 订正后的统一评分结算：罚分先扣、加分后加、封底 0 / 封顶真实满分
 // 返回新的 grading 对象（沿用原 penalty/late 字段，更新 bonus/final_score）
+//
+// ⚠ **必须把 `card_bonus` 一起算进去**：加分卡（§4.2.1）与订正加分类似但独立并存、可叠加，
+//   而这个函数会**整体重写** `grading.final_score`。若漏掉它，一次订正就会把加分卡加的分抹掉
+//   （`card_bonus` 字段本身因为下面展开 `...sub.grading` 还在，于是界面显示「加分卡 +2」
+//    而最终分却按没加算 —— 这种"字段在、分不在"的不一致比直接报错更难发现）。
 export function applyGradingRules(
   quiz: Quiz,
   sub: Pick<QuizSubmission, 'score' | 'grading'>,
@@ -299,7 +304,8 @@ export function applyGradingRules(
 ): NonNullable<QuizSubmission['grading']> {
   const M = totalPoints(quiz.questions);
   const penalty = sub.grading?.penalty ?? 0;
-  const finalScore = Math.max(0, Math.min(sub.score - penalty + bonus, M));
+  const cardBonus = sub.grading?.card_bonus ?? 0;
+  const finalScore = Math.max(0, Math.min(sub.score - penalty + bonus + cardBonus, M));
   return {
     ...(sub.grading ?? {}),
     bonus,

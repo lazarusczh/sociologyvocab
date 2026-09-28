@@ -202,8 +202,13 @@ export interface QuizSubmission {
     penalty_percent?: number;
     penalty?: number;
     bonus?: number;
+    /** 加分卡加成（= 真实满分的 10%，§4.2.1）。**与 `bonus` 并列而非合并** ——
+     *  这样界面能分别显示「订正 +X / 加分卡 +Y」，也便于统计加分卡的实际使用率。
+     *  ⚠ **键存在即代表用过了**（每份限用 1 张）⇒ 不要用「值 > 0」判断，
+     *    满分很小的作业算出来可能就是 0。判定在服务端 `use_bonus_card()` 里。 */
+    card_bonus?: number;
     final_score?: number;
-  } | null; // 评分结算（迟交罚分/订正加分；测验/无罚分时为空）
+  } | null; // 评分结算（迟交罚分/订正加分/加分卡；测验在无罚分无加分时为空）
   correction?: CorrectionResult | null; // 订正答题明细（非 null 即已订正，订正不可重复）
 }
 

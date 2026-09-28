@@ -1,12 +1,24 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore, useStudySession, useCelebrateCheckIn, useElapsedTimer } from '../lib/store';
 import type { Quiz, QuizQuestion, QuizSubmission } from '../lib/types';
-import { getQuizByCode, getMySubmission, upsertSubmission, submitQuizSubmission, listMySubmissions } from '../lib/cloud';
+import { getQuizByCode, getMySubmission, upsertSubmission, submitQuizSubmission, listMySubmissions, useBonusCard } from '../lib/cloud';
 import { gradeQuiz, shuffleQuestionsBySeed, randomOrderSeed, formatDuration, TYPE_LABELS, KIND_LABELS, isAnswerCorrect, answerText, correctAnswerText, matchingCorrectCount, totalPoints, extractWrongItemIds } from '../lib/quiz';
 import { shuffle } from '../lib/shuffle';
 import CorrectionPractice from './CorrectionPractice';
+import { isServerCheckinEnabled } from '../lib/checkinMode';
+import { useCardBalance } from '../lib/cards';
 
 type Phase = 'enter' | 'confirm' | 'taking' | 'done';
+
+/** `use_bonus_card()` 的失败原因 → 给学生看的说法（与 `db-migration-bonus-card.sql` 一一对应）。 */
+const BONUS_REASON_TEXT: Record<string, string> = {
+  no_cards: '没有加分卡了',
+  already_used: '这份答卷已经用过加分卡了',
+  not_submitted: '这份答卷还没交，不能加分',
+  not_owner: '只能给自己的答卷加分',
+  no_points: '这份作业没有可计分的题目',
+  not_found: '找不到这份答卷',
+};
 
 // 把毫秒时长格式化成「X 天 X 小时」的可读文本
 function formatLateDuration(ms: number): string {
@@ -380,7 +392,17 @@ export default function QuizTaker() {
                 onCancel={() => setCorrecting(null)}
               />
             ) : historyDetail ? (
-              <HistoryDetail detail={historyDetail} onBack={() => setHistoryDetail(null)} onCorrect={(d) => setCorrecting(d)} />
+              <HistoryDetail
+                detail={historyDetail}
+                onBack={() => setHistoryDetail(null)}
+                onCorrect={(d) => setCorrecting(d)}
+                // 用了加分卡之后：详情与列表都要跟着更新（列表上显示的是 final_score）——
+                // 只改详情会让返回列表时看到旧分数，那种不一致最容易被当成"没生效"。
+                onChanged={(updated) => {
+                  setHistoryList((prev) => prev.map((it) => (it.sub.id === updated.id ? { ...it, sub: updated } : it)));
+                  setHistoryDetail({ sub: updated, quiz: historyDetail.quiz });
+                }}
+              />
             ) : historyList.length === 0 ? (
               <div className="empty-state"><p className="muted">还没有已提交的测验或作业。</p></div>
             ) : (
@@ -409,6 +431,11 @@ export default function QuizTaker() {
                         {q?.kind === 'homework' && sub.correction && (
                           <span className="badge success" style={{ fontSize: '0.8rem' }}>
                             已订正{sub.correction.all_correct ? '（全对）' : ''}
+                          </span>
+                        )}
+                        {sub.grading && 'card_bonus' in sub.grading && (
+                          <span className="badge success" style={{ fontSize: '0.8rem' }}>
+                            加分卡 +{sub.grading.card_bonus}
                           </span>
                         )}
                         {published && q && (
@@ -809,10 +836,12 @@ function MatchingAnswer({ q, answers, onPair, onUnpair, onNext, isLast, onSubmit
 }
 
 // 历史结果 · 单份答卷详情（含作业订正入口）
-function HistoryDetail({ detail, onBack, onCorrect }: {
+function HistoryDetail({ detail, onBack, onCorrect, onChanged }: {
   detail: { sub: QuizSubmission; quiz: Quiz };
   onBack: () => void;
   onCorrect: (d: { sub: QuizSubmission; quiz: Quiz }) => void;
+  /** 服务端改过这份答卷之后（目前只有加分卡）回调，让父级同步详情与列表 */
+  onChanged: (updated: QuizSubmission) => void;
 }) {
   const { sub, quiz } = detail;
   const maxPoints = totalPoints(quiz.questions);
@@ -825,6 +854,53 @@ function HistoryDetail({ detail, onBack, onCorrect }: {
     && quiz.allow_correction !== false // 教师可对单份作业关闭订正（默认允许）
     && !sub.correction
     && wrongCount > 0;
+
+  // ---- 加分卡（《练级与奖励体系方案》§4.2.1）----
+  // 只在判定切换生效后出现：卡与等级是同一批上线的东西，切换前学生也没有来源获得它
+  // （首发在等级里程碑 LV20），提前显示只会是一行 0。
+  const bonusEnabled = isServerCheckinEnabled();
+  const cards = useCardBalance(bonusEnabled);
+  const [cardBusy, setCardBusy] = useState(false);
+  const [cardMsg, setCardMsg] = useState('');
+  // ⚠ 判据是「`grading` 里有没有 `card_bonus` 这个键」而**不是它的值** —— 与服务端同判据：
+  //   满分很小的作业 round(M×10%) 会取整到 0，「值 > 0 才算用过」会判错并允许用第二次。
+  const usedCard = !!sub.grading && 'card_bonus' in sub.grading;
+  // 余额读不到时不给按钮：显示成"0 张"会把"读失败"伪装成"你没有卡"。
+  const canUseCard = bonusEnabled
+    && sub.status === 'submitted'
+    && !usedCard
+    && !cards.loading
+    && !cards.error
+    && cards.balance.bonus > 0;
+
+  const applyCard = async () => {
+    setCardBusy(true);
+    setCardMsg('');
+    try {
+      const r = await useBonusCard(sub.id);
+      if (!r.ok) {
+        setCardMsg(`使用失败：${BONUS_REASON_TEXT[r.reason ?? ''] ?? r.reason ?? '未知原因'}`);
+        return;
+      }
+      // 服务端已经改库 ⇒ 本地按返回值同步，不必为一个字段重拉整份答卷
+      const updated: QuizSubmission = {
+        ...sub,
+        grading: {
+          ...(sub.grading ?? {}),
+          card_bonus: r.card_bonus ?? 0,
+          final_score: r.final_score ?? sub.score,
+        },
+      };
+      setCardMsg(`已用 1 张加分卡：+${r.card_bonus} 分，最终得分 ${r.final_score}（剩余 ${r.balance ?? 0} 张）`);
+      cards.reload();
+      onChanged(updated);
+    } catch (e) {
+      setCardMsg(`使用失败：${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setCardBusy(false);
+    }
+  };
+
   const finalScore = sub.grading?.final_score != null ? sub.grading.final_score : sub.score;
   return (
     <div>
@@ -858,6 +934,13 @@ function HistoryDetail({ detail, onBack, onCorrect }: {
           </span>
         </div>
       )}
+      {bonusEnabled && sub.status === 'submitted' && usedCard && (
+        <div className="card" style={{ marginBottom: '0.6rem', padding: '0.5rem 0.7rem', background: 'var(--ok-bg)', borderColor: 'var(--success)' }}>
+          <span style={{ fontSize: '0.9rem' }}>
+            已使用加分卡 <strong>+{sub.grading!.card_bonus}</strong> 分（真实满分 {maxPoints} 的 10%），已计入最终得分。
+          </span>
+        </div>
+      )}
       <h3 style={{ margin: '0 0 0.6rem' }}>{quiz.title}</h3>
       {canCorrect && (
         <div className="card" style={{ marginBottom: '0.6rem', padding: '0.5rem 0.7rem', background: 'var(--accent-bg)', borderColor: 'var(--accent)' }}>
@@ -869,6 +952,34 @@ function HistoryDetail({ detail, onBack, onCorrect }: {
             <button className="primary" onClick={() => onCorrect(detail)}>订正错题（{wrongCount} 题）</button>
           </div>
         </div>
+      )}
+      {bonusEnabled && sub.status === 'submitted' && !usedCard && (
+        cards.error ? (
+          <p className="muted" style={{ fontSize: '0.85rem', marginBottom: '0.6rem' }}>
+            加分卡余额暂时读不到（{cards.error}），稍后重试。
+          </p>
+        ) : cards.loading ? null : canUseCard ? (
+          <div className="card" style={{ marginBottom: '0.6rem', padding: '0.5rem 0.7rem', background: 'var(--accent-bg)', borderColor: 'var(--accent)' }}>
+            <div className="row" style={{ alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.85rem' }}>
+                用 1 张<strong>加分卡</strong>给这份答卷加分：加 <strong>{Math.round(maxPoints * 0.1)}</strong> 分
+                （真实满分的 10%），可与订正加分叠加、最终满分封顶。每份限用 1 张。
+                <span className="muted">仅限通过本站完成的作业与测验，线下纸质作业不适用。</span>
+              </span>
+              <span className="spacer" />
+              <button className="primary" onClick={() => void applyCard()} disabled={cardBusy}>
+                {cardBusy ? '使用中…' : `用加分卡（剩 ${cards.balance.bonus} 张）`}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <p className="muted" style={{ fontSize: '0.85rem', marginBottom: '0.6rem' }}>
+            暂无加分卡。来源：等级里程碑 —— 每 10 级发 1 张（与补签卡交替）、每 25 级再发 1 张。
+          </p>
+        )
+      )}
+      {cardMsg && (
+        <p style={{ fontSize: '0.85rem', marginBottom: '0.6rem', color: 'var(--accent)' }}>{cardMsg}</p>
       )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {quiz.questions.map((q, idx) => {

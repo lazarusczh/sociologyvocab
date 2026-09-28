@@ -353,6 +353,33 @@ export async function saveCorrection(
   if (!data || data.length === 0) throw new Error('该答卷已完成过订正，不能重复订正');
 }
 
+// 加分卡使用结果（`use_bonus_card()` 的返回，见 `db-migration-bonus-card.sql`）。
+export interface BonusCardResult {
+  ok: boolean;
+  /** 失败原因：`not_found` / `not_owner` / `not_submitted` / `already_used` / `no_cards` / `no_points` */
+  reason?: string;
+  /** 成功时：本次加的分（= 真实满分的 10%） */
+  card_bonus?: number;
+  /** 成功时：加成后的最终分 */
+  final_score?: number;
+  /** 成功时：真实满分 */
+  max_points?: number;
+  /** 成功时：扣卡后的加分卡余额 */
+  balance?: number;
+}
+
+// 用一张加分卡给某份答卷加分（§4.2.1）。每份限用 1 张、可与订正加分叠加、满分封顶。
+//
+// ⚠ **这是 RPC 而不是像订正那样前端 UPDATE** —— 它要同时扣卡（写 `card_uses`）与回写
+//   `grading`，而余额必须由服务端裁定；拆成两个前端请求会产生"扣了卡没加分"的中间态。
+// ⚠ 失败是**业务性**的（返回 `ok:false`），不是网络错 —— 调用方要读 `reason` 给出提示，
+//   而非一律当成异常。
+export async function useBonusCard(submissionId: string): Promise<BonusCardResult> {
+  const { data, error } = await supabase.rpc('use_bonus_card', { p_submission_id: submissionId });
+  if (error) throw error;
+  return (data ?? { ok: false, reason: 'unknown' }) as BonusCardResult;
+}
+
 // 教师重判某试卷：传入 submission_id -> 新分数，RPC 批量更新（security definer，仅 teacher/developer 可调用）
 export async function regradeQuizSubmissions(quizId: string, scores: Record<string, number>): Promise<number> {
   const { data, error } = await supabase.rpc('regrade_quiz_submissions', {
