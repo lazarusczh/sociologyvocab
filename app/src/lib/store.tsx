@@ -25,7 +25,11 @@ import { pullCloudData, pushCloudData, mergeStudentData, type CloudStudentData, 
 // 这里只做「产出一条事件并入队」，不做任何算分 —— 算分全在服务端，
 // 故改分值不必发前端版本，也不会出现新旧客户端口径分叉。
 import { buildAnswerEvent, buildChainCompleteEvent, type ChainMode, type ChainKind } from './xp';
-import { enqueueXpEvents, requestXpFlush, startXpSync } from './xpQueue';
+import { enqueueXpEvents, requestXpFlush, startXpSync, flushXpQueue } from './xpQueue';
+// 打卡判定口径开关与「服务端口径」取数（第④步）。切换后打卡弹窗必须与打卡页同口径，
+// 否则会出现「弹窗说打卡成功、打卡页却显示未达标」这种自相矛盾。
+import { isServerCheckinEnabled } from './checkinMode';
+import { fetchServerCheckIn } from './checkinServer';
 
 const STUDY_TICK_SECONDS = 10;
 
@@ -578,13 +582,37 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [checkin]);
 
   // 完成一组正式练习后调用：若当天已达标且该账号尚未弹过，则触发「打卡成功」弹窗
-  const celebrateCheckIn = useCallback(() => {
+  //
+  // ⚠ 切换口径后必须走服务端 —— 否则会出现「弹窗说打卡成功、打卡页却显示未达标」。
+  //   而服务端要靠**事件**才知道今天练了多少 ⇒ 这里**先把队列发出去再查**：
+  //   正常节流是 15 秒，学生刚做完的那批题很可能还在队列里，不 flush 就查不到。
+  //
+  // ⚠ 查失败时**不弹**（直接 return）：宁可不弹，也不可误弹 ——
+  //   误弹的代价是学生同时看到「打卡成功」与「未达标」两个界面，比少一次庆祝严重得多。
+  const celebrateCheckIn = useCallback(async () => {
     const today = todayKey();
-    if (!isDayChecked(checkin, today)) return;
     // 按账号区分「当天已弹」标记：登录用户各自独立，离线游客共用 guest 标记
     const key = authUser ? `${CELEBRATED_KEY}:user:${authUser.id}` : CELEBRATED_KEY;
     if (localStorage.getItem(key) === today) return;
-    localStorage.setItem(key, today);
+
+    if (isServerCheckinEnabled()) {
+      try {
+        await flushXpQueue(); // 先把今天的题送上去
+      } catch {
+        // 发不出去也继续查：服务端可能已有足够事件（之前几次上报成功过）
+      }
+      let ok = false;
+      try {
+        ok = isDayChecked(await fetchServerCheckIn(), today);
+      } catch {
+        return; // 查不到就不弹（不可误弹）
+      }
+      if (!ok) return;
+    } else {
+      if (!isDayChecked(checkin, today)) return;
+    }
+
+    localStorage.setItem(key, today); // 确定要弹了才标记，避免查失败时把标记用掉
     setCheckinCelebration(true);
   }, [checkin, authUser]);
 
@@ -741,11 +769,13 @@ export function useStudySession(active = true): void {
 }
 
 // 练习组件在「完成一组」时调用：finished 由 false→true 的边沿触发一次打卡庆祝检查
+// ⚠ 切换口径后 `celebrateCheckIn` 是异步的（要先 flush 队列、再查服务端），
+//   这里 fire-and-forget 即可 —— 弹窗由 state 驱动，调用方不需要等它。
 export function useCelebrateCheckIn(finished: boolean): void {
   const { celebrateCheckIn } = useStore();
   const prev = useRef(false);
   useEffect(() => {
-    if (finished && !prev.current) celebrateCheckIn();
+    if (finished && !prev.current) void celebrateCheckIn();
     prev.current = finished;
   }, [finished, celebrateCheckIn]);
 }

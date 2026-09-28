@@ -7,6 +7,7 @@
 //   4. 挂 Beta 入口，先在日常打卡训练里跑，一段时间检验合格后再进作业。
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore, useStudySession, useCelebrateCheckIn, useElapsedTimer } from '../lib/store';
+import { isServerCheckinEnabled } from '../lib/checkinMode';
 import { loadDefinitionItems, saveDefinitionAttempt, submitDefinitionDispute, type DefinitionItem } from '../lib/definition';
 import { gradeDefinition, SOURCE_LABEL, type GradeResult, type Verdict } from '../lib/ai';
 import { normalizeKey } from '../lib/answers';
@@ -64,7 +65,12 @@ export default function DefinitionPractice() {
   //    （判分等待是服务端响应时间，不算学生投入）。但**不能现在就把 `grading` 摘掉** ——
   //    打卡目前仍是**本地权威**，摘掉会立刻减少学生的打卡时长、拉低达标率，且与「打卡切服务端」
   //    不同步。**必须与「打卡服务端化」同批上线时再拆**，不可提前。
-  useStudySession(phase === 'answering' || phase === 'grading');
+  // ⚠ `grading` 段必须与「打卡判定切服务端」**同批**才能摘（见《XP-C档改造方案.md》§六之二）：
+  //   单独提前摘掉会让本地打卡时长立刻减少 ⇒ 达标率下降；更麻烦的是**污染观察窗口** ——
+  //   届时看到的下降分不清是「口径变了」还是「提前摘了 grading」。
+  //   这里不再靠"人工记得同批发版"，而是**直接绑定同一个开关**：
+  //   切换生效前 grading 照常计入（维持现状），切换生效后才摘。
+  useStudySession(phase === 'answering' || (phase === 'grading' && !isServerCheckinEnabled()));
   useCelebrateCheckIn(phase === 'done');
 
   // 本题用时计时器（随 XP 事件上报为 elapsed_ms）。

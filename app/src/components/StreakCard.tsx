@@ -5,7 +5,7 @@ import {
   weekStartKey, addDays, dateKeyOf, MAKEUP_WEEK_QUESTIONS, MAKEUP_WEEK_ACCURACY,
 } from '../lib/checkin';
 import { applyMakeupRpc, MAKEUP_REASON_TEXT, useServerCheckIn } from '../lib/checkinServer';
-import { USE_SERVER_CHECKIN } from '../lib/checkinMode';
+import { isServerCheckinEnabled } from '../lib/checkinMode';
 
 const WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 
@@ -15,8 +15,10 @@ function fmtDay(key: string): string {
 }
 
 export default function StreakCard() {
-  const { checkin: localCheckin, applyMakeup } = useStore();
-  const server = useServerCheckIn();
+  const { checkin: localCheckin, applyMakeup, authUser } = useStore();
+  // 切换时刻前（或强制关闭时）**不发请求**；到点后学生下次打开页面即自动走服务端
+  const usingServer = isServerCheckinEnabled();
+  const server = useServerCheckIn(undefined, undefined, undefined, usingServer);
   const [selDay, setSelDay] = useState('');
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
@@ -29,9 +31,9 @@ export default function StreakCard() {
   //      所以过渡方向是「从严」，不会先给学生一个虚高的数字。
   //   ③ 加载失败 ⇒ 退回本地**并明确提示** —— 直接显示 0 天会让学生以为记录丢了，
   //      那是比口径不准更糟的体验。
-  const serverReady = USE_SERVER_CHECKIN && !!server.checkin;
+  const serverReady = usingServer && !!server.checkin;
   const checkin = serverReady ? server.checkin! : localCheckin;
-  const showLocalFallback = USE_SERVER_CHECKIN && !server.checkin;
+  const showLocalFallback = usingServer && !server.checkin;
 
   const weekly = useMemo(() => weeklyStats(checkin), [checkin]);
   const accuracy = weekly.questions > 0 ? weekly.correct / weekly.questions : 0;
@@ -81,6 +83,12 @@ export default function StreakCard() {
         <span className="spacer" />
         <span className="muted" style={{ fontSize: '0.85rem' }}>{weeklyCheckedDays}/7 天打卡</span>
       </div>
+
+      {!authUser && (
+        <p className="muted" style={{ fontSize: '0.8rem', margin: '0 0 0.5rem' }}>
+          当前是离线游客模式：<strong>练习不计入打卡与等级</strong>。登录后练习才会被记录。
+        </p>
+      )}
 
       {showLocalFallback && (
         <p className="muted" style={{ fontSize: '0.8rem', margin: '0 0 0.5rem' }}>

@@ -158,6 +158,32 @@ export async function applyMakeupRpc(dayKey: string): Promise<MakeupResult> {
   return (data ?? { ok: false, reason: 'unknown' }) as MakeupResult;
 }
 
+/**
+ * 教师端批量取数：全班每人一份服务端打卡状态。
+ *
+ * 服务端 `get_daily_study_all(p_from, p_to)` 是 **staff-only**，返回
+ * `[{ user_id, days: [{ day_key, questions, ms, correct, makeup, correct_full }] }]`。
+ *
+ * ⚠ 人员口径由服务端决定（以 `student_data` 为准并排除 `teacher`/`developer`），
+ *   与教师后台「打卡核验」原本的口径一致 —— 所以**不要**在前端再筛一遍名单，
+ *   那会引入第二份口径。
+ */
+export async function fetchAllServerCheckIn(
+  from?: string,
+  to?: string,
+): Promise<Map<string, CheckInState>> {
+  const { data, error } = await supabase.rpc('get_daily_study_all', {
+    p_from: from ?? null,
+    p_to: to ?? null,
+  });
+  if (error) throw new Error(error.message || 'get_daily_study_all failed');
+
+  const rows = (data ?? []) as { user_id: string; days: DailyStudy[] }[];
+  const out = new Map<string, CheckInState>();
+  for (const r of rows) out.set(r.user_id, serverToCheckInState(r.days ?? []));
+  return out;
+}
+
 export interface ServerCheckInResult {
   /** 服务端口径的打卡状态；尚未加载完成为 null */
   checkin: CheckInState | null;
@@ -169,19 +195,32 @@ export interface ServerCheckInResult {
 /**
  * 学生端/教师端读服务端打卡状态的 hook。
  *
+ * `enabled = false` 时**完全不发请求**（切换尚未生效时不该为它付网络开销）。
+ *
  * ⚠ 与本地 `useStore().checkin` 的关键差别：**这是异步的**（一次网络往返）。
  *   所以调用方必须处理 `checkin === null`（加载中）—— 不要用「null 就当无记录」，
  *   那会在加载完成的瞬间让连签天数闪一下 0。
  */
-export function useServerCheckIn(userId?: string, from?: string, to?: string): ServerCheckInResult {
+export function useServerCheckIn(
+  userId?: string,
+  from?: string,
+  to?: string,
+  enabled = true,
+): ServerCheckInResult {
   const [checkin, setCheckin] = useState<CheckInState | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(enabled);
   const [error, setError] = useState('');
   const [nonce, setNonce] = useState(0);
 
   const reload = useCallback(() => setNonce((n) => n + 1), []);
 
   useEffect(() => {
+    if (!enabled) {
+      setCheckin(null);
+      setLoading(false);
+      setError('');
+      return;
+    }
     let alive = true;
     setLoading(true);
     setError('');
@@ -201,7 +240,7 @@ export function useServerCheckIn(userId?: string, from?: string, to?: string): S
     return () => {
       alive = false;
     };
-  }, [userId, from, to, nonce]);
+  }, [userId, from, to, nonce, enabled]);
 
   return { checkin, loading, error, reload };
 }

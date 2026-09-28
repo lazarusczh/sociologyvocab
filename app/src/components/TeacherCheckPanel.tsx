@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { isDayChecked, isInWrongBook, todayKey } from '../lib/checkin';
+import { fetchAllServerCheckIn } from '../lib/checkinServer';
+import { isServerCheckinEnabled } from '../lib/checkinMode';
 import { useStore } from '../lib/store';
 import { maskEmail } from '../lib/shuffle';
 import type { CloudStudentData } from '../lib/cloud';
@@ -176,6 +178,10 @@ export default function TeacherCheckPanel() {
   const [periodFilter, setPeriodFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  // 服务端口径打卡（第④步切换后用它替代本地 checkin）。空 Map = 未启用或未取到。
+  const [serverCheckin, setServerCheckin] = useState<Map<string, CheckInState>>(new Map());
+  const [serverError, setServerError] = useState('');
+  const useServerCheckin = isServerCheckinEnabled();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -197,39 +203,66 @@ export default function TeacherCheckPanel() {
       setError(err.message);
       setRawRows([]);
     } else {
-      // 保留原始行：月度视图需要原始的 checkin（累计统计会把逐日明细丢掉）
+      // 保留原始行：月度视图需要原始的 checkin（累计统计会把逐日明细丢掉），
+      // 且姓名、错题本、班级仍以本地 `student_data` 为源 —— 服务端没有这些。
       setRawRows(((data ?? []) as StudentRow[]).filter((r) => !devIds.has(r.user_id)));
     }
+    // 打卡判定已切服务端时，**再拉一份服务端口径**：
+    // 学生看到的是服务端判定，教师核验必须与之一致，否则会出现
+    // 「学生界面达标、教师核验未达标」这种师生口径分裂。
+    if (useServerCheckin) {
+      try {
+        setServerCheckin(await fetchAllServerCheckIn());
+        setServerError('');
+      } catch (e) {
+        // 取不到就退回本地口径，但**必须显式提示** —— 教师据此发奖，不能默默用错口径。
+        setServerError(e instanceof Error ? e.message : String(e));
+        setServerCheckin(new Map());
+      }
+    }
     setLoading(false);
-  }, []);
+  }, [useServerCheckin]);
 
   useEffect(() => {
     load();
   }, [load]);
 
+  // 打卡口径来源：切换后优先服务端（与学生在打卡页看到的一致），否则本地。
+  // ⚠ **只替换 `checkin`** —— 姓名、错题本、班级仍来自本地 `student_data`（服务端没有这些）。
+  //   所以这里是"混合来源"，而不是把整行换成服务端数据。
+  const effectiveRows = useMemo(
+    () =>
+      rawRows.map((r) => {
+        const sv = serverCheckin.get(r.user_id);
+        if (!useServerCheckin || !sv) return r;
+        return { ...r, data: { ...r.data, checkin: sv } };
+      }),
+    [rawRows, serverCheckin, useServerCheckin],
+  );
+
   // 累计统计（口径与改造前完全一致）
   const rows = useMemo(
-    () => rawRows.map((r) => summarize(r, r.class_id ? (classMap.get(r.class_id) ?? '') : '', validIds)),
-    [rawRows, classMap, validIds],
+    () => effectiveRows.map((r) => summarize(r, r.class_id ? (classMap.get(r.class_id) ?? '') : '', validIds)),
+    [effectiveRows, classMap, validIds],
   );
 
   // 数据里出现过的月份（倒序）—— 月度视图的可选项
   const months = useMemo(() => {
     const set = new Set<string>();
-    for (const r of rawRows) {
+    for (const r of effectiveRows) {
       const ci = r.data?.checkin;
       for (const k of Object.keys(ci?.study ?? {})) set.add(k.slice(0, 7));
       for (const k of Object.keys(ci?.makeup ?? {})) set.add(k.slice(0, 7));
     }
     return [...set].sort().reverse();
-  }, [rawRows]);
+  }, [effectiveRows]);
 
   const isMonthView = periodFilter !== 'all';
 
-  // 按班级筛选（原始行，月度视图要用）
+  // 按班级筛选（原始行，月度视图要用）—— 用 effectiveRows，让月度视图也走同一口径
   const shownRaw = useMemo(
-    () => (classFilter === 'all' ? rawRows : rawRows.filter((r) => (r.class_id ?? '') === classFilter)),
-    [rawRows, classFilter],
+    () => (classFilter === 'all' ? effectiveRows : effectiveRows.filter((r) => (r.class_id ?? '') === classFilter)),
+    [effectiveRows, classFilter],
   );
   const rawById = useMemo(() => new Map(shownRaw.map((r) => [r.user_id, r])), [shownRaw]);
   // 按班级筛选（统计行，累计视图要用）
@@ -340,6 +373,16 @@ export default function TeacherCheckPanel() {
       {error && (
         <div className="card" style={{ marginBottom: '0.8rem', background: 'var(--warn-bg)', borderColor: 'var(--warn)' }}>
           读取学生数据失败：{error}
+        </div>
+      )}
+
+      {serverError && (
+        <div className="card" style={{ marginBottom: '0.8rem', background: 'var(--warn-bg)', borderColor: 'var(--warn)' }}>
+          <strong>当前显示的是本机口径，不是服务端口径。</strong>
+          <div style={{ fontSize: '0.85rem', marginTop: '0.3rem' }}>
+            读取服务端打卡失败（{serverError}）。学生界面走的是服务端判定，
+            所以此刻两边可能不一致 —— 发奖前请先解决这个问题，不要用当前数字下结论。
+          </div>
         </div>
       )}
 
