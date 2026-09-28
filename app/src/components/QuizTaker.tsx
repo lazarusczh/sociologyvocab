@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore, useStudySession, useCelebrateCheckIn, useElapsedTimer } from '../lib/store';
+import { useRoundXp } from '../lib/xpSummary';
+import XpGain from './XpGain';
 import type { Quiz, QuizQuestion, QuizSubmission } from '../lib/types';
 import { getQuizByCode, getMySubmission, upsertSubmission, submitQuizSubmission, listMySubmissions, useBonusCard } from '../lib/cloud';
 import { gradeQuiz, shuffleQuestionsBySeed, randomOrderSeed, formatDuration, TYPE_LABELS, KIND_LABELS, isAnswerCorrect, answerText, correctAnswerText, matchingCorrectCount, totalPoints, extractWrongItemIds } from '../lib/quiz';
@@ -165,6 +167,7 @@ export default function QuizTaker() {
   // 交卷成功且当天已达标时触发「打卡成功」庆祝（与完成一组正式练习一致）
   const quizFinished = phase === 'done' && submitted;
   useCelebrateCheckIn(quizFinished);
+  const xpGain = useRoundXp(quizFinished);
 
   // 倒计时
   useEffect(() => {
@@ -529,6 +532,7 @@ export default function QuizTaker() {
         <h2>交卷成功</h2>
         <p className="muted">{quiz.title}</p>
         <p className="big" style={{ fontSize: '2rem' }}>{score} / {totalPoints(quiz.questions)}</p>
+        <XpGain gain={xpGain} />
         {grading?.penalty != null && grading.penalty > 0 && (
           <div className="card" style={{ marginTop: '0.5rem', background: 'var(--warn-bg)', borderColor: 'var(--warn)' }}>
             <p style={{ fontSize: '0.9rem' }}>

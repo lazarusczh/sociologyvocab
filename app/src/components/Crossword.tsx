@@ -9,6 +9,8 @@ import {
   type FormEvent as ReactFormEvent,
 } from 'react';
 import { useStore, useStudySession, useCelebrateCheckIn, useElapsedTimer } from '../lib/store';
+import { useRoundXp } from '../lib/xpSummary';
+import XpGain from './XpGain';
 import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
 import { generateCrossword, type GeneratedCrossword, type Clue } from '../lib/crossword';
 
@@ -44,6 +46,7 @@ export default function Crossword() {
 
   // 显示答案（本局结束）时触发一次「打卡成功」达标检查（达标才弹）
   useCelebrateCheckIn(revealed);
+  const xpGain = useRoundXp(revealed);
 
   const onPaperChange = (p: string) => {
     setPaper(p);
@@ -398,6 +401,8 @@ export default function Crossword() {
             <button onClick={check}>检查</button>
             <button onClick={reveal}>结算</button>
           </div>
+
+          <XpGain gain={xpGain} />
 
           {msg && (
             <div className={`card ${msg === '全部正确！' ? '' : ''}`} style={{

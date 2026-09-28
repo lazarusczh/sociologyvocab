@@ -1,5 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useStore, useStudySession, useCelebrateCheckIn, useElapsedTimer } from '../lib/store';
+import { useRoundXp } from '../lib/xpSummary';
+import XpGain from './XpGain';
 import { shuffle, sample } from '../lib/shuffle';
 import { maskAnswer } from '../lib/answers';
 import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
@@ -113,6 +115,7 @@ export default function MultipleChoice() {
   };
 
   useCelebrateCheckIn(questions.length > 0 && !q);
+  const xpGain = useRoundXp(questions.length > 0 && !q);
 
   if (vocab.length === 0) {
     return <div className="empty-state"><div className="big">☑</div><p>请先导入词汇表</p></div>;
@@ -150,6 +153,7 @@ export default function MultipleChoice() {
       <div className="card center">
         <h2>测验完成！</h2>
         <p className="muted">得分：{score} / {questions.length}</p>
+        <XpGain gain={xpGain} />
         <div className="progress-bar" style={{ maxWidth: 300, margin: '1rem auto' }}>
           <div style={{ width: `${(score / questions.length) * 100}%` }} />
         </div>

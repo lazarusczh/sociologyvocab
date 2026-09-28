@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useStore, useStudySession, useCelebrateCheckIn, useElapsedTimer } from '../lib/store';
+import { useRoundXp } from '../lib/xpSummary';
+import XpGain from './XpGain';
 import { normalizeKey, isCorrectAnswer, getAcceptableKeys } from '../lib/answers';
 import { sample, shuffle } from '../lib/shuffle';
 import type { VocabItem } from '../lib/types';
@@ -214,6 +216,7 @@ export default function Cloze() {
   };
 
   useCelebrateCheckIn(finished);
+  const xpGain = useRoundXp(finished);
 
   if (passages.length === 0) {
     return <div className="empty-state"><div className="big">📝</div><p>语境题库加载中…</p></div>;
@@ -253,6 +256,7 @@ export default function Cloze() {
       <div className="card center">
         <h2>完成！</h2>
         <p className="muted">得分：{score} / {totalBlanks}（挖空数）</p>
+        <XpGain gain={xpGain} />
         <div className="progress-bar" style={{ maxWidth: 300, margin: '1rem auto' }}>
           <div style={{ width: `${totalBlanks ? (score / totalBlanks) * 100 : 0}%` }} />
         </div>

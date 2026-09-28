@@ -1,5 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useStore, useStudySession, useCelebrateCheckIn, useElapsedTimer } from '../lib/store';
+import { useRoundXp } from '../lib/xpSummary';
+import XpGain from './XpGain';
 import { isInWrongBook } from '../lib/checkin';
 import { maskAnswer } from '../lib/answers';
 import { sample, shuffle } from '../lib/shuffle';
@@ -75,6 +77,7 @@ export default function WrongPractice() {
   };
 
   useCelebrateCheckIn(quiz.length > 0 && !q);
+  const xpGain = useRoundXp(quiz.length > 0 && !q);
 
   if (vocab.length === 0) {
     return <div className="empty-state"><div className="big">✖</div><p>请先导入词汇表</p></div>;
@@ -127,6 +130,7 @@ export default function WrongPractice() {
       <div className="card center">
         <h2>错题练习完成！</h2>
         <p className="muted">答对 {score} / {quiz.length} 题</p>
+        <XpGain gain={xpGain} />
         <div className="row" style={{ justifyContent: 'center', marginTop: '0.5rem' }}>
           <button className="primary" onClick={start}>再来一轮</button>
           <button onClick={() => setQuiz([])}>返回错题列表</button>

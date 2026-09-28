@@ -1,5 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useStore, useStudySession, useCelebrateCheckIn, useElapsedTimer } from '../lib/store';
+import { useRoundXp } from '../lib/xpSummary';
+import XpGain from './XpGain';
 import { sample, shuffle } from '../lib/shuffle';
 import { maskAnswer } from '../lib/answers';
 import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
@@ -87,6 +89,7 @@ export default function Matching() {
   };
 
   useCelebrateCheckIn(left.length > 0 && matched.size === left.length);
+  const xpGain = useRoundXp(left.length > 0 && matched.size === left.length);
 
   if (vocab.length === 0) {
     return <div className="empty-state"><div className="big">⇄</div><p>请先导入词汇表</p></div>;
@@ -124,6 +127,7 @@ export default function Matching() {
       <div className="card center">
         <h2>全部配对成功！</h2>
         <p className="muted">错误次数：{mistakes}</p>
+        <XpGain gain={xpGain} />
         <button className="primary" onClick={start}>再来一轮</button>
       </div>
     );

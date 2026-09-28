@@ -1,5 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useStore, useStudySession, useCelebrateCheckIn, useElapsedTimer } from '../lib/store';
+import { useRoundXp } from '../lib/xpSummary';
+import XpGain from './XpGain';
 import { sample, shuffle } from '../lib/shuffle';
 import { isCorrectAnswer, pickSpellingPrompt, type SpellingPrompt } from '../lib/answers';
 import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
@@ -62,6 +64,7 @@ export default function Spelling() {
   }, [current, revealed, idx]);
 
   useCelebrateCheckIn(round.length > 0 && !current);
+  const xpGain = useRoundXp(round.length > 0 && !current);
 
   const submit = () => {
     if (revealed) return;
@@ -118,6 +121,7 @@ export default function Spelling() {
       <div className="card center">
         <h2>默写完成！</h2>
         <p className="muted">得分：{score} / {round.length}</p>
+        <XpGain gain={xpGain} />
         <button className="primary" onClick={start}>再来一轮</button>
       </div>
     );

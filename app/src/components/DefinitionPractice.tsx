@@ -7,6 +7,8 @@
 //   4. 挂 Beta 入口，先在日常打卡训练里跑，一段时间检验合格后再进作业。
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore, useStudySession, useCelebrateCheckIn, useElapsedTimer } from '../lib/store';
+import { useRoundXp } from '../lib/xpSummary';
+import XpGain from './XpGain';
 import { isServerCheckinEnabled } from '../lib/checkinMode';
 import { loadDefinitionItems, saveDefinitionAttempt, submitDefinitionDispute, type DefinitionItem } from '../lib/definition';
 import { gradeDefinition, SOURCE_LABEL, type GradeResult, type Verdict } from '../lib/ai';
@@ -72,6 +74,7 @@ export default function DefinitionPractice() {
   //   切换生效前 grading 照常计入（维持现状），切换生效后才摘。
   useStudySession(phase === 'answering' || (phase === 'grading' && !isServerCheckinEnabled()));
   useCelebrateCheckIn(phase === 'done');
+  const xpGain = useRoundXp(phase === 'done');
 
   // 本题用时计时器（随 XP 事件上报为 elapsed_ms）。
   // 定义题的用时必须在「点击提交」那一刻结算（判分等待是服务端响应时间，不算学生投入），
@@ -314,6 +317,7 @@ export default function DefinitionPractice() {
           <button className="primary" onClick={start} disabled={!scoped.length} style={{ marginTop: '0.4rem' }}>
             {phase === 'done' ? '再来一轮' : '开始练习'}
           </button>
+          <XpGain gain={xpGain} />
         </div>
       </div>
     );

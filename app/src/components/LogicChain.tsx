@@ -1,5 +1,7 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { useStore, useStudySession, useCelebrateCheckIn, useElapsedTimer } from '../lib/store';
+import { useRoundXp } from '../lib/xpSummary';
+import XpGain from './XpGain';
 import { newEventId } from '../lib/xp';
 import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
 import { conceptIdOf } from '../lib/relationSuggest';
@@ -86,6 +88,8 @@ export default function LogicChain() {
   const inInput = irun !== null && !irunEnded;
   useStudySession(inChoice || inInput);
   useCelebrateCheckIn(choiceDone || irunDone); // 放弃不算达成，不触发庆祝
+  // 本轮 +XP 同理：只有走完整条线才有分（chain_complete 才结算），放弃时服务端也没加分。
+  const xpGain = useRoundXp(choiceDone || irunDone);
 
   // 走完整条线 ⇒ 结算一次 XP（**只此一次**）。
   //
@@ -476,6 +480,7 @@ export default function LogicChain() {
             </>
           )}
 
+          <XpGain gain={xpGain} />
           <div className="row" style={{ gap: '0.5rem', marginTop: '0.6rem' }}>
             <button className="primary" onClick={startInput}>再来一局</button>
             <button className="ghost" onClick={exitRun}>换一批范围</button>
@@ -602,6 +607,7 @@ export default function LogicChain() {
             {run.mode === 'target' && targetItem ? `🎉 抵达 ${targetItem.term}！` : '🎉 接龙完成！'}
           </h2>
           <p className="muted">答对 {score} / {choiceTotal} 步</p>
+          <XpGain gain={xpGain} />
           <div className="row" style={{ justifyContent: 'center', gap: '0.3rem', flexWrap: 'wrap', margin: '0.8rem 0' }}>
             {run.path.map((cid, i) => {
               const it = itemOf(cid);
