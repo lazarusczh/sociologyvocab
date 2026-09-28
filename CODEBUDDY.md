@@ -53,6 +53,7 @@
 - 版本号**不需要提交**（`app/android` 不在本仓库里，见第 2 步）。旧约定「补一个 `chore: bump ...` 提交」已作废。
 - APK 落在 `C:/vocab-build/app/outputs/apk/release/app-release.apk`（构建目录已移出 OneDrive，见下方铁律）。
 - push 必须带代理：`git -c http.proxy=http://127.0.0.1:7897 -c https.proxy=http://127.0.0.1:7897 -c http.sslBackend=openssl push`。不要改 git config。
+  **若 openssl 报 `TLS connect error: ... unexpected eof while reading`（2026-09-28 连撞两次），把 `http.sslBackend` 换成 `schannel` 即可推成功** —— 先用 `curl.exe -x http://127.0.0.1:7897 -s -o NUL -w "%{http_code}" https://github.com` 确认代理本身是通的（应为 200），这是 git 侧 TLS 后端与代理的组合问题，不是网络不通。
 - 收尾校验：`app/dist/version.json` 与 `curl.exe -s https://9699vocab.cn/version.json` 必须一致。
 
 ## 二、云端数据库（psql 直连）
@@ -77,7 +78,7 @@ psql $conn -w -v ON_ERROR_STOP=1 -f db-migration-xxx.sql
 - 词条内容（term / 释义 / paper / category / unit / 答案容错）**只在云端改**：教师账号在 VocabManager 在线改 → 发布到 `vocab_releases`。
 - 本机数据源（`unit-mapping.json` / `answer-aliases.json` / `*.xlsx`）**只用于代码与结构改动**，改完也要重新发布到云端。
 - 若某指令可能让本机数据源与云端分叉：**停下并提示去云端改**，不要直接改本机数据源。
-- **答案判定口径在服务端有一份物化副本**（2026-09-22 建）：`vocab_answer_forms` 表 + `public.normalize_answer()` 函数，在教师端「发布词库」时自动重建（另有「重建判定表」按钮）。**两条纪律**：① 改了 `app/src/lib/answers.ts` 的判定规则（`normalizeKey` / 单复数 / 姓氏推导）或 `app/src/lib/answer-aliases.json`，必须在教师端点一次「重建判定表」；② 改完跑 `cd app; node scripts/answer-forms-check.mjs` 做 JS 与 SQL 的归一化对拍（当前 5508/5508 一致）—— 不一致会以「某个词学生写对了却判错」的形式**静默**出现。详见 `实时多人在线功能规划.md` 第九节附。
+- **答案判定口径在服务端有一份物化副本**（2026-09-22 建）：`vocab_answer_forms` 表 + `public.normalize_answer()` 函数，在教师端「发布词库」时自动重建（另有「重建判定表」按钮）。**两条纪律**：① 改了 `app/src/lib/answers.ts` 的判定规则（`normalizeKey` / 单复数 / 姓氏推导）或 `app/src/lib/answer-aliases.json`，必须在教师端点一次「重建判定表」；② 改完跑 `cd app; node scripts/answer-forms-check.mjs` 做 JS 与 SQL 的归一化对拍（当前 5508/5508 一致）—— 不一致会以「某个词学生写对了却判错」的形式**静默**出现。详见 `实时多人在线功能规划.md` 第十节附。
 
 ## 四、绝不能动的既有流程
 
