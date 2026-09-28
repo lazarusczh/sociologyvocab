@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { isDayChecked, isInWrongBook, todayKey } from '../lib/checkin';
+import { isDayChecked, isInWrongBook, todayKey, FULL_ATTENDANCE_DAYS } from '../lib/checkin';
 import { fetchAllServerCheckIn } from '../lib/checkinServer';
 import { isServerCheckinEnabled } from '../lib/checkinMode';
 import { useStore } from '../lib/store';
@@ -48,8 +48,8 @@ interface MonthStat {
   fullAttendance: boolean; // 是否达全勤线（核验用）
 }
 
-// 全勤奖线（与《练级与奖励体系方案》4.5 一致：当月打卡 ≥28 天）
-const FULL_ATTENDANCE_DAYS = 28;
+// 全勤奖线（当月达标 ≥28 天）已收敛到 `lib/checkin.ts` 的 `FULL_ATTENDANCE_DAYS`，
+// 与打卡页共用一份 —— 之前这里另写了一个字面量，调阈值时必然漏掉一处。
 
 const emptyCheckin = (): CheckInState => ({ study: {}, makeup: {}, earnedMakeupWeeks: [], bestStreak: 0 });
 

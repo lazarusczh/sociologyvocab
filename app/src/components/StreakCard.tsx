@@ -3,6 +3,7 @@ import { useStore } from '../lib/store';
 import {
   isDayChecked, weeklyStats, canEarnMakeup, missedDaysInWeek, parseKey,
   weekStartKey, addDays, dateKeyOf, MAKEUP_WEEK_QUESTIONS, MAKEUP_WEEK_ACCURACY,
+  FULL_ATTENDANCE_DAYS,
 } from '../lib/checkin';
 import { applyMakeupRpc, MAKEUP_REASON_TEXT, useServerCheckIn } from '../lib/checkinServer';
 import { isServerCheckinEnabled } from '../lib/checkinMode';
@@ -47,6 +48,27 @@ export default function StreakCard() {
   const weeklyCheckedDays = weekKeys.filter((k) => isDayChecked(checkin, k)).length;
   const weeklyMins = Math.floor(weekKeys.reduce((s, k) => s + (checkin.study[k]?.seconds || 0), 0) / 60);
 
+  // 月末全勤提示（《练级与奖励体系方案》§4.5.5：打卡页在月末几天提示「再坚持 X 天即达全勤」）。
+  // ⚠ 只在**还有希望**时提示：缺口大于剩余天数就不显示 —— 那时提示等于宣告失败，
+  //   而本系统的取向是"门槛只做兜底、别打击人"。
+  const fullAttendance = useMemo(() => {
+    const now = new Date();
+    const ym = dateKeyOf(now).slice(0, 7);
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    // 「剩余天数」含今天 —— 今天还没结束，仍有机会达标
+    const daysLeft = daysInMonth - now.getDate() + 1;
+    const checked = new Set<string>();
+    for (const k of Object.keys(checkin.study)) if (k.startsWith(ym) && isDayChecked(checkin, k)) checked.add(k);
+    for (const k of Object.keys(checkin.makeup)) if (k.startsWith(ym) && checkin.makeup[k]) checked.add(k);
+    const need = FULL_ATTENDANCE_DAYS - checked.size;
+    return {
+      show: daysLeft <= 5 && need > 0 && need <= daysLeft,
+      need,
+      checked: checked.size,
+      daysLeft,
+    };
+  }, [checkin]);
+
   const doApply = async () => {
     if (!selDay) return;
 
@@ -83,6 +105,13 @@ export default function StreakCard() {
         <span className="spacer" />
         <span className="muted" style={{ fontSize: '0.85rem' }}>{weeklyCheckedDays}/7 天打卡</span>
       </div>
+
+      {fullAttendance.show && (
+        <p style={{ fontSize: '0.85rem', margin: '0 0 0.5rem', color: 'var(--accent)' }}>
+          本月已达标 {fullAttendance.checked} / {FULL_ATTENDANCE_DAYS} 天 —— 再坚持{' '}
+          <strong>{fullAttendance.need}</strong> 天即达全勤。
+        </p>
+      )}
 
       {!authUser && (
         <p className="muted" style={{ fontSize: '0.8rem', margin: '0 0 0.5rem' }}>

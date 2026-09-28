@@ -8,6 +8,7 @@ import {
   CHECKIN_DAY_GOAL_QUESTIONS, CHECKIN_DAY_GOAL_SECONDS,
 } from '../lib/checkin';
 import StreakCard from './StreakCard';
+import XpCard from './XpCard';
 import type { View } from '../App';
 import { fetchRunningSession, type LiveSession } from '../lib/live';
 
@@ -238,6 +239,10 @@ export default function Home({ go }: Props) {
               <div className="stats-row__label">已掌握词条</div>
             </div>
           </div>
+
+          {/* ===== 等级 / XP（方案 §3.3：今日目标卡下方）=====
+              切换生效前不渲染（服务端 XP 恒为 0，显示只会困惑）*/}
+          <XpCard />
 
           {/* ===== 学习打卡详情（保留 StreakCard：双进度条 + 补签） ===== */}
           <StreakCard />

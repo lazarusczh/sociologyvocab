@@ -6,6 +6,10 @@ export const CHECKIN_DAY_GOAL_SECONDS = 10 * 60; // 每日打卡所需学习秒�
 export const CHECKIN_DAY_GOAL_QUESTIONS = 20;    // 每日打卡所需正式练习题数
 export const MAKEUP_WEEK_QUESTIONS = 100;        // 触发补签的一周练习题数
 export const MAKEUP_WEEK_ACCURACY = 0.8;         // 触发补签的一周正确率（80%）
+// 全勤奖线：某自然月达标天数 ≥ 28（《练级与奖励体系方案》4.5）。
+// ⚠ 收敛成常量并共用 —— 之前教师端 `TeacherCheckPanel` 与打卡页各写了一份字面量 28，
+//   将来调阈值时必然漏掉一处。
+export const FULL_ATTENDANCE_DAYS = 28;
 export const WRONG_ENTER_THRESHOLD = 2;          // 累计答错 N 次进入错题本
 export const WRONG_EXIT_CONSECUTIVE = 3;         // 连续答对 N 次移出错题本
 
