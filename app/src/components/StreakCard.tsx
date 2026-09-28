@@ -4,6 +4,8 @@ import {
   isDayChecked, weeklyStats, canEarnMakeup, missedDaysInWeek, parseKey,
   weekStartKey, addDays, dateKeyOf, MAKEUP_WEEK_QUESTIONS, MAKEUP_WEEK_ACCURACY,
 } from '../lib/checkin';
+import { applyMakeupRpc, MAKEUP_REASON_TEXT, useServerCheckIn } from '../lib/checkinServer';
+import { USE_SERVER_CHECKIN } from '../lib/checkinMode';
 
 const WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 
@@ -13,9 +15,23 @@ function fmtDay(key: string): string {
 }
 
 export default function StreakCard() {
-  const { checkin, applyMakeup } = useStore();
+  const { checkin: localCheckin, applyMakeup } = useStore();
+  const server = useServerCheckIn();
   const [selDay, setSelDay] = useState('');
   const [msg, setMsg] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  // ---- 口径选择（第④步：本地 → 服务端）----
+  // ⚠ 服务端数据是**异步**来的，而打卡卡是首屏就渲染的。三种情况都要处理：
+  //   ① 已拿到服务端数据 ⇒ 用服务端（权威口径）
+  //   ② 尚未拿到（加载中）⇒ 暂用本地，避免整卡闪成「0 天」；
+  //      加载只需一次 RPC（几百毫秒），且服务端口径通常**不高于**本地，
+  //      所以过渡方向是「从严」，不会先给学生一个虚高的数字。
+  //   ③ 加载失败 ⇒ 退回本地**并明确提示** —— 直接显示 0 天会让学生以为记录丢了，
+  //      那是比口径不准更糟的体验。
+  const serverReady = USE_SERVER_CHECKIN && !!server.checkin;
+  const checkin = serverReady ? server.checkin! : localCheckin;
+  const showLocalFallback = USE_SERVER_CHECKIN && !server.checkin;
 
   const weekly = useMemo(() => weeklyStats(checkin), [checkin]);
   const accuracy = weekly.questions > 0 ? weekly.correct / weekly.questions : 0;
@@ -29,8 +45,30 @@ export default function StreakCard() {
   const weeklyCheckedDays = weekKeys.filter((k) => isDayChecked(checkin, k)).length;
   const weeklyMins = Math.floor(weekKeys.reduce((s, k) => s + (checkin.study[k]?.seconds || 0), 0) / 60);
 
-  const doApply = () => {
+  const doApply = async () => {
     if (!selDay) return;
+
+    // 走服务端：资格判定与落库都在服务端（前端只传日子、翻译失败原因）
+    if (serverReady) {
+      setBusy(true);
+      try {
+        const r = await applyMakeupRpc(selDay);
+        if (r.ok) {
+          setMsg(`已补签 ${fmtDay(selDay)}`);
+          server.reload(); // 重新拉取，让卡片立刻反映新补签
+        } else {
+          setMsg(`补签失败：${MAKEUP_REASON_TEXT[r.reason ?? ''] ?? r.reason ?? '未知原因'}`);
+        }
+      } catch (e) {
+        setMsg(`补签失败：${e instanceof Error ? e.message : String(e)}`);
+      } finally {
+        setBusy(false);
+        setSelDay('');
+      }
+      return;
+    }
+
+    // 回退路径：本地补签（仅当开关关闭或服务端不可用时走到这）
     const ok = applyMakeup(selDay);
     setMsg(ok ? `已补签 ${fmtDay(selDay)}` : '补签失败（不满足条件）');
     setSelDay('');
@@ -43,6 +81,12 @@ export default function StreakCard() {
         <span className="spacer" />
         <span className="muted" style={{ fontSize: '0.85rem' }}>{weeklyCheckedDays}/7 天打卡</span>
       </div>
+
+      {showLocalFallback && (
+        <p className="muted" style={{ fontSize: '0.8rem', margin: '0 0 0.5rem' }}>
+          {server.error ? `暂时无法核对云端记录，以下为本机数据（${server.error}）` : '正在核对云端记录…'}
+        </p>
+      )}
 
       <div className="grid cols-3">
         <div className="stat"><span className="num">{weeklyMins}</span><span className="label">本周学习（分钟）</span></div>
@@ -58,7 +102,9 @@ export default function StreakCard() {
               <option value="">选择漏签日期</option>
               {missed.map((k) => <option key={k} value={k}>{fmtDay(k)}</option>)}
             </select>
-            <button className="primary" onClick={doApply} disabled={!selDay}>补签</button>
+            <button className="primary" onClick={() => void doApply()} disabled={!selDay || busy}>
+              {busy ? '补签中…' : '补签'}
+            </button>
           </div>
         ) : (
           <p className="muted" style={{ fontSize: '0.85rem', margin: 0 }}>
