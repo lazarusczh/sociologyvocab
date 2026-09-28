@@ -48,8 +48,33 @@ const SWITCH_AT_MS = Date.UTC(2026, 8, 30, 15, 59, 0);
  */
 export const FORCE_SERVER_CHECKIN: boolean | null = null;
 
+/**
+ * 本地开发覆盖（**只在 `import.meta.env.DEV` 下生效，生产构建里整段被摇掉**）。
+ *
+ * 为什么需要：切换时刻在 09-30 23:59，而在此之前本地预览看不到任何切换后的界面
+ *   （等级卡片、服务端打卡口径）。若为此临时把 `FORCE_SERVER_CHECKIN` 改成 `true`，
+ *   一旦这个临时状态被提交并 ship，就会**提前对所有学生生效** —— 那是不可接受的。
+ *   ⇒ 用只有开发构建才存在的分支来预览，生产构建里这段代码不存在，学生无法触发。
+ *
+ * 控制台可切换：`localStorage.setItem('xp:serverCheckin','0')` 看切换前的界面；
+ *   `'1'` 看切换后；`removeItem` 回到默认（开）。
+ */
+function devOverride(): boolean | null {
+  if (!import.meta.env.DEV) return null;
+  try {
+    const v = localStorage.getItem('xp:serverCheckin');
+    if (v === '0') return false;
+    if (v === '1') return true;
+  } catch {
+    // 隐私模式等拿不到 localStorage：忽略，走默认
+  }
+  return true; // 开发环境默认按"已切换"预览
+}
+
 /** 此刻是否应走服务端打卡口径。 */
 export function isServerCheckinEnabled(now: number = Date.now()): boolean {
+  const dev = devOverride();
+  if (dev !== null) return dev;
   if (FORCE_SERVER_CHECKIN !== null) return FORCE_SERVER_CHECKIN;
   return now >= SWITCH_AT_MS;
 }

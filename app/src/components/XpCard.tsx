@@ -16,13 +16,20 @@ import { useStore } from '../lib/store';
 import { useXpSummary } from '../lib/xpSummary';
 import { isServerCheckinEnabled } from '../lib/checkinMode';
 
-/** 档位色：每 10 级一档（方案 §4.2 的「每 10 级 / 每 25 级 / 大节点」里的最细一档） */
-function tierColor(level: number): string {
-  if (level >= 50) return '#c084fc'; // 紫
-  if (level >= 30) return '#f472b6'; // 粉
-  if (level >= 20) return '#f59e0b'; // 金
-  if (level >= 10) return '#94a3b8'; // 银
-  return '#b45309';                  // 铜
+/**
+ * 档位色 token：每 10 级一档（方案 §4.2 的「每 10 级 / 每 25 级 / 大节点」里最细那一档）。
+ *
+ * ⚠ **引用 token，不写死色值** —— 项目的约定是「组件全部引用变量，无硬编码色值」
+ *   （见 `UI设计.md` 第二节、`index.css` 顶部"设计令牌"说明）。
+ *   写死的话不仅违反约定，而且**不会跟随深色模式切换**：档位色是纯色底 + 白字，
+ *   浅色值在深底上会偏暗。两个值分别在 `index.css` 的 `:root` 与深色块里定义。
+ */
+function tierVar(level: number): string {
+  if (level >= 50) return 'var(--c-tier-legend)';
+  if (level >= 30) return 'var(--c-tier-master)';
+  if (level >= 20) return 'var(--c-tier-gold)';
+  if (level >= 10) return 'var(--c-tier-silver)';
+  return 'var(--c-tier-bronze)';
 }
 
 function tierName(level: number): string {
@@ -44,7 +51,7 @@ export default function XpCard() {
   if (!authUser) return null;
 
   const { level, totalXp, todayXp, monthXp, loading, error } = xp;
-  const color = tierColor(level.level);
+  const color = tierVar(level.level);
   const pct = Math.round((level.progress || 0) * 100);
 
   return (
@@ -80,14 +87,14 @@ export default function XpCard() {
           <div
             style={{
               height: '0.7rem',
-              borderRadius: '0.35rem',
-              background: 'var(--border)',
+              borderRadius: 'var(--r-xs)',
+              background: 'var(--c-track)',
               overflow: 'hidden',
             }}
           >
             <div style={{ width: `${pct}%`, height: '100%', background: color }} />
           </div>
-          <div className="muted" style={{ fontSize: '0.8rem', marginTop: '0.25rem' }}>
+          <div className="muted" style={{ fontSize: '0.8rem', marginTop: 'var(--sp-1)' }}>
             {error
               ? `暂时无法读取经验值（${error}）`
               : `距 LV${level.level + 1} 还需 ${level.need} XP`}
