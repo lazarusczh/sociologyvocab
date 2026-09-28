@@ -1,12 +1,19 @@
 import { useMemo, useState } from 'react';
 import { useStore } from '../lib/store';
 import {
-  isDayChecked, weeklyStats, canEarnMakeup, missedDaysInWeek, parseKey,
+  isDayChecked, weeklyStats, canEarnMakeup, missedDaysInWeek, missedDaysWithin, parseKey,
   weekStartKey, addDays, dateKeyOf, MAKEUP_WEEK_QUESTIONS, MAKEUP_WEEK_ACCURACY,
   FULL_ATTENDANCE_DAYS,
 } from '../lib/checkin';
 import { applyMakeupRpc, MAKEUP_REASON_TEXT, useServerCheckIn } from '../lib/checkinServer';
 import { isServerCheckinEnabled } from '../lib/checkinMode';
+import { useCardBalance } from '../lib/cards';
+
+/** 补签可回溯的天数（§4.3：可补最近 30 天内的漏签日）。
+ *
+ *  ⚠ **必须与服务端 `apply_makeup()` 的窗口一致**（`p_day_key < v_today - 30` 即拒）。
+ *    这里只用来**列候选**：列多了也没关系（服务端会拒），但列少了学生就看不到可选的日子。 */
+const MAKEUP_WINDOW_DAYS = 30;
 
 const WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 
@@ -20,6 +27,9 @@ export default function StreakCard() {
   // 切换时刻前（或强制关闭时）**不发请求**；到点后学生下次打开页面即自动走服务端
   const usingServer = isServerCheckinEnabled();
   const server = useServerCheckIn(undefined, undefined, undefined, usingServer);
+  // 卡余额只在服务端口径下有意义（补签卡是服务端的扣费对象；本地那套是「当周机会」）。
+  // ⚠ `get_card_balance()` 未登录会抛异常 ⇒ 游客必须关掉，否则每次开页面都多一条失败请求。
+  const cards = useCardBalance(usingServer && !!authUser);
   const [selDay, setSelDay] = useState('');
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
@@ -38,8 +48,35 @@ export default function StreakCard() {
 
   const weekly = useMemo(() => weeklyStats(checkin), [checkin]);
   const accuracy = weekly.questions > 0 ? weekly.correct / weekly.questions : 0;
+  // ⚠ 这是**本地下线路径**的资格判断（「本周满 100 题 + 正确率 ≥80% ⇒ 本周 1 次」）。
+  //   服务端口径下**不用它** —— 那里的资格是「有没有补签卡」，只有 `apply_makeup()` 说了算。
   const canMakeup = useMemo(() => canEarnMakeup(checkin), [checkin]);
-  const missed = useMemo(() => missedDaysInWeek(checkin), [checkin]);
+
+  // 候选漏签日。切换后放开到**最近 30 天**（§4.3），切换前仍是「本周」。
+  const missed = useMemo(
+    () => (usingServer ? missedDaysWithin(checkin, MAKEUP_WINDOW_DAYS) : missedDaysInWeek(checkin)),
+    [checkin, usingServer],
+  );
+
+  // 服务端口径下「能不能补」取决于**卡**，本地路径取决于**本周机会**。
+  const cardCount = cards.balance.makeup;
+  const canMakeupNow = usingServer ? cardCount > 0 : canMakeup;
+  // ⚠ 两样都就绪才给结论：打卡数据与卡余额**各自是异步的**，任一还没到，
+  //   `cardCount` 都是占位的 0 ⇒ 会显示成「补签卡用完了」，而学生其实有卡。
+  //   宁可先不显示控制项（那只是慢几百毫秒），也不要给一个错的结论。
+  const makeupReady = !usingServer || (serverReady && !cards.loading && !cards.error);
+
+  // 补签区的提示文字。四种组合（服务端/本地 × 有候选/无候选）要说的话不同 ——
+  // 服务端口径讲的是**卡**，本地下线路径讲的是**当周机会**，混用会让学生以为规则没变。
+  const makeupHint = usingServer
+    ? missed.length > 0
+      ? `有漏签日，但补签卡用完了 —— 每周练习满 ${MAKEUP_WEEK_QUESTIONS} 题且正确率 ≥${Math.round(MAKEUP_WEEK_ACCURACY * 100)}% 得 1 张，等级里程碑也会发。卡不过期、可累积。`
+      : `最近 ${MAKEUP_WINDOW_DAYS} 天没有漏签日，没有需要补的地方。`
+    : missed.length > 0
+      ? `补签标准：满 ${MAKEUP_WEEK_QUESTIONS} 题 · 正确率 ≥${Math.round(MAKEUP_WEEK_ACCURACY * 100)}%（当前 ${weekly.questions} 题 · ${Math.round(accuracy * 100)}%）`
+      : canMakeup
+        ? '本周已达标，但无漏签日可补签。'
+        : `补签机会：本周满 ${MAKEUP_WEEK_QUESTIONS} 题 · 正确率 ≥${Math.round(MAKEUP_WEEK_ACCURACY * 100)}% 即获得（每周 1 次）。`;
 
   const weekKeys = useMemo(() => {
     const start = parseKey(weekStartKey(new Date()));
@@ -78,8 +115,9 @@ export default function StreakCard() {
       try {
         const r = await applyMakeupRpc(selDay);
         if (r.ok) {
-          setMsg(`已补签 ${fmtDay(selDay)}`);
+          setMsg(`已补签 ${fmtDay(selDay)}，剩余补签卡 ${r.balance ?? 0} 张`);
           server.reload(); // 重新拉取，让卡片立刻反映新补签
+          cards.reload();  // 余额也要跟着减 1（服务端扣了卡，前端不重取就会显示旧张数）
         } else {
           setMsg(`补签失败：${MAKEUP_REASON_TEXT[r.reason ?? ''] ?? r.reason ?? '未知原因'}`);
         }
@@ -131,10 +169,28 @@ export default function StreakCard() {
         <div className="stat"><span className="num">{Math.round(accuracy * 100)}%</span><span className="label">本周正确率</span></div>
       </div>
 
+      {/* 卡余额：只在服务端口径下显示（本地那套是「当周机会」，没有卡这个概念）。
+          ⚠ 读不到时不显示 0 张 —— 那会把"读失败"伪装成"你没有卡"，
+            而学生据此会以为自己的努力没被承认；这里改成一句明确的提示（见下方补签区）。 */}
+      {usingServer && !cards.loading && !cards.error && (
+        <div className="row tight" style={{ marginTop: '0.6rem', fontSize: '0.85rem' }}>
+          <span className={cardCount > 0 ? 'badge success' : 'badge'}>补签卡 {cardCount} 张</span>
+          <span className="badge">加分卡 {cards.balance.bonus} 张</span>
+        </div>
+      )}
+
       <div style={{ marginTop: '0.7rem', borderTop: '1px solid var(--border)', paddingTop: '0.6rem' }}>
-        {missed.length > 0 && canMakeup ? (
+        {!makeupReady ? (
+          <p className="muted" style={{ fontSize: '0.85rem', margin: 0 }}>
+            {cards.error
+              ? `卡余额暂时读不到（${cards.error}），稍后可重试补签。`
+              : '正在核对云端记录，稍后可补签。'}
+          </p>
+        ) : missed.length > 0 && canMakeupNow ? (
           <div className="row">
-            <span className="muted" style={{ fontSize: '0.85rem' }}>本周已达标，可补签 1 天：</span>
+            <span className="muted" style={{ fontSize: '0.85rem' }}>
+              {usingServer ? `可补最近 ${MAKEUP_WINDOW_DAYS} 天内的漏签日：` : '本周已达标，可补签 1 天：'}
+            </span>
             <select value={selDay} onChange={(e) => setSelDay(e.target.value)} style={{ maxWidth: 220 }}>
               <option value="">选择漏签日期</option>
               {missed.map((k) => <option key={k} value={k}>{fmtDay(k)}</option>)}
@@ -144,13 +200,7 @@ export default function StreakCard() {
             </button>
           </div>
         ) : (
-          <p className="muted" style={{ fontSize: '0.85rem', margin: 0 }}>
-            {missed.length > 0
-              ? `补签标准：满 ${MAKEUP_WEEK_QUESTIONS} 题 · 正确率 ≥${Math.round(MAKEUP_WEEK_ACCURACY * 100)}%（当前 ${weekly.questions} 题 · ${Math.round(accuracy * 100)}%）`
-              : canMakeup
-                ? '本周已达标，但无漏签日可补签。'
-                : `补签机会：本周满 ${MAKEUP_WEEK_QUESTIONS} 题 · 正确率 ≥${Math.round(MAKEUP_WEEK_ACCURACY * 100)}% 即获得（每周 1 次）。`}
-          </p>
+          <p className="muted" style={{ fontSize: '0.85rem', margin: 0 }}>{makeupHint}</p>
         )}
         {msg && <p style={{ marginTop: '0.4rem', fontSize: '0.85rem', color: 'var(--accent)' }}>{msg}</p>}
       </div>

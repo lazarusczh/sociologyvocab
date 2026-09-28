@@ -143,6 +143,26 @@ export function missedDaysInWeek(state: CheckInState, now: Date = new Date()): s
   return out;
 }
 
+/**
+ * 最近 `days` 天内、早于今天、且尚未达标的日期（可补签的候选）—— 补签卡模型（§4.3）。
+ *
+ * ⚠ 与 `missedDaysInWeek` 的区别：那个是「当周赚当周用」旧规则的候选集（只含本周）。
+ *   切换后走本函数，规则由服务端的 `apply_makeup()` 最终裁定（30 天窗口 + 有卡）。
+ *   这里只是**给出候选**，不做资格判断 —— 资格判断只有服务端一份，避免两处口径分叉。
+ *
+ * ⚠ 与 `missedDaysInWeek` 一致：不含今天（今天还没结束，早于"今天"才算漏签）。
+ */
+export function missedDaysWithin(state: CheckInState, days: number, now: Date = new Date()): string[] {
+  const today = parseKey(dateKeyOf(now));
+  const out: string[] = [];
+  for (let i = 1; i <= days; i++) {
+    const d = addDays(today, -i);
+    const k = dateKeyOf(d);
+    if (!isDayChecked(state, k)) out.push(k);
+  }
+  return out;
+}
+
 // 补签某天（仅在满足触发条件且目标天为本周漏签日时生效）
 export function applyMakeup(state: CheckInState, dayKey: string, now: Date = new Date()): CheckInState {
   if (!canEarnMakeup(state, now)) return state;

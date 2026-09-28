@@ -119,36 +119,41 @@ export async function fetchServerCheckIn(
 //   客户端可篡改的路径。
 // ---------------------------------------------------------------------------
 
-/** `apply_makeup()` 的返回。`ok=true` 时带 `day_key` / `week_start`；否则带 `reason`。 */
+/** `apply_makeup()` 的返回（**v2：补签卡模型**）。
+ *  `ok=true` 时带 `day_key` 与**扣卡后的余额**；否则带 `reason`。 */
 export interface MakeupResult {
   ok: boolean;
-  /** 失败原因，共 6 种（见下方 `MAKEUP_REASON_TEXT`） */
+  /** 失败原因，共 5 种（见下方 `MAKEUP_REASON_TEXT`） */
   reason?: string;
+  /** 成功时：被补的那天 */
   day_key?: string;
-  week_start?: string;
-  /** `week_questions_low` 时的本周实际题数 */
-  questions?: number;
-  /** `week_accuracy_low` 时的本周正确率 */
-  ratio?: number;
-  /** 门槛值（题数 100 / 正确率 0.8） */
-  need?: number;
+  /** 成功时：扣卡后的补签卡余额；`no_cards` 时为 0 */
+  balance?: number;
+  /** `too_old` 时的窗口天数（30） */
+  limit_days?: number;
 }
 
-/** 失败原因 → 给学生看的说法。与 `db-migration-makeup.sql` 里的 return 一一对应。 */
+/**
+ * 失败原因 → 给学生看的说法。
+ * 与 `db-migration-makeup-v2.sql` 里 `apply_makeup()` 的 return 一一对应。
+ *
+ * ⚠ 三条旧原因（`not_this_week` / `week_questions_low` / `week_accuracy_low` /
+ *   `week_already_used`）**已在 v2 里消失** —— 规则从「当周赚当周用」改成「补签卡」后，
+ *   不再有「只能补本周」「本周练习量够不够」这些前置条件（§4.3）。
+ *   留着它们不会报错，但会在界面里显示出一条永远不可能出现的提示。
+ */
 export const MAKEUP_REASON_TEXT: Record<string, string> = {
   not_past_day: '只能补今天以前的日期',
-  not_this_week: '只能补本周的漏签日',
+  too_old: '只能补最近 30 天内的漏签日',
   already_made_up: '该日已经补签过了',
   already_checked: '该日已达标，不用补签',
-  week_questions_low: '本周练习题数还不够',
-  week_accuracy_low: '本周正确率还不够',
-  week_already_used: '本周的补签机会已经用掉了',
+  no_cards: '没有补签卡了',
 };
 
 /**
  * 调用服务端补签。
  *
- * ⚠ 服务端的四条校验（早于今天 / 在本周 / 该天未达标 / 本周练习量够）**前端不重复实现** ——
+ * ⚠ 服务端的四条校验（早于今天 / 在最近 30 天内 / 该天未达标 / **有卡**）**前端不重复实现** ——
  *   前端只负责把日子传上去、把 `reason` 翻译成人话。
  *   重复实现会让两处口径分叉，而补签的判定本来就该只有一份。
  */
