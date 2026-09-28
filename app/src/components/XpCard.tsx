@@ -32,13 +32,16 @@ function tierVar(level: number): string {
   return 'var(--c-tier-bronze)';
 }
 
-function tierName(level: number): string {
-  if (level >= 50) return '传说';
-  if (level >= 30) return '大师';
-  if (level >= 20) return '黄金';
-  if (level >= 10) return '白银';
-  return '青铜';
-}
+// ⚠ 不再提供档位「名称」。
+//
+// 我一度在这里写了「青铜 / 白银 / 黄金 / 大师 / 传说」，那是我自己造的 ——
+// 《练级与奖励体系方案》§3.2 有一条明确的教师决定：
+//   **不做等级命名**（不要"冒烟实验→田野调查"那套学科梗），一律只显示 `LV1` / `LV2` / …
+// 理由是「命名需要反复打磨且容易变成负担」。
+//
+// ⇒ 方案要求的只是**徽章做成「档位 + 数字」**（§3.1 末：等级无上限，不能一个等级一个图标）。
+//   所以色阶是"视觉分层"，**不是命名**；界面上除 `LV{n}` 外不出现任何等级名称。
+//   ⇒ 教训：引入任何面向学生的新词汇前，先确认设计文档有没有定义过。
 
 export default function XpCard() {
   const { authUser } = useStore();
@@ -65,21 +68,20 @@ export default function XpCard() {
       </div>
 
       <div className="row" style={{ alignItems: 'center', gap: '0.8rem' }}>
-        {/* 等级徽章：档位色 + 数字 */}
+        {/* 等级徽章：色阶 + 数字。**只有 `LV{n}`，没有任何等级名称**（方案 §3.2） */}
         <div
           style={{
             minWidth: '4.2rem',
-            padding: '0.35rem 0.6rem',
-            borderRadius: '0.6rem',
+            padding: '0.5rem 0.6rem',
+            borderRadius: 'var(--r-xs)',
             background: color,
+            // 彩色底上的固定前景 = 白字（不是主题色：用 --c-canvas 会在深色下变成深字）
             color: '#fff',
             textAlign: 'center',
-            lineHeight: 1.15,
+            lineHeight: 1.1,
           }}
-          title={`${tierName(level.level)}档`}
         >
-          <div style={{ fontSize: '1.15rem', fontWeight: 700 }}>LV{level.level}</div>
-          <div style={{ fontSize: '0.7rem', opacity: 0.9 }}>{tierName(level.level)}</div>
+          <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>LV{level.level}</div>
         </div>
 
         {/* 经验条 */}
