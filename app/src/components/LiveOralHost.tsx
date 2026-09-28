@@ -92,7 +92,7 @@ export default function LiveOralHost({ session, onExit }: Props) {
         </div>
       </div>
 
-      <div className="card">
+      <div className="card" style={{ marginBottom: '0.8rem' }}>
         <div className="row" style={{ alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
           <input
             value={note}

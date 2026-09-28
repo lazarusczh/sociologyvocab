@@ -96,6 +96,7 @@ psql $conn -w -v ON_ERROR_STOP=1 -f db-migration-xxx.sql
 - 教师后台：宽屏（≥1100px）左侧栏，窄屏两级药丸导航，两种宽度共用同一份位置记忆。
 - 横向滚动表格统一用 `.check-table`：首列冻结，投影**只在真正横滑时**出现（`app/src/lib/tableFreeze.ts` 用捕获阶段监听，一处管全站）。
 - **`CategoryFilter` 自带一层 `card`**：接入它的页面（拼写、选择题、课堂活动…）**不要再套一层 `<div className="card">`** —— 会变成卡片叠卡片。正确写法见 `Spelling.tsx`：`CategoryFilter` 与下面的说明/按钮区**并列**即可。
+- **`.card` 自身没有外边距**（`index.css` 的 `.card` 只有 padding 与阴影），卡片之间的间距全靠调用方自己加 ⇒ **多张卡片上下堆叠时，除最后一张外每张都要带 `style={{ marginBottom: '0.8rem' }}`**（`CategoryFilter` 已自带这一条，所以它下面那张不必再加）。漏掉的症状就是「两张卡片几乎零间距」（2026-09-28 一次查出三处：`LiveHost` 的创建屏与运行屏、`LiveOralHost`）。自查判据：堆叠的 `.card` 只要下面还有兄弟卡片，就必须有 `marginBottom`。
 - **不要用对勾、叉号之类的符号当强调**：回答文字、思考过程、代码注释、文档全都不要用。需要表达判断时正常写"可行 / 不可行"、"是 / 否"、"已过期"。
   项目早期文档里残留了一些这类符号（如 `定义题方案.md`、`DevPanel.tsx` 等）：**不要模仿，也不必为了对齐它们而使用**。
 

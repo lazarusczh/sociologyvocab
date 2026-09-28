@@ -306,7 +306,7 @@ export default function LiveHost() {
       <div>
         <h1>创建课堂活动</h1>
 
-        <div className="card">
+        <div className="card" style={{ marginBottom: '0.8rem' }}>
           <p className="muted" style={{ marginTop: 0 }}>先选一种模式：</p>
           <div className="row" style={{ gap: '0.5rem', flexWrap: 'wrap' }}>
             <button className={mode === 'spell' ? 'primary' : 'ghost'} onClick={() => setMode('spell')}>拼写竞赛</button>
@@ -385,7 +385,7 @@ export default function LiveHost() {
         </div>
       </div>
 
-      <div className="card">
+      <div className="card" style={{ marginBottom: '0.8rem' }}>
         <div className="row" style={{ alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
           <span className="muted">
             {round ? `第 ${round.round_no} 轮 · ${round.state === 'settled' ? '已结算' : '进行中'}` : '本回合尚未开轮'}
