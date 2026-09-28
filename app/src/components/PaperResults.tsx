@@ -11,6 +11,7 @@ import { bandLinear, buildRows, type RowSpec, type ThresholdRows } from '../lib/
 import { inferGrade, type Grade } from '../lib/mbSync';
 import { copyText } from '../lib/clipboard';
 import type { AssembleSlot, BankItem } from '../lib/grouper';
+import { exportPaperToDocx } from '../lib/exportPaper';
 
 const srcLabelFor = (it: BankItem) => `${it.source.session} QP${it.source.comp}${it.source.q ? ' Q' + it.source.q : ''}`;
 
@@ -358,6 +359,30 @@ export default function PaperResults() {
     }
   };
 
+  // 导出 Word：**复用组卷器那一个导出函数、同一份 `ExportOpts` 口径**，不另写一套版式 ——
+  // 否则两处导出的卷面迟早分叉，而"模板"正是靠唯一实现来保持不变的。
+  //
+  // ⚠ `extraNote`（P4 全局指令）记录里没存，但组卷器是用 `paper`/`mode` 推出来的常量，
+  //   这里按**同一规则**重推即可，两处结果一致。
+  // ⚠ `slots` 是该卷的**卷面快照**（保存时写入），所以即使之后题库变了，
+  //   从这里导出的仍是当时那份卷面。
+  const doExport = () => {
+    if (!viewing) return;
+    setError('');
+    void exportPaperToDocx({
+      title: viewing.title,
+      mode: viewing.mode,
+      paper: viewing.paper,
+      templateLabel: viewing.template_label,
+      topic: viewing.topic,
+      slots: (viewing.slots ?? []) as AssembleSlot[],
+      extraNote:
+        viewing.paper === 4 && viewing.mode === 'template'
+          ? 'Answer two questions in total, each from a different section.'
+          : null,
+    }).catch((e) => setError((e as Error).message || '导出失败'));
+  };
+
   // 复制成绩（供 ManageBac 用户脚本导入）：每行「邮箱<Tab>原始分」
   // 范围与当前筛选一致（切到某班则只复制该班）；手动添加的学生无邮箱，自动跳过
   const copyGradesForManageBac = async () => {
@@ -674,6 +699,7 @@ export default function PaperResults() {
             <button className="ghost" onClick={closeRun}>← 返回</button>
             <h3 style={{ margin: 0 }}>{viewing.title}</h3>
             <span className="spacer" />
+            <button className="ghost" onClick={doExport} title="按 Mock Exam draft 版式生成 Word 卷面（与组卷器同一实现）">导出 Word</button>
             <button className="ghost danger" onClick={() => { if (confirmDel === viewing.id) { void doDelete(viewing.id); } else { setConfirmDel(viewing.id); } }}>
               {confirmDel === viewing.id ? '确认删除？' : '删除'}
             </button>
