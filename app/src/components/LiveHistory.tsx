@@ -76,6 +76,7 @@ export default function LiveHistory() {
           {sessions.map((s) => (
             <div key={s.id} className="row" style={{ alignItems: 'center', gap: '0.5rem' }}>
               <span>{s.title || '课堂活动'}</span>
+              <span className="badge">{s.kind === 'oral' ? '口头速答' : '拼写竞赛'}</span>
               <span className="muted" style={{ fontSize: '0.8rem' }}>
                 {new Date(s.created_at).toLocaleString()}
               </span>
@@ -92,7 +93,10 @@ export default function LiveHistory() {
 
       {openId && (
         <div className="card">
-          {isTeacher ? (
+          {/* 口头速答不计分：没有积分榜可看（回答本身在活动进行时可见） */}
+          {sessions.find((x) => x.id === openId)?.kind === 'oral' ? (
+            <p className="muted">口头速答不计分，因此没有积分榜。活动进行中的回答可在控制台查看。</p>
+          ) : isTeacher ? (
             board.length === 0 ? (
               <p className="muted">这场没有成绩记录。</p>
             ) : (

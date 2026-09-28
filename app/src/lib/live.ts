@@ -40,7 +40,7 @@ export const DEFAULT_LIVE_CONFIG: LiveConfig = {
 // ---- 行类型 ----
 export interface LiveSession {
   id: string;
-  kind: 'spell' | 'guess';
+  kind: 'spell' | 'guess' | 'oral';
   class_id: string | null;
   host_id: string | null;
   title: string | null;
@@ -122,7 +122,7 @@ export async function fetchSession(id: string): Promise<LiveSession | null> {
 
 export async function createSession(
   hostId: string,
-  kind: 'spell' | 'guess',
+  kind: 'spell' | 'guess' | 'oral',
   title: string,
   config: Partial<LiveConfig> = {},
 ): Promise<LiveSession> {
@@ -320,9 +320,123 @@ export async function fetchRoundTerm(roundId: string): Promise<string | null> {
   return (data as { term_id: string } | null)?.term_id ?? null;
 }
 
+// ---- 口头速答（oral）：无判定、无积分，纯收集 + 展示 ----
+// 问题由教师口头出，所以表里没有题干；学生可反复修改答案（一题一人一行，upsert 覆盖）。
+export interface LiveOralRound {
+  id: string;
+  session_id: string;
+  round_no: number;
+  note: string | null;      // 教师自己记的一句备注（不发给学生）
+  state: 'open' | 'closed';
+  opened_at: string;
+  closed_at: string | null;
+}
+
+export interface LiveOralAnswer {
+  id: string;
+  round_id: string;
+  session_id: string;
+  round_no: number;
+  user_id: string;
+  name: string | null;
+  text: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function fetchLatestOralRound(sessionId: string): Promise<LiveOralRound | null> {
+  const { data, error } = await supabase
+    .from('live_oral_rounds')
+    .select('*')
+    .eq('session_id', sessionId)
+    .order('round_no', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as LiveOralRound) ?? null;
+}
+
+export async function fetchOralRounds(sessionId: string): Promise<LiveOralRound[]> {
+  const { data, error } = await supabase
+    .from('live_oral_rounds')
+    .select('*')
+    .eq('session_id', sessionId)
+    .order('round_no', { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as LiveOralRound[];
+}
+
+export async function openOralRound(sessionId: string, roundNo: number, note?: string): Promise<LiveOralRound> {
+  const { data, error } = await supabase
+    .from('live_oral_rounds')
+    .insert({ session_id: sessionId, round_no: roundNo, note: note ?? null, state: 'open' })
+    .select()
+    .single();
+  if (error) throw error;
+  return data as LiveOralRound;
+}
+
+export async function closeOralRound(roundId: string): Promise<void> {
+  const { error } = await supabase
+    .from('live_oral_rounds')
+    .update({ state: 'closed', closed_at: new Date().toISOString() })
+    .eq('id', roundId);
+  if (error) throw error;
+}
+
+export async function upsertOralAnswer(args: {
+  roundId: string;
+  sessionId: string;
+  roundNo: number;
+  userId: string;
+  name?: string | null;
+  text: string;
+}): Promise<void> {
+  const { error } = await supabase.from('live_oral_answers').upsert(
+    {
+      round_id: args.roundId,
+      session_id: args.sessionId,
+      round_no: args.roundNo,
+      user_id: args.userId,
+      name: args.name ?? null,
+      text: args.text,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'round_id,user_id' },
+  );
+  if (error) throw error;
+}
+
+export async function fetchOralAnswers(roundId: string): Promise<LiveOralAnswer[]> {
+  const { data, error } = await supabase
+    .from('live_oral_answers')
+    .select('*')
+    .eq('round_id', roundId)
+    .order('updated_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as LiveOralAnswer[];
+}
+
+export async function fetchMyOralAnswer(roundId: string, userId: string): Promise<LiveOralAnswer | null> {
+  const { data, error } = await supabase
+    .from('live_oral_answers')
+    .select('*')
+    .eq('round_id', roundId)
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as LiveOralAnswer) ?? null;
+}
+
 // ---- 实时订阅（只推信号；收到后由调用方决定拉取什么）----
 export interface LiveSignal {
-  table: 'live_events' | 'live_spell_rounds' | 'live_spell_state' | 'live_participants';
+  table:
+    | 'live_events'
+    | 'live_spell_rounds'
+    | 'live_spell_state'
+    | 'live_participants'
+    | 'live_oral_rounds'
+    | 'live_oral_answers';
   type: string;
   row: Record<string, unknown>;
 }
@@ -342,6 +456,14 @@ export function subscribeLive(sessionId: string, onSignal: (s: LiveSignal) => vo
     )
     .on('postgres_changes', { event: '*', schema: 'public', table: 'live_participants', filter }, (p) =>
       onSignal({ table: 'live_participants', type: p.eventType, row: (p.new ?? {}) as Record<string, unknown> }),
+    )
+    // 口头速答：rounds 用于「开新题 / 收题」；answers 受订阅者 RLS 过滤
+    // （学生只收到自己那一行，教师收到全班的 —— 所以同一份订阅两端都能用）
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'live_oral_rounds', filter }, (p) =>
+      onSignal({ table: 'live_oral_rounds', type: p.eventType, row: (p.new ?? {}) as Record<string, unknown> }),
+    )
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'live_oral_answers', filter }, (p) =>
+      onSignal({ table: 'live_oral_answers', type: p.eventType, row: (p.new ?? {}) as Record<string, unknown> }),
     )
     .subscribe();
   return () => {

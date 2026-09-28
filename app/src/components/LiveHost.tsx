@@ -39,6 +39,7 @@ import {
 } from '../lib/live';
 import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
 import LiveBoard from './LiveBoard';
+import LiveOralHost from './LiveOralHost';
 
 const KNOCKOUT_SECONDS = 45;  // 淘汰段每题限时
 const BUZZ_SECONDS = 30;      // 抢答段每题限时
@@ -63,7 +64,10 @@ export default function LiveHost() {
   const [msg, setMsg] = useState('');
   const autoSettledFor = useRef<string | null>(null);
 
-  // 出题范围（仅创建前可选；创建后写进会话 config，之后只读）
+  // 创建前先选模式（两种模式刻意分开：拼写竞赛 / 口头速答）
+  const [mode, setMode] = useState<'spell' | 'oral'>('spell');
+
+  // 出题范围（仅拼写竞赛在创建前可选；创建后写进会话 config，之后只读）
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
   const [units, setUnits] = useState<string[]>([]);
@@ -162,6 +166,19 @@ export default function LiveHost() {
       setLastSettle(null);
       autoSettledFor.current = null;
       await refresh(s.id);
+    } catch (e) {
+      setMsg((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleCreateOral = async () => {
+    setBusy(true);
+    setMsg('');
+    try {
+      const s = await createSession(uid, 'oral', '口头速答', DEFAULT_LIVE_CONFIG);
+      setSession(s);
     } catch (e) {
       setMsg((e as Error).message);
     } finally {
@@ -283,36 +300,66 @@ export default function LiveHost() {
   if (loading) return <div className="card"><p className="muted">正在检查课堂活动…</p></div>;
 
   if (!session) {
-    // 布局与「拼写默写」等日常练习一致：CategoryFilter 自带一层卡片，这里只并列再加一段，
-    // 不要再套 <div className="card">（会变成卡片叠卡片）。
+    // 两种模式刻意分开：拼写竞赛需要题库范围；口头速答不需要（题由教师口述）。
+    // 布局与「拼写默写」等日常练习一致：CategoryFilter 自带一层卡片，只并列再加一段，不要再套卡片。
     return (
       <div>
         <h1>创建课堂活动</h1>
-        <CategoryFilter
-          items={vocab}
-          papers={papers}
-          categories={categories}
-          paper={paper}
-          onPaperChange={(p) => { setPaper(p); setCat('all'); setUnits([]); }}
-          cat={cat}
-          onCatChange={(c) => { setCat(c); setUnits([]); }}
-          units={units}
-          onUnitsChange={setUnits}
-          typeFilter={typeFilter}
-          onTypeChange={setTypeFilter}
-        />
+
         <div className="card">
-          <p className="muted" style={{ marginTop: 0 }}>
-            范围即出题池（与日常练习同一套筛选）；发起后学生端会出现加入入口。
+          <p className="muted" style={{ marginTop: 0 }}>先选一种模式：</p>
+          <div className="row" style={{ gap: '0.5rem', flexWrap: 'wrap' }}>
+            <button className={mode === 'spell' ? 'primary' : 'ghost'} onClick={() => setMode('spell')}>拼写竞赛</button>
+            <button className={mode === 'oral' ? 'primary' : 'ghost'} onClick={() => setMode('oral')}>口头速答</button>
+          </div>
+          <p className="muted" style={{ fontSize: '0.9rem', marginBottom: 0 }}>
+            {mode === 'spell'
+              ? '全班同一道题、答错出局、剩 3 人抢答定胜负。需要先选定题库范围。'
+              : '问题由你口头说，学生打字作答、随时可改；投屏匿名展示答案。不需要题库范围。'}
           </p>
-          <p className="muted" style={{ fontSize: '0.9rem' }}>符合范围的词条：{pool.length} 条</p>
-          <button className="primary" onClick={handleCreate} disabled={busy || pool.length === 0}>
-            {busy ? '创建中…' : '开始课堂活动'}
-          </button>
-          {msg && <p style={{ color: 'var(--danger)', fontSize: '0.9rem' }}>{msg}</p>}
         </div>
+
+        {mode === 'spell' ? (
+          <>
+            <CategoryFilter
+              items={vocab}
+              papers={papers}
+              categories={categories}
+              paper={paper}
+              onPaperChange={(p) => { setPaper(p); setCat('all'); setUnits([]); }}
+              cat={cat}
+              onCatChange={(c) => { setCat(c); setUnits([]); }}
+              units={units}
+              onUnitsChange={setUnits}
+              typeFilter={typeFilter}
+              onTypeChange={setTypeFilter}
+            />
+            <div className="card">
+              <p className="muted" style={{ marginTop: 0 }}>
+                范围即出题池（与日常练习同一套筛选）；发起后学生端会出现加入入口。
+              </p>
+              <p className="muted" style={{ fontSize: '0.9rem' }}>符合范围的词条：{pool.length} 条</p>
+              <button className="primary" onClick={handleCreate} disabled={busy || pool.length === 0}>
+                {busy ? '创建中…' : '开始拼写竞赛'}
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="card">
+            <button className="primary" onClick={handleCreateOral} disabled={busy}>
+              {busy ? '创建中…' : '开始口头速答'}
+            </button>
+          </div>
+        )}
+
+        {msg && <p style={{ color: 'var(--danger)', fontSize: '0.9rem' }}>{msg}</p>}
       </div>
     );
+  }
+
+  // 口头速答交给它自己的控制台（与拼写竞赛完全分开）
+  if (session.kind === 'oral') {
+    return <LiveOralHost session={session} onExit={handleClose} />;
   }
 
   const aliveCount = groupState.filter((s) => s.out_round_no === null).length;

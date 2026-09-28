@@ -29,6 +29,7 @@ import ConceptMapView from './components/ConceptMapView';
 import PastPaperTopics from './components/PastPaperTopics';
 import LiveRoom from './components/LiveRoom';
 import LiveHistory from './components/LiveHistory';
+import LiveBoardWindow from './components/LiveBoardWindow';
 
 export type View =
   | 'home'
@@ -580,7 +581,11 @@ function Shell() {
   const { authUser, skipped, authReady } = useStore();
   // 会话尚未判定完成时先显示加载态：直接渲染 IdentityGate 会让"正在恢复登录"看起来像被登出
   //（在需要走同源代理回退的设备上这段等待明显更长，误判尤其刺眼）
+  // 投屏窗口：?board=<sessionId> —— 只渲染大屏视图（没有导航），用当前登录会话读全量数据
+  const boardId = new URLSearchParams(window.location.search).get('board');
+
   if (!authReady) return <BootScreen />;
+  if (boardId) return <LiveBoardWindow sessionId={boardId} />;
   if (!authUser && !skipped) return <IdentityGate />;
   return <AppBody />;
 }

@@ -6,6 +6,7 @@
 //   · 本轮结束前看不到正确答案（RLS：secrets 只在轮次 settled 后可读）
 import { useCallback, useEffect, useState } from 'react';
 import { useStore } from '../lib/store';
+import LiveOralStudent from './LiveOralStudent';
 import {
   fetchGroupState,
   fetchLatestRound,
@@ -163,6 +164,16 @@ export default function LiveStudent() {
           <button className="primary" onClick={doJoin} disabled={busy}>{busy ? '加入中…' : '加入课堂活动'}</button>
           {msg && <p style={{ color: 'var(--danger)', fontSize: '0.9rem' }}>{msg}</p>}
         </div>
+      </>
+    );
+  }
+
+  // 口头速答：交给它自己的学生端（与拼写竞赛完全分开）
+  if (session.kind === 'oral') {
+    return (
+      <>
+        {header}
+        <LiveOralStudent session={session} />
       </>
     );
   }
