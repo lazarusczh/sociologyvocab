@@ -55,6 +55,7 @@
 - push 必须带代理：`git -c http.proxy=http://127.0.0.1:7897 -c https.proxy=http://127.0.0.1:7897 -c http.sslBackend=openssl push`。不要改 git config。
   **若 openssl 报 `TLS connect error: ... unexpected eof while reading`（2026-09-28 连撞两次），把 `http.sslBackend` 换成 `schannel` 即可推成功** —— 先用 `curl.exe -x http://127.0.0.1:7897 -s -o NUL -w "%{http_code}" https://github.com` 确认代理本身是通的（应为 200），这是 git 侧 TLS 后端与代理的组合问题，不是网络不通。
 - 收尾校验：`app/dist/version.json` 与 `curl.exe -s https://9699vocab.cn/version.json` 必须一致。
+- **HTML 必须不可缓存**（2026-09-29 白屏事故后已修）：`worker.ts` 对 `text/html` 响应注入 `Cache-Control: no-store` + `CDN-Cache-Control: no-store`。原因：**Workers Assets 每次部署都全量替换资产，旧 hash 的 JS 立即 404**；客户端若仍拿着缓存的旧 `index.html`，就会去要一个已不存在的 JS ⇒ **整页白屏**（教师端与学生端同时中招）。JS/CSS 带内容 hash，保持 `immutable` 是对的，唯一会随部署失效的就是这层 HTML 引用关系。**部署后自查**：`curl.exe -s -D - -o NUL https://9699vocab.cn/ | Select-String -Pattern 'cache-control'` 应含 `no-store`。**推论**：上课前 / 课中不要部署（部署瞬间仍会制造一次同样的窗口）。
 
 ## 二、云端数据库（psql 直连）
 
