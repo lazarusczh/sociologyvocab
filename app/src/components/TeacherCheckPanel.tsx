@@ -507,8 +507,13 @@ export default function TeacherCheckPanel() {
       {/* 月度榜单（§4.5.4）：按「本月 XP 增长」降序。
           ⚠ 只在月度口径下显示 —— 累计口径没有「本月增长」这个概念。
           ⚠ 只列前 N 名：§4.5.4 要求「不展示未达标名单、只列获奖者与榜单前几名」，
-            完整名单在**下方**核验表里（教师核验要看全量，而"公布"只需前几名）。 */}
-      {isMonthView && (
+            完整名单在**下方**核验表里（教师核验要看全量，而"公布"只需前几名）。
+          ⚠⚠ **额外绑 `useServerCheckin`（判定切换开关）**：不绑的话，切换生效前它是
+            「**服务端 XP + 本地打卡天数**」的混合口径 —— 两个数各自都对，但并排看会被
+            误读成 bug（「XP 是 0，打卡却有 5 天」）。绑上之后整块 XP 体系**同一时刻生效**，
+            与 `XpCard` / 加分卡入口 / 打卡判定的门控保持一致。
+            开发环境仍可用 `checkinMode` 的 dev 开关预览（见该文件注释）。 */}
+      {isMonthView && useServerCheckin && (
         <div className="card" style={{ marginBottom: '0.8rem' }}>
           <div className="row" style={{ alignItems: 'center' }}>
             <h3 style={{ margin: 0 }}>{periodFilter} 月度榜单</h3>

@@ -148,20 +148,33 @@ export default function StreakCard() {
       </div>
 
       {/* 本月全勤进度（§4.5.5：与「本月 XP 增长」并列为本月的可操作目标）。
-          ⚠ 刻意拆成两层，为的是**不打击后进**：
+          ⚠ 刻意拆成两层（**切换生效后**的那一支），为的是**不打击后进**：
             · **进度**（已达标 X / 28 天）**常显** —— 它是事实，也是"可操作目标"的锚点；
             · **「再坚持 N 天即达全勤」只在还有可能时**才说 —— 缺口大于剩余天数时说出来
               等于宣告失败，而本系统的取向是「门槛只做兜底、别打击人」。
-          ⚠ 只给登录用户看：游客的练习不计入打卡（见上方提示），显示 0/28 只是噪音。 */}
-      {authUser && (
-        <p className="muted" style={{ fontSize: '0.85rem', margin: '0 0 0.5rem' }}>
-          本月已达标 <strong>{fullAttendance.checked}</strong> / {FULL_ATTENDANCE_DAYS} 天
-          {fullAttendance.checked >= FULL_ATTENDANCE_DAYS ? (
-            <>，<strong style={{ color: 'var(--success)' }}>已达全勤</strong></>
-          ) : fullAttendance.show ? (
-            <>，再坚持 <strong style={{ color: 'var(--accent)' }}>{fullAttendance.need}</strong> 天即达全勤</>
-          ) : null}
-        </p>
+          ⚠ 只给登录用户看：游客的练习不计入打卡（见上方提示），显示 0/28 只是噪音。
+          ⚠⚠ **整块绑在 `usingServer` 上，是为了让「提前 ship」的学生可见效果为零** ——
+            这是 P1.5 那批的一部分，应与打卡判定、XpCard、加分卡入口**同一时刻生效**，
+            而不是提前一天冒出来（提前一天对这个目标毫无价值，却会让"ship 只放代码、不改行为"这条
+            更容易验证的性质失效）。切换前那一支保留**原来的月末提示**，避免行为倒退。 */}
+      {usingServer ? (
+        authUser && (
+          <p className="muted" style={{ fontSize: '0.85rem', margin: '0 0 0.5rem' }}>
+            本月已达标 <strong>{fullAttendance.checked}</strong> / {FULL_ATTENDANCE_DAYS} 天
+            {fullAttendance.checked >= FULL_ATTENDANCE_DAYS ? (
+              <>，<strong style={{ color: 'var(--success)' }}>已达全勤</strong></>
+            ) : fullAttendance.show ? (
+              <>，再坚持 <strong style={{ color: 'var(--accent)' }}>{fullAttendance.need}</strong> 天即达全勤</>
+            ) : null}
+          </p>
+        )
+      ) : (
+        fullAttendance.show && (
+          <p style={{ fontSize: '0.85rem', margin: '0 0 0.5rem', color: 'var(--accent)' }}>
+            本月已达标 {fullAttendance.checked} / {FULL_ATTENDANCE_DAYS} 天 —— 再坚持{' '}
+            <strong>{fullAttendance.need}</strong> 天即达全勤。
+          </p>
+        )
       )}
 
       {!authUser && (
