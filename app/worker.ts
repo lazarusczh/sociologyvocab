@@ -643,6 +643,25 @@ export default {
     }
 
     // 其余请求：静态资源
-    return env.ASSETS.fetch(request);
+    //
+    // ⚠️ HTML 必须显式禁缓存（2026-09-29 白屏事故）：
+    // 每次部署都会**全量替换**资产（Workers Assets 语义），旧 hash 的 JS 随即 404。
+    // 客户端若还拿着缓存里的旧 index.html，就会去要一个已不存在的 JS ⇒ 整页白屏
+    // （教师端与学生端同时中招，因为共用同一份 HTML 与同一个 CDN 节点）。
+    // Vite 产物里 JS/CSS 都带内容 hash，`immutable` 长缓存是对的；唯一会随部署失效的
+    // 就是「HTML → 带 hash 的 JS」这层引用关系，所以只让 HTML 不可缓存，其余照旧。
+    const assetRes = await env.ASSETS.fetch(request);
+    const assetType = assetRes.headers.get('content-type') ?? '';
+    if (assetType.includes('text/html')) {
+      const htmlHeaders = new Headers(assetRes.headers);
+      htmlHeaders.set('Cache-Control', 'no-store, must-revalidate');
+      htmlHeaders.set('CDN-Cache-Control', 'no-store');   // CF 专有头，直接管住边缘缓存
+      return new Response(assetRes.body, {
+        status: assetRes.status,
+        statusText: assetRes.statusText,
+        headers: htmlHeaders,
+      });
+    }
+    return assetRes;
   },
 };
