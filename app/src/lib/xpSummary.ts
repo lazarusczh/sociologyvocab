@@ -1,29 +1,44 @@
 /**
  * 总 XP 的取数与派生（等级 / 今日 / 本月）。
  *
- * 数据源：`get_xp_summary()` ⇒ `{ practice_xp, bonus_xp, total_xp, daily }`。
- * ⚠ 练习 XP 已在服务端按**起算日**过滤（见 `db-migration-xp-start-date.sql`），
+ * 数据源：`get_xp_summary()` ⇒ `{ practice_xp, bonus_xp, total_xp, daily, bonus_daily }`。
+ * ⚠ 练习 XP 已在服务端按**起算日**过滤（见 `public.xp_start_date()`），
  *   所以这里拿到的就是"该学生真正应从 0 开始累计的量"，前端**不要再加时间过滤** ——
  *   两处各过滤一次，将来改起算日时必然漏掉一处。
  *
- * ⚠ 「本月增长」用 `daily` 逐日求和，**不含 `bonus_xp`**（教师奖励没有逐日明细）。
- *   当前 `student_xp_bonus` 为空表，所以两者相等；一旦教师开始签发奖励，
- *   「总 XP」会略大于「各月增长之和」—— 那是预期行为，不是漏算。
+ * ⚠ **「今日 / 本月」都含教师奖励 XP**（`bonus_daily`，2026-09-29 教师裁定计入）。
+ *   这一点必须与教师端榜单（`get_xp_summary_all().range_xp`）**完全一致** ——
+ *   两边若不同口径，同一个「本月 XP 增长」会在学生端与教师端显示成两个数，
+ *   而那种不一致最容易被当成 bug（也正是这份注释要拦住的事）。
+ *   ⇒ 所以「今日 / 本月」都走 `xpOnDay` / `xpInMonth` 两个函数，**不要在各处手写累加**。
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchXpSummary, type XpSummary } from './xp';
+import { fetchXpSummary, fetchXpSummaryAll, type XpSummary, type ClassXpRow } from './xp';
 import { levelOf, type LevelInfo } from './xpLevel';
 import { todayKey } from './checkin';
 import { flushXpQueue } from './xpQueue';
 import { isServerCheckinEnabled } from './checkinMode';
 
-/** 某一天的练习 XP（`daily` 里该日的 `practice_xp`）。
- *  抽出来共用，是因为「今日 XP」现在有两个消费方（等级卡片、结算页的本轮增量）——
- *  各写一份循环，将来 `daily` 口径一变就会分叉。 */
-function todayPracticeXp(s: XpSummary): number {
-  const today = todayKey();
+/** 某一天的 **XP 合计**（练习 + 教师奖励）。
+ *
+ *  抽出来共用，是因为「今日 / 本月 XP 增长」现在有多个消费方（等级卡片、结算页的本轮增量、
+ *  月度之星），各写一份循环的话口径一变就会分叉。
+ *
+ *  ⚠ **必须含 `bonus_daily`**：教师端榜单的「本月增长」是**含奖励**的（2026-09-29 教师裁定），
+ *    两边若不同口径，同一个「本月 XP 增长」会在学生端与教师端显示成两个数 ——
+ *    那是最容易被当成 bug 的一类不一致。 */
+function xpOnDay(s: XpSummary, dayKey: string): number {
   let t = 0;
-  for (const d of s.daily ?? []) if (d.day_key === today) t += d.practice_xp ?? 0;
+  for (const d of s.daily ?? []) if (d.day_key === dayKey) t += d.practice_xp ?? 0;
+  for (const d of s.bonus_daily ?? []) if (d.day_key === dayKey) t += d.bonus_xp ?? 0;
+  return t;
+}
+
+/** 某自然月（`'YYYY-MM'`）的 XP 增长合计（练习 + 教师奖励）。 */
+function xpInMonth(s: XpSummary, ym: string): number {
+  let t = 0;
+  for (const d of s.daily ?? []) if (d.day_key.slice(0, 7) === ym) t += d.practice_xp ?? 0;
+  for (const d of s.bonus_daily ?? []) if (d.day_key.slice(0, 7) === ym) t += d.bonus_xp ?? 0;
   return t;
 }
 
@@ -32,9 +47,9 @@ export interface XpView {
   error: string;
   /** 总 XP（练习 + 奖励），等级由它反解 */
   totalXp: number;
-  /** 今日已获（练习 XP；「今天」按本地 dateKey，与服务端 day_key 同源） */
+  /** 今日已获（练习 + 教师奖励；「今天」按本地 dateKey，与服务端 day_key 同源） */
   todayXp: number;
-  /** 本月已获（练习 XP），用于月度之星的可操作目标 */
+  /** 本月已获（练习 + 教师奖励）—— 与教师端榜单的「本月 XP 增长」同口径，即月度之星的比较量 */
   monthXp: number;
   level: LevelInfo;
   reload: () => void;
@@ -65,14 +80,9 @@ export function useXpSummary(enabled = true, userId?: string): XpView {
       try {
         const s = await fetchXpSummary(userId);
         if (!alive) return;
-        const ym = todayKey().slice(0, 7);
-        let m = 0;
-        for (const d of s.daily ?? []) {
-          if (d.day_key.slice(0, 7) === ym) m += d.practice_xp ?? 0;
-        }
         setTotalXp(s.total_xp ?? 0);
-        setTodayXp(todayPracticeXp(s));
-        setMonthXp(m);
+        setTodayXp(xpOnDay(s, todayKey()));
+        setMonthXp(xpInMonth(s, todayKey().slice(0, 7)));
       } catch (e) {
         if (alive) {
           setError(e instanceof Error ? e.message : String(e));
@@ -120,7 +130,8 @@ export function useXpSummary(enabled = true, userId?: string): XpView {
  *   ① 判定切换尚未生效（`isServerCheckinEnabled()` 为假）—— 服务端 XP 恒为 0；
  *   ② 起跑线没取到（网络失败）—— 差值无从谈起。
  *
- * ⚠ 口径：只统计**服务端练习 XP**，不含教师奖励（`bonus_xp` 没有逐日明细）。
+ * ⚠ 口径：统计当天的 **XP 合计（练习 + 教师奖励的 `bonus_daily`）**，与 `useXpSummary`
+ *   的「今日 / 本月」用同一个 `xpOnDay` —— 三处口径必须一致，否则同一个量会显示成几个值。
  *   也不受本地打卡计时影响 —— 两套东西互不相干。
  */
 export function useRoundXp(finished: boolean): number | null {
@@ -138,7 +149,7 @@ export function useRoundXp(finished: boolean): number | null {
     void (async () => {
       try {
         const s = await fetchXpSummary();
-        if (alive) baseRef.current = todayPracticeXp(s);
+        if (alive) baseRef.current = xpOnDay(s, todayKey());
       } catch {
         // 取不到 ⇒ base 保持 null ⇒ 本轮结算不显示
       } finally {
@@ -169,7 +180,7 @@ export function useRoundXp(finished: boolean): number | null {
       try {
         await flushXpQueue();
         const s = await fetchXpSummary();
-        setGain(Math.max(0, todayPracticeXp(s) - base));
+        setGain(Math.max(0, xpOnDay(s, todayKey()) - base));
       } catch {
         // 查不到就不显示
       }
@@ -177,4 +188,74 @@ export function useRoundXp(finished: boolean): number | null {
   }, [finished, enabled]);
 
   return gain;
+}
+
+// ---------------------------------------------------------------------------
+// 教师端：全班某自然月的 XP（月度之星榜单）
+// ---------------------------------------------------------------------------
+
+/** `'YYYY-MM'` → 该月的首末两天（`'YYYY-MM-DD'`）。
+ *  ⚠ 用 `new Date(y, m, 0)` 取月末：`m` 是 1~12，而 `Date` 的月份从 0 起，
+ *  所以传 `m`（而不是 `m-1`）拿到的是「下月第 0 天」＝本月最后一天，且自动处理闰年。 */
+export function monthRange(ym: string): { from: string; to: string } {
+  const [y, m] = ym.split('-').map(Number);
+  const last = new Date(y, m, 0).getDate();
+  return { from: `${ym}-01`, to: `${ym}-${String(last).padStart(2, '0')}` };
+}
+
+export interface ClassXpView {
+  /** 每人的区间 XP 增长（`range_xp`）；未加载完成时为空数组 */
+  rows: ClassXpRow[];
+  loading: boolean;
+  error: string;
+  reload: () => void;
+}
+
+/**
+ * 教师端按月取全班 XP（staff-only，服务端自查角色）。
+ *
+ * `month` 为 `'YYYY-MM'`；传 `null` 或禁用时不发请求。
+ *
+ * ⚠ 这不是「学生端那个 `useXpSummary` 的批量版」：`useXpSummary` 是**当前登录者**的
+ *   今日/本月/总 XP，这里是**全班每人的区间增长**，返回结构也不同（`ClassXpRow`）。
+ *   两者共用的是「口径」——区间增长都含教师奖励 XP（见 `xpOnDay` 的说明）。
+ */
+export function useClassXpSummary(month: string | null, enabled = true): ClassXpView {
+  const [rows, setRows] = useState<ClassXpRow[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [nonce, setNonce] = useState(0);
+
+  const reload = useCallback(() => setNonce((n) => n + 1), []);
+
+  useEffect(() => {
+    if (!enabled || !month) {
+      setRows([]);
+      setLoading(false);
+      setError('');
+      return;
+    }
+    let alive = true;
+    setLoading(true);
+    setError('');
+    void (async () => {
+      try {
+        const { from, to } = monthRange(month);
+        const data = await fetchXpSummaryAll(from, to);
+        if (alive) setRows(data);
+      } catch (e) {
+        if (alive) {
+          setError(e instanceof Error ? e.message : String(e));
+          setRows([]);
+        }
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [month, enabled, nonce]);
+
+  return { rows, loading, error, reload };
 }

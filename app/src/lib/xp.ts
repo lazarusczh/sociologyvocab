@@ -63,7 +63,37 @@ export interface XpSummary {
   practice_xp: number;
   bonus_xp: number;
   total_xp: number;
+  /** 逐日**练习** XP（只含起算日之后，见 `public.xp_start_date()`）。 */
   daily: { day_key: string; practice_xp: number }[];
+  /** 逐日**奖励** XP（教师签发，按 Asia/Shanghai 归日）。
+   *
+   * ⚠ 为什么必须有这一份：学生端的「今日 / 本月 XP 增长」若只对 `daily` 求和，
+   *   就会**漏掉教师签发的奖励**，而教师端榜单（`get_xp_summary_all`）是**含 bonus** 的
+   *   （2026-09-29 教师裁定）⇒ 同一个「本月 XP 增长」会在两端显示成两个数。
+   *   那是最容易被当成 bug 的一类不一致 —— 两边必须用同一个算法。 */
+  bonus_daily: { day_key: string; bonus_xp: number }[];
+}
+
+/** get_xp_summary_all() 的单行返回（教师端批量，staff-only）。见 `db-migration-monthly.sql`。 */
+export interface ClassXpRow {
+  user_id: string;
+  /** 累计练习 XP（起算日之后） */
+  practice_all: number;
+  /** 累计奖励 XP */
+  bonus_all: number;
+  /** practice_all + bonus_all，与 `get_xp_summary().total_xp` 同口径 */
+  total_all: number;
+  practice_range: number;
+  bonus_range: number;
+  /** 区间内 XP 增长（练习 + 奖励）—— 即「本月 XP 增长」，月度之星用它排序 */
+  range_xp: number;
+  /** 账号创建的**年月**（`'YYYY-MM'`，服务端已按 Asia/Shanghai 折算）。
+   *
+   * ⚠ 服务端给的是年月而不是时间戳：**时区折算必须只有一份**。前端若拿 UTC 时间戳
+   *   `slice(0,7)`，在「月末最后几小时建号」时会差一个月（08-31 20:00 UTC = 09-01 04:00 上海），
+   *   那个人就会被错判成"本月新加入"而失去参评资格（§4.5.3）。
+   *  `null` = 取不到账号（理论上不会；`student_data` 里的人都应有 `auth.users` 行）。 */
+  joined_month: string | null;
 }
 
 /** get_daily_study() 的返回（每日练习聚合，打卡判定用）。
@@ -189,6 +219,17 @@ export async function fetchXpSummary(userId?: string): Promise<XpSummary> {
   const { data, error } = await supabase.rpc('get_xp_summary', { p_user_id: userId ?? null });
   if (error) throw new Error(error.message || 'get_xp_summary failed');
   return data as XpSummary;
+}
+
+/** 教师端批量取数：全班每人的 XP（**staff-only**，服务端自查角色）。
+ *  `from` / `to` 为 'YYYY-MM-DD'，省略即全量；月度之星传当月首末两天。 */
+export async function fetchXpSummaryAll(from?: string, to?: string): Promise<ClassXpRow[]> {
+  const { data, error } = await supabase.rpc('get_xp_summary_all', {
+    p_from: from ?? null,
+    p_to: to ?? null,
+  });
+  if (error) throw new Error(error.message || 'get_xp_summary_all failed');
+  return (data ?? []) as ClassXpRow[];
 }
 
 /** 每日练习聚合（打卡判定用）。from / to 为 'YYYY-MM-DD'。 */

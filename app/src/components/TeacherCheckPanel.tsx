@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { isDayChecked, isInWrongBook, todayKey, FULL_ATTENDANCE_DAYS } from '../lib/checkin';
 import { fetchAllServerCheckIn } from '../lib/checkinServer';
 import { isServerCheckinEnabled } from '../lib/checkinMode';
+import { useClassXpSummary } from '../lib/xpSummary';
 import { useStore } from '../lib/store';
 import { maskEmail } from '../lib/shuffle';
 import type { CloudStudentData } from '../lib/cloud';
@@ -52,6 +53,10 @@ interface MonthStat {
 // 与打卡页共用一份 —— 之前这里另写了一个字面量，调阈值时必然漏掉一处。
 
 const emptyCheckin = (): CheckInState => ({ study: {}, makeup: {}, earnedMakeupWeeks: [], bestStreak: 0 });
+
+// 月度榜单只列前 N 名（§4.5.4：只列获奖者与榜单前几名，避免打击后进）。
+// 完整名单在下方核验表里 —— 教师核验需要看全量，而"公布"只需要前几名。
+const BOARD_TOP_N = 10;
 
 // 统计单个学生（className 由外部传入）
 function summarize(row: StudentRow, className: string, validIds: Set<string>): StudentStat {
@@ -315,6 +320,38 @@ export default function TeacherCheckPanel() {
     };
   }, [isMonthView, shown, shownRaw, monthStats]);
 
+  // ---- 月度榜单（§4.5.4）----
+  // 数据源是 staff-only 的 `get_xp_summary_all`：一次拿全班（逐人调用要 20 次往返）。
+  // ⚠ 只在**月度口径**下请求 —— 累计口径没有「本月增长」这个概念，发了也是白花一次往返。
+  const classXp = useClassXpSummary(isMonthView ? periodFilter : null);
+
+  // 把 XP 行与本地那份名单拼起来：姓名/班级仍以 `student_data` 为源（服务端那份没有姓名），
+  // 并按班级筛选对齐 —— 否则切到某个班时，榜单还列着全班的人。
+  const board = useMemo(() => {
+    if (!isMonthView) return [];
+    const byId = new Map(shownRaw.map((r) => [r.user_id, r]));
+    return classXp.rows
+      .filter((x) => byId.has(x.user_id))
+      .map((x) => {
+        const r = byId.get(x.user_id)!;
+        const st = monthStats.get(x.user_id);
+        return {
+          user_id: x.user_id,
+          name: r.data?.name || maskEmail(r.email) || '(未命名)',
+          xp: x.range_xp,
+          bonus: x.bonus_range,
+          checkedDays: st?.checkedDays ?? 0,
+          fullAttendance: !!st?.fullAttendance,
+          // 「本月新加入」由服务端给的年月直判（时区折算只有服务端那一份，见 ClassXpRow）
+          isNew: x.joined_month === periodFilter,
+        };
+      })
+      // 并列时用「本月打卡天数」再排（§4.5.1 的并列处理：XP 并列则以打卡天数多者优先），
+      // 仍并列再按姓名，保证顺序**稳定**（否则每次刷新名次都在跳，教师没法对照）。
+      .sort((a, b) => b.xp - a.xp || b.checkedDays - a.checkedDays || a.name.localeCompare(b.name))
+      .slice(0, BOARD_TOP_N);
+  }, [isMonthView, periodFilter, classXp.rows, shownRaw, monthStats]);
+
   return (
     <div>
       <div className="card" style={{ marginBottom: '0.8rem' }}>
@@ -464,6 +501,69 @@ export default function TeacherCheckPanel() {
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* 月度榜单（§4.5.4）：按「本月 XP 增长」降序。
+          ⚠ 只在月度口径下显示 —— 累计口径没有「本月增长」这个概念。
+          ⚠ 只列前 N 名：§4.5.4 要求「不展示未达标名单、只列获奖者与榜单前几名」，
+            完整名单在**下方**核验表里（教师核验要看全量，而"公布"只需前几名）。 */}
+      {isMonthView && (
+        <div className="card" style={{ marginBottom: '0.8rem' }}>
+          <div className="row" style={{ alignItems: 'center' }}>
+            <h3 style={{ margin: 0 }}>{periodFilter} 月度榜单</h3>
+            <span className="spacer" />
+            <button className="ghost" onClick={classXp.reload} disabled={classXp.loading}>
+              {classXp.loading ? '加载中…' : '刷新'}
+            </button>
+          </div>
+          <p className="muted" style={{ marginTop: '0.4rem', fontSize: '0.85rem' }}>
+            按<strong>本月 XP 增长</strong>降序（<strong>含</strong>教师签发的奖励 XP）。
+            月度之星 = 本月增长最高者（1 名）；全勤奖 = 本月打卡 ≥{FULL_ATTENDANCE_DAYS} 天（不限名额）。
+            只列前 {BOARD_TOP_N} 名，完整名单见下方核验表。
+          </p>
+          {classXp.error && (
+            <p className="badge warn" style={{ marginTop: '0.5rem' }}>XP 读取失败：{classXp.error}</p>
+          )}
+          {!classXp.error && !classXp.loading && board.length === 0 && (
+            <p className="empty-state" style={{ marginTop: '0.5rem' }}>该月还没有 XP 记录。</p>
+          )}
+          {board.length > 0 && (
+            <div style={{ padding: 0, overflowX: 'auto', marginTop: '0.5rem' }}>
+              <table className="check-table">
+                <thead>
+                  <tr>
+                    <th>名次</th>
+                    <th>学生</th>
+                    <th>本月 XP 增长</th>
+                    <th>其中奖励</th>
+                    <th>本月打卡</th>
+                    <th>全勤</th>
+                    <th>备注</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {board.map((b, i) => (
+                    <tr key={b.user_id}>
+                      <td>{i + 1}</td>
+                      <td>{b.name}</td>
+                      <td style={{ fontWeight: 600 }}>{b.xp}</td>
+                      <td className="muted">{b.bonus > 0 ? `+${b.bonus}` : '—'}</td>
+                      <td>{b.checkedDays} 天</td>
+                      <td>
+                        {b.fullAttendance
+                          ? <span style={{ color: 'var(--success)', fontWeight: 600 }}>达标</span>
+                          : <span className="muted">—</span>}
+                      </td>
+                      <td>
+                        {b.isNew && <span className="badge warn">本月新加入·次月参评</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
     </div>

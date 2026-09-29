@@ -85,9 +85,12 @@ export default function StreakCard() {
   const weeklyCheckedDays = weekKeys.filter((k) => isDayChecked(checkin, k)).length;
   const weeklyMins = Math.floor(weekKeys.reduce((s, k) => s + (checkin.study[k]?.seconds || 0), 0) / 60);
 
-  // 月末全勤提示（《练级与奖励体系方案》§4.5.5：打卡页在月末几天提示「再坚持 X 天即达全勤」）。
-  // ⚠ 只在**还有希望**时提示：缺口大于剩余天数就不显示 —— 那时提示等于宣告失败，
-  //   而本系统的取向是"门槛只做兜底、别打击人"。
+  // 本月全勤进度（《练级与奖励体系方案》§4.5.5）。
+  // ⚠ `show` 只是**「要不要说那句鼓励」**的开关，不再是「整块要不要显示」：
+  //   已达标天数本身**常显**（它是本月的可操作目标），而「再坚持 N 天即达全勤」
+  //   只在缺口 ≤ 剩余天数时才说 —— 缺口更大时说出口等于宣告失败。
+  // ⚠ 与教师端榜单的 `fullAttendance` 必须是同一个口径：都走 `isDayChecked` + `FULL_ATTENDANCE_DAYS`
+  //   （阈值收敛在 `lib/checkin.ts`，不在这两个组件里各写一份）。
   const fullAttendance = useMemo(() => {
     const now = new Date();
     const ym = dateKeyOf(now).slice(0, 7);
@@ -144,10 +147,20 @@ export default function StreakCard() {
         <span className="muted" style={{ fontSize: '0.85rem' }}>{weeklyCheckedDays}/7 天打卡</span>
       </div>
 
-      {fullAttendance.show && (
-        <p style={{ fontSize: '0.85rem', margin: '0 0 0.5rem', color: 'var(--accent)' }}>
-          本月已达标 {fullAttendance.checked} / {FULL_ATTENDANCE_DAYS} 天 —— 再坚持{' '}
-          <strong>{fullAttendance.need}</strong> 天即达全勤。
+      {/* 本月全勤进度（§4.5.5：与「本月 XP 增长」并列为本月的可操作目标）。
+          ⚠ 刻意拆成两层，为的是**不打击后进**：
+            · **进度**（已达标 X / 28 天）**常显** —— 它是事实，也是"可操作目标"的锚点；
+            · **「再坚持 N 天即达全勤」只在还有可能时**才说 —— 缺口大于剩余天数时说出来
+              等于宣告失败，而本系统的取向是「门槛只做兜底、别打击人」。
+          ⚠ 只给登录用户看：游客的练习不计入打卡（见上方提示），显示 0/28 只是噪音。 */}
+      {authUser && (
+        <p className="muted" style={{ fontSize: '0.85rem', margin: '0 0 0.5rem' }}>
+          本月已达标 <strong>{fullAttendance.checked}</strong> / {FULL_ATTENDANCE_DAYS} 天
+          {fullAttendance.checked >= FULL_ATTENDANCE_DAYS ? (
+            <>，<strong style={{ color: 'var(--success)' }}>已达全勤</strong></>
+          ) : fullAttendance.show ? (
+            <>，再坚持 <strong style={{ color: 'var(--accent)' }}>{fullAttendance.need}</strong> 天即达全勤</>
+          ) : null}
         </p>
       )}
 
