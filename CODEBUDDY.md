@@ -121,6 +121,13 @@ psql $conn -w -v ON_ERROR_STOP=1 -f db-migration-xxx.sql
 - 需要后台起并看日志时：
   `cd app; $env:VITE_NO_WATCH='1'; Start-Process npm.cmd -ArgumentList 'run','dev' -RedirectStandardOutput "$env:TEMP\vocab-dev.log" -RedirectStandardError "$env:TEMP\vocab-dev.err.log" -WindowStyle Hidden`
   然后 `Get-Content "$env:TEMP\vocab-dev.log" -Tail 20` 查看（注意别让命令文本里出现 watch 关键字，否则执行器会把它当成 watch 命令、吞掉输出）。
+- **本地 dev server 上的 `/app-api/*` 默认打到线上，不是本机** —— `src/lib/apiBase.ts` 把 `localhost` 判为"原生外壳"，
+  于是本地页面点「同步到 ManageBac」跑的是**线上那份 Worker**，本地刚改的 Worker 代码根本验不到（2026-09-29 为此专门加了开关）。
+  要联调 Worker 改动，两个开关成对设：
+  `npx wrangler dev --port 8787`（读 `.dev.vars`；**跑着它就不能 `npm run build`/`ship`**）+ `$env:VITE_LOCAL_API='1'; $env:VITE_NO_WATCH='1'; npm run dev`
+  （前者把 `/app-api` 留在相对路径、后者 `vite.config.ts` 转发到 8787）。判据：`POST http://localhost:5173/app-api/mb/write` 返回 **401**（= 转到了本地 Worker 并走到鉴权）；
+  不设开关时这条请求会**指向 `9699vocab.cn`**（在本地验的其实还是线上代码）。
+  用 `localhost` 访问（dev server 只监听 `::1`，`127.0.0.1:5173` 连不上）。验证完记得**停掉 wrangler dev** 再构建。
 
 ## 七、AI 通道（魔搭 ModelScope）
 

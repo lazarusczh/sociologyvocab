@@ -72,6 +72,16 @@ const TASKS_EXPR = `(() => {
 // （教师反馈日志太长）。改此开关后需重新 ship 才生效。
 const MB_WRITE_DIAG = false;
 
+/** 写入路径在「学生行渲染出来」之后**还要再等多久**才动手（毫秒）。
+ *
+ * 2026-09-28 教师报「第一个录入的学生的成绩录不进去；只录一个人时那个人也录不进去」。
+ * 成绩册的行出来得早（服务端渲染），而给分数框挂"失焦保存"的是页面自己的脚本（就绪得晚）。
+ * 我们的写入若抢在后者之前，就会出现最讨厌的那种失败：值进了 DOM、失焦也发生了，
+ * 但**一条保存请求都没发**，回读时那一行还是空的
+ * （同一页里重写也没用 —— 见写入路由里「补写一遍」的说明）。
+ * 这个等待就是为它准备的：让**第一行**的写入落在页面就绪之后。 */
+const WRITE_SETTLE_MS = 2000;
+
 const MARKS_EXPR = `(() => {
   const clean = (s) => (s || '').replace(/\\s+/g, ' ').trim();
   const rows = [];
@@ -370,21 +380,29 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
       const result = await withCloudBrowser(env, async (cdp) => {
         await cdp.send('Network.setCookies', { cookies: cookieParams });
         await navigateToTask(cdp, mbClassId, taskId);
-        if (!(await waitStudentRows(cdp))) throw new Error('没读到学生行（该 task 可能还没有学生）');
+        // ⚠ 写入路径要比读取路径多等一步「页面就绪」（settle）——见 WRITE_SETTLE_MS 的说明：
+        //   学生行是服务端渲染的、出来得早，而给分数框挂"失焦保存"的是页面自己的脚本（就绪得晚）。
+        //   抢在它之前写第一行，就会出现「值进了 DOM、一条保存请求都没发」的静默失败。
+        if (!(await waitStudentRows(cdp, WRITE_SETTLE_MS))) throw new Error('没读到学生行（该 task 可能还没有学生）');
 
         // 记录当前页面 URL —— 用来确认进的到底是「单 task 页」
         // （形态 `/gradebook/term/<term>/core_tasks/<taskId>`）还是学期综合成绩册。
         const pageUrl = MB_WRITE_DIAG ? await cdp.text('location.href') : '';
 
-        // 开始抓写入期间的非 GET 请求（仅诊断开关打开时）。
-        // 当初靠它才发现「写完一条保存请求都没发」，从而定位到 blur 从未触发。
+        // 保存请求哨兵：写入期间到底有没有**真的往 ManageBac 发写请求**。
+        // 2026-09-18 就是靠它才发现「写完一条保存请求都没发」；现在**常开**（只累加一个计数），
+        // 因为「值在分数框里」与「服务端收到写请求」是两件事 ——
+        // 逐行记下请求数，前端报告里就能直接看出那一行是"没发"还是"发了没生效"。
+        // 开关只影响是否额外留 URL/状态码明细。
+        let saveCount = 0;
         const saveRequests: string[] = [];
         const saveResponses: string[] = [];
         const offReq = cdp.on('Network.requestWillBeSent', (p) => {
-          if (!MB_WRITE_DIAG) return;
           const req = p.request as { method?: string; url?: string } | undefined;
-          if (req?.method && req.method !== 'GET' && saveRequests.length < 20) {
-            saveRequests.push(`${req.method} ${String(req.url ?? '').slice(0, 130)}`);
+          const u = String(req?.url ?? '');
+          if (req?.method && req.method !== 'GET' && /managebac\.(cn|com)/i.test(u)) saveCount++;
+          if (MB_WRITE_DIAG && req?.method && req.method !== 'GET' && saveRequests.length < 20) {
+            saveRequests.push(`${req.method} ${u.slice(0, 130)}`);
           }
         });
         const offRes = cdp.on('Network.responseReceived', (p) => {
@@ -462,9 +480,10 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
           //   这正是教师看到的「十几个一起填，有几个读回是空值」，也解释了为什么
           //   "重试几次能成两个、总剩一个进不去"（随机丢值，不是某行天生不可写）。
           let rowOk = false;
+          let rowNoSave = false;
           let rowSteps: string[] = [];
           let rowBefore = t.before;
-          for (let attempt = 1; attempt <= 2 && !rowOk; attempt++) {
+          for (let attempt = 1; attempt <= 2; attempt++) {
             if (attempt > 1) await sleep(600); // 让上一轮保存请求飞完、页面稳定下来
             const fresh = JSON.parse(await cdp.text(locateExpr([{ row: t.row, score: want }]))) as {
               ok: boolean;
@@ -474,13 +493,22 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
             }[];
             const hit = fresh[0];
             if (!hit?.ok || !hit.inputId) {
-              rowSteps = rowSteps.concat(`第 ${attempt} 次定位失败：${hit?.reason ?? '未知'}`);
+              rowSteps = rowSteps.concat(`[第 ${attempt} 次] 定位失败：${hit?.reason ?? '未知'}`);
               continue;
             }
             rowBefore = hit.before;
+            const saveBefore = saveCount;
             const typed = await typeIntoScoreInput(cdp, hit.inputId, want);
+            await sleep(300); // 保存请求是异步发出的，给哨兵一点时间累加
+            const saveDelta = saveCount - saveBefore;
             rowOk = typed.ok;
-            rowSteps = rowSteps.concat(typed.steps.map((s) => `[第 ${attempt} 次] ${s}`));
+            rowNoSave = typed.ok && saveDelta === 0;
+            rowSteps = rowSteps.concat(
+              typed.steps.map((s) => `[第 ${attempt} 次] ${s}`),
+              `[第 ${attempt} 次] 保存请求=+${saveDelta}`,
+            );
+            // 值在框里、页面也确实提交了 ⇒ 收工；否则再试一次（第二次仍如此就交给回读与补写）
+            if (rowOk && !rowNoSave) break;
           }
           written.push({
             row: t.row,
@@ -488,7 +516,11 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
             before: rowBefore,
             after: rowOk ? want : '',
             steps: rowSteps,
-            reason: rowOk ? undefined : '两次尝试都没能把值写进分数框',
+            // 「值写进去了、页面却没发保存请求」是当前最需要被看见的一种失败：
+            // 教师报的「第一个录不进去」就是它。它交给下面的**补写**（重载后基线回到服务端值）收口。
+            reason: rowOk
+              ? (rowNoSave ? '值已进分数框，但页面没有发出保存请求（多半是页面脚本尚未就绪）' : undefined)
+              : '两次尝试都没能把值写进分数框',
           });
           // 行间留一口气：每行失焦都会触发一次自动保存请求，紧接着操作下一行容易互相干扰
           await sleep(350);
@@ -603,17 +635,115 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
           if (allSaved(rowsAfter)) break;
           await sleep(1500);
         }
-        const serverVector = updates
-          .map((u) => {
-            const hit = pick(rowsAfter, u.row);
-            return `${hit ? hit.score : '(缺行)'}`;
-          })
-          .join('/');
+        const vectorOf = (rows: { name: string; alt: string; score: string }[]) =>
+          updates
+            .map((u) => {
+              const hit = pick(rows, u.row);
+              return `${hit ? hit.score : '(缺行)'}`;
+            })
+            .join('/');
+        const serverVector = vectorOf(rowsAfter);
         if (domVector !== serverVector) {
           console.error(`[mb/write] 回读不一致：改完 DOM 时=${domVector}，重载后（服务端）=${serverVector}`);
         }
 
-        const verified = written.map((w) => {
+        // ---- 补写一遍：只补**回读失败的行**（教师报的「第一个录入的写不进去」靠它收口）----
+        //
+        // 为什么必须"重载之后"才补：第 1 遍里"值进了 DOM、服务端却没存"的那些行，
+        //   在**同一页**里重写是没用的 —— 框架把"我们写进去的值"当成了自己的基线，
+        //   再写同样的值它认为没有变化 ⇒ 仍然不发保存请求。
+        //   这正是教师反复遇到的「重试几次、总剩那一行」：那一行不是天生不可写，而是"没有变化"。
+        //   而**重载之后**框架的基线回到服务端值，此时写才是真变化、才会提交。
+        //   第一行最容易命中这类失败：页面脚本还没就绪，我们的写入先于它，基线就被我们的值污染了
+        //   （这也是为什么"只录一个人"时那个人一定录不进去 —— 他永远是这一会话的第一行）。
+        // 代价：只有真有行没落库才多走这一轮；第 1 遍全落库时一个字节都不多花。
+        //
+        // ⚠ 下面这段与第 1 遍是**同一套逐行动作**（重新定位 → 真实输入 → 抢焦提交 → 再回读）。
+        //   之所以写成两段而不是抽成一个函数：把改动压在"多补一遍"这一层，不动已经跑通的第 1 遍。
+        //   ⇒ 将来改写入动作（typeIntoScoreInput 的用法）时，**两处都要改**。
+        const unsaved = updates.filter((u) => {
+          const hit = pick(rowsAfter, u.row);
+          return !hit || hit.score !== u.score;
+        });
+        const secondPassRows = unsaved.map((u) => u.row);
+        if (unsaved.length) {
+          console.error(`[mb/write] 第 1 遍有 ${unsaved.length} 行未落库，页面此时已就绪，补写一遍：${secondPassRows.join('、')}`);
+          const located2 = JSON.parse(await cdp.text(locateExpr(unsaved))) as {
+            row: string;
+            score?: string;
+            ok: boolean;
+            reason?: string;
+            inputId?: string;
+            before?: string;
+          }[];
+          for (const t of located2) {
+            if (!t.ok) {
+              written.push({ row: t.row, ok: false, reason: `${t.reason ?? '定位失败'}（补写时）` });
+              continue;
+            }
+            const want = t.score ?? '';
+            let rowOk = false;
+            let rowSteps: string[] = [];
+            let rowBefore = t.before;
+            for (let attempt = 1; attempt <= 2 && !rowOk; attempt++) {
+              if (attempt > 1) await sleep(600);
+              const fresh = JSON.parse(await cdp.text(locateExpr([{ row: t.row, score: want }]))) as {
+                ok: boolean;
+                reason?: string;
+                inputId?: string;
+                before?: string;
+              }[];
+              const hit = fresh[0];
+              if (!hit?.ok || !hit.inputId) {
+                rowSteps = rowSteps.concat(`[补写第 ${attempt} 次] 定位失败：${hit?.reason ?? '未知'}`);
+                continue;
+              }
+              rowBefore = hit.before;
+              const saveBefore = saveCount;
+              const typed = await typeIntoScoreInput(cdp, hit.inputId, want);
+              await sleep(300);
+              const saveDelta = saveCount - saveBefore;
+              rowOk = typed.ok;
+              rowSteps = rowSteps.concat(
+                typed.steps.map((s) => `[补写第 ${attempt} 次] ${s}`),
+                `[补写第 ${attempt} 次] 保存请求=+${saveDelta}`,
+              );
+            }
+            written.push({
+              row: t.row,
+              ok: rowOk,
+              before: rowBefore,
+              after: rowOk ? want : '',
+              steps: rowSteps,
+              reason: rowOk ? undefined : '补写时两次都没能把值写进分数框',
+            });
+            await sleep(350);
+          }
+
+          // 补写完同样要「等保存 → 重载 → 回读」：这次读到的才是最终真相
+          await sleep(3000);
+          await cdp.send('Page.reload', { ignoreCache: false });
+          if (!(await waitStudentRows(cdp))) throw new Error('补写回读时没读到学生行（页面可能未加载完成）');
+          rounds = 0;
+          for (let i = 0; i < 8; i++) {
+            rowsAfter = (JSON.parse(await cdp.text(MARKS_EXPR)) as {
+              rows: { name: string; alt: string; score: string }[];
+            }).rows ?? [];
+            rounds = i + 1;
+            if (allSaved(rowsAfter)) break;
+            await sleep(1500);
+          }
+        }
+        const finalVector = vectorOf(rowsAfter);
+        if (finalVector !== serverVector) {
+          console.error(`[mb/write] 补写后服务端值=${finalVector}（第 1 遍后=${serverVector}）`);
+        }
+
+        // 补写过的行在 written 里会出现两次（第 1 遍 + 补写）：按行去重、保留**最后一次**，
+        // 否则前端拿到的会是第 1 遍那条（"已提交但未回读到"），与回读到的最终结果不一致。
+        const lastOf = new Map<string, (typeof written)[number]>();
+        for (const w of written) lastOf.set(w.row, w);
+        const verified = Array.from(lastOf.values()).map((w) => {
           const want = updates.find((u) => u.row === w.row)?.score ?? '';
           const hit = pick(rowsAfter, w.row);
           const actual = hit ? hit.score : '';
@@ -628,7 +758,11 @@ export async function handleMbApi(request: Request, env: MbApiEnv, url: URL): Pr
           rounds,
           pageUrl,
           domVector,
-          serverVector,
+          serverVector: finalVector,
+          /** 补写过的行（空数组 = 第 1 遍就全落库了） */
+          secondPassRows,
+          /** 写入期间发往 ManageBac 的写请求总数（0 = 页面一条都没发，值得警惕） */
+          saveRequestCount: saveCount,
           saveRequests,
           saveResponses,
           formInfo,
@@ -734,14 +868,25 @@ async function navigateToTask(cdp: Cdp, mbClassId: string, taskId: string): Prom
   await cdp.send('Page.navigate', { url: taskHref });
 }
 
-/** 等成绩册的学生行渲染出来；返回行数（0 表示没等到） */
-async function waitStudentRows(cdp: Cdp): Promise<number> {
+/** 等成绩册的学生行渲染出来；返回行数（0 表示没等到）
+ *
+ * `settleMs > 0` = 行出现之后**还要再等页面自己就绪**（写入路径必须传，见 WRITE_SETTLE_MS）：
+ * 先等 `document.readyState === 'complete'`，再静置 `settleMs`。
+ * 读取路径不需要（只读不受影响），默认 0 = 行为不变。 */
+async function waitStudentRows(cdp: Cdp, settleMs = 0): Promise<number> {
   let n = 0;
   for (let i = 0; i < 20; i++) {
     await sleep(1200);
     if (/\/login/i.test(await cdp.text('location.href'))) throw new Error('MANAGEBAC_LOGIN_EXPIRED');
     n = Number(await cdp.text('document.querySelectorAll(\'div.grid-table-row.student-grade\').length')) || 0;
     if (n > 0) break;
+  }
+  if (n > 0 && settleMs > 0) {
+    for (let i = 0; i < 10; i++) {
+      if ((await cdp.text('document.readyState')) === 'complete') break;
+      await sleep(500);
+    }
+    await sleep(settleMs);
   }
   return n;
 }
@@ -785,6 +930,50 @@ function locateExpr(updates: { row: string; score?: string }[]): string {
 }
 
 /**
+ * 通道 B（兜底，不依赖焦点与坐标）：用 `HTMLInputElement.prototype` 上的**原生 value setter** 赋值，
+ * 再派发 `input`/`change`。React 的受控组件拦截的是 `el.value = x` 这种实例赋值，
+ * **拦截不了原型上的原生 setter**；派发 `input` 后它的 onChange 必然收到 ——
+ * 这是程序化驱动 React 表单的正规做法。返回写入后框里的值（'missing' = 元素不在）。
+ */
+function setViaNativeSetter(cdp: Cdp, inputId: string, text: string): Promise<string> {
+  return cdp.text(`(() => {
+    const el = document.getElementById(${JSON.stringify(inputId)});
+    if (!el) return 'missing';
+    const d = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+    if (!d || !d.set) return 'no-setter';
+    d.set.call(el, ${JSON.stringify(text)});
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    return String(el.value == null ? '' : el.value);
+  })()`);
+}
+
+/**
+ * 「夺焦点」用的安全落点：**自己往页面角落塞一个 8×8 的透明块，点它自己的坐标**。
+ *
+ * 历史做法是在固定候选坐标里找一个 `elementFromPoint` 不是交互元素的"空白点"（连固定点 (4,4) 也用过）。
+ * 两个问题：① 滚动位置不同，"空白点"落在哪里每次都不一样；② 那个点上可能是**带 click 处理的普通容器**
+ * （如可排序表头、可点单元格）—— `closest('a,button,label,…')` 拦不住它，点下去会触发页面自己的逻辑，
+ * 有可能把刚写完那一行的保存搅掉（**第一行尤其可疑**：它的滚动位置与后面几行不同，落点也就不同）。
+ * 自己造的元素既不会被别的元素挡住（z-index 拉满），也绝不触发页面逻辑。
+ */
+async function focusStealTarget(cdp: Cdp): Promise<{ x: number; y: number }> {
+  const raw = await cdp.text(`(() => {
+    let el = document.getElementById('mbapi-focus-steal');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'mbapi-focus-steal';
+      el.setAttribute('aria-hidden', 'true');
+      el.style.cssText = 'position:fixed;left:0;bottom:0;width:8px;height:8px;z-index:2147483647;background:transparent';
+      (document.body || document.documentElement).appendChild(el);
+    }
+    const r = el.getBoundingClientRect();
+    return JSON.stringify({ x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) });
+  })()`);
+  return raw ? (JSON.parse(raw) as { x: number; y: number }) : { x: 4, y: 4 };
+}
+
+/**
  * 把分数真正写进分数框 —— **两条独立通道一起走**，任一条成功即可。
  *
  * 为什么必须做到这个程度（2026-09-16 / 09-18 三次失败的教训）：
@@ -797,38 +986,13 @@ function locateExpr(updates: { row: string; score?: string }[]): string {
  *
  * 所以现在：
  *   **通道 A（主）**：`Input.dispatchMouseEvent` 真点一下 → 若命中输入框，再 `Ctrl+A` + `Backspace`
- *     + 逐字符 `char` 事件 + `Tab` 失焦 —— 最贴近真人。
- *   **通道 B（兜底，不依赖焦点与坐标）**：用 `HTMLInputElement.prototype` 上的**原生 value setter**
- *     赋值，再派发 `input`/`change`。React 的受控组件拦截的是 `el.value = x` 这种实例赋值，
- *     **拦截不了原型上的原生 setter**；派发 `input` 后它的 `onChange` 必然收到。
- *     这是程序化驱动 React 表单的正规做法。
- *   **收尾**：无论走哪条，最后都发 `Tab` 真失焦 —— ManageBac 是失焦/自动保存型表单，
- *     值进了框架状态还不够，要失焦才会提交。
+ *     + 逐字符 `keyDown/char/keyUp` —— 最贴近真人。
+ *   **通道 B（兜底，不依赖焦点与坐标）**：见 `setViaNativeSetter`。
+ *   **收尾**：无论走哪条，最后都要**真的把焦点移走**（点我们自己塞的透明块，见 focusStealTarget）
+ *     —— ManageBac 是失焦保存型，值进了框架状态还不够，要真 blur 才会提交。
  *
- * 每一步都记进 `steps`（含 rect、命中元素、可见性），失败时能直接看出卡在哪一环，不必靠猜。
+ * 每一步都记进 `steps`（含 rect、命中元素、blur 次数、保存请求数），失败时能直接看出卡在哪一环。
  */
-/**
- * 找一个「点下去不会碰到输入框/按钮/链接」的空白坐标，用来夺焦。
- *
- * 原来固定点 (4,4)：页面滚动后那个位置可能是**另一行的分数框** ——
- * 点它等于给别的框焦点、把它当前的值（可能就是空的）一起提交。
- * 2026-09-21 教师报「十几个一起填，有几个读回是空值」，这是嫌疑来源之一。
- * 这里先探测若干候选点，挑第一个 `elementFromPoint` 命中的不是交互元素的。
- */
-async function safeBlankSpot(cdp: Cdp): Promise<{ x: number; y: number } | null> {
-  const raw = await cdp.text(`(() => {
-    const interactive = (el) => !!el && !!el.closest('input, textarea, select, button, a, [contenteditable], label');
-    for (const y of [6, 30, 90, 200, 320]) {
-      for (const x of [6, 30, 90, 260]) {
-        const el = document.elementFromPoint(x, y);
-        if (el && !interactive(el)) return JSON.stringify({ x, y });
-      }
-    }
-    return '';
-  })()`);
-  return raw ? (JSON.parse(raw) as { x: number; y: number }) : null;
-}
-
 async function typeIntoScoreInput(
   cdp: Cdp,
   inputId: string,
@@ -869,21 +1033,9 @@ async function typeIntoScoreInput(
   );
   steps.push(`点击(${geo.x},${geo.y})→活动元素=${active}`);
 
-  // 2) **兜底通道**：用原生 value setter 写值。
-  //    React 的受控 input 会拦截 `el.value = x`（框架状态不变），但**不拦截**通过
-  //    `HTMLInputElement.prototype` 上的原生 setter 赋值；随后派发 input 事件，
-  //    React 的 onChange 就必然收到 —— 这是程序化驱动 React 表单的正规做法，
-  //    **不依赖焦点、也不依赖坐标**。即便上面点击没命中（活动元素是 BODY），这条路也能把值送进去。
-  const nativeVal = await cdp.text(`(() => {
-    const el = document.getElementById(${idLit});
-    if (!el) return 'missing';
-    const d = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
-    if (!d || !d.set) return 'no-setter';
-    d.set.call(el, ${JSON.stringify(text)});
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-    return String(el.value == null ? '' : el.value);
-  })()`);
+  // 2) **兜底通道**：用原生 value setter 写值（见 setViaNativeSetter）。
+  //    它**不依赖焦点、也不依赖坐标** —— 即便上面点击没命中（活动元素是 BODY），值也能送进去。
+  const nativeVal = await setViaNativeSetter(cdp, inputId, text);
   steps.push(`原生setter写入后='${nativeVal.trim()}'`);
 
   // 3) 若点击确实命中了输入框，再补一遍真实键盘输入（最贴近真人，兼容性最好）；
@@ -907,7 +1059,16 @@ async function typeIntoScoreInput(
         type: 'keyUp', key: ch, code, windowsVirtualKeyCode: vk, nativeVirtualKeyCode: vk,
       });
     }
-    steps.push(`键盘键入后='${(await readVal()).trim()}'`);
+    const afterTyping = (await readVal()).trim();
+    steps.push(`键盘键入后='${afterTyping}'`);
+    // **绝不让它停在空值上**：键盘路径是「先 Ctrl+A+Backspace 清空、再逐字符键入」，
+    // 一旦键入落空，框里就剩个空值 —— 而失焦会把这个空值当"改成空"提交上去
+    // （2026-09-21 教师报的「十几个一起填，有几个读回是空值」正是它）。
+    // 所以键盘路径没写对就用原生 setter 补回目标值。
+    if (afterTyping !== text.trim()) {
+      const fixed = (await setViaNativeSetter(cdp, inputId, text)).trim();
+      steps.push(`键盘路径没写对，改走原生setter后='${fixed}'`);
+    }
   }
 
   // 4) **失焦提交**。
@@ -924,8 +1085,8 @@ async function typeIntoScoreInput(
     `(() => { window.__mbBlur = 0; const el = document.getElementById(${idLit}); `
     + `if (el) el.addEventListener('blur', () => { window.__mbBlur++; }, true); return 'ok'; })()`,
   );
-  // 挑一个安全的空白点夺焦（不再固定 (4,4) —— 滚动后那里可能是另一个分数框）
-  const spot = (await safeBlankSpot(cdp)) ?? { x: 4, y: 4 };
+  // 点我们自己塞的透明块夺焦（见 focusStealTarget：不再赌"页面空白处"上是什么元素）
+  const spot = await focusStealTarget(cdp);
   await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: spot.x, y: spot.y, button: 'left', clickCount: 1 });
   await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: spot.x, y: spot.y, button: 'left', clickCount: 1 });
   const blurCount = await cdp.text('String(window.__mbBlur)');
@@ -933,7 +1094,7 @@ async function typeIntoScoreInput(
     `(() => { const a = document.activeElement; return a ? (a.tagName + '#' + (a.id || '-')) : 'none'; })()`,
   );
   const finalVal = (await readVal()).trim();
-  steps.push(`点空白(${spot.x},${spot.y})夺焦：blur次数=${blurCount} 活动元素=${activeAfter} 值='${finalVal}'`);
+  steps.push(`点自建透明块(${spot.x},${spot.y})夺焦：blur次数=${blurCount} 活动元素=${activeAfter} 值='${finalVal}'`);
 
   return { ok: finalVal === text.trim() && blurCount !== '0', steps };
 }

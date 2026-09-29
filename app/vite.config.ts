@@ -24,6 +24,19 @@ function versionJson(): Plugin {
   };
 }
 
+// 可选：把自家 API（`/app-api/*`）代理到**本机 Worker**（`npx wrangler dev`，默认 8787）。
+// 不设 VITE_LOCAL_API 时这里是空对象 —— 行为与以前完全一致。
+//
+// 为什么需要这个开关：`src/lib/apiBase.ts` 把 localhost 当成"原生外壳"，会把 `/app-api` 指向
+// 正式域名（9699vocab.cn）—— 于是本地页面点「同步到 ManageBac」跑的是**线上那份 Worker**，
+// 本地刚改的 Worker 代码根本验不到。要验 Worker 改动就这样起（两个开关成对设置）：
+//   cd app
+//   npx wrangler dev --port 8787                                  # 读 .dev.vars，起本地 Worker
+//   $env:VITE_LOCAL_API='1'; $env:VITE_NO_WATCH='1'; npm run dev   # 前端留相对路径 + 代理到 8787
+const localApiProxy: Record<string, { target: string; changeOrigin: boolean }> = process.env.VITE_LOCAL_API
+  ? { '/app-api': { target: `http://127.0.0.1:${process.env.VITE_LOCAL_API_PORT || '8787'}`, changeOrigin: true } }
+  : {};
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), versionJson()],
@@ -62,6 +75,8 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/wb/, ''),
       },
+      // 默认空：只有 VITE_LOCAL_API=1 时才把 /app-api 转发到本机 Worker（见上方说明）
+      ...localApiProxy,
     },
   },
 })

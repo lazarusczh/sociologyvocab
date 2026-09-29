@@ -12,9 +12,22 @@
 //
 // 判据与 `supabaseFetch.ts` **保持一致**，改一处要同步另一处：
 //   hostname 是 localhost，或协议是 capacitor: ⇒ 视为原生外壳（APK / 本地 dev 壳）。
+// 唯一的例外是下面的 LOCAL_API（仅 dev、仅 /app-api）：它把这条判据在本地关掉，
+// 好让本地页面打到本机 Worker 而不是线上。supabaseFetch 不需要这个例外。
 const PROD_ORIGIN = 'https://9699vocab.cn';
 
+/**
+ * **本地联调开关**（只在 dev 下有意义）：`VITE_LOCAL_API=1` 时把 `/app-api` 留成相对路径，
+ * 好让 `vite.config.ts` 把它代理到**本机 Worker**（`npx wrangler dev`）。
+ *
+ * 为什么需要它：不设这个开关时，下面会把 localhost 当成"原生外壳" ⇒ `/app-api` 指向正式域名
+ * —— 本地页面点「同步到 ManageBac」实际打的是**线上那份 Worker**，本地刚改的 Worker 代码验不到。
+ * 生产构建里这个变量不存在 ⇒ 恒为 false，行为不变。
+ */
+const LOCAL_API = import.meta.env.VITE_LOCAL_API === '1';
+
 const isAppShell =
+  !LOCAL_API &&
   typeof location !== 'undefined' &&
   (location.hostname === 'localhost' || location.protocol === 'capacitor:');
 

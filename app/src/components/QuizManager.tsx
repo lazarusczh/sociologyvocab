@@ -762,7 +762,7 @@ export default function QuizManager() {
       const done = verified.length - failed.length - unconfirmed.length;
       const extra = [
         failed.length ? `${failed.length} 行没能写入` : '',
-        unconfirmed.length ? `${unconfirmed.length} 行已提交但暂未回读到（ManageBac 可能还在保存）` : '',
+        unconfirmed.length ? `${unconfirmed.length} 行写了两遍都没回读到（逐行步骤见下方排查信息）` : '',
       ].filter(Boolean).join('；');
       setMsg(`已写入并确认 ${done} 行${extra ? `；${extra}` : ''}`);
       // 用云端回读的结果更新表格，不再多跑一次（省额度）

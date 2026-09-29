@@ -846,6 +846,14 @@ export interface MbWriteResult {
     formInfo?: string;
     /** 写入后页面上可见的按钮（若有"保存"按钮 ⇒ 需要显式点击） */
     postWriteUi?: string[];
+    /**
+     * 云端**补写**过的行（空数组 = 第 1 遍就全部落库）。
+     * 第 1 遍里"值进了 DOM、服务端却没存"的行（第一行最容易命中：页面脚本尚未就绪），
+     * 在同一页重写无效（框架基线已被我们的值污染），所以重载后（基线=服务端值）再补写一遍。
+     */
+    secondPassRows?: string[];
+    /** 写入期间往 ManageBac 发的写请求总数（0 = 页面一条都没发，异常信号） */
+    saveRequestCount?: number;
   }
 
 export async function writeMbMarks(
