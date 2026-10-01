@@ -4,6 +4,8 @@ import { isDayChecked, isInWrongBook, todayKey, FULL_ATTENDANCE_DAYS } from '../
 import { fetchAllServerCheckIn } from '../lib/checkinServer';
 import { isServerCheckinEnabled } from '../lib/checkinMode';
 import { useClassXpSummary } from '../lib/xpSummary';
+import { useMonthAwards, setAwardRecord, awardKey, AWARD_LABEL, AWARD_HINT } from '../lib/awards';
+import type { AwardKind } from '../lib/awards';
 import { useStore } from '../lib/store';
 import { maskEmail } from '../lib/shuffle';
 import type { CloudStudentData } from '../lib/cloud';
@@ -57,6 +59,9 @@ const emptyCheckin = (): CheckInState => ({ study: {}, makeup: {}, earnedMakeupW
 // 月度榜单只列前 N 名（§4.5.4：只列获奖者与榜单前几名，避免打击后进）。
 // 完整名单在下方核验表里 —— 教师核验需要看全量，而"公布"只需要前几名。
 const BOARD_TOP_N = 10;
+
+// 获奖记录的展示顺序（§4.5.1：月度之星在前，全勤奖在后）。
+const AWARD_ORDER: AwardKind[] = ['star', 'full_attendance'];
 
 // 统计单个学生（className 由外部传入）
 function summarize(row: StudentRow, className: string, validIds: Set<string>): StudentStat {
@@ -325,6 +330,16 @@ export default function TeacherCheckPanel() {
   // ⚠ 只在**月度口径**下请求 —— 累计口径没有「本月增长」这个概念，发了也是白花一次往返。
   const classXp = useClassXpSummary(isMonthView ? periodFilter : null);
 
+  // ---- 获奖记录（§4.5.4 第 2~3 步：核验后落库、勾「已发放」防重复）----
+  // ⚠ 与榜单同样的门控：只在月度口径 + 切换生效后请求。
+  // ⚠ 只读**该月**的记录（一年十几行），不必全量拉。
+  const awards = useMonthAwards(isMonthView ? periodFilter : null, isMonthView && useServerCheckin);
+  // 正在写的那一格（`uid:award`），用于禁用该格的复选框并显示进度。
+  // ⚠ 按**格**而不是按行禁用：同一行的「月度之星」与「全勤奖」是两件互不相干的事，
+  //   一起禁用会让教师以为必须等前一个写完才能动下一个。
+  const [awardBusy, setAwardBusy] = useState('');
+  const [awardMsg, setAwardMsg] = useState('');
+
   // 把 XP 行与本地那份名单拼起来：姓名/班级仍以 `student_data` 为源（服务端那份没有姓名），
   // 并按班级筛选对齐 —— 否则切到某个班时，榜单还列着全班的人。
   const board = useMemo(() => {
@@ -351,6 +366,41 @@ export default function TeacherCheckPanel() {
       .sort((a, b) => b.xp - a.xp || b.checkedDays - a.checkedDays || a.name.localeCompare(b.name))
       .slice(0, BOARD_TOP_N);
   }, [isMonthView, periodFilter, classXp.rows, shownRaw, monthStats]);
+
+  // ---- 获奖记录的两个操作（§4.5.4）----
+  // ⚠ 「撤销已发放」与「撤销获奖」是**两件事**，走的是不同的 state：
+  //   · 取消勾选「已发放」→ 'awarded'（清掉 delivered_at，**保留获奖记录**）
+  //     —— 奖品还没交出去、或发错了要撤回，但这个人确实该获奖；
+  //   · 取消勾选「获奖」→ 'none'（删掉整条记录）
+  //     —— 这个人根本不该在名单里。
+  //   合成一个动作的话，「撤回发错的奖品」会把获奖记录也一起抹掉。
+  const applyAward = async (
+    b: { user_id: string; name: string },
+    k: AwardKind,
+    state: 'awarded' | 'delivered' | 'none',
+  ) => {
+    if (!periodFilter) return;
+    const key = awardKey(b.user_id, k);
+    setAwardBusy(key);
+    setAwardMsg('');
+    try {
+      await setAwardRecord(periodFilter, b.user_id, k, state);
+      const what = AWARD_LABEL[k];
+      setAwardMsg(
+        state === 'none'
+          ? `已撤销 ${b.name} 的${what}`
+          : state === 'delivered'
+            ? `已记录 ${b.name} 的${what}（已发放）`
+            : `已把 ${b.name} 列为${what}（待发放）`,
+      );
+      awards.reload();
+    } catch (e) {
+      // 失败原因都是「参数/权限/目标不对」这类调用方问题，原文最有用
+      setAwardMsg(`操作失败：${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setAwardBusy('');
+    }
+  };
 
   return (
     <div>
@@ -527,6 +577,33 @@ export default function TeacherCheckPanel() {
             月度之星 = 本月增长最高者（1 名）；全勤奖 = 本月打卡 ≥{FULL_ATTENDANCE_DAYS} 天（不限名额）。
             只列前 {BOARD_TOP_N} 名，完整名单见下方核验表。
           </p>
+          {/* 获奖记录（§4.5.4 第 2~3 步）。
+              ⚠ 两个复选框的**语义不同**，别合并：勾「获奖」= 记入名单（学生端立刻可见）；
+                勾「已发放」= 奖品已交到手上（防重复发放）。取消「已发放」只撤回发放状态，
+                **不会删掉获奖记录** —— 要删请取消「获奖」。 */}
+          <p className="muted" style={{ marginTop: '0.2rem', fontSize: '0.8rem' }}>
+            勾「获奖」即把该学生记入本月名单（学生端立刻能看到「是否获奖」）；交完奖品再勾「已发放」防重复。
+            取消「已发放」只撤回发放状态，不会删除获奖记录。
+            ⚠ 这是<strong>候选数据</strong>，发放实物前必须核验（§4.5.4 第 2 条）。
+          </p>
+          {awards.error && (
+            <p className="badge warn" style={{ marginTop: '0.5rem' }}>获奖记录读取失败：{awards.error}</p>
+          )}
+          {(awards.total > 0 || awardMsg) && (
+            <p style={{ marginTop: '0.4rem', fontSize: '0.85rem', margin: '0.4rem 0 0' }}>
+              {awards.total > 0 && (
+                <>
+                  本月已列：月度之星 <strong>{awards.starCount}</strong> 名
+                  {awards.starCount > 1 && (
+                    <span className="badge warn" style={{ marginLeft: '0.3rem' }}>超过 1 名，请确认是有意并列</span>
+                  )}
+                  ，全勤奖 <strong>{awards.total - awards.starCount}</strong> 名，
+                  已发放 <strong>{awards.delivered}</strong>/{awards.total}。
+                </>
+              )}
+              {awardMsg && <span style={{ marginLeft: '0.5rem', color: 'var(--accent)' }}>{awardMsg}</span>}
+            </p>
+          )}
           {classXp.error && (
             <p className="badge warn" style={{ marginTop: '0.5rem' }}>XP 读取失败：{classXp.error}</p>
           )}
@@ -544,6 +621,7 @@ export default function TeacherCheckPanel() {
                     <th>其中奖励</th>
                     <th>本月打卡</th>
                     <th>全勤</th>
+                    <th>获奖 / 已发放</th>
                     <th>备注</th>
                   </tr>
                 </thead>
@@ -559,6 +637,46 @@ export default function TeacherCheckPanel() {
                         {b.fullAttendance
                           ? <span style={{ color: 'var(--success)', fontWeight: 600 }}>达标</span>
                           : <span className="muted">—</span>}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                          {AWARD_ORDER.map((k) => {
+                            const rec = awards.byKey.get(awardKey(b.user_id, k));
+                            const busy = awardBusy === awardKey(b.user_id, k);
+                            return (
+                              <div
+                                key={k}
+                                className="row tight"
+                                style={{ gap: '0.3rem', alignItems: 'center', fontSize: '0.78rem' }}
+                              >
+                                <span className="muted" title={AWARD_HINT[k]} style={{ minWidth: '3.6rem' }}>
+                                  {AWARD_LABEL[k]}
+                                </span>
+                                <label className="row tight" style={{ gap: '0.15rem', alignItems: 'center' }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={!!rec}
+                                    disabled={busy}
+                                    onChange={(e) => void applyAward(b, k, e.target.checked ? 'awarded' : 'none')}
+                                  />
+                                  获奖
+                                </label>
+                                <label className="row tight" style={{ gap: '0.15rem', alignItems: 'center' }}>
+                                  <input
+                                    type="checkbox"
+                                    // ⚠ 未获奖时禁用「已发放」：没有记录可标记，
+                                    //   而且「先发后录」会让防重复的凭据晚于实物出现。
+                                    checked={!!rec?.delivered_at}
+                                    disabled={busy || !rec}
+                                    onChange={(e) => void applyAward(b, k, e.target.checked ? 'delivered' : 'awarded')}
+                                  />
+                                  已发放
+                                </label>
+                                {busy && <span className="muted">…</span>}
+                              </div>
+                            );
+                          })}
+                        </div>
                       </td>
                       <td>
                         {b.isNew && <span className="badge warn">本月新加入·次月参评</span>}

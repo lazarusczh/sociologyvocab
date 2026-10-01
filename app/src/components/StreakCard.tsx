@@ -8,6 +8,7 @@ import {
 import { applyMakeupRpc, MAKEUP_REASON_TEXT, useServerCheckIn } from '../lib/checkinServer';
 import { isServerCheckinEnabled } from '../lib/checkinMode';
 import { useCardBalance } from '../lib/cards';
+import { useMyAwards, AWARD_LABEL, monthLabel } from '../lib/awards';
 
 /** 补签可回溯的天数（§4.3：可补最近 30 天内的漏签日）。
  *
@@ -30,6 +31,18 @@ export default function StreakCard() {
   // 卡余额只在服务端口径下有意义（补签卡是服务端的扣费对象；本地那套是「当周机会」）。
   // ⚠ `get_card_balance()` 未登录会抛异常 ⇒ 游客必须关掉，否则每次开页面都多一条失败请求。
   const cards = useCardBalance(usingServer && !!authUser);
+  // 获奖记录（§4.5.5「是否获奖」）。
+  // ⚠ 与卡余额同理：`award_records` 靠 RLS `read_own` 兜底，**未登录会返回空集而不是报错**
+  //   ⇒ 游客必须关掉，否则会显示成「你没获奖」而不是「请登录」。
+  const myAwards = useMyAwards(usingServer && !!authUser);
+  // 只展示**最近有记录的那个月**：月度奖在月末结算 ⇒ 10 月里看到的是 9 月的奖。
+  // ⚠ 刻意**不用「本月」去筛** —— 10-01 打开页面看 10 月必然为空，而学生的奖记在 9 月，
+  //   那样写等于整月都不显示（正是「学生端看不到是否获奖」这个缺口本身）。
+  const latestAwardMonth = myAwards.rows[0]?.month_key ?? '';
+  const latestAwards = useMemo(
+    () => (latestAwardMonth ? myAwards.rows.filter((r) => r.month_key === latestAwardMonth) : []),
+    [myAwards.rows, latestAwardMonth],
+  );
   const [selDay, setSelDay] = useState('');
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
@@ -175,6 +188,31 @@ export default function StreakCard() {
             <strong>{fullAttendance.need}</strong> 天即达全勤。
           </p>
         )
+      )}
+
+      {/* 获奖记录（§4.5.5「是否获奖」）。
+          ⚠ 读不到时**明说读不到**，不要显示成「暂无获奖」—— 那是把一次读取失败
+            伪装成「你没获奖」，而学生据此会以为白练了一个月（与卡余额同一取向）。
+          ⚠ 「已定奖·待发放」这个中间态是有意的：奖品课间才发，学生不该在名单定下来之后
+            还看不到自己获奖（见 `lib/awards.ts` 顶部关于两个时间戳的说明）。 */}
+      {usingServer && authUser && (
+        myAwards.error ? (
+          <p className="muted" style={{ fontSize: '0.8rem', margin: '0 0 0.5rem' }}>
+            获奖记录暂时读不到（{myAwards.error}），稍后重试。
+          </p>
+        ) : latestAwards.length > 0 ? (
+          <p style={{ fontSize: '0.85rem', margin: '0 0 0.5rem' }}>
+            <strong>{monthLabel(latestAwardMonth)}</strong> 获奖：
+            {latestAwards.map((a) => (
+              <span key={a.award} style={{ marginLeft: '0.4rem' }}>
+                <span className="badge success">{AWARD_LABEL[a.award]}</span>
+                <span className="muted" style={{ marginLeft: '0.25rem' }}>
+                  {a.delivered_at ? '已发放' : '已定奖·待发放'}
+                </span>
+              </span>
+            ))}
+          </p>
+        ) : null
       )}
 
       {!authUser && (
