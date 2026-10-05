@@ -9,6 +9,10 @@
 #   python scripts/app-api-probe.py
 #   python scripts/app-api-probe.py --token eyJ...
 #   python scripts/app-api-probe.py --email a@b.c --password *** --tiers nemotron,agnes,ms
+#
+# 另外（默认执行，--no-balance 可跳过）：读一次魔搭魔粒余额
+#   GET https://modelscope.cn/openapi/v1/magicubes/balance （Bearer = .dev.vars 的 MODELSCOPE_API_KEY）
+#   这一次读既是「体检」也是「保活」——它本身会触发当日那 250 魔粒；到账有约 1 分钟延迟。
 import argparse
 import json
 import time
@@ -18,6 +22,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = "https://9699vocab.cn"
+MS_BALANCE_URL = "https://modelscope.cn/openapi/v1/magicubes/balance"
 PROBE_PROMPT = ("请判断这个学生答案是否覆盖术语的要素，只输出 JSON：\n"
                 "术语：Patriarchy\n要素：1. 男性主导、女性从属  2. 男性通过社会制度维持支配\n"
                 '学生答案：父权制指男性在社会中占主导地位。\n'
@@ -72,6 +77,56 @@ def login(email: str, password: str) -> str:
     return ""
 
 
+def get(url: str, token: str = "", timeout: int = 30):
+    req = urllib.request.Request(
+        url, method="GET",
+        headers={**BROWSER_HEADERS,
+                 **({"Authorization": f"Bearer {token}"} if token else {})})
+    t0 = time.time()
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return r.status, json.loads(r.read().decode("utf-8")), (time.time() - t0)
+    except urllib.error.HTTPError as e:
+        return e.code, e.read().decode("utf-8", "ignore")[:400], (time.time() - t0)
+    except Exception as e:                                     # noqa: BLE001
+        return 0, f"{type(e).__name__}: {e}", (time.time() - t0)
+
+
+def ms_balance():
+    """读魔搭魔粒余额（公开 OpenAPI；Bearer 用 .dev.vars 的 MODELSCOPE_API_KEY）。
+
+    实测口径（2026-10-04，详见 project-memory.md）：
+      余额 = 100（长期有效） + 每次「登录行为」触发的 250
+      那 250 是滚动 24 小时有效（不是自然日），间隔 < 24h 时会并存、可叠加
+      带令牌的请求本身就触发那 250，但到账有约 1 分钟延迟
+    ⇒ 所以这一次读既是「体检」也是「保活」。稳态约 350，静默期是 100。
+    """
+    key = dev_var("MODELSCOPE_API_KEY")
+    if not key:
+        print("【魔粒余额】跳过：.dev.vars 里没有 MODELSCOPE_API_KEY")
+        return
+    status, body, ms = get(MS_BALANCE_URL, key)
+    if status != 200 or not isinstance(body, dict):
+        print(f"【魔粒余额】FAIL HTTP {status}  {str(body)[:220]}")
+        return
+    data = body.get("data") or {}
+    avail = data.get("available_balance")
+    print(f"【魔粒余额】可用 {avail} / 总额 {data.get('total_balance')} / "
+          f"冻结 {data.get('frozen_amount')}（{ms:.1f}s）")
+    # 阈值提示按实测口径给，仅作参考
+    try:
+        a = float(avail)
+    except (TypeError, ValueError):
+        return
+    if a >= 250:
+        print("           → 活跃期（24h 内有过活动），魔搭兜底档可用")
+    elif a >= 100:
+        print("           → 静默期（只剩长期有效的约 100）。到账有约 1 分钟延迟，"
+              "马上要用魔搭的话先等一分钟再查；100 也够主流档约 100 次调用")
+    else:
+        print("           → 低于长期有效值，请查是否有异常消耗")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--token", default="")
@@ -81,7 +136,12 @@ def main():
     ap.add_argument("--fallback", action="store_true", help="允许降级（默认关闭，便于观测单档真实表现）")
     ap.add_argument("--prompt", default=PROBE_PROMPT)
     ap.add_argument("--endpoint", default=f"{BASE}/app-api/ai/complete")
+    ap.add_argument("--no-balance", action="store_true", help="跳过魔搭魔粒余额探测")
     args = ap.parse_args()
+
+    if not args.no_balance:
+        ms_balance()
+        print()
 
     token = args.token or (login(args.email, args.password) if args.email else "")
 
