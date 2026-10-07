@@ -121,13 +121,32 @@ with d as (
     from public.xp_events e
    where e.day_key >= date '2026-09-30'
    group by 1, 2
+),
+-- ⚠⚠ **必须把补签算进来**（2026-10-08 修）：服务端的达标判据是
+--   `d.makeup or (d.questions >= 20 and d.ms >= 600*1000)` ——
+--   只数事件会**少算**用补签卡补上的那几天。实测假期有 4 次补签（3 次补 10-01、1 次补 10-06），
+--   漏掉它们会让 10-01 从 7 人报成 4 人。本节的说明文字一直写着"或当天有补签"，
+--   但 SQL 里没有 —— 注释与实现不符比单纯算错更危险。
+mk as (
+  select distinct m.user_id, m.day_key
+    from public.checkin_makeups m
+   where m.day_key >= date '2026-09-30'
+),
+days as (
+  select coalesce(d.user_id, mk.user_id) as user_id,
+         coalesce(d.day_key, mk.day_key) as day_key,
+         coalesce(d.q, 0)                as q,
+         coalesce(d.ms, 0)               as ms,
+         (mk.user_id is not null)        as made_up
+    from d full join mk on d.user_id = mk.user_id and d.day_key = mk.day_key
 )
-select d.day_key::text                                      as day,
-       count(*) filter (where d.q > 0)                      as students,
-       count(*) filter (where d.q >= 20 and d.ms >= 600000) as checked,
-       sum(d.q)::text                                       as questions,
-       round(sum(d.ms) / 60000.0)::text                     as minutes
-  from d
+select days.day_key::text                                                  as day,
+       count(*) filter (where days.q > 0)                                  as students,
+       count(*) filter (where days.made_up
+                          or (days.q >= 20 and days.ms >= 600000))         as checked,
+       sum(days.q)::text                                                   as questions,
+       round(sum(days.ms) / 60000.0)::text                                 as minutes
+  from days
  group by 1 order by 1;
 
 \echo ''
