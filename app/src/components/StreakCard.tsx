@@ -3,7 +3,7 @@ import { useStore } from '../lib/store';
 import {
   isDayChecked, weeklyStats, canEarnMakeup, missedDaysInWeek, missedDaysWithin, parseKey,
   weekStartKey, addDays, dateKeyOf, MAKEUP_WEEK_QUESTIONS, MAKEUP_WEEK_ACCURACY,
-  FULL_ATTENDANCE_DAYS,
+  FULL_ATTENDANCE_DAYS, emptyCheckIn,
 } from '../lib/checkin';
 import { applyMakeupRpc, MAKEUP_REASON_TEXT, useServerCheckIn } from '../lib/checkinServer';
 import { isServerCheckinEnabled } from '../lib/checkinMode';
@@ -53,11 +53,20 @@ export default function StreakCard() {
   //   ② 尚未拿到（加载中）⇒ 暂用本地，避免整卡闪成「0 天」；
   //      加载只需一次 RPC（几百毫秒），且服务端口径通常**不高于**本地，
   //      所以过渡方向是「从严」，不会先给学生一个虚高的数字。
-  //   ③ 加载失败 ⇒ 退回本地**并明确提示** —— 直接显示 0 天会让学生以为记录丢了，
-  //      那是比口径不准更糟的体验。
+  //   ③ 加载失败 ⇒ **不再退回本地**（2026-10-08 改）：退回会给出与服务端相反的成功信号，
+  //      那比短暂显示 0 糟得多 —— 学生看到 0 会再练一会儿，看到假的"已达标"就收工了。
+  //      改用空状态 + 一句"读不到"的说明（见下方 `pendingNote`）。
   const serverReady = usingServer && !!server.checkin;
-  const checkin = serverReady ? server.checkin! : localCheckin;
-  const showLocalFallback = usingServer && !server.checkin;
+  // ⚠⚠ **未就绪时不再退回本地**（2026-10-08 修）：本地口径偏松（墙钟，含题间空闲与离开页面），
+  //   退回它会给出与服务端相反的成功信号 —— 首页那 12 天「假通过」就是同一类矛盾的产物。
+  //   ⇒ 用空状态 + 明确提示：宁可短暂显示 0，也不要一个与服务端矛盾的数字。
+  //   （空状态也让下面的补签候选暂时为空，服务端数据到达后自然出现。）
+  //   ⚠ 只在**切换已生效**时这么做；`usingServer=false`（回退后）时本地就是权威口径，照旧。
+  const checkin = !usingServer ? localCheckin : (server.checkin ?? emptyCheckIn());
+  // 未就绪提示。⚠ 措辞不再说「以下为本机数据」—— 本机数据已经不再显示了。
+  const pendingNote = usingServer && !serverReady
+    ? (server.error ? `云端记录暂时读不到（${server.error}）` : '正在核对云端记录…')
+    : '';
 
   const weekly = useMemo(() => weeklyStats(checkin), [checkin]);
   const accuracy = weekly.questions > 0 ? weekly.correct / weekly.questions : 0;
@@ -221,10 +230,8 @@ export default function StreakCard() {
         </p>
       )}
 
-      {showLocalFallback && (
-        <p className="muted" style={{ fontSize: '0.8rem', margin: '0 0 0.5rem' }}>
-          {server.error ? `暂时无法核对云端记录，以下为本机数据（${server.error}）` : '正在核对云端记录…'}
-        </p>
+      {pendingNote && (
+        <p className="muted" style={{ fontSize: '0.8rem', margin: '0 0 0.5rem' }}>{pendingNote}</p>
       )}
 
       <div className="grid cols-3">

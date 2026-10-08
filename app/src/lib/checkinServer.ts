@@ -44,7 +44,13 @@ export function serverToCheckInState(days: DailyStudy[]): CheckInState {
 
   for (const d of days) {
     study[d.day_key] = {
-      seconds: Math.round((d.ms ?? 0) / 1000), // ⚠ 毫秒 → 秒
+      // ⚠⚠ **毫秒 → 秒必须用 `floor`，不能用 `round`**（2026-10-08 修）：
+      //   服务端的达标判据是 `ms >= 600000`，而前端在这里转成秒后用的是 `seconds >= 600`。
+      //   用 `round` 时，`ms = 599500~599999` 会被四舍五入成 **600** ⇒
+      //   **前端拿着服务端自己的数据都会判「达标」，而服务端判「不达标」**（0.5 秒的窗口）。
+      //   `floor` 与之严格等价：`floor(ms/1000) >= 600` ⟺ `ms >= 600000`。
+      //   代价只是显示上少不到 1 秒，方向与服务端一致。
+      seconds: Math.floor((d.ms ?? 0) / 1000),
       questions: d.questions ?? 0,
       correct: d.correct ?? 0,
     };

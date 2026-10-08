@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useStore } from '../lib/store';
 import { masteryLevel } from '../lib/storage';
-import { isInWrongBook } from '../lib/checkin';
+import { isInWrongBook, emptyCheckIn } from '../lib/checkin';
 import {
   todayKey, isDayChecked, computeStreak,
   weekStartKey, addDays, parseKey, dateKeyOf,
   CHECKIN_DAY_GOAL_QUESTIONS, CHECKIN_DAY_GOAL_SECONDS,
 } from '../lib/checkin';
+import { useServerCheckIn } from '../lib/checkinServer';
+import { isServerCheckinEnabled } from '../lib/checkinMode';
 import StreakCard from './StreakCard';
 import XpCard from './XpCard';
 import type { View } from '../App';
@@ -34,7 +36,7 @@ const MODES: { key: View; title: string; desc: string }[] = [
 const WEEK_LABELS = ['一', '二', '三', '四', '五', '六', '日'];
 
 export default function Home({ go }: Props) {
-  const { vocab, progress, wrongBook, checkin, isTeacher, vocabUpdateBanner, syncVocabFromCloud, dismissVocabBanner } = useStore();
+  const { vocab, progress, wrongBook, checkin: localCheckin, isTeacher, vocabUpdateBanner, syncVocabFromCloud, dismissVocabBanner } = useStore();
 
   useEffect(() => { syncVocabFromCloud(); }, [syncVocabFromCloud]);
 
@@ -65,7 +67,24 @@ export default function Home({ go }: Props) {
     [wrongBook, validIds],
   );
 
-  // 打卡数据
+  // ---- 打卡数据：**必须与服务端同口径**（2026-10-08 修）----
+  // ⚠⚠ 这一块曾经直接读本地 `checkin` —— 于是首页会在**本地**秒数过线时显示「今日已达成」，
+  //   而服务端按另一套口径（每题作答区间之和，不含题间空闲与离开页面）判**不达标**。
+  //   假期实测：**12 个「学生-天」**因此被误报为成功，学生据此收工（差额 16~538 秒）。
+  //   ⇒ 规则：**界面上一切与打卡有关的显示都不能与服务端矛盾。**
+  //   （`checkinMode.ts` 的注释原本写「三个使用点必须共用本开关」，首页是第四个、当时漏了。）
+  const usingServer = isServerCheckinEnabled();
+  const server = useServerCheckIn(undefined, undefined, undefined, usingServer);
+  const serverReady = usingServer && !!server.checkin;
+  // ⚠ 服务端数据未到 / 取数失败时**绝不退回本地** —— 本地口径偏松，回退等于把那个矛盾原样搬回来。
+  //   宁可先用空状态（不勾任何一天、不给达标结论）加一句"正在核对"，也不要一个相反的成功信号。
+  //   代价：加载那几百毫秒里连签与累计会显示 0 ⇒ 用 `checklistNote` 说明原因，
+  //   否则学生会以为记录丢了（那比口径不准更糟）。
+  const checkin = !usingServer ? localCheckin : (server.checkin ?? emptyCheckIn());
+  const checklistNote = usingServer && !serverReady
+    ? (server.error ? `云端记录暂时读不到（${server.error}）` : '正在核对云端记录…')
+    : '';
+
   const today = todayKey();
   const streak = useMemo(() => computeStreak(checkin), [checkin]);
   const todayStudy = checkin.study[today] || { seconds: 0, questions: 0, correct: 0 };
@@ -166,6 +185,10 @@ export default function Home({ go }: Props) {
               <div className="dashboard-streak__sub">
                 最长纪录 {checkin.bestStreak} 天
               </div>
+              {/* 未就绪时说明「为什么是 0 / 为什么没有勾」——否则学生会以为记录丢了 */}
+              {checklistNote && (
+                <div className="dashboard-streak__sub">{checklistNote}</div>
+              )}
               <div className="week-strip" role="list" aria-label="本周打卡">
                 {weekStrip.map((d) => (
                   <div
@@ -208,7 +231,13 @@ export default function Home({ go }: Props) {
                   )}
                 </div>
                 <div className="goal-card__msg">
-                  {dayDone ? '今日已达成，继续保持！' : `还差 ${needMins} 分钟、${todayLeft} 题完成打卡`}
+                  {/* ⚠ **未就绪时不给达标结论** —— 这正是本次要修的矛盾：
+                      本地过线就报「今日已达成」，而服务端可能还差几十秒。 */}
+                  {checklistNote
+                    ? checklistNote
+                    : dayDone
+                      ? '今日已达成，继续保持！'
+                      : `还差 ${needMins} 分钟、${todayLeft} 题完成打卡`}
                 </div>
                 <button
                   className="primary goal-card__cta"
