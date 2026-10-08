@@ -222,3 +222,13 @@ begin
   );
 end $function$
 
+-- ⚠ 授权与注释**必须留在本文件**（2026-10-08 补）：
+--   本文件是 `submit_xp_events` 的**最新拥有者**，但原先只重建函数体、没有 `grant`。
+--   `create or replace` 会保留既有授权，所以**生产库一直正常**；
+--   但**全新安装**时，若 `db-migration-xp-c.sql` 里的旧定义已按同日变更被删除，
+--   就再没有任何文件把执行权授予 `authenticated` ⇒ **学生将完全无法上报 XP**。
+grant execute on function public.submit_xp_events(jsonb) to authenticated;
+
+comment on function public.submit_xp_events(jsonb) is
+  'XP 事件上报（幂等）。九道防线；除补报超窗口外一律接收 —— 宁可少算，不要丢事件。同题去重自 2026-10-08 起为「同 item + 同 kind 收满 5 条才拒」。';
+

@@ -70,7 +70,8 @@ psql $conn -w -v ON_ERROR_STOP=1 -f db-migration-xxx.sql
 ```
 
 - **`PGPASSFILE` 与 `-w` 都不能省。** 漏了的话 psql 会停在密码提示上，终端表现是"命令无响应"（已踩三次；psql 本身就在 PATH 里，`C:\Program Files\PostgreSQL\17\bin\psql.exe`，不是路径问题）。只读自查也要带上 `-w`。
-- 迁移文件放仓库根，命名 `db-migration-*.sql`，**写成幂等**（`if not exists` / `create or replace`），确保可重复执行。
+- 迁移文件放仓库根，命名 `db-migration-*.sql`，**写成幂等**（`if not exists` / `create or replace`），确保**单独重跑**安全。
+- ⚠⚠ **「幂等」不等于「任何时候都能重跑」**（2026-10-08 事故）：`create or replace` 既是幂等的来源，**也是覆盖别人新版的手段**。一个文件只要**其中任何一个对象已被后来的迁移取代**，重跑它就会把那个对象**悄悄退回旧版**。⇒ 两条规矩：**① 每个函数/表只有一处定义**（查：`Select-String -Path "db-migration-*.sql" -Pattern "^create or replace function public\."` 看同名是否出现在多个文件）；**② 要重跑某文件前，先确认它里面的对象没有被别的文件重新定义过**。已冻结：`db-migration-xp-c.sql`（头部有完整说明）。
 - 引擎是 AnalyticDB/Greenplum 内核：**部分唯一索引、表达式索引的支持不确定**；唯一性优先由应用层保证（写方都是教师端小规模代码）。
 - 改表前先确认影响面，事后用数据自查：`count(*)` 对比、新增列是否只加可空列、RLS 策略是否被动过。
 
