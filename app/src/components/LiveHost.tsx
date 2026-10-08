@@ -141,7 +141,13 @@ export default function LiveHost() {
   }, [refresh]);
 
   useEffect(() => {
-    if (!session) return;
+    // ⚠️ 口头速答**不能**在这里订阅：那种会话由 LiveOralHost 自己订阅。
+    // 两边同时订阅**同名 channel**（`live:<sessionId>`）时，后到的那次会在
+    // `subscribe()` 之后才 `.on(...)`，Supabase 直接抛
+    // "cannot add postgres_changes callbacks ... after subscribe()"，
+    // 而 effect 抛错 = React 卸载整棵树 = **整页白屏**（2026-10-08 事故）。
+    // hooks 都在条件 return 之前，所以必须在这里显式跳过，不能靠"不渲染"来回避。
+    if (!session || session.kind === 'oral') return;
     return subscribeLive(session.id, () => void refresh(session.id));
   }, [session, refresh]);
 

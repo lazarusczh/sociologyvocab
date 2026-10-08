@@ -443,8 +443,11 @@ export interface LiveSignal {
 
 export function subscribeLive(sessionId: string, onSignal: (s: LiveSignal) => void): () => void {
   const filter = `session_id=eq.${sessionId}`;
+  // channel 名带随机后缀：Supabase 对**同名** channel 会复用同一个实例，而复用后在
+  // `subscribe()` 之后再加 `.on()` 会直接抛错（2026-10-08 白屏事故）。
+  // 加后缀保证每次调用都是全新实例 —— 这是那道 bug 的二次防线（第一道是调用方按 kind 跳过）。
   const channel = supabase
-    .channel(`live:${sessionId}`)
+    .channel(`live:${sessionId}:${Math.random().toString(36).slice(2, 8)}`)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'live_events', filter }, (p) =>
       onSignal({ table: 'live_events', type: p.eventType, row: (p.new ?? {}) as Record<string, unknown> }),
     )

@@ -94,7 +94,9 @@ export default function LiveStudent() {
 
   // 实时订阅：收到信号就拉一次权威数据（掉线回来也一样）
   useEffect(() => {
-    if (!session || !joined) return;
+    // 同 LiveHost：口头速答的订阅归 LiveOralStudent，这里必须跳过，
+    // 否则两个组件订阅同名 channel 会在 subscribe() 之后再加回调而抛错（白屏）。
+    if (!session || !joined || session.kind === 'oral') return;
     return subscribeLive(session.id, (sig) => {
       if (sig.table !== 'live_participants') void refresh(session.id);
     });
