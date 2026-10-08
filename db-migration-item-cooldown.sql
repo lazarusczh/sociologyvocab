@@ -222,11 +222,14 @@ begin
   );
 end $function$
 
--- ⚠ 授权与注释**必须留在本文件**（2026-10-08 补）：
---   本文件是 `submit_xp_events` 的**最新拥有者**，但原先只重建函数体、没有 `grant`。
---   `create or replace` 会保留既有授权，所以**生产库一直正常**；
---   但**全新安装**时，若 `db-migration-xp-c.sql` 里的旧定义已按同日变更被删除，
---   就再没有任何文件把执行权授予 `authenticated` ⇒ **学生将完全无法上报 XP**。
+-- 授权与注释（2026-10-08 补；⚠ 同日的**理由**写错过一次，此处已更正）
+--   `submit_xp_events` 的最新拥有者是本文件，原先只重建函数体、没写 `grant`。
+--   我当时判断「不补 grant，全新安装时学生将无法上报 XP」—— **那是错的**。实测：
+--   在回滚事务里新建一个函数看 `proacl`，得到
+--     `=X/postgres`（PUBLIC）+ `anon=X` + `authenticated=X` + `service_role=X`，
+--   且 `has_function_privilege('authenticated', oid, 'EXECUTE')` = true。
+--   ⇒ 本库 `public` schema 设了**默认权限**，新函数**默认就可被客户端执行**，
+--     不写 `grant` 也不会出问题。保留这行只为与其他迁移写法一致、并显式表明意图。
 grant execute on function public.submit_xp_events(jsonb) to authenticated;
 
 comment on function public.submit_xp_events(jsonb) is
