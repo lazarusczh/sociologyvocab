@@ -30,73 +30,10 @@
 --   实测当前该表 **0 行**，不存在历史数据问题。
 -- ============================================================================
 
-create or replace function public.get_xp_summary(p_user_id uuid default null)
-returns jsonb
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  -- ★ 起算日：只有 day_key >= 这一天的练习事件才计入 XP。
-  --   改这一行即可调整（改小 = 把更多历史算进来；不设 = 回到旧的"全量累加"）。
-  --
-  --   ⚠ 起算日应当**等于实际上线日（ship 日）** —— 两者不一致会让学生"上线当天做了题却没有 XP"。
-  --   2026-09-28 教师定为 **2026-09-30**（并计划**半夜 ship**：学生不会在那个时段练习，
-  --   于是"ship 前用旧版练的那半天"这个不一致窗口直接不存在）。
-  --   若上线日再次变动，改这一行重跑即可。
-  v_xp_start date := date '2026-09-30';
-  v_uid      uuid := auth.uid();
-  v_target   uuid;
-  v_is_staff boolean;
-  v_practice integer;
-  v_bonus    integer;
-  v_daily    jsonb;
-begin
-  if v_uid is null then
-    raise exception 'not authenticated';
-  end if;
-
-  v_is_staff := exists (
-    select 1 from public.user_roles r
-     where r.user_id = v_uid and r.role in ('teacher','developer'));
-
-  v_target := coalesce(p_user_id, v_uid);
-  if v_target <> v_uid and not v_is_staff then
-    raise exception 'not allowed to read other users';
-  end if;
-
-  -- 练习 XP：已应用日上限 400（写入时），此处再按起算日过滤
-  select coalesce(sum(xp), 0) into v_practice
-    from public.xp_events
-   where user_id = v_target
-     and day_key >= v_xp_start;
-
-  -- 奖励 XP：教师签发，不计入日上限，也不受起算日限制（见文件头说明）
-  select coalesce(sum(amount), 0) into v_bonus
-    from public.student_xp_bonus where user_id = v_target;
-
-  -- 逐日明细：与 v_practice 同口径过滤，否则明细求和会不等于总数
-  select coalesce(jsonb_agg(jsonb_build_object('day_key', d.day_key, 'practice_xp', d.xp)
-                            order by d.day_key), '[]'::jsonb)
-    into v_daily
-    from (select day_key, sum(xp) as xp
-            from public.xp_events
-           where user_id = v_target
-             and day_key >= v_xp_start
-           group by day_key) d;
-
-  return jsonb_build_object(
-    'practice_xp', v_practice,
-    'bonus_xp',    v_bonus,
-    'total_xp',    v_practice + v_bonus,
-    'daily',       v_daily
-  );
-end $$;
-
-comment on function public.get_xp_summary(uuid) is
-  '总 XP 出口。学生只能查自己，教师/开发者可查任意。练习 XP + 奖励 XP 现算相加，永不落盘。
-   ⚠ 练习 XP 只统计 day_key >= 2026-09-30（XP 起算日，clean cut，见 db-migration-xp-start-date.sql）；
-      逐日明细 daily 同口径过滤。奖励 XP 不受限。';
-
--- 权限在 create or replace 后保持（函数 OID 不变），此处显式再授一次以防万一
-grant execute on function public.get_xp_summary(uuid) to authenticated;
+-- ============================================================================
+-- ⚠ 这里原先定义 `get_xp_summary()`，**已于 2026-10-09 移除**。
+--   它已被更新的迁移取代：`db-migration-monthly.sql`。
+--   保留旧定义的风险：**重跑本文件会把 db-migration-monthly.sql 装好的新版覆盖回旧版** ——
+--   2026-10-08 就是这样出过一次事（`db-migration-xp-c.sql` 覆盖了 `get_daily_study`，
+--   学生端连签 / 累计 / 最长纪录集体塌掉）。本文件其余内容不受影响。
+-- ============================================================================
