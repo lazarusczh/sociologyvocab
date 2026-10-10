@@ -683,14 +683,17 @@ input:focus, textarea:focus, select:focus {
 
 .scroll-text__run { display: inline-block; white-space: nowrap; }
 
-/* 只在真的溢出时动 —— `.is-scroll` 由组件量过之后才打上；
-   `alternate` ⇒ 左右来回，而不是单方向无限跑（单方向跑到底会"断头"） */
+/* 只在真的溢出时动 —— `.is-scroll` 由组件量过之后才打上。
+   **单方向**滚动（教师 2026-10-10：不要左右来回）：两端各留一小段停顿，
+   让人看得清首尾；走到底后回到起点重来（两个停顿让"回到起点"不那么突兀）。 */
 @keyframes scroll-text-marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(var(--shift, 0)); }
+  0%   { transform: translateX(0); }
+  12%  { transform: translateX(0); }
+  88%  { transform: translateX(var(--shift, 0)); }
+  100% { transform: translateX(var(--shift, 0)); }
 }
 .scroll-text.is-scroll .scroll-text__run {
-  animation: scroll-text-marquee 7s linear infinite alternate;
+  animation: scroll-text-marquee 7s linear infinite;
 }
 
 /* 尊重「减少动态效果」：关掉动画、退化为纯裁剪（桌面端仍可悬停看 title 全文） */
