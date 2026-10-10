@@ -12,6 +12,7 @@ import { inferGrade, type Grade } from '../lib/mbSync';
 import { copyText } from '../lib/clipboard';
 import type { AssembleSlot, BankItem } from '../lib/grouper';
 import { exportPaperToDocx } from '../lib/exportPaper';
+import ScrollText from './ScrollText';
 
 const srcLabelFor = (it: BankItem) => `${it.source.session} QP${it.source.comp}${it.source.q ? ' Q' + it.source.q : ''}`;
 
@@ -1142,7 +1143,7 @@ export default function PaperResults() {
                 const total = r.scores.length;
                 return (
                   <tr key={r.id}>
-                    <td style={{ fontWeight: 600 }}>{r.title}</td>
+                    <td style={{ fontWeight: 600 }}><ScrollText text={r.title} /></td>
                     <td>{r.mb_short_code ? <code>[{r.mb_short_code}]</code> : <span className="muted">—</span>}</td>
                     <td>{modeLabel(r)}<span className="muted" style={{ marginLeft: '0.3rem' }}>P{r.paper}</span></td>
                     <td>{r.full_raw}</td>

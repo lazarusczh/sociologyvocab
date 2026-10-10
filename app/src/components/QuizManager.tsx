@@ -9,6 +9,7 @@ import { copyText } from '../lib/clipboard';
 import { createQuiz, updateQuiz, updateQuizQuestions, listQuizzes, listQuizSubmissions, deleteQuiz, listDeveloperIds, deleteSubmission, countSubmittedByQuizzes, regradeQuizSubmissions, ensureQuizShortCode, listMbTaskLinksForQuiz, listMbRoster, listClassesWithMb, matchMbTask, replaceMbTaskLink, deleteMbTaskLink, fetchMbMarks, writeMbMarks, type MbTaskLinkRow, type ClassMbRow } from '../lib/cloud';
 import { classMatchesGrade, firstPaperNumber, inferGrade, type Grade } from '../lib/mbSync';
 import QuizWrongBoard from './QuizWrongBoard';
+import ScrollText from './ScrollText';
 
 // —— ManageBac 同步预览（测验/作业）——
 // 与试卷成绩那边同一套视角：以成绩册的行为主，逐行往站内对应。
@@ -1521,7 +1522,7 @@ export default function QuizManager() {
             <tbody>
               {quizzes.map((q) => (
                 <tr key={q.id}>
-                  <td>{q.title}</td>
+                  <td><ScrollText text={q.title} /></td>
                   <td>{KIND_LABELS[q.kind]}</td>
                   <td className="term" style={{ fontWeight: 600 }}>{q.code}</td>
                   <td>{submissionCounts[q.id] ?? 0}</td>

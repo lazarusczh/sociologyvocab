@@ -655,6 +655,49 @@ input:focus, textarea:focus, select:focus {
   }
 }
 
+/* 冻结首列的「宽度上限」+ 长标题跑马灯（2026-10-09 教师反馈）：
+   手机窄屏上，首列一旦被长标题撑宽（单元格是 nowrap）就几乎占满视口，
+   右侧的列**既点不到也划不动** —— 真实 Chrome 实测：390px 容器里首列 367px、
+   第二列被首列盖住 108px、`scrollLeft` 划到底也露不出来。
+   修法：把标题包进 `.scroll-text`（组件 `ScrollText.tsx`）—— 它对内用
+   `width: max-content` 按内容伸缩、`max-width` 封顶 ⇒ 列宽 = min(标题宽, 上限)，
+   短标题不浪费空间、长标题不再挤走右侧列。
+   ⚠ 上限存在的**唯一目的**是保证「首列 < 视口」：只要首列比视口窄，右侧就永远留有
+     一段可点区域，冻结与可交互才能同时成立。
+   ⚠ 为什么用「内层 block + max-width」而不是直接给 `td` 写 `max-width`：
+     `table-layout: auto` 下，内层「宽度受约束的 block」的 max-content 会参与列宽计算，
+     语义明确且把「裁剪」与「列宽」绑在同一个元素上（两者实测都能限住，见 project-memory
+     记的独立探针数据）。改动面因此只限用了本组件的单元格，其余 10 张表不受影响。 */
+.check-table th:first-child > .scroll-text,
+.check-table td:first-child > .scroll-text {
+  --first-col-max: 22rem;
+  display: block;
+  width: max-content;
+  max-width: var(--first-col-max);
+  overflow: hidden;
+}
+@media (max-width: 640px) {
+  .check-table th:first-child > .scroll-text,
+  .check-table td:first-child > .scroll-text { --first-col-max: 46vw; }
+}
+
+.scroll-text__run { display: inline-block; white-space: nowrap; }
+
+/* 只在真的溢出时动 —— `.is-scroll` 由组件量过之后才打上；
+   `alternate` ⇒ 左右来回，而不是单方向无限跑（单方向跑到底会"断头"） */
+@keyframes scroll-text-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(var(--shift, 0)); }
+}
+.scroll-text.is-scroll .scroll-text__run {
+  animation: scroll-text-marquee 7s linear infinite alternate;
+}
+
+/* 尊重「减少动态效果」：关掉动画、退化为纯裁剪（桌面端仍可悬停看 title 全文） */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-text.is-scroll .scroll-text__run { animation: none; }
+}
+
 /* 可折叠卡片标题 */
 .collapse-head {
   width: 100%;
