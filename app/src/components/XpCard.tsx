@@ -12,9 +12,11 @@
  *   **「代码侧先用纯 CSS / emoji 也能跑通」** ⇒ 所以本组件不依赖图标设计，
  *   档位用**颜色 + 数字**表达（等级无上限，一个等级一个图标本就不可行）。
  */
+import { useState } from 'react';
 import { useStore } from '../lib/store';
 import { useXpSummary } from '../lib/xpSummary';
 import { isServerCheckinEnabled } from '../lib/checkinMode';
+import LevelRewardsPanel from './LevelRewardsPanel';
 
 /**
  * 徽章色阶：**主色同系、由浅到深**，每 10 级升一档。
@@ -49,6 +51,8 @@ export default function XpCard() {
   const { authUser } = useStore();
   const enabled = isServerCheckinEnabled();
   const xp = useXpSummary(enabled);
+  // ⚠ 必须写在下面两个 early return **之前** —— hook 不能有条件地被跳过
+  const [peekLevel, setPeekLevel] = useState<number | null>(null);
 
   if (!enabled) return null;
 
@@ -58,6 +62,7 @@ export default function XpCard() {
   const { level, totalXp, todayXp, monthXp, loading, error } = xp;
   const color = levelColorVar(level.level);
   const pct = Math.round((level.progress || 0) * 100);
+  const nextLevel = level.level + 1;
 
   return (
     <div className="card" style={{ marginBottom: '0.8rem' }}>
@@ -69,7 +74,10 @@ export default function XpCard() {
         </span>
       </div>
 
-      <div className="row" style={{ alignItems: 'center', gap: '0.8rem' }}>
+      {/* ⚠ `flexWrap: 'nowrap'`：两端标签必须留在**同一行**才对得上"对称"；
+          `.row` 默认是 wrap，屏一窄就会把右端那个标签挤到下一行去。
+          中间那列（`flex: 1; minWidth: 0`）负责吸收压缩，两端靠各自的 `minWidth` 不被压扁。 */}
+      <div className="row" style={{ alignItems: 'center', gap: '0.8rem', flexWrap: 'nowrap' }}>
         {/* 等级徽章：色阶 + 数字。**只有 `LV{n}`，没有任何等级名称**（方案 §3.2） */}
         <div
           style={{
@@ -101,9 +109,23 @@ export default function XpCard() {
           <div className="muted" style={{ fontSize: '0.8rem', marginTop: 'var(--sp-1)' }}>
             {error
               ? `暂时无法读取经验值（${error}）`
-              : `距 LV${level.level + 1} 还需 ${level.need} XP`}
+              : `距 LV${nextLevel} 还需 ${level.need} XP`}
           </div>
         </div>
+
+        {/* 右端「下一等级」：与左端徽章**等宽等高**（对称），虚线 = 还没到。
+            点它看这一级有哪些奖励（教师 2026-10-10：进度条开端是 LV1，
+            末尾该有一个对称的 LV2，点了能知道"到了能拿什么"）。 */}
+        <button
+          type="button"
+          className="lv-next"
+          style={{ color: levelColorVar(nextLevel) }}
+          onClick={() => setPeekLevel(nextLevel)}
+          title={`查看 LV${nextLevel} 的奖励`}
+          aria-label={`查看 LV${nextLevel} 的奖励`}
+        >
+          LV{nextLevel}
+        </button>
       </div>
 
       <div className="row" style={{ marginTop: '0.6rem', fontSize: '0.9rem' }}>
@@ -115,6 +137,10 @@ export default function XpCard() {
           XP 由服务端计算，离线时也会补记
         </span>
       </div>
+
+      {peekLevel != null && (
+        <LevelRewardsPanel level={peekLevel} totalXp={totalXp} onClose={() => setPeekLevel(null)} />
+      )}
     </div>
   );
 }
