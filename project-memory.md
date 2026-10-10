@@ -235,3 +235,13 @@
   ⚠ **为什么用「内层 block 限宽」而不是直接给 `td` 写 `max-width`**：`table-layout: auto` 下内层「宽度受约束的 block」的 max-content 会参与列宽计算；实测**两者都能限住**，选内层是因为把「裁剪」与「列宽」绑在同一元素、语义明确，且**改动面只落在用了该组件的单元格** —— 其余 10 张 `.check-table` 表完全不受影响。
   ⚠ **本机无头浏览器验证手法**（本机**没装** `agent-browser`，但也不必装）：直接用 `chrome.exe --headless=new --dump-dom file:///…`，让页面里的 JS 把测量结果写进 DOM 再取回；出图要用 `--headless=old --screenshot=`（**`new` 模式下 `--screenshot` 不落盘**）。⚠ Chrome 无头窗口宽有下限（`--window-size=430` 实际 `innerWidth=526`）⇒ 测窄屏请**固定容器宽 + 把 `vw` 上限覆盖成 px**，不要依赖窗口尺寸。⚠ 页面里若用 `data-id` 承载变体、CSS 却按 `class` 选择，**样式会静默不生效**（我第一次的探针 5 个变体结果一模一样，就是这个错）。
   📌 未覆盖：`QuizWrongBoard`（首列是题目）与 `VocabManager`（首列是词条）的首列同样可能很长，本轮未动 —— 要修只需照抄：包一层 `<ScrollText>`。
+- **表格首列跑马灯支持「手动拖动」（2026-10-10 教师要求，`ScrollText.tsx`）**：理由 —— 标题很长时自动滚动是"被动等"，教师想**直接拖到结尾看关键信息**。实现要点：**不另做一套拖动位移，而是直接 seek 那个 CSS 动画**（`Animation.pause()` / `currentTime` / `play()`）。这样位置只有一个来源 ⇒ **松手后从你拖到的位置接着走**（不会跳回起点）；也不需要写 inline transform —— 运行中的 CSS 动画优先级**高于** inline style，用 inline 覆盖得先 `animation: none` 拆掉动画、恢复时又要重建实例，中间那一帧容易闪。`animation.currentTime` 是标准 WAAPI，Chrome/Safari/Firefox 都支持；拿不到实例时拖动不生效、自动滚动不受影响（优雅降级）。
+  📌 关键换算：X 方向 1px 位移 = 1px 进度，再按 `LEAD=0.12` / `TAIL=0.88`（**与 CSS `@keyframes` 的两个断点一致，两处必须同步改**）换算成进度写回 `currentTime`。实测：拖到最左 = 进度 88%（正对应 `--shift`），拖回最右 = 12%。
+  ⚠ **`prefers-reduced-motion` 的写法要改**：不能再用 `animation: none`（那样组件拿不到 Animation 实例、**手动拖动就没了**），要改成 **`animation-play-state: paused`** —— 自动滚动不跑，但实例仍在 ⇒ 拖动照常可用。同理，松手时**不要**调 `play()`（会绕开"减少动态效果"偏好），组件里用 `matchMedia` 判一下。
+  ⚠ 交互副作用（有意）：标题上加了 `touch-action: pan-y`，所以**在标题上横向滑动 = 拖动标题**，不再横滚表格（在别的列上滑仍正常横滚）。`cursor: grab/grabbing` 是桌面端提示。
+- **无头浏览器验证 UI 交互的三个坑（2026-10-10 全部踩过，值得复用）**：
+  ① **`--user-data-dir` 必须给**。不给的话 Chrome 用默认 profile，**跑过几轮之后会静默失效**（`--dump-dom` 输出 0 行、exit code 还是 0，看起来像"页面没渲染"，其实浏览器根本没起来）。给独立 profile 立刻恢复。
+  ② **无头模式下 `requestAnimationFrame` 可能不被驱动** ⇒ 在页面脚本里 `await` 一帧会**永久挂起**（我的验证页因此整页无输出）。改用 `setTimeout`（虚拟时间会驱动定时器），并**加看门狗**：无论成败 2.5s 后都把已有结果写进 DOM，否则出错时 DOM 里什么都没有、看不出原因。
+  ③ **这个环境里「把原生命令输出赋给变量」恒为空**（`$dom = & chrome ...` → 0 行），**必须直接管道**（`& chrome ... | Select-String ...`）才拿得到。排查时先分辨"是命令失败还是捕获失败"。
+  📌 验证"真实 React 组件"而不动应用入口的做法：`esbuild` 把 `lab-entry.tsx`（import 真组件 + 真 `index.css`）打成独立 bundle，交给**已在跑的 Python 静态服务**（`python -m http.server`，端口 8899）打开 —— 完全绕开 dev server 的生命周期问题（`npx vite` 起在工具的命令里会被当 watch 命令杀掉）。产物在 `app/_ocrlab_out/lab.{html,js,css}`，`node _ocrlab_out/build-lab.mjs` 重新打包。
+  ⚠ React 状态造成的类名变化**同步读一定读到旧值**（`dragging=false`）—— 要等一拍再读，别误判成 bug。

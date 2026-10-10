@@ -685,7 +685,9 @@ input:focus, textarea:focus, select:focus {
 
 /* 只在真的溢出时动 —— `.is-scroll` 由组件量过之后才打上。
    **单方向**滚动（教师 2026-10-10：不要左右来回）：两端各留一小段停顿，
-   让人看得清首尾；走到底后回到起点重来（两个停顿让"回到起点"不那么突兀）。 */
+   让人看得清首尾；走到底后回到起点重来（两个停顿让"回到起点"不那么突兀）。
+   ⚠ 两个断点（12% / 88%）在 `ScrollText.tsx` 里以 `LEAD` / `TAIL` 常量重复了一份
+     —— 手动拖动要靠它把"位移"换算成"进度"。**改这里记得同步改那里**。 */
 @keyframes scroll-text-marquee {
   0%   { transform: translateX(0); }
   12%  { transform: translateX(0); }
@@ -696,9 +698,18 @@ input:focus, textarea:focus, select:focus {
   animation: scroll-text-marquee 7s linear infinite;
 }
 
-/* 尊重「减少动态效果」：关掉动画、退化为纯裁剪（桌面端仍可悬停看 title 全文） */
+/* 可手动拖动（2026-10-10 教师要求：标题太长时直接拖到结尾看关键信息）：
+   `pan-y` ⇒ **竖向还给页面滚动，横向留给拖动**（不设的话触摸端横滑会被浏览器吃掉）；
+   `grab/grabbing` 是桌面端的可拖动手感提示。 */
+.scroll-text.is-scroll { touch-action: pan-y; cursor: grab; }
+.scroll-text.is-dragging { cursor: grabbing; user-select: none; -webkit-user-select: none; }
+
+/* 尊重「减少动态效果」：**只暂停、不拆掉动画** ——
+   `animation: none` 会让组件拿不到 Animation 实例、手动拖动随之失效；
+   `paused` 则让它停在第 0 帧（= 开头，视觉上仍是纯裁剪），
+   但实例仍在 ⇒ **自动滚动不跑，手动拖动照常可用**。 */
 @media (prefers-reduced-motion: reduce) {
-  .scroll-text.is-scroll .scroll-text__run { animation: none; }
+  .scroll-text.is-scroll .scroll-text__run { animation-play-state: paused; }
 }
 
 /* 可折叠卡片标题 */
