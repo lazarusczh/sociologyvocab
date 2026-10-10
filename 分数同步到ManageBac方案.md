@@ -106,6 +106,11 @@ https://dtd.managebac.cn/teacher/classes/11496547/gradebook/core_tasks
 - 短码匹配失败 ⇒ 报错提示「请检查该 task 名里是否粘了 `[A1-0712]`」，**绝不猜、绝不写**
 - **写前差异预览**是真正的安全网：显示「即将写入：`[A1-0712] AS Homework #4` · 12 行」及逐行 78 → 82
 - 写入后**回读校验**：读回该行分数与字母等级是否随之变化
+- ⚠ **判别报错来源：裸的 `Failed to fetch`（没有任何中文前缀）不是我们写的文案** —— 本功能的每一条错误都带前缀与上下文
+  （「绑定失败：…」「读取差异失败：…」「ManageBac 登录态已过期 —— 去跑 mb-login-local.mjs」…），且失败时状态码与 `detail` 都带回来。
+  浏览器只在**请求根本没拿到响应**（断网 / DNS / TLS / 被扩展或网关拦 / 走错代理）时才给这句 ⇒ **先查网络，不要先怀疑 ManageBac 登录态**，更不是代码问题。
+  2026-10-09 教师报「绑定返回 Failed to fetch」即属此类：当场核查结果是 MB 登录态有效（只读拉到 AS 班 11 个 task）、线上 `/app-api/mb/*` 全部 401 正常，
+  随后自行恢复。另外：日志订阅 `wrangler tail` 在本机**连不上**（`connect ETIMEDOUT` 到日志端点），抓现场这条路在本机不通，别依赖它。
 
 ---
 
@@ -206,5 +211,7 @@ RLS 一律「仅 teacher / developer」（沿用 `db-migration-grouper-runs.sql`
 - [x] ~~Worker：差异预览 → 确认写入 → 回读校验~~ → 已完成（写入后轮询回读，结果分三种报出）
 - [ ] 班级号备查：**AS = `11496547`**（站内班名 `AS Sociology`）、**A2 = `11420931`**（`A2 Sociology`）
 - [ ] ⚠️ **刷新 ManageBac cookie 请用 `app/scripts/mb-login-local.mjs`**（本机 Chrome/Edge、独立 profile `%LOCALAPPDATA%\mb-login-profile`：快、**不消耗 CF 额度**、profile 复用通常免登录）。**不要再用 `cf-managebac-login.mjs`**（远端投屏很卡且烧额度）—— 2026-09-16 又踩了一次
-- [ ] 实测：managebac 登录 cookie 的有效期（决定教师多久需重新登录一次）
+- [x] ~~实测：managebac 登录 cookie 的有效期~~ → **实测至少 23 天仍有效**（云端 `mb_sessions` 写入于 2026-09-16 00:13 UTC，
+  2026-10-09 用它跑 `node scripts/mb-tasks.mjs --class 11496547` 仍能正常列出该班 11 个 task）⇒ 大概 1 个月量级，
+  不必每学期重登；**判断是否过期只需跑一次上面那条只读命令**（别靠猜）
 - [x] ~~决定：随堂测验（`QuizManager`）是否也接入同一套同步~~ → **已定：要接入**（教师 2026-09-15）
