@@ -9,6 +9,7 @@ import { collectWrongAttempts, TYPE_LABELS, KIND_LABELS } from '../lib/quiz';
 import type { WrongAttempt } from '../lib/quiz';
 import { listQuizzes, listSubmissionsByQuizzes, listDeveloperIds } from '../lib/cloud';
 import { maskEmail } from '../lib/shuffle';
+import ScrollText from './ScrollText';
 
 type TypeFilter = 'all' | QuizQuestionType;
 
@@ -236,7 +237,7 @@ export default function QuizWrongBoard({ onBack }: { onBack: () => void }) {
                   <Fragment key={r.itemId}>
                     <tr>
                       <td className="muted">{i + 1}</td>
-                      <td style={{ fontWeight: 600 }}>{r.term}</td>
+                      <td style={{ fontWeight: 600 }}><ScrollText text={r.term} /></td>
                       <td className="muted">{r.chinese || '—'}</td>
                       <td>
                         <span className={`badge ${r.itemType === 'term' ? 'success' : 'warn'}`}>
@@ -258,7 +259,10 @@ export default function QuizWrongBoard({ onBack }: { onBack: () => void }) {
                     </tr>
                     {open && (
                       <tr>
-                        <td colSpan={10} style={{ background: 'var(--surface-alt, rgba(0,0,0,0.02))' }}>
+                        {/* ⚠ 明细行会继承整表的 `white-space: nowrap`（`.check-table td`），
+                            那样题目 / 姓名 / 学生作答 / 正确答案会被铺成**极宽的一行**、
+                            几乎没法读，还把整表顶得更宽（2026-10-10 排查发现）⇒ 显式恢复换行。 */}
+                        <td colSpan={10} style={{ background: 'var(--surface-alt, rgba(0,0,0,0.02))', whiteSpace: 'normal' }}>
                           <GroupedWrongCases cases={r.cases} />
                         </td>
                       </tr>

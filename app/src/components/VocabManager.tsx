@@ -4,6 +4,7 @@ import type { VocabItem } from '../lib/types';
 import { stableId } from '../lib/shuffle';
 import { unitsForPaper, subsForPaper } from '../lib/unitMapping';
 import { PAPER_ORDER } from '../lib/storage';
+import ScrollText from './ScrollText';
 
 // 表单草稿
 interface Draft {
@@ -681,7 +682,7 @@ export default function VocabManager() {
                       />
                     </td>
                   )}
-                  <td>{i.term}</td>
+                  <td><ScrollText text={i.term} /></td>
                   <td className="muted">{i.chinese || '—'}</td>
                   <td>{i.paper}</td>
                   <td className="muted" style={{ fontSize: '0.8rem' }}>{(i.unit ?? []).join('、') || '—'}</td>

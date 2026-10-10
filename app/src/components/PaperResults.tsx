@@ -1051,8 +1051,12 @@ export default function PaperResults() {
                     return (
                       <tr key={e.key} style={{ opacity: e.raw == null ? 0.75 : 1 }}>
                         <td>
-                          {e.name}
-                          {!e.registered && <span className="badge todo" style={{ marginLeft: '0.35rem' }}>未注册</span>}
+                          {/* 名字包 ScrollText：手工补录的长名字会把冻结首列撑宽（2026-10-10）；
+                              「未注册」badge 要留在同一行 ⇒ 用不换行的 flex 包住两者。 */}
+                          <span className="row" style={{ gap: '0.35rem', alignItems: 'center', flexWrap: 'nowrap' }}>
+                            <ScrollText text={e.name} />
+                            {!e.registered && <span className="badge todo">未注册</span>}
+                          </span>
                         </td>
                         <td>{e.classId ? (classes.find((c) => c.id === e.classId)?.name ?? '') : '未分班'}</td>
                         <td>

@@ -655,21 +655,23 @@ input:focus, textarea:focus, select:focus {
   }
 }
 
-/* 冻结首列的「宽度上限」+ 长标题跑马灯（2026-10-09 教师反馈）：
-   手机窄屏上，首列一旦被长标题撑宽（单元格是 nowrap）就几乎占满视口，
-   右侧的列**既点不到也划不动** —— 真实 Chrome 实测：390px 容器里首列 367px、
-   第二列被首列盖住 108px、`scrollLeft` 划到底也露不出来。
-   修法：把标题包进 `.scroll-text`（组件 `ScrollText.tsx`）—— 它对内用
-   `width: max-content` 按内容伸缩、`max-width` 封顶 ⇒ 列宽 = min(标题宽, 上限)，
-   短标题不浪费空间、长标题不再挤走右侧列。
-   ⚠ 上限存在的**唯一目的**是保证「首列 < 视口」：只要首列比视口窄，右侧就永远留有
-     一段可点区域，冻结与可交互才能同时成立。
+/* 长文本的「宽度上限」+ 跑马灯 + 可手动拖动（2026-10-09 教师反馈；2026-10-10 扩到全表）：
+   手机窄屏上，一列一旦被长文本撑宽（单元格是 nowrap）就几乎占满视口 —— 尤其是**冻结首列**，
+   它一宽过视口，右侧的列**既点不到也划不动**（真实 Chrome 实测：390px 容器里首列 367px、
+   第二列被首列盖住 108px、`scrollLeft` 划到底也露不出来）。
+   修法：把该单元格的文本包进 `.scroll-text`（组件 `ScrollText.tsx`）—— 对内用
+   `width: max-content` 按内容伸缩、`max-width` 封顶 ⇒ 列宽 = min(内容宽, 上限)，
+   短的按内容收缩、长的不再挤走别的列，超出部分靠跑马灯 + 手动拖动看。
+   ⚠ `--first-col-max` 这个名字留着，但它现在**不限首列**：上限跟着**组件**走，不跟着"第几列"走。
+     理由是同一个毛病在别的列上一样会发生 —— 词条管理在勾选模式下「词条」列是**第二列**
+     （紧邻的复选框才是首列），写成 `td:first-child > .scroll-text` 就会**漏掉它**。
+   ⚠ 写错会更难看：这三条（`display` / `max-width` / `overflow`）**必须在同一个规则里、
+     对任何位置都生效**。少了 `overflow: hidden`，跑马灯会把文字平移**到邻居身上**。
    ⚠ 为什么用「内层 block + max-width」而不是直接给 `td` 写 `max-width`：
      `table-layout: auto` 下，内层「宽度受约束的 block」的 max-content 会参与列宽计算，
      语义明确且把「裁剪」与「列宽」绑在同一个元素上（两者实测都能限住，见 project-memory
-     记的独立探针数据）。改动面因此只限用了本组件的单元格，其余 10 张表不受影响。 */
-.check-table th:first-child > .scroll-text,
-.check-table td:first-child > .scroll-text {
+     记的独立探针数据）。改动面仍只限**用了本组件**的单元格，其余表不受影响。 */
+.scroll-text {
   --first-col-max: 22rem;
   display: block;
   width: max-content;
@@ -677,8 +679,7 @@ input:focus, textarea:focus, select:focus {
   overflow: hidden;
 }
 @media (max-width: 640px) {
-  .check-table th:first-child > .scroll-text,
-  .check-table td:first-child > .scroll-text { --first-col-max: 46vw; }
+  .scroll-text { --first-col-max: 46vw; }
 }
 
 .scroll-text__run { display: inline-block; white-space: nowrap; }

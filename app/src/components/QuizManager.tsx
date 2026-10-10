@@ -1102,7 +1102,7 @@ export default function QuizManager() {
                   const hasBonus = (s.grading?.bonus ?? 0) > 0;
                   return (
                     <tr key={s.id}>
-                      <td>{s.name || '—'}</td>
+                      <td><ScrollText text={s.name || '—'} /></td>
                       <td className="muted">{s.email ? maskEmail(s.email) : '—'}</td>
                       <td>
                         {s.score} / {maxPts}

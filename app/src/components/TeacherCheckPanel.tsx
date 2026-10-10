@@ -8,6 +8,7 @@ import { useMonthAwards, setAwardRecord, awardKey, AWARD_LABEL, AWARD_HINT } fro
 import type { AwardKind } from '../lib/awards';
 import { useStore } from '../lib/store';
 import { maskEmail } from '../lib/shuffle';
+import ScrollText from './ScrollText';
 import type { CloudStudentData } from '../lib/cloud';
 import type { CheckInState, WrongBook } from '../lib/types';
 
@@ -514,7 +515,7 @@ export default function TeacherCheckPanel() {
                 const raw = rawById.get(r.user_id);
                 return (
                   <tr key={r.user_id}>
-                    <td>{r.name || '—'}</td>
+                    <td><ScrollText text={r.name || '—'} /></td>
                     <td>{r.className || '—'}</td>
                     <td className="muted">{maskEmail(r.email)}</td>
                     {isMonthView && st ? (

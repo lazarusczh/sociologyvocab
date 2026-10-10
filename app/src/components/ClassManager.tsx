@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { maskEmail } from '../lib/shuffle';
+import ScrollText from './ScrollText';
 import { countMbRosterByClass, listClassesWithMb, replaceMbRoster, setClassMbBinding, setStudentMbExempt } from '../lib/cloud';
 import { parseMbClassUrl, parseRosterSheet } from '../lib/mbSync';
 
@@ -361,7 +362,7 @@ export default function ClassManager() {
               <tbody>
                 {sortedClasses.map((c) => (
                   <tr key={c.id}>
-                    <td style={{ fontWeight: 600 }}>{c.name}</td>
+                    <td style={{ fontWeight: 600 }}><ScrollText text={c.name} /></td>
                     <td>
                       {c.mb_class_id ? (
                         <div className="row" style={{ gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -435,7 +436,7 @@ export default function ClassManager() {
               <tbody>
                 {students.map((s) => (
                   <tr key={s.user_id}>
-                    <td>{s.name || '—'}</td>
+                    <td><ScrollText text={s.name || '—'} /></td>
                     <td className="muted">{maskEmail(s.email)}</td>
                     <td>
                       <select
