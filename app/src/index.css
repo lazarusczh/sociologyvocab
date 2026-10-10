@@ -1365,10 +1365,11 @@ textarea { resize: vertical; min-height: 80px; }
 /* 等级条右端的「下一等级」标签（2026-10-10 教师提出：进度条开端是 LV1，
    末尾该有一个**对称的 LV2**，点了能知道"到了能拿什么"）。
    ⚠ 与左端徽章**等宽等高**才叫对称：左端是填充色块（`padding: .5rem .6rem`、无边框），
-     这里是虚线边框 —— 边框占 1px，所以内边距各减 1px，两者盒子高度严格相等
+     这里是**实线描边** —— 边框占 1px，所以内边距各减 1px，两者盒子高度严格相等
      （全局已有 `* { box-sizing: border-box }`）。
    ⚠ 颜色由内联给（取**下一级**的色阶）⇒ 深色模式自动跟随，不写死色值。
-   ⚠ 虚线的含义：**填色 = 已达成，虚线 = 还没到的目标** —— 两端一眼分得清谁是自己。
+   ⚠ 为什么是**实线**而不是虚线（教师 2026-10-10 明确）：虚线观感不好；
+     两端靠「**填充 = 已达成 / 描边 = 还没到的目标**」＋ 颜色区分已经够了。
    ⚠ 徽章上除 `LV{n}` **不出现任何文字**（方案 §3.2 不做等级命名）⇒ 这里也不加
      "查看"之类的字样，可点性靠 `cursor` / hover / `title` 表达。 */
 .lv-next {
@@ -1379,7 +1380,7 @@ textarea { resize: vertical; min-height: 80px; }
      才让两个盒子严格等宽等高（实测两端都是 67×37px）。 */
   min-height: 0;
   padding: calc(0.5rem - 1px) calc(0.6rem - 1px);
-  border: 1px dashed currentColor;
+  border: 1px solid currentColor;
   border-radius: var(--r-xs);
   background: transparent;
   font-family: inherit;
