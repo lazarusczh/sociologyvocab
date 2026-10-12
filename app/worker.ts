@@ -6,12 +6,14 @@
 //
 // 命名空间约定（2026-09-13 定，详见 project-memory.md）：/skill-api/* = 子站（学生向）、
 // /app-api/* = 主站（教师向）、/sb/* = Supabase 同源代理、/wb/* = World Bank 代理。
-// 两套命名空间**共用同一批模型**（同一魔搭账号、每日 ~250 魔粒不分池），区别在鉴权级别/档位/开关。
+// 两套命名空间**共用同一批模型**（同一魔搭账号、魔粒额度不分池），区别在鉴权级别/档位/开关。
+// 魔粒「静默保活」：任何 AI 路由被使用时顺手 ping 一次（见 worker/ai/magicube.ts 与下方 fetch 入口）。
 
 import { handleAppApi } from './worker/appApi';
 import { handleLabBrowser } from './worker/labBrowser';
 import { handleMbApi } from './worker/mbApi';
 import { aiGateForbidden, verifyUser } from './worker/ai/auth';
+import { scheduleKeepalive } from './worker/ai/magicube';
 
 interface Env {
   ASSETS: Fetcher;
@@ -567,9 +569,25 @@ async function handleSbProxy(request: Request, env: Env): Promise<Response> {
   }
 }
 
+/** 会走到魔搭的 AI 路由（用于触发静默保活；不含纯静态的 /skill-api/models） */
+function isAiRoute(pathname: string): boolean {
+  return (
+    pathname === '/skill-api/ask' ||
+    pathname === '/skill-api/terms' ||
+    pathname.startsWith('/app-api/ai/')
+  );
+}
+
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
+
+    // 魔搭魔粒「静默保活」：任何人用到 AI 功能时顺手 ping 一次它的公开 OpenAPI，
+    // 领掉当日那 250 魔粒（滚动 24h 有效）。异步 + 20h 节流 + 失败静默，不影响学生请求。
+    // 机制与三条硬约束见 worker/ai/magicube.ts。
+    if (isAiRoute(url.pathname) && request.method === 'POST') {
+      scheduleKeepalive(env, ctx);
+    }
 
     // 档位目录（模型名的唯一真源）：子站前端据此渲染档位选择与回答尾缀。
     // 纯只读、不含密钥，故不要求登录；回 CORS 头供子站/APK 跨域读取。
