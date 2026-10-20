@@ -1,3 +1,7 @@
+// 填字快照的类型定义在 crossword.ts（生成算法同处），此处只做类型引用，
+// `import type` 会被编译期擦除，不产生运行时循环依赖。
+import type { GeneratedCrossword } from './crossword';
+
 // 词库条目类型：统一表示术语和学者人名
 export interface VocabItem {
   id: string;
@@ -118,8 +122,9 @@ export type QuizKind = 'quiz' | 'homework';
 // 选题模式：随机抽题 / 手动指定词条
 export type QuizSelectionMode = 'random' | 'manual';
 
-// 测验题型（复用现有练习：拼写 / 选择 / 匹配；语境填空为未来扩展）
-export type QuizQuestionType = 'spelling' | 'choice' | 'matching';
+// 测验题型（复用现有练习：拼写 / 选择 / 匹配 / 纵横填字；语境填空为未来扩展）
+// 纵横填字是「块型题」（一个网格含 6-8 个词），且**只允许作业使用**（见 QuizManager 的题型按钮过滤）
+export type QuizQuestionType = 'spelling' | 'choice' | 'matching' | 'crossword';
 
 // 匹配块中的一对（术语 ↔ 释义）
 export interface QuizPair {
@@ -143,6 +148,10 @@ export interface QuizQuestion {
   options?: string[];  // 选择题选项（含正确答案，生成时定序，学生端再乱序）
   answerIndex?: number; // 选择题正确选项在 options 中的下标（学生端乱序前）
   pairs?: QuizPair[];  // 匹配块：一组术语↔释义配对（仅 matching 题型）
+  /** 填字块：整盘网格与线索快照（仅 crossword 题型）。
+   *  必须随试题快照一起存下来 —— 所有学生要拿到**同一盘网格**，
+   *  学生端不能再调用生成算法（否则每人一盘，无法统一判分）。 */
+  crossword?: GeneratedCrossword;
 }
 
 // 试卷主表记录

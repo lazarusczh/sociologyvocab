@@ -176,7 +176,7 @@ export default function QuizWrongBoard({ onBack }: { onBack: () => void }) {
             <span className="muted" style={{ fontSize: '0.85rem' }}>题型：</span>
             <div className="tag-filter">
               <button className={typeFilter === 'all' ? 'active' : ''} onClick={() => setTypeFilter('all')}>全部</button>
-              {(['spelling', 'choice', 'matching'] as QuizQuestionType[]).map((t) => (
+              {(['spelling', 'choice', 'matching', 'crossword'] as QuizQuestionType[]).map((t) => (
                 <button key={t} className={typeFilter === t ? 'active' : ''} onClick={() => setTypeFilter(t)}>
                   {TYPE_LABELS[t]}
                 </button>
@@ -307,7 +307,9 @@ function GroupedWrongCases({ cases }: { cases: WrongAttempt[] }) {
                   {c.name || (c.email ? maskEmail(c.email) : '未署名')}
                 </span>
                 <span className="muted" style={{ fontSize: '0.85rem' }}>
-                  {' '}· {TYPE_LABELS[c.qtype]}{c.qtype === 'matching' ? '配对' : ''}
+                  {' '}· {TYPE_LABELS[c.qtype]}
+                  {c.qtype === 'matching' ? '配对' : ''}
+                  {c.qtype === 'crossword' ? '逐词' : ''}
                   {c.submittedAt ? ` · ${new Date(c.submittedAt).toLocaleDateString()}` : ''}
                 </span>
                 <span style={{ fontSize: '0.85rem', marginLeft: '0.6rem' }}>

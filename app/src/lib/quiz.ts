@@ -2,6 +2,7 @@
 import type { VocabItem, Quiz, QuizSubmission, QuizQuestion, QuizQuestionType, QuizKind, QuizPair } from './types';
 import { shuffle, sample } from './shuffle';
 import { maskAnswer, isCorrectAnswer, pickSpellingPrompt } from './answers';
+import { generateCrossword, type Clue as CrosswordClue } from './crossword';
 
 // 生成 4 位数字密码（查重交由云端唯一约束兜底，冲突时由调用方重试）
 export function generateCode(): string {
@@ -95,6 +96,43 @@ function buildMatchingBlock(items: VocabItem[], idx: number): QuizQuestion {
   };
 }
 
+// 生成填字块：把一个词条集合排成一盘网格。
+// 生成器（crossword.ts）会自己从集合里挑「能交叉进网格」的词，排不进去的词会剩下 ——
+// 这些词**不能悄悄丢掉**（教师按词数布置作业，丢词等于少考），
+// 因此在 buildQuizQuestions 里把剩下的词降级为选择题（决策八：「仍失败则降级为其他题型」）。
+function buildCrosswordBlock(
+  items: VocabItem[],
+  idx: number,
+): { question: QuizQuestion; leftover: VocabItem[] } | null {
+  // 网格排布带随机性：重试几次取「放进去最多」的那一盘（同一批词重试不会消耗额外代价）。
+  // 实测 8 词一批单次排布常见只放进 6 个，多试几次能明显减少「降级为选择题」的词数。
+  let best: ReturnType<typeof generateCrossword> = null;
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const p = generateCrossword(items, CROSSWORD_WORDS_PER_BLOCK);
+    if (!p) continue;
+    if (!best || p.clues.length > best.clues.length) best = p;
+    if (best.clues.length >= items.length) break;
+  }
+  if (!best || best.clues.length < CROSSWORD_MIN_CLUES) return null;
+
+  const used = new Set(best.clues.map((c) => c.id));
+  const firstItem = items.find((it) => it.id === best!.clues[0].id);
+  const question: QuizQuestion = {
+    id: `q${idx}`,
+    type: 'crossword',
+    // 块型题没有单一词条：itemId 取首个线索（与 matching 取首对同口径）
+    itemId: best.clues[0].id,
+    itemType: firstItem?.type ?? 'term',
+    term: '',
+    chinese: '',
+    definition: '',
+    prompt: `按横向 / 纵向线索填写英文答案（本盘 ${best.clues.length} 个词，每词 1 分）`,
+    promptLabel: '线索',
+    crossword: best,
+  };
+  return { question, leftover: items.filter((it) => !used.has(it.id)) };
+}
+
 // 按勾选题型均匀随机分配：把词条依次（洗牌后）分配到题型序列
 function assignTypes(items: VocabItem[], types: QuizQuestionType[]): QuizQuestionType[] {
   if (types.length === 0) return [];
@@ -108,12 +146,21 @@ function assignTypes(items: VocabItem[], types: QuizQuestionType[]): QuizQuestio
 // 每个匹配块的对数（与原 Matching.tsx 练习一致）
 export const PAIRS_PER_BLOCK = 6;
 
+// 每盘填字的目标词数（决策八：一次作业通常 ≥20 词，取其中 6-8 个词成一块）。
+// 生成器排不下的词不会丢失，会降级为选择题（见 buildCrosswordBlock）。
+export const CROSSWORD_WORDS_PER_BLOCK = 8;
+// 一盘网格至少要有几个词才算成立；低于此值整批词降级为选择题，
+// 避免出现「1-2 个词、根本没交叉」的残盘。
+export const CROSSWORD_MIN_CLUES = 3;
+
 // 生成整份题目的快照：items 为选中的词条，types 为勾选题型，pool 为干扰项来源（全库）
 // matching 词条每 PAIRS_PER_BLOCK 个组成一个「配对块」；尾部不足 2 个的转为选择题
+// crossword 同理每 CROSSWORD_WORDS_PER_BLOCK 个词成一盘；排不进网格的词降级为选择题
 export function buildQuizQuestions(items: VocabItem[], types: QuizQuestionType[], pool: VocabItem[]): QuizQuestion[] {
   const typeSeq = assignTypes(items, types);
   const questions: QuizQuestion[] = [];
   let matchingBuffer: VocabItem[] = [];
+  let crosswordBuffer: VocabItem[] = [];
   let idx = 0;
 
   const flushMatching = () => {
@@ -127,6 +174,21 @@ export function buildQuizQuestions(items: VocabItem[], types: QuizQuestionType[]
     }
   };
 
+  const flushCrossword = () => {
+    while (crosswordBuffer.length > 0) {
+      const chunk = crosswordBuffer.splice(0, CROSSWORD_WORDS_PER_BLOCK);
+      const built = buildCrosswordBlock(chunk, idx);
+      if (!built) {
+        // 排不出网格（词太少或无法交叉）：整批降级为选择题，保证这些词仍被考到
+        for (const it of chunk) questions.push(buildQuestion(it, 'choice', pool, idx++));
+        continue;
+      }
+      questions.push(built.question);
+      idx++;
+      for (const it of built.leftover) questions.push(buildQuestion(it, 'choice', pool, idx++));
+    }
+  };
+
   for (let i = 0; i < items.length; i++) {
     const t = typeSeq[i];
     if (t === 'matching') {
@@ -134,18 +196,26 @@ export function buildQuizQuestions(items: VocabItem[], types: QuizQuestionType[]
       if (matchingBuffer.length >= PAIRS_PER_BLOCK) {
         questions.push(buildMatchingBlock(matchingBuffer.splice(0, PAIRS_PER_BLOCK), idx++));
       }
+    } else if (t === 'crossword') {
+      crosswordBuffer.push(items[i]);
+      if (crosswordBuffer.length >= CROSSWORD_WORDS_PER_BLOCK) flushCrossword();
     } else {
       questions.push(buildQuestion(items[i], t, pool, idx++));
     }
   }
   flushMatching();
+  flushCrossword();
 
   return questions;
 }
 
-// 计算一份题目的总评分点数（拼写/选择每题 1 点；匹配块每对 1 点）
+// 计算一份题目的总评分点数（拼写/选择每题 1 点；匹配块每对 1 点；填字每词 1 点）
 export function totalPoints(questions: QuizQuestion[]): number {
-  return questions.reduce((sum, q) => sum + (q.type === 'matching' && q.pairs ? q.pairs.length : 1), 0);
+  return questions.reduce((sum, q) => {
+    if (q.type === 'matching' && q.pairs) return sum + q.pairs.length;
+    if (q.type === 'crossword' && q.crossword) return sum + q.crossword.clues.length;
+    return sum + 1;
+  }, 0);
 }
 
 // 随机抽题：从池中抽 n 条（需含释义与术语）
@@ -154,7 +224,52 @@ export function sampleItems(pool: VocabItem[], n: number): VocabItem[] {
   return sample(usable, Math.min(n, usable.length));
 }
 
-// 判断单道题的作答是否正确（choice 传下标，spelling 传文本；matching 块不适用）
+// ===== 纵横填字（块型题，逐词判分） =====
+//
+// 作答存储用「逐格键」而不是「逐线索字符串」：
+//   answers[`cw:${q.id}:${row},${col}`] = 'A'
+// 理由：同一格可能同时属于横向与纵向两条线索，逐线索存会出现**交叉格两个值不一致**；
+// 逐格存则天然一致，且恢复草稿时直接把格子铺回去即可。
+// 键里带 q.id：不同填字块都有 (0,0) 格，不带题号会互相覆盖。
+const CROSSWORD_CELL_PREFIX = 'cw';
+
+export function crosswordCellKey(qid: string, row: number, col: number): string {
+  return `${CROSSWORD_CELL_PREFIX}:${qid}:${row},${col}`;
+}
+
+/** 取某条线索当前填写的字母串（未填的格按空字符占位，长度恒等于答案长度） */
+export function crosswordClueInput(
+  q: QuizQuestion,
+  clue: CrosswordClue,
+  answers: Record<string, string | number>,
+): string {
+  let out = '';
+  for (let i = 0; i < clue.answer.length; i++) {
+    const r = clue.direction === 'across' ? clue.row : clue.row + i;
+    const c = clue.direction === 'across' ? clue.col + i : clue.col;
+    out += String(answers[crosswordCellKey(q.id, r, c)] ?? '').toUpperCase();
+  }
+  return out;
+}
+
+/** 逐词结果：供判分、入账、错题榜、答卷详情共用同一口径 */
+export function crosswordClueResults(
+  q: QuizQuestion,
+  answers: Record<string, string | number>,
+): { clue: CrosswordClue; input: string; correct: boolean }[] {
+  if (q.type !== 'crossword' || !q.crossword) return [];
+  return q.crossword.clues.map((clue) => {
+    const input = crosswordClueInput(q, clue, answers);
+    return { clue, input, correct: input === clue.answer.toUpperCase() };
+  });
+}
+
+/** 填字块答对的词数（每个词 1 分，与 totalPoints 口径一致） */
+export function crosswordCorrectCount(q: QuizQuestion, answers: Record<string, string | number>): number {
+  return crosswordClueResults(q, answers).reduce((n, r) => n + (r.correct ? 1 : 0), 0);
+}
+
+// 判断单道题的作答是否正确（choice 传下标，spelling 传文本；matching/crossword 块不适用，走各自的逐项函数）
 export function isAnswerCorrect(q: QuizQuestion, answer: string | number | undefined | null): boolean {
   if (q.type === 'choice') {
     const idx = Number(answer);
@@ -198,12 +313,15 @@ export function correctAnswerText(q: QuizQuestion): string {
   return q.term;
 }
 
-// 判分：answers 为 { itemId -> 作答 }；拼写作答是文本、选择是 options 下标、匹配块按正确配对数计分
+// 判分：answers 为 { itemId -> 作答 }；拼写作答是文本、选择是 options 下标、
+// 匹配块按正确配对数计分、填字块按答对的词数计分（每词 1 分）
 export function gradeQuiz(questions: QuizQuestion[], answers: Record<string, string | number>): number {
   let score = 0;
   for (const q of questions) {
     if (q.type === 'matching' && q.pairs) {
       score += matchingCorrectCount(q, answers);
+    } else if (q.type === 'crossword' && q.crossword) {
+      score += crosswordCorrectCount(q, answers);
     } else if (isAnswerCorrect(q, answers[q.itemId])) {
       score++;
     }
@@ -260,13 +378,17 @@ export function formatDuration(minutes: number): string {
 // ===== 订正（错题重做 + 加分） =====
 
 // 从一份已交卷的作答里提取「错题词条 id」（去重）：
-// 拼写/选择答错 → 该词条；匹配块只取答错的那几对词条（不整块重做）
+// 拼写/选择答错 → 该词条；匹配块只取答错的那几对词条；填字块只取填错的那些词（都不整块重做）
 export function extractWrongItemIds(questions: QuizQuestion[], answers: Record<string, string | number>): string[] {
   const wrong = new Set<string>();
   for (const q of questions) {
     if (q.type === 'matching' && q.pairs) {
       for (const p of q.pairs) {
         if (answers[p.itemId] !== p.itemId) wrong.add(p.itemId);
+      }
+    } else if (q.type === 'crossword' && q.crossword) {
+      for (const r of crosswordClueResults(q, answers)) {
+        if (!r.correct) wrong.add(r.clue.id);
       }
     } else if (!isAnswerCorrect(q, answers[q.itemId])) {
       wrong.add(q.itemId);
@@ -318,6 +440,7 @@ export const TYPE_LABELS: Record<QuizQuestionType, string> = {
   spelling: '拼写',
   choice: '选择',
   matching: '匹配',
+  crossword: '纵横填字',
 };
 
 // kind 中文名
@@ -356,8 +479,8 @@ function matchingChosenLabel(pairs: QuizPair[], chosen: string | number | undefi
   return pair ? pair.definition : String(chosen);
 }
 
-// 遍历已交卷记录，逐题（匹配块逐对）复用现有判分函数判定对错，产出词条级作答明细。
-// 判分口径与现有成绩/订正完全一致：选择按下标、拼写走别名容错、匹配按 itemId 配对。
+// 遍历已交卷记录，逐题（匹配块逐对、填字块逐词）复用现有判分函数判定对错，产出词条级作答明细。
+// 判分口径与现有成绩/订正完全一致：选择按下标、拼写走别名容错、匹配按 itemId 配对、填字按格子字母。
 export function collectWrongAttempts(
   quizzes: Quiz[],
   submissions: QuizSubmission[],
@@ -380,7 +503,23 @@ export function collectWrongAttempts(
       email: s.email,
     };
     for (const q of quiz.questions) {
-      if (q.type === 'matching' && q.pairs) {
+      if (q.type === 'crossword' && q.crossword) {
+        // 填字块：逐词入账（词条级明细，不整块算一条）
+        for (const r of crosswordClueResults(q, answers)) {
+          out.push({
+            ...base,
+            itemId: r.clue.id,
+            term: r.clue.term,
+            chinese: r.clue.zh,
+            itemType: q.itemType,
+            qtype: 'crossword',
+            correct: r.correct,
+            prompt: r.clue.zh || r.clue.en || r.clue.term,
+            studentAnswer: r.correct ? '' : (r.input || '（未作答）'),
+            correctAnswer: r.correct ? '' : r.clue.answer,
+          });
+        }
+      } else if (q.type === 'matching' && q.pairs) {
         for (const p of q.pairs) {
           const chosen = answers[p.itemId];
           const correct = chosen === p.itemId;

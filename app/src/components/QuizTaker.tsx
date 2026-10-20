@@ -4,9 +4,10 @@ import { useRoundXp } from '../lib/xpSummary';
 import XpGain from './XpGain';
 import type { Quiz, QuizQuestion, QuizSubmission } from '../lib/types';
 import { getQuizByCode, getMySubmission, upsertSubmission, submitQuizSubmission, listMySubmissions, useBonusCard } from '../lib/cloud';
-import { gradeQuiz, shuffleQuestionsBySeed, randomOrderSeed, formatDuration, TYPE_LABELS, KIND_LABELS, isAnswerCorrect, answerText, correctAnswerText, matchingCorrectCount, totalPoints, extractWrongItemIds } from '../lib/quiz';
+import { gradeQuiz, shuffleQuestionsBySeed, randomOrderSeed, formatDuration, TYPE_LABELS, KIND_LABELS, isAnswerCorrect, answerText, correctAnswerText, matchingCorrectCount, totalPoints, extractWrongItemIds, crosswordClueResults } from '../lib/quiz';
 import { shuffle } from '../lib/shuffle';
 import CorrectionPractice from './CorrectionPractice';
+import CrosswordAnswer, { CrosswordClueResults } from './CrosswordAnswer';
 import { isServerCheckinEnabled } from '../lib/checkinMode';
 import { useCardBalance } from '../lib/cards';
 
@@ -257,20 +258,25 @@ export default function QuizTaker() {
   }, [phase]);
 
   // 交卷成功后：把每道题结果写入本地错题本/掌握度/打卡（方案 B）
+  // ⚠ 块型题（匹配 / 填字）必须**拆到最小计分单元**再 recordItem：
+  //   一次 recordItem = 打卡题数 +1、错题本 +1 条。
+  //   若整块只记 1 次，学生会「做了 6-8 个词却只算 1 题」，打卡题数与掌握度都会被低估。
   const recordQuizResults = useCallback(() => {
     if (!quiz) return;
-    // 用时**均摊**到每道题（匹配块按对数拆）：交卷是统一动作，无法分辨每题各花多久。
-    // 均摊保证整套的总时长不失真，代价是单题用时不准 —— 但「一次性交卷」本就无从精确。
-    const n = Math.max(
-      1,
-      questions.reduce((s, q) => s + (q.type === 'matching' && q.pairs ? q.pairs.length : 1), 0),
-    );
+    // 用时**均摊**到每个计分单元（匹配按对、填字按词）：交卷是统一动作，无法分辨各花多久。
+    // 均摊保证整套的总时长不失真，代价是单项用时不准 —— 但「一次性交卷」本就无从精确。
+    const n = Math.max(1, totalPoints(questions));
     const perMs = Math.max(0, Math.round(timer.lap() / n));
     for (const q of questions) {
       if (q.type === 'matching' && q.pairs) {
         // 匹配块：逐对记录（对错按该对 itemId 是否配对正确）
         for (const p of q.pairs) {
           recordItem(p.itemId, answers[p.itemId] === p.itemId, 'matching', { elapsedMs: perMs });
+        }
+      } else if (q.type === 'crossword' && q.crossword) {
+        // 填字块：逐词记录（每个词条独立计入掌握度 / 打卡 / 错题本）
+        for (const r of crosswordClueResults(q, answers)) {
+          recordItem(r.clue.id, r.correct, 'crossword', { elapsedMs: perMs });
         }
       } else {
         recordItem(q.itemId, isAnswerCorrect(q, answers[q.itemId]), q.type, { elapsedMs: perMs });
@@ -581,7 +587,7 @@ export default function QuizTaker() {
       <div className="card">
         <div className="muted" style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
           <span>{TYPE_LABELS[q.type]}</span>
-          {q.type !== 'matching' && (
+          {q.type !== 'matching' && q.type !== 'crossword' && (
             <span className={`badge ${q.itemType === 'term' ? 'success' : 'warn'}`} style={{ fontSize: '0.85rem', height: '1.6rem', lineHeight: '1.6rem', padding: '0 0.7rem' }}>
               {q.type === 'spelling'
                 ? (q.itemType === 'term' ? '请填写：术语' : '请填写：学者')
@@ -607,6 +613,23 @@ export default function QuizTaker() {
             answers={answers}
             onPair={(termId, defId) => setAnswers((prev) => ({ ...prev, [termId]: defId }))}
             onUnpair={(termId) => setAnswers((prev) => { const next = { ...prev }; delete next[termId]; return next; })}
+            onNext={() => setQi((i) => i + 1)}
+            isLast={qi === questions.length - 1}
+            onSubmit={() => doSubmit()}
+          />
+        )}
+
+        {q.type === 'crossword' && (
+          <CrosswordAnswer
+            key={q.id}
+            q={q}
+            answers={answers}
+            onChange={(key, value) => setAnswers((prev) => {
+              const next = { ...prev };
+              if (value === null) delete next[key];
+              else next[key] = value;
+              return next;
+            })}
             onNext={() => setQi((i) => i + 1)}
             isLast={qi === questions.length - 1}
             onSubmit={() => doSubmit()}
@@ -987,6 +1010,33 @@ function HistoryDetail({ detail, onBack, onCorrect, onChanged }: {
       )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {quiz.questions.map((q, idx) => {
+          // 填字块：逐词展示结果（不整块算一题）
+          if (q.type === 'crossword' && q.crossword) {
+            const answers = sub.answers ?? {};
+            const rows = crosswordClueResults(q, answers);
+            const correct = rows.filter((r) => r.correct).length;
+            const allOk = correct === rows.length;
+            return (
+              <div
+                key={q.id}
+                style={{
+                  border: `1px solid ${allOk ? 'var(--success)' : 'var(--danger)'}`,
+                  borderRadius: '0.4rem',
+                  padding: '0.5rem 0.7rem',
+                  background: allOk ? 'var(--success-bg)' : 'var(--danger-bg)',
+                }}
+              >
+                <div className="row" style={{ alignItems: 'center', gap: '0.5rem' }}>
+                  <span className="muted" style={{ fontSize: '0.8rem' }}>#{idx + 1} · 纵横填字</span>
+                  <span className="spacer" />
+                  <span style={{ fontWeight: 700, color: allOk ? 'var(--success)' : 'var(--danger)' }}>
+                    {correct} / {rows.length} 词正确
+                  </span>
+                </div>
+                <CrosswordClueResults q={q} answers={answers} />
+              </div>
+            );
+          }
           // 匹配块：按对展示配对结果
           if (q.type === 'matching' && q.pairs) {
             const answers = sub.answers ?? {};

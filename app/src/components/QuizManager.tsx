@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useStore } from '../lib/store';
 import type { VocabItem, Quiz, QuizSubmission, QuizQuestionType, QuizKind } from '../lib/types';
-import { buildQuizQuestions, sampleItems, TYPE_LABELS, KIND_LABELS, formatDuration, isAnswerCorrect, answerText, correctAnswerText, totalPoints, matchingCorrectCount, gradeQuiz, refreshQuestionAliases } from '../lib/quiz';
+import { buildQuizQuestions, sampleItems, TYPE_LABELS, KIND_LABELS, formatDuration, isAnswerCorrect, answerText, correctAnswerText, totalPoints, matchingCorrectCount, gradeQuiz, refreshQuestionAliases, crosswordClueResults } from '../lib/quiz';
 import { PAPER_ORDER } from '../lib/storage';
 import { unitListFor } from '../lib/unitMapping';
 import { maskEmail } from '../lib/shuffle';
@@ -10,6 +10,7 @@ import { createQuiz, updateQuiz, updateQuizQuestions, listQuizzes, listQuizSubmi
 import { classMatchesGrade, firstPaperNumber, inferGrade, type Grade } from '../lib/mbSync';
 import QuizWrongBoard from './QuizWrongBoard';
 import ScrollText from './ScrollText';
+import { CrosswordClueResults } from './CrosswordAnswer';
 
 // —— ManageBac 同步预览（测验/作业）——
 // 与试卷成绩那边同一套视角：以成绩册的行为主，逐行往站内对应。
@@ -60,7 +61,8 @@ interface Draft {
   latePercents: string;   // 每迟一天追加的百分比（逗号分隔，如 "10,20,30,40"）
 }
 
-const ALL_TYPES: QuizQuestionType[] = ['spelling', 'choice', 'matching'];
+// 纵横填字是「块型题」，且按决策八**只允许作业使用**（随堂测验不提供该题型）
+const ALL_TYPES: QuizQuestionType[] = ['spelling', 'choice', 'matching', 'crossword'];
 
 // 教师默认评分规则（localStorage）：创建作业时快照进 quizzes.grading_rules
 const GRADING_RULES_KEY = 'socio_vocab_grading_rules';
@@ -122,10 +124,14 @@ function toDraft(q: Quiz): Draft {
     questionCount: q.question_count,
     durationMinutes: q.duration_minutes,
     questionTypes: q.question_types,
-    // 手动模式：从题目快照反推勾选的词条。匹配块 6 个词合成一道题，
-    // 其 itemId 只是块内第一个词，其余 5 个在 pairs 里——必须展开，否则编辑时显示少 5 条
+    // 手动模式：从题目快照反推勾选的词条。块型题（匹配 / 填字）的 itemId 只是块内第一个词，
+    // 其余词分别在 pairs / crossword.clues 里——必须展开，否则编辑时显示少 5-7 条
     manualIds: q.selection_mode === 'manual'
-      ? [...new Set(q.questions.flatMap((x) => (x.type === 'matching' && x.pairs ? x.pairs.map((p) => p.itemId) : [x.itemId])))]
+      ? [...new Set(q.questions.flatMap((x) => {
+        if (x.type === 'matching' && x.pairs) return x.pairs.map((p) => p.itemId);
+        if (x.type === 'crossword' && x.crossword) return x.crossword.clues.map((cl) => cl.id);
+        return [x.itemId];
+      }))]
       : [],
     openAt: q.open_at ? toLocalInput(q.open_at) : '',
     dueAt: q.due_at ? toLocalInput(q.due_at) : '',
@@ -374,7 +380,10 @@ export default function QuizManager() {
       type_filter: draft.typeFilter,
       question_count: totalPoints(questions),
       duration_minutes: draft.durationMinutes,
-      question_types: draft.questionTypes,
+      // 题型以「实际出到的题」为准：填字块排不下时会有词降级为选择题，
+      // 若仍写教师勾选的原集合，学生端确认页显示的题型与实际不符
+      question_types: [...new Set(questions.map((q) => q.type))]
+        .sort((a, b) => ALL_TYPES.indexOf(a) - ALL_TYPES.indexOf(b)),
       questions,
       open_at: draft.openAt ? new Date(draft.openAt).toISOString() : null,
       due_at: draft.dueAt ? new Date(draft.dueAt).toISOString() : null,
@@ -1180,12 +1189,13 @@ export default function QuizManager() {
                 </div>
                 <div style={{ marginTop: '0.4rem', fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
                   {detailSubmission.correction.details.map((d) => {
-                    // 词条显示名：优先词库 id；其次题面 term（choice/spelling）或匹配块 pairs
-                    const term = viewing.questions.flatMap((qq) =>
-                      qq.type === 'matching' && qq.pairs
-                        ? qq.pairs.map((p) => ({ id: p.itemId, label: p.term }))
-                        : [{ id: qq.itemId, label: qq.term }],
-                    ).find((x) => x.id === d.itemId)?.label;
+                    // 词条显示名：优先词库 id；其次题面 term（choice/spelling）、
+                    // 匹配块 pairs 或填字块 clues（块型题的 itemId 只是块内第一个词）
+                    const term = viewing.questions.flatMap((qq) => {
+                      if (qq.type === 'matching' && qq.pairs) return qq.pairs.map((p) => ({ id: p.itemId, label: p.term }));
+                      if (qq.type === 'crossword' && qq.crossword) return qq.crossword.clues.map((cl) => ({ id: cl.id, label: cl.term }));
+                      return [{ id: qq.itemId, label: qq.term }];
+                    }).find((x) => x.id === d.itemId)?.label;
                     return (
                       <div key={d.itemId} style={{ color: d.correct ? 'var(--success)' : 'var(--danger)' }}>
                         {d.correct ? '✓' : '✗'} {term ?? d.itemId}
@@ -1198,6 +1208,33 @@ export default function QuizManager() {
             )}
             <div style={{ marginTop: '0.6rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {viewing.questions.map((q, idx) => {
+                // 填字块：逐词展示结果（不整块算一题）
+                if (q.type === 'crossword' && q.crossword) {
+                  const answers = detailSubmission.answers ?? {};
+                  const rows = crosswordClueResults(q, answers);
+                  const correct = rows.filter((r) => r.correct).length;
+                  const allOk = correct === rows.length;
+                  return (
+                    <div
+                      key={q.id}
+                      style={{
+                        border: `1px solid ${allOk ? 'var(--success)' : 'var(--danger)'}`,
+                        borderRadius: '0.4rem',
+                        padding: '0.5rem 0.7rem',
+                        background: allOk ? 'var(--success-bg)' : 'var(--danger-bg)',
+                      }}
+                    >
+                      <div className="row" style={{ alignItems: 'center', gap: '0.5rem' }}>
+                        <span className="muted" style={{ fontSize: '0.8rem' }}>#{idx + 1} · 纵横填字</span>
+                        <span className="spacer" />
+                        <span style={{ fontWeight: 700, color: allOk ? 'var(--success)' : 'var(--danger)' }}>
+                          {correct} / {rows.length} 词正确
+                        </span>
+                      </div>
+                      <CrosswordClueResults q={q} answers={answers} />
+                    </div>
+                  );
+                }
                 // 匹配块：按对展示配对结果
                 if (q.type === 'matching' && q.pairs) {
                   const answers = detailSubmission.answers ?? {};
@@ -1310,7 +1347,21 @@ export default function QuizManager() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem', marginTop: '0.6rem' }}>
             <label>
               <span className="muted" style={{ fontSize: '0.8rem' }}>类型</span>
-              <select value={draft.kind} onChange={(e) => setDraft({ ...draft, kind: e.target.value as QuizKind })}>
+              <select
+                value={draft.kind}
+                onChange={(e) => {
+                  const kind = e.target.value as QuizKind;
+                  // 切回随堂测验时摘掉纵横填字：它只对作业开放，
+                  // 留着会让「题型列表」与实际可出题的范围不一致
+                  setDraft({
+                    ...draft,
+                    kind,
+                    questionTypes: kind === 'homework'
+                      ? draft.questionTypes
+                      : draft.questionTypes.filter((t) => t !== 'crossword'),
+                  });
+                }}
+              >
                 <option value="quiz">随堂测验（严格限时）</option>
                 <option value="homework">作业（放宽时限，可保存退出）</option>
               </select>
@@ -1406,10 +1457,18 @@ export default function QuizManager() {
           <div style={{ marginTop: '0.6rem' }}>
             <span className="muted" style={{ fontSize: '0.8rem' }}>题型（均匀随机分配）</span>
             <div className="tag-filter" style={{ marginTop: '0.3rem' }}>
-              {ALL_TYPES.map((t) => (
-                <button key={t} className={draft.questionTypes.includes(t) ? 'active' : ''} onClick={() => toggleType(t)}>{TYPE_LABELS[t]}</button>
-              ))}
+              {ALL_TYPES
+                .filter((t) => t !== 'crossword' || draft.kind === 'homework')
+                .map((t) => (
+                  <button key={t} className={draft.questionTypes.includes(t) ? 'active' : ''} onClick={() => toggleType(t)}>{TYPE_LABELS[t]}</button>
+                ))}
             </div>
+            {draft.kind === 'homework' && (
+              <p className="muted" style={{ fontSize: '0.75rem', marginTop: '0.3rem' }}>
+                纵横填字是块型题：每 8 个词自动排成一盘（通常 6-8 个词能排进网格，排不下的词自动降级为选择题）。
+                每个词 1 分，按词计入打卡与错题本。仅在作业中可选。
+              </p>
+            )}
           </div>
 
           <div style={{ marginTop: '0.6rem' }}>
