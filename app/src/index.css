@@ -1781,3 +1781,14 @@ textarea { resize: vertical; min-height: 80px; }
 }
 .grp-score-table th { color: var(--text-muted); font-weight: 600; }
 .grp-score-table td input { width: 4.2rem; }
+
+/* 接龙路径回放：跨层跳的虚线弧。pathLength 归一化为 1，dasharray 用归一化单位，
+   让虚线沿弧线"行进"几轮（与行进光点同方向），而不是静止的马赛克 */
+.chain-arc {
+  stroke-dasharray: 0.03 0.02;
+  animation: chain-arc-march 700ms linear 3;
+}
+@keyframes chain-arc-march {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -0.05; }
+}

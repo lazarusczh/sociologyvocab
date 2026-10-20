@@ -11,6 +11,7 @@ import {
   type ChainRun, type ChainMode,
 } from '../lib/chain';
 import type { VocabItem } from '../lib/types';
+import ChainPathReplay from './ChainPathReplay';
 
 const OPEN_STEPS = 8; // 仅起点模式：目标步数（选择/输入一致）
 const TARGET_MIN = 3; // 起点+终点：终点距起点最少跳数
@@ -481,6 +482,10 @@ export default function LogicChain() {
           )}
 
           <XpGain gain={xpGain} />
+
+          {/* 路径回放：把这一局的路线放回概念网络里走一遍（自动播放一次，可跳过/重播） */}
+          <ChainPathReplay graph={graph} path={irun.history} />
+
           <div className="row" style={{ gap: '0.5rem', marginTop: '0.6rem' }}>
             <button className="primary" onClick={startInput}>再来一局</button>
             <button className="ghost" onClick={exitRun}>换一批范围</button>
@@ -629,6 +634,10 @@ export default function LogicChain() {
               );
             })}
           </div>
+
+          {/* 路径回放：把这一局的路线放回概念网络里走一遍（自动播放一次，可跳过/重播） */}
+          <ChainPathReplay graph={graph} path={run.path} />
+
           <div className="row" style={{ justifyContent: 'center', gap: '0.5rem' }}>
             <button className="primary" onClick={start}>再来一局</button>
             <button className="ghost" onClick={exitRun}>换一批范围</button>
