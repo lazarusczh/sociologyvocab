@@ -24,6 +24,8 @@ export interface LiveConfig {
   round_limit: number;     // 回合轮数上限（0 = 不限制；用于将来统计「通常几轮筛到剩 3 人」）
   buzz_window_ms: number;  // 抢答并列窗（毫秒）
   grace_seconds: number;   // 限时的服务端宽限（秒）
+  knockout_seconds: number; // 淘汰段每题限时（秒，创建时由教师决定）
+  buzz_seconds: number;     // 抢答段每题限时（秒，创建时由教师决定）
   filter?: LiveFilter;     // 出题范围（创建时选，随会话保存 —— 刷新/换设备后一致）
 }
 
@@ -34,8 +36,18 @@ export const DEFAULT_LIVE_CONFIG: LiveConfig = {
   round_limit: 0,
   buzz_window_ms: 1000,
   grace_seconds: 1,
+  knockout_seconds: 45,
+  buzz_seconds: 30,
   filter: { papers: [], categories: [], units: [], type: 'all' },
 };
+
+// 限时读取：老会话的 config 里没有这两个字段，回落到默认值
+export function roundSeconds(config: Partial<LiveConfig> | null | undefined, stage: 'knockout' | 'buzz'): number {
+  const v = stage === 'buzz' ? config?.buzz_seconds : config?.knockout_seconds;
+  const n = Number(v);
+  if (!Number.isFinite(n)) return stage === 'buzz' ? DEFAULT_LIVE_CONFIG.buzz_seconds : DEFAULT_LIVE_CONFIG.knockout_seconds;
+  return Math.min(600, Math.max(5, Math.round(n)));
+}
 
 // ---- 行类型 ----
 export interface LiveSession {
@@ -139,6 +151,29 @@ export async function closeSession(id: string): Promise<void> {
   const { error } = await supabase
     .from('live_sessions')
     .update({ state: 'closed', closed_at: new Date().toISOString() })
+    .eq('id', id);
+  if (error) throw error;
+}
+
+// 最近一场自己发起的活动（含已结束的）：用来「重新开启上一场（保留参与者）」
+export async function fetchRecentHostSession(hostId: string): Promise<LiveSession | null> {
+  const { data, error } = await supabase
+    .from('live_sessions')
+    .select('*')
+    .eq('host_id', hostId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as LiveSession) ?? null;
+}
+
+// 重新开启已结束的会话：同一 session_id 复用，participants / 轮次历史都还在，
+// 学生不需要重新加入（学生端靠轮询发现「活动又开始了」）。
+export async function reopenSession(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('live_sessions')
+    .update({ state: 'running', closed_at: null })
     .eq('id', id);
   if (error) throw error;
 }

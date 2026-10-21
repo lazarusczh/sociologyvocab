@@ -4,7 +4,7 @@
 //   · 判定全在服务端 RPC；这里只发原文、只收结果
 //   · 限时内未提交 / 答错 = 本回合出局；答错后不能再提交（服务端只认第一条）
 //   · 本轮结束前看不到正确答案（RLS：secrets 只在轮次 settled 后可读）
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from '../lib/store';
 import LiveOralStudent from './LiveOralStudent';
 import {
@@ -40,6 +40,8 @@ export default function LiveStudent() {
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
+  // 上一次见到的轮次 id：用于「换轮就清空输入框」
+  const answeredRoundRef = useRef('');
 
   // 倒计时重绘
   const [, setTick] = useState(0);
@@ -52,10 +54,19 @@ export default function LiveStudent() {
     async (sid: string) => {
       const all = await fetchSessionState(sid);
       setMyPoints(all.filter((s) => s.user_id === uid).reduce((n, s) => n + s.points, 0));
-      setParticipants(await fetchParticipants(sid));
+      const ps = await fetchParticipants(sid);
+      setParticipants(ps);
+      // 名单里已经有自己 = 之前加入过（刷新 / 老师重新开启上一场）→ 直接恢复「已加入」，不用再点一次
+      if (ps.some((p) => p.user_id === uid)) setJoined(true);
 
       const r = await fetchLatestRound(sid);
       setRound(r);
+      // 换了一轮就清空输入框：上一题的答案不该留在框里（刷新页/交卷后同一轮不清）
+      const rid = r?.id ?? '';
+      if (rid !== answeredRoundRef.current) {
+        answeredRoundRef.current = rid;
+        setInput('');
+      }
       if (!r) {
         setMyAns(null);
         setMyState(null);
@@ -89,6 +100,46 @@ export default function LiveStudent() {
     })();
     return () => {
       alive = false;
+    };
+  }, [refresh]);
+
+  // 会话轮询（5 秒一次，只查一行）：老师结束 / 重新开启上一场 / 换一场时，学生端自动跟上，
+  // 不需要手动刷新页面，也不需要重新点「加入」。同一场只比较 id，不做多余拉取。
+  const sessionIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    sessionIdRef.current = session?.id ?? null;
+  }, [session?.id]);
+
+  useEffect(() => {
+    let alive = true;
+    const id = window.setInterval(() => {
+      void (async () => {
+        try {
+          const s = await fetchRunningSession();
+          if (!alive) return;
+          if ((s?.id ?? null) === sessionIdRef.current) return;
+          sessionIdRef.current = s?.id ?? null;
+          setSession(s);
+          setInput('');
+          if (s) {
+            await refresh(s.id);
+          } else {
+            setParticipants([]);
+            setJoined(false);
+            setRound(null);
+            setMyAns(null);
+            setMyState(null);
+            setAnswerTerm(null);
+            setMyPoints(0);
+          }
+        } catch {
+          // 网络抖动不该打断答题；下一轮轮询会补上
+        }
+      })();
+    }, 5000);
+    return () => {
+      alive = false;
+      window.clearInterval(id);
     };
   }, [refresh]);
 
@@ -223,15 +274,49 @@ export default function LiveStudent() {
     );
   }
 
+  // 本回合已出局：**题目照常显示**（跟着老师开轮实时更新，方便继续思考、参与讲评），
+  // 只是输入框锁死、不能提交 —— 出局只影响参赛资格，不影响看题。
   if (outThisGroup) {
     return (
       <>
         {header}
+        <div className="card" style={{ marginBottom: '0.8rem' }}>
+          <div className="row" style={{ alignItems: 'center' }}>
+            <span className="badge">{round.stage === 'buzz' ? '抢答段' : `第 ${round.group_no} 回合 · 第 ${round.round_no} 轮`}</span>
+            <span className="badge danger">已出局 · 只可看题</span>
+            <span className="spacer" />
+            {remain !== null && round.state === 'open' && (
+              <span className={`badge ${remain <= 10 ? 'danger' : 'success'}`}>剩余 {remain}s</span>
+            )}
+            <span className="muted" style={{ fontSize: '0.85rem' }}>
+              已答 {round.answered_count} 人 · 答对 {round.correct_count} 人
+            </span>
+          </div>
+          <p style={{ margin: '0.7rem 0', lineHeight: 1.6 }}>{round.prompt}</p>
+          <div className="row" style={{ gap: '0.5rem' }}>
+            <input
+              value=""
+              readOnly
+              disabled
+              placeholder="本回合你已出局，可以看题思考，但不能作答"
+              style={{ flex: 1, minWidth: 180 }}
+            />
+            <button className="primary" disabled>提交</button>
+          </div>
+          {round.state === 'settled' ? (
+            answerTerm
+              ? <p style={{ marginBottom: 0 }}>本轮正确答案：<strong>{answerTerm}</strong></p>
+              : <p className="muted" style={{ marginBottom: 0 }}>本轮已结束，等待老师开下一轮…</p>
+          ) : (
+            <p className="muted" style={{ fontSize: '0.85rem', marginTop: '0.4rem', marginBottom: 0 }}>
+              本轮结束后会显示正确答案，可以跟着一起想。
+            </p>
+          )}
+        </div>
         <div className="card">
-          <h3>本回合已出局</h3>
-          <p className="muted">等待老师结束本回合；下一回合会重新开始，人人都有机会。</p>
-          {answerTerm && <p>本轮正确答案：<strong>{answerTerm}</strong></p>}
-          <p className="muted" style={{ fontSize: '0.9rem' }}>
+          <h3 style={{ marginTop: 0 }}>本回合已出局</h3>
+          <p className="muted">下一回合会重新开始，人人都有机会；现在先一起看题。</p>
+          <p className="muted" style={{ fontSize: '0.9rem', marginBottom: 0 }}>
             本回合你通过了 {myState?.survived_rounds ?? 0} 轮 · 本场累计 {myPoints} 分
           </p>
         </div>

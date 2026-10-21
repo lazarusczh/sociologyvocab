@@ -20,6 +20,7 @@ import {
   fetchGroupState,
   fetchLatestRound,
   fetchParticipants,
+  fetchRecentHostSession,
   fetchRoundTerm,
   fetchRunningSession,
   fetchSessionState,
@@ -27,6 +28,8 @@ import {
   knockoutPercentile,
   openRound,
   pickRoundTerm,
+  reopenSession,
+  roundSeconds,
   settleRound,
   spellPrompt,
   startGroup,
@@ -41,8 +44,12 @@ import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
 import LiveBoard from './LiveBoard';
 import LiveOralHost from './LiveOralHost';
 
-const KNOCKOUT_SECONDS = 45;  // 淘汰段每题限时
-const BUZZ_SECONDS = 30;      // 抢答段每题限时
+// 输入框 -> 秒数：允许教师留空（回落默认），并夹在 5s ~ 600s 之间
+function toSeconds(v: string, fallback: number): number {
+  const n = Number(v);
+  if (!Number.isFinite(n) || v.trim() === '') return fallback;
+  return Math.min(600, Math.max(5, Math.round(n)));
+}
 
 export default function LiveHost() {
   const { authUser, vocab, papers, categories } = useStore();
@@ -58,11 +65,14 @@ export default function LiveHost() {
   const [sessionState, setSessionState] = useState<LiveStateRow[]>([]);
   const [termText, setTermText] = useState<string | null>(null);
   const [usedIds, setUsedIds] = useState<Set<string>>(new Set());
-  const [stage, setStage] = useState<'knockout' | 'buzz'>('knockout');
+  // 下一轮打哪一段：教师手动切换时优先（「进入抢答段」），否则跟随当前轮次 —— 刷新页面后 stage 不会丢
+  const [stageOverride, setStageOverride] = useState<'knockout' | 'buzz' | null>(null);
   const [lastSettle, setLastSettle] = useState<LiveSettleResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const autoSettledFor = useRef<string | null>(null);
+
+  const stage: 'knockout' | 'buzz' = stageOverride ?? round?.stage ?? 'knockout';
 
   // 创建前先选模式（两种模式刻意分开：拼写竞赛 / 口头速答）
   const [mode, setMode] = useState<'spell' | 'oral'>('spell');
@@ -72,6 +82,13 @@ export default function LiveHost() {
   const [cat, setCat] = useState('all');
   const [units, setUnits] = useState<string[]>([]);
   const [typeFilter, setTypeFilter] = useState<'all' | 'term' | 'scholar'>('all');
+
+  // 每题限时（创建时由教师决定，写进会话 config；创建后不可改）—— 存字符串，便于清空重输
+  const [koSeconds, setKoSeconds] = useState(String(DEFAULT_LIVE_CONFIG.knockout_seconds));
+  const [buzzSeconds, setBuzzSeconds] = useState(String(DEFAULT_LIVE_CONFIG.buzz_seconds));
+
+  // 最近一场自己发起的活动：已结束时提供「重新开启（保留参与者）」
+  const [lastSession, setLastSession] = useState<LiveSession | null>(null);
 
   const [, setTick] = useState(0);
   useEffect(() => {
@@ -101,18 +118,27 @@ export default function LiveHost() {
 
   const refresh = useCallback(
     async (sid: string) => {
-      setParticipants(await fetchParticipants(sid));
-      setSessionState(await fetchSessionState(sid));
-      const r = await fetchLatestRound(sid);
+      const [ps, stAll] = await Promise.all([fetchParticipants(sid), fetchSessionState(sid)]);
+      setParticipants(ps);
+      setSessionState(stAll);
+
+      // 「当前回合」以状态行的最大 group_no 为准（startGroup 会立刻写入新回合的行）。
+      // 不能只看最新轮次：刚点完「开新一轮」时新回合还没有任何轮次，只看轮次会被上一回合拉回去，
+      // 于是下一次开轮又开在旧回合里（旧回合的人已全部出局），表现为「新一轮开不起来」。
+      const latest = await fetchLatestRound(sid);
+      const stateGroup = stAll.reduce((m, s) => Math.max(m, s.group_no), 0);
+      const curGroup = Math.max(stateGroup, latest?.group_no ?? 0, 1);
+      setGroupNo(curGroup);
+
+      const r = latest && latest.group_no === curGroup ? latest : null;
       setRound(r);
       if (r) {
-        setGroupNo(r.group_no);
-        setGroupState(await fetchGroupState(sid, r.group_no));
-        setRoundCountInGroup((await fetchGroupRounds(sid, r.group_no)).length);
+        setGroupState(await fetchGroupState(sid, curGroup));
+        setRoundCountInGroup((await fetchGroupRounds(sid, curGroup)).length);
         const termId = await fetchRoundTerm(r.id);
         setTermText(termId ? (vocab.find((v) => v.id === termId)?.term ?? termId) : null);
       } else {
-        setGroupState([]);
+        setGroupState(await fetchGroupState(sid, curGroup));
         setRoundCountInGroup(0);
         setTermText(null);
       }
@@ -129,6 +155,9 @@ export default function LiveHost() {
         if (!alive) return;
         setSession(s);
         if (s) await refresh(s.id);
+        // 没有进行中的活动时，看一眼上一场（已结束的）—— 用于「重新开启（保留参与者）」
+        const recent = uid ? await fetchRecentHostSession(uid) : null;
+        if (alive) setLastSession(recent && recent.state !== 'running' && recent.kind === 'spell' ? recent : null);
       } catch (e) {
         setMsg((e as Error).message);
       } finally {
@@ -138,7 +167,7 @@ export default function LiveHost() {
     return () => {
       alive = false;
     };
-  }, [refresh]);
+  }, [refresh, uid]);
 
   useEffect(() => {
     // ⚠️ 口头速答**不能**在这里订阅：那种会话由 LiveOralHost 自己订阅。
@@ -158,7 +187,8 @@ export default function LiveHost() {
       // 注意：这里**不**初始化回合名单 —— 学生此刻还没加入，名单会空。
       // 名单在「开第一轮」之前初始化（见 handleNextRound）。
       const s = await createSession(uid, 'spell', '课堂拼写竞赛', {
-        ...DEFAULT_LIVE_CONFIG,
+        knockout_seconds: toSeconds(koSeconds, DEFAULT_LIVE_CONFIG.knockout_seconds),
+        buzz_seconds: toSeconds(buzzSeconds, DEFAULT_LIVE_CONFIG.buzz_seconds),
         filter: {
           papers: paper === 'all' ? [] : [paper],
           categories: cat === 'all' ? [] : [cat],
@@ -168,7 +198,7 @@ export default function LiveHost() {
       });
       setSession(s);
       setGroupNo(1);
-      setStage('knockout');
+      setStageOverride(null);
       setLastSettle(null);
       autoSettledFor.current = null;
       await refresh(s.id);
@@ -185,6 +215,31 @@ export default function LiveHost() {
     try {
       const s = await createSession(uid, 'oral', '口头速答', DEFAULT_LIVE_CONFIG);
       setSession(s);
+    } catch (e) {
+      setMsg((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // 重新开启上一场（同一 session_id）：participants 与历史都保留，学生不用重新加入
+  const handleReopen = async () => {
+    if (!lastSession) return;
+    setBusy(true);
+    setMsg('');
+    try {
+      await reopenSession(lastSession.id);
+      // 直接预置新回合：在场同学全部回到场上（reopen 之后 participants 仍是原来那批）
+      const stAll = await fetchSessionState(lastSession.id);
+      const next = stAll.reduce((m, s) => Math.max(m, s.group_no), 0) + 1;
+      const added = await startGroup(lastSession.id, next);
+      setSession({ ...lastSession, state: 'running', closed_at: null });
+      setStageOverride(null);
+      setLastSettle(null);
+      autoSettledFor.current = null;
+      await refresh(lastSession.id);
+      setLastSession(null);
+      setMsg(`已重新开启上一场：${added} 名原有参与者直接进入第 ${next} 回合，点「开第一轮」即可。`);
     } catch (e) {
       setMsg((e as Error).message);
     } finally {
@@ -218,7 +273,7 @@ export default function LiveHost() {
         stage,
         prompt: spellPrompt(item),
         termId: item.id,
-        seconds: stage === 'buzz' ? BUZZ_SECONDS : KNOCKOUT_SECONDS,
+        seconds: roundSeconds(session.config, stage),
       });
       setTermText(item.term);
       setUsedIds((prev) => new Set(prev).add(item.id));
@@ -251,18 +306,20 @@ export default function LiveHost() {
     [session, refresh],
   );
 
+  // 开新一轮：保留在场参与者，只把回合号 +1（不新建会话，所以学生不用重新加入）
   const handleNextGroup = async () => {
     if (!session) return;
     setBusy(true);
     setMsg('');
     try {
-      const next = groupNo + 1;
-      await startGroup(session.id, next);
+      const maxGroup = sessionState.reduce((m, s) => Math.max(m, s.group_no), 0);
+      const next = Math.max(groupNo, maxGroup) + 1;
+      const added = await startGroup(session.id, next);
       setGroupNo(next);
-      setStage('knockout');
+      setStageOverride(null);
       setLastSettle(null);
       autoSettledFor.current = null;
-      setMsg(`第 ${next} 回合已就绪（在场同学全部回到场上），可以开第一轮了。`);
+      setMsg(`第 ${next} 回合已就绪：${added} 名在场同学全部回到场上，不用重新加入。可以开第一轮了。`);
       await refresh(session.id);
     } catch (e) {
       setMsg((e as Error).message);
@@ -289,6 +346,8 @@ export default function LiveHost() {
     setBusy(true);
     try {
       await closeSession(session.id);
+      // 记住这一场：创建页可「重新开启（保留参与者）」，学生不用重新加入
+      setLastSession({ ...session, state: 'closed', closed_at: new Date().toISOString() });
       setSession(null);
       setRound(null);
       setGroupState([]);
@@ -345,9 +404,51 @@ export default function LiveHost() {
                 范围即出题池（与日常练习同一套筛选）；发起后学生端会出现加入入口。
               </p>
               <p className="muted" style={{ fontSize: '0.9rem' }}>符合范围的词条：{pool.length} 条</p>
+
+              <div className="row" style={{ gap: '0.9rem', flexWrap: 'wrap', marginBottom: '0.7rem' }}>
+                <label>
+                  <span className="muted" style={{ fontSize: '0.8rem' }}>淘汰段每题限时（秒）</span>
+                  <input
+                    type="number"
+                    min={5}
+                    max={600}
+                    step={5}
+                    value={koSeconds}
+                    onChange={(e) => setKoSeconds(e.target.value)}
+                    style={{ maxWidth: '7rem' }}
+                  />
+                </label>
+                <label>
+                  <span className="muted" style={{ fontSize: '0.8rem' }}>抢答段每题限时（秒）</span>
+                  <input
+                    type="number"
+                    min={5}
+                    max={600}
+                    step={5}
+                    value={buzzSeconds}
+                    onChange={(e) => setBuzzSeconds(e.target.value)}
+                    style={{ maxWidth: '7rem' }}
+                  />
+                </label>
+              </div>
+              <p className="muted" style={{ fontSize: '0.85rem', marginBottom: '0.6rem' }}>
+                限时只影响这一场的每一题（5 ~ 600 秒，留空用默认 {DEFAULT_LIVE_CONFIG.knockout_seconds}s / {DEFAULT_LIVE_CONFIG.buzz_seconds}s）；创建后不再改动。到点未提交视为出局。
+              </p>
+
               <button className="primary" onClick={handleCreate} disabled={busy || pool.length === 0}>
                 {busy ? '创建中…' : '开始拼写竞赛'}
               </button>
+
+              {lastSession && (
+                <div style={{ marginTop: '0.9rem', borderTop: '1px dashed var(--border)', paddingTop: '0.7rem' }}>
+                  <p className="muted" style={{ fontSize: '0.85rem', margin: '0 0 0.4rem' }}>
+                    上一场「{lastSession.title || '课堂拼写竞赛'}」已结束，参与者名单还在。
+                  </p>
+                  <button className="ghost" onClick={handleReopen} disabled={busy}>
+                    {busy ? '开启中…' : '重新开启上一场（保留参与者，不用重新加入）'}
+                  </button>
+                </div>
+              )}
             </div>
           </>
         ) : (
@@ -372,8 +473,11 @@ export default function LiveHost() {
   const remain = round?.deadline_at
     ? Math.max(0, Math.ceil((new Date(round.deadline_at).getTime() - Date.now()) / 1000))
     : null;
-  const groupFinished = lastSettle?.group_finished === true;
-  const buzzReady = !groupFinished && aliveCount <= 3 && stage === 'knockout';
+  // 本回合结束以数据为准（抢答段结算过）：刷新页面 / 换设备后「开新一轮」按钮仍在
+  const groupFinished = round?.stage === 'buzz' && round.state === 'settled';
+  // 淘汰段把人淘汰光时也要放行，否则会卡在「无人可答」的回合里
+  const needNewGroup = groupFinished || (round?.state === 'settled' && aliveCount === 0);
+  const buzzReady = !needNewGroup && aliveCount > 0 && aliveCount <= 3 && stage === 'knockout';
 
   return (
     <>
@@ -383,6 +487,9 @@ export default function LiveHost() {
           <span className="badge">第 {groupNo} 回合</span>
           <span className="badge">{stage === 'buzz' ? '抢答段' : '淘汰段'}</span>
           <span className="muted" style={{ fontSize: '0.85rem' }}>范围：{rangeLabel}</span>
+          <span className="muted" style={{ fontSize: '0.85rem' }}>
+            限时 {roundSeconds(session.config, 'knockout')}s / {roundSeconds(session.config, 'buzz')}s
+          </span>
           <span className="spacer" />
           <span className="muted" style={{ fontSize: '0.85rem' }}>
             在场 {participants.length} 人 · 存活 {aliveCount} 人
@@ -401,8 +508,8 @@ export default function LiveHost() {
           )}
           {round && <span className="muted">已答 {round.answered_count} 人 · 答对 {round.correct_count} 人</span>}
           <span className="spacer" />
-          {groupFinished ? (
-            <button className="primary" onClick={handleNextGroup} disabled={busy}>开始下一回合</button>
+          {needNewGroup ? (
+            <button className="primary" onClick={handleNextGroup} disabled={busy}>开新一轮（保留参与者）</button>
           ) : (
             <>
               <button className="primary" onClick={handleNextRound} disabled={busy || round?.state === 'open'}>
@@ -412,7 +519,7 @@ export default function LiveHost() {
                 <button className="ghost" onClick={() => void handleSettle(round.id)} disabled={busy}>提前结算本轮</button>
               )}
               {buzzReady && (
-                <button className="primary" onClick={() => { setStage('buzz'); setMsg('已切到抢答段：下一轮一题定胜负。'); }}>
+                <button className="primary" onClick={() => { setStageOverride('buzz'); setMsg('已切到抢答段：下一轮一题定胜负。'); }}>
                   进入抢答段
                 </button>
               )}
@@ -435,6 +542,12 @@ export default function LiveHost() {
         {!round && (
           <p className="muted" style={{ marginTop: '0.5rem' }}>
             等学生都进来后点「开第一轮」。回合名单会在开轮那一刻生成，之后加入的同学从下一回合开始参与。
+          </p>
+        )}
+
+        {needNewGroup && (
+          <p className="muted" style={{ marginTop: '0.5rem' }}>
+            本回合已结束。点「开新一轮（保留参与者）」会把在场 {participants.length} 人直接放进新回合 —— 学生不用重新加入，输入框也会自动清空。
           </p>
         )}
 

@@ -41,18 +41,21 @@ export default function Home({ go }: Props) {
   useEffect(() => { syncVocabFromCloud(); }, [syncVocabFromCloud]);
 
   // 进行中的课堂活动 → 首页横幅提醒（老师发起后学生不必自己去找入口）
+  // 每 15 秒复查一次：老师结束 / 重新开启上一场时，横幅会自己出现或消失（只查一行）
   const [liveSession, setLiveSession] = useState<LiveSession | null>(null);
   useEffect(() => {
     let alive = true;
-    void (async () => {
+    const check = async () => {
       try {
         const s = await fetchRunningSession();
         if (alive) setLiveSession(s);
       } catch {
         // 未登录 / 网络异常都不该影响首页
       }
-    })();
-    return () => { alive = false; };
+    };
+    void check();
+    const id = window.setInterval(() => void check(), 15000);
+    return () => { alive = false; window.clearInterval(id); };
   }, []);
 
   // 基础统计
