@@ -414,3 +414,115 @@ html.native .sidebar { padding-top: max(env(safe-area-inset-top, 0px), 24px); }
     height: calc(100dvh - var(--mbar-h) - max(env(safe-area-inset-top, 0px), 24px));
   }
 }
+
+/* ===== 联网段（第二段）：来源卡片 + 分级标签 =====
+   分级规则见 知识库联网查询方案.md §11.4。标签用低饱和色，避免盖过正文。 */
+.ask-web-toggle {
+  margin-left: 10px;          /* 紧跟档位下拉，不靠右对齐 */
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--c-steel);
+  cursor: pointer;
+  user-select: none;
+}
+.ask-web-text { white-space: nowrap; }
+
+/* 滑块开关（外观走设计 token，不用原生 checkbox） */
+.ask-web-toggle input {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  flex: none;
+  width: 34px;
+  height: 20px;
+  margin: 0;
+  border-radius: 999px;
+  background: var(--c-hairline);
+  cursor: pointer;
+  transition: background .18s ease;
+}
+.ask-web-toggle input::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--c-canvas);
+  box-shadow: 0 1px 2px var(--c-shadow-sm);
+  transition: transform .18s ease;
+}
+.ask-web-toggle input:checked { background: var(--c-primary); }
+.ask-web-toggle input:checked::after { transform: translateX(14px); }
+.ask-web-toggle input:disabled { opacity: .5; cursor: default; }
+.ask-web-toggle input:focus-visible { outline: 2px solid var(--c-primary-soft); outline-offset: 2px; }
+
+.ask-web {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--c-hairline-soft);
+  border-left: 3px solid var(--c-primary-soft);
+  border-radius: 10px;
+  background: var(--c-primary-bg);
+}
+.ask-web-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-heading);
+  margin-bottom: 8px;
+}
+.ask-web-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--c-primary);
+  color: #fff;
+}
+.ask-web-status { font-size: 13px; color: var(--c-steel); }
+.ask-web-fail { color: var(--c-critical); }
+.ask-web-note { color: var(--c-stone); margin-left: 4px; }
+
+.web-src-list { list-style: none; margin: 10px 0 12px; padding: 0; }
+.web-group {
+  margin: 10px 0 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  color: var(--c-stone-2);
+}
+.web-group:first-child { margin-top: 0; }
+.web-src { padding: 9px 0; border-top: 1px dashed var(--c-hairline-soft); }
+.web-src:first-child { border-top: 0; padding-top: 0; }
+.web-src a { color: var(--c-primary-deep); text-decoration: none; font-weight: 600; font-size: 13px; }
+.web-src a:hover { text-decoration: underline; }
+.web-num { color: var(--c-stone); font-weight: 500; margin-right: 4px; }
+
+.web-tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 4px 0; }
+.web-tag {
+  font-size: 10.5px;
+  line-height: 1.7;
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 1px solid var(--c-hairline-soft);
+  color: var(--c-steel);
+  background: var(--c-canvas);
+}
+.web-tag.q-official { color: #0f7a3d; background: #e7f7ee; border-color: #bfe8d0; }
+.web-tag.q-academic { color: #1d4ed8; background: #e8f0fe; border-color: #c7d7fb; }
+.web-tag.q-media { color: #7c3aed; background: #f3e8ff; border-color: #e2cffa; }
+.web-tag.q-advocacy { color: #b45309; background: #fff3e0; border-color: #fadfae; }
+.web-tag.q-commercial { color: #495057; background: #f1f3f5; border-color: #dee2e6; }
+.web-tag.q-blog { color: #868e96; background: #f8f9fa; border-color: #e9ecef; }
+.web-tag.p-yes { color: #0f7a3d; background: #e7f7ee; border-color: #bfe8d0; }
+.web-tag.p-no { color: #b23c17; background: #fff4f2; border-color: #fbd7cc; }
+
+.web-authors { font-size: 12px; color: var(--c-charcoal); margin-top: 3px; }
+.web-dom { font-size: 11.5px; color: var(--c-stone); word-break: break-all; }
+.web-sn { font-size: 12.5px; color: var(--c-ink-body); margin-top: 4px; }

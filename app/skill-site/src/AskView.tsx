@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { Fragment, useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { retrieve, retrievePages, expandPages, buildPageContext, buildScaffoldText, localTerms, type PageIndexBook, type ScaffoldRow } from './retrieval'
 import { parseBlocks, orderedLabels } from './md'
-import { askStream, fetchQueryTerms, fetchTierCatalog, type HistMsg, type TierInfo } from './ask'
+import { QUALITY_CN, askStream, fetchQueryTerms, fetchTierCatalog, searchWebRemote, webSegmentPrompt, type HistMsg, type TierInfo, type WebSource } from './ask'
 import { fetchPageIndex, fetchPageTexts, fetchScaffolds } from './supabase'
 import { booksOf, type SkillData } from './data'
 
@@ -32,11 +32,22 @@ const shortModel = (id: string) => id.split('/').pop() || id;
 const tierLabel = (t: TierInfo) =>
   t.code === 'auto' || !t.model ? `${t.label}（按题切换档位）` : `${shortModel(t.model)}（${t.label}）`;
 
+/** 联网段状态机（方案 §11.3）：searching → ok / empty / failed */
+type WebState = 'searching' | 'ok' | 'empty' | 'failed';
+interface WebSeg {
+  state: WebState;
+  sources: WebSource[];
+  a: string;
+  error?: string | null;
+}
+
 interface Msg {
   q: string;
   a: string;
   error: string | null;
   sources: string[];
+  /** 联网段（第二段）。未开启联网时为 undefined —— 界面完全不渲染这一块 */
+  web?: WebSeg;
   /** 档位代号（X-AI-Model），诊断用 */
   model?: string | null;
   /** 真实模型 id（X-AI-Model-Id）；尾缀优先显示它 */
@@ -64,6 +75,8 @@ export default function AskView({ skill }: { skill: SkillData }) {
   const [busy, setBusy] = useState(false);
   // 手动档位选择（记忆在 localStorage，便于长期对比）
   const [tier, setTier] = useState<string>(() => localStorage.getItem('ask_tier') || 'auto');
+  // 联网检索开关：默认**关**（不额外消耗检索额度）；与档位一样记忆在 localStorage
+  const [webOn, setWebOn] = useState<boolean>(() => localStorage.getItem('ask_web') === '1');
   // 档位目录：模型名的唯一真源在后端（GET /skill-api/models）。拉不到时保留内置兜底，界面不至于空白。
   const [tiers, setTiers] = useState<TierInfo[]>(TIER_FALLBACK);
   useEffect(() => {
@@ -98,6 +111,49 @@ export default function AskView({ skill }: { skill: SkillData }) {
 
   const scrollBottom = () =>
     setTimeout(() => endRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+
+  /**
+   * 第二段：联网补例证。**永远在资料库段收尾之后**才调用（§11.3 的顺序），
+   * 且自带 try/catch —— 这一段失败绝不能把已经出来的资料库回答标成失败。
+   */
+  const runWebSegment = async (q: string) => {
+    const patch = (p: Partial<WebSeg>) =>
+      setMsgs((m) => {
+        const copy = [...m];
+        const last = copy[copy.length - 1];
+        if (last && last.q === q) {
+          const prev: WebSeg = last.web ?? { state: 'searching', sources: [], a: '', error: null };
+          copy[copy.length - 1] = { ...last, web: { ...prev, ...p } };
+        }
+        return copy;
+      });
+
+    patch({ state: 'searching', sources: [], a: '', error: null });
+    try {
+      // 中文改写交给服务端：一次模型调用同时产出「检索句」与「关键词」。
+      // 以前前端先调术语桥拿 8–12 个词再拼成一句喂 Tavily —— 那正是八卦结果的来源。
+      const found = await searchWebRemote(q);
+      if (found.error) { patch({ state: 'failed', error: found.error }); return; }
+      if (!found.sources.length) { patch({ state: 'empty', sources: [] }); return; }
+
+      patch({ state: 'ok', sources: found.sources, error: null });
+      const { system, context } = webSegmentPrompt(found.sources);
+      const r = await askStream(q, system, context, (d) => {
+        setMsgs((m) => {
+          const copy = [...m];
+          const last = copy[copy.length - 1];
+          if (last && last.q === q && last.web) {
+            copy[copy.length - 1] = { ...last, web: { ...last.web, a: last.web.a + d } };
+          }
+          return copy;
+        });
+        scrollBottom();
+      }, [], tier, false);
+      patch({ state: r.error ? 'failed' : 'ok', error: r.error });
+    } catch (e) {
+      patch({ state: 'failed', error: e instanceof Error ? e.message : '联网部分失败' });
+    }
+  };
 
   const send = async (raw?: string) => {
     const q = (raw ?? input).trim();
@@ -176,6 +232,9 @@ export default function AskView({ skill }: { skill: SkillData }) {
         if (last && last.q === q) copy[copy.length - 1] = { ...last, sources: finalSources, error: res.error, model: res.model, modelId: res.modelId, fail: res.fail };
         return copy;
       });
+
+      // 资料库段收尾后再补联网段（顺序即语义：先框架，后例证）
+      if (webOn) await runWebSegment(q);
     } catch (e) {
       setMsgs((m) => {
         const copy = [...m];
@@ -224,6 +283,22 @@ export default function AskView({ skill }: { skill: SkillData }) {
             </option>
           ))}
         </select>
+
+        <label
+          className="ask-web-toggle"
+          title="开启后：先用教材语料作答，再额外检索一次外部案例与过往研究（会消耗检索额度）"
+        >
+          <input
+            type="checkbox"
+            checked={webOn}
+            disabled={busy}
+            onChange={(e) => {
+              setWebOn(e.target.checked);
+              try { localStorage.setItem('ask_web', e.target.checked ? '1' : '0'); } catch { /* ignore */ }
+            }}
+          />
+          <span className="ask-web-text">联网搜索</span>
+        </label>
       </div>
 
       {msgs.length === 0 && (
@@ -267,6 +342,78 @@ export default function AskView({ skill }: { skill: SkillData }) {
                       )}
                     </span>
                   )}
+                </div>
+              )}
+
+              {/* 第二段：联网。边界由「独立请求 + 固定小标题」共同保证，模型无权决定从这里开始联网 */}
+              {m.web && (
+                <div className="ask-web">
+                  <div className="ask-web-head">
+                    <span className="ask-web-badge">联网</span>
+                    以下内容来自于资料库之外的联网查询
+                  </div>
+
+                  {m.web.state === 'searching' && (
+                    <div className="ask-web-status">正在检索外部资料…</div>
+                  )}
+                  {m.web.state === 'empty' && (
+                    <div className="ask-web-status">本次检索没有找到相关材料。</div>
+                  )}
+                  {m.web.state === 'failed' && (
+                    <div className="ask-web-status ask-web-fail">
+                      联网部分未完成：{m.web.error}
+                      <span className="ask-web-note">（资料库回答不受影响）</span>
+                    </div>
+                  )}
+
+                  {m.web.sources.length > 0 && (
+                    <ol className="web-src-list">
+                      {m.web.sources.map((s, k) => {
+                        // 来源已按「案例侧 → 研究侧」分组排序，这里在换组处插小标题
+                        const prevSource = k > 0 ? m.web!.sources[k - 1].source : null;
+                        const showGroup = k === 0 || prevSource !== s.source;
+                        return (
+                        <Fragment key={k}>
+                        {showGroup && (
+                          <li className="web-group">
+                            {s.source === 'tavily' ? '现实案例与数据' : '过往研究'}
+                          </li>
+                        )}
+                        <li className="web-src">
+                          <a href={s.url} target="_blank" rel="noopener noreferrer">
+                            <span className="web-num">[{k + 1}]</span>
+                            {s.title || s.domain}
+                          </a>
+                          <div className="web-tags">
+                            <span className={`web-tag q-${s.quality}`}>{QUALITY_CN[s.quality] ?? s.quality}</span>
+                            <span className="web-tag r">{s.region}</span>
+                            <span className={`web-tag ${s.primary ? 'p-yes' : 'p-no'}`}>
+                              {s.primary ? '原始' : '转述'}
+                            </span>
+                            {s.year ? <span className="web-tag r">{s.year}</span> : null}
+                            {typeof s.citedBy === 'number' ? (
+                              <span className="web-tag r">{s.citedBy} 引</span>
+                            ) : null}
+                          </div>
+                          {s.authors?.length ? (
+                            <div className="web-authors">
+                              {s.authors.slice(0, 3).join(', ')}
+                              {s.authors.length > 3 ? ' et al.' : ''}
+                            </div>
+                          ) : null}
+                          <div className="web-dom">
+                            {s.domain}
+                            {s.venue ? ` · ${s.venue}` : ''}
+                          </div>
+                          {s.snippet ? <div className="web-sn">{s.snippet}</div> : null}
+                        </li>
+                        </Fragment>
+                        );
+                      })}
+                    </ol>
+                  )}
+
+                  {m.web.a && <MdText text={m.web.a} />}
                 </div>
               )}
             </div>

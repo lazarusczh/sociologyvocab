@@ -12,6 +12,7 @@
 import { handleAppApi } from './worker/appApi';
 import { handleLabBrowser } from './worker/labBrowser';
 import { handleMbApi } from './worker/mbApi';
+import { handleWebSearch } from './worker/webSearch';
 import { aiGateForbidden, verifyUser } from './worker/ai/auth';
 import { scheduleKeepalive } from './worker/ai/magicube';
 
@@ -23,6 +24,9 @@ interface Env {
   MODELSCOPE_API_KEY?: string; // 魔搭免费 API key（经 secret put 注入，不落代码）
   OPENROUTER_API_KEY?: string; // OpenRouter key（:free 池，1000 次/日档；降级缓冲）
   AGNES_API_KEY?: string;       // Agnes AI key（apihub，免费；日常主力，省魔粒）
+  // 联网检索（/skill-api/web-search）：案例侧 / 研究侧，见 worker/webSearch.ts
+  TAVILY_API_KEY?: string;
+  OPENALEX_API_KEY?: string;
 }
 
 const WB_BASE = 'https://api.worldbank.org';
@@ -601,7 +605,12 @@ export default {
     }
 
     // 教材知识站 AI 问答（APK 内 origin 是 https://localhost，需处理预检并回 CORS 头）
-    if (url.pathname === '/skill-api/ask' || url.pathname === '/skill-api/terms') {
+    // /skill-api/web-search：联网检索的「第二段」数据源（不调模型，只走向量/文献 API）
+    if (
+      url.pathname === '/skill-api/ask' ||
+      url.pathname === '/skill-api/terms' ||
+      url.pathname === '/skill-api/web-search'
+    ) {
       if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: corsHeaders(request) });
       }
@@ -609,7 +618,9 @@ export default {
         const res =
           url.pathname === '/skill-api/terms'
             ? await handleTerms(request, env)
-            : await handleAsk(request, env);
+            : url.pathname === '/skill-api/web-search'
+              ? await handleWebSearch(request, env)
+              : await handleAsk(request, env);
         const withCors = new Response(res.body, res);
         for (const [k, v] of Object.entries(corsHeaders(request))) withCors.headers.set(k, v);
         return withCors;
