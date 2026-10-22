@@ -103,44 +103,49 @@ const PROFILE = path.join(LOCAL || process.env.TEMP || '.', 'mb-login-profile');
 mkdirSync(PROFILE, { recursive: true });
 mkdirSync(OUT_DIR, { recursive: true });
 
-log(`浏览器：${EXE}`);
-log(`独立 profile：${PROFILE}`);
-log('（注意：Chrome 自 136 起，只允许"非默认 profile"开启调试端口 —— 所以必须用独立 profile）');
-
-const child = spawn(
-  EXE,
-  [
-    `--remote-debugging-port=${PORT}`,
-    `--user-data-dir=${PROFILE}`,
-    '--no-first-run',
-    '--no-default-browser-check',
-    '--new-window',
-    START_URL,
-  ],
-  { detached: true, stdio: 'ignore' },
-);
-child.unref();
-
-// ---- 等调试端口起来 ----
-let version = null;
-for (let i = 0; i < 30; i++) {
-  await sleep(1000);
+async function probePort() {
   try {
     const r = await fetch(`http://127.0.0.1:${PORT}/json/version`);
-    if (r.ok) {
-      version = await r.json();
-      break;
-    }
+    return r.ok ? await r.json() : null;
   } catch {
-    /* 还没起来 */
+    return null;
   }
-  if (i % 5 === 4) log('  …等待浏览器调试端口就绪');
 }
-if (!version) {
-  log(`调试端口 ${PORT} 未就绪。可能 Chrome 已在用该端口（先关掉它）或用的是默认 profile。`);
-  process.exit(1);
+
+// ---- 端口已开着就直接复用，不再起新窗口（重复运行会快很多）----
+let version = await probePort();
+if (version) {
+  log(`复用已开着的浏览器（端口 ${PORT}）：${version.Browser}`);
+} else {
+  log(`浏览器：${EXE}`);
+  log(`独立 profile：${PROFILE}`);
+  log('（注意：Chrome 自 136 起，只允许"非默认 profile"开启调试端口 —— 所以必须用独立 profile）');
+  const child = spawn(
+    EXE,
+    [
+      `--remote-debugging-port=${PORT}`,
+      `--user-data-dir=${PROFILE}`,
+      '--no-first-run',
+      '--no-default-browser-check',
+      '--new-window',
+      START_URL,
+    ],
+    { detached: true, stdio: 'ignore' },
+  );
+  child.unref();
+
+  for (let i = 0; i < 30; i++) {
+    await sleep(1000);
+    version = await probePort();
+    if (version) break;
+    if (i % 5 === 4) log('  …等待浏览器调试端口就绪');
+  }
+  if (!version) {
+    log(`调试端口 ${PORT} 未就绪。可能 Chrome 已在用该端口（先关掉它）或用的是默认 profile。`);
+    process.exit(1);
+  }
+  log(`已连接：${version.Browser}`);
 }
-log(`已连接：${version.Browser}`);
 
 class Cdp {
   constructor(ws) {
@@ -171,15 +176,40 @@ class Cdp {
     await c.send('Runtime.enable');
     return c;
   }
-  send(method, params = {}) {
+  // 超时是必须的：标签页若僵死，CDP 会永远不回，脚本就会「看起来卡住」
+  send(method, params = {}, timeoutMs = 30000) {
     return new Promise((resolve, reject) => {
       const id = ++this.id;
-      this.pending.set(id, { resolve, reject });
+      const timer = setTimeout(() => {
+        this.pending.delete(id);
+        reject(new Error(`CDP 无响应（${method}，${timeoutMs}ms）`));
+      }, timeoutMs);
+      this.pending.set(id, {
+        resolve: (v) => {
+          clearTimeout(timer);
+          resolve(v);
+        },
+        reject: (e) => {
+          clearTimeout(timer);
+          reject(e);
+        },
+      });
       this.ws.send(JSON.stringify({ id, method, params }));
     });
   }
-  async eval(expression) {
-    const r = await this.send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
+  close() {
+    try {
+      this.ws.close();
+    } catch {
+      /* 忽略 */
+    }
+  }
+  async eval(expression, timeoutMs = 30000) {
+    const r = await this.send(
+      'Runtime.evaluate',
+      { expression, returnByValue: true, awaitPromise: true },
+      timeoutMs,
+    );
     if (r.exceptionDetails) throw new Error(r.exceptionDetails.text || '页面脚本执行失败');
     return r.result?.value;
   }
@@ -189,7 +219,9 @@ class Cdp {
 async function findMbTarget() {
   const r = await fetch(`http://127.0.0.1:${PORT}/json/list`);
   const list = await r.json();
-  const page = (list || []).find((t) => t.type === 'page' && String(t.url || '').includes(MB_HOST));
+  const pages = (list || []).filter((t) => t.type === 'page' && String(t.url || '').includes(MB_HOST));
+  // 优先选已在 /teacher 的标签：登录页或空白页上的脚本执行容易卡住
+  const page = pages.find((t) => /\/teacher/i.test(String(t.url || ''))) || pages[0];
   if (page) return page;
   const nr = await fetch(`http://127.0.0.1:${PORT}/json/new?url=${encodeURIComponent(START_URL)}`, { method: 'PUT' });
   return nr.json();
@@ -202,7 +234,33 @@ if (!target?.webSocketDebuggerUrl) {
 }
 const cdp = await Cdp.connect(target.webSocketDebuggerUrl);
 
-// ---- 等登录完成：URL 离开 /login 且进入 /teacher/ ----
+/**
+ * 真·登录判据：在页面里 fetch 一次 /teacher（跟随重定向、不执行 JS）。
+ * 只看 location.href 是不可靠的 —— 未登录时页面 JS 也会把 URL 改成 /teacher，
+ * 结果抓到的只是匿名会话（2026-10-19 就是这样「假成功」的）。
+ */
+async function sessionAlive() {
+  try {
+    const raw = await cdp.eval(`(async () => {
+      try {
+        const r = await fetch('/teacher', { credentials: 'include', redirect: 'follow' });
+        const t = await r.text();
+        return JSON.stringify({
+          url: r.url,
+          login: /\\/login/i.test(r.url) || /type=["']password["']/i.test(t),
+        });
+      } catch (e) {
+        return JSON.stringify({ err: String(e) });
+      }
+    })()`);
+    const j = JSON.parse(String(raw || '{}'));
+    return !!j.url && !j.login;
+  } catch {
+    return false;
+  }
+}
+
+// ---- 等登录完成：以「受保护页是否可访问」为准，而不是 URL 外观 ----
 if (!GRAB_NOW) {
   log(`\n👉 请在弹出的浏览器窗口里登录 ManageBac（本机直连，不会卡）。`);
   log('   登录成功后本脚本会自动检测并抓取 cookie，无需你点任何东西。\n');
@@ -215,7 +273,7 @@ if (!GRAB_NOW) {
     } catch {
       href = '';
     }
-    if (/\/teacher\//i.test(href)) {
+    if (await sessionAlive()) {
       done = true;
       break;
     }
@@ -226,10 +284,24 @@ if (!GRAB_NOW) {
   }
 }
 
+// ---- 抓取前再确认一次，避免把匿名会话当成登录态推到云端 ----
+if (!(await sessionAlive())) {
+  log('\n⚠ 当前浏览器仍是未登录状态：访问 /teacher 仍会进登录页，抓到的只是匿名 cookie。');
+  log('   请先在窗口里完成账号密码登录，再重跑本脚本（或加 --now）。');
+  process.exit(4);
+}
+
 // ---- 抓 cookie（浏览器级，不用先 enable Network）----
 const res = await cdp.send('Storage.getCookies', {});
+// 只要成绩册所在域的 cookie：managebac.zendesk.com / help.managebac.com 那批帮助中心的
+// cookie 与登录态无关，推上去只是噪音（2026-10-19：17 条里 13 条是它们）。
+const MB_APEX = MB_HOST.replace(/^[^.]+\./, '').toLowerCase();
+const keepDomain = (d) => {
+  const x = String(d || '').replace(/^\./, '').toLowerCase();
+  return x === MB_HOST.toLowerCase() || x === MB_APEX || x.endsWith('.' + MB_APEX);
+};
 const cookies = (res.cookies || [])
-  .filter((c) => String(c.domain || '').includes('managebac'))
+  .filter((c) => keepDomain(c.domain))
   .map((c) => ({
     name: c.name,
     value: c.value,
@@ -256,6 +328,12 @@ log('  3) 本脚本不消耗任何 Cloudflare 浏览器额度');
 
 if (!NO_PUSH) await pushToCloud(cookies);
 
+// ---- 收尾 ----
+// WebSocket 不关、进程不显式退出的话，Node 会一直保持事件循环 ——
+// 终端表现就是「日志早就打完了，命令却一直不返回」，看起来像卡死。
+cdp.close();
+process.exit(0);
+
 // ---- 同步到云端（2026-09-16 方案 (a)）----
 // 线上 Worker 在 Cloudflare 云端**没有 ManageBac 登录态**，打不开成绩册。
 // 所以把本机登录得到的 cookie 同步一份到 Supabase 的 mb_sessions（RLS 仅教师本人可读），
@@ -277,8 +355,11 @@ function psqlRun(pg, sql) {
   const r = spawnSync('psql', [pg.conn, '-w', '-v', 'ON_ERROR_STOP=1', '-At', '-f', '-'], {
     input: sql,
     encoding: 'utf-8',
+    timeout: 30000,
     env: { ...process.env, PGPASSFILE: pg.pgpass },
   });
+  if (r.error) return { ok: false, out: '', err: r.error.message };
+  if (r.status === null) return { ok: false, out: '', err: 'psql 超时（30s）或被信号终止' };
   return { ok: r.status === 0, out: (r.stdout || '').trim(), err: (r.stderr || '').trim() };
 }
 
