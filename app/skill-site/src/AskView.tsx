@@ -9,6 +9,7 @@ import { booksOf, type SkillData } from './data'
 const PAGE_BOOK_LABEL: Record<string, string> = {
   tb1: 'Haralambos',
   tb2: 'Livesey & Blundell',
+  tb3: 'Key Concepts',
 };
 
 // 回传给模型的多轮上下文上限：最多最近 5 轮（10 条消息）

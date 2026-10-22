@@ -37,7 +37,33 @@ BOOKS = {
         ["Socialisation and the creation of social identity", "Methods of research", "The family",
          "Education", "Globalisation", "Media", "Religion", "Preparing for assessment"],
     ),
+    # 词典式教辅：书本身没有「章」，每个概念条目 2~4 页，页眉就是条目名。
+    # 因此 TOC 用条目清单，页眉命中即当作该页的「章」，出处可精确到概念。
+    "keyconcepts": (
+        "*Key Concepts Sociology*.pdf",
+        "tb3",
+        ["Agency and structure", "Anomie", "Assimilation", "Beanpole family", "Canteen culture",
+         "Capital", "Cereal packet family", "Confluent love", "Conjugal roles", "Consumer culture",
+         "Correspondence principle", "Culture", "Dark side of family life", "Deskilling", "Deviance",
+         "Disneyization", "Empty-shell marriage", "Ethics in research", "Ethnocentrism", "Femininities",
+         "Feminism", "Fordism", "Functionalism", "Glass ceiling", "Globalisation", "Habitus",
+         "Hidden curriculum", "Hybridity", "Identity", "Institutional racism", "Interpretivism",
+         "Left and right realism", "Life chances", "Marketisation of education", "Marxism",
+         "Masculinities", "Mass media", "McDonaldization", "Meritocracy", "Moral panic",
+         "Multiculturalism", "Nature versus nurture", "NEETs", "New Age Movements", "Norms",
+         "NRMs (New Religious Movements)", "Organic analogy", "Patriarchy", "Positivism",
+         "Postmodernism", "Poverty", "Qualitative data", "Quantitative data", "Reliability",
+         "Representativeness", "Reserve army of labour", "Rites of passage", "Roles", "Secularisation",
+         "Self-fulfilling prophecy", "Social class", "Social closure", "Social control", "Social facts",
+         "Socialisation", "Social mobility", "Sociological imagination", "Status", "Subculture",
+         "Symbolic interactionism", "Triangulation", "Underclass", "Validity", "Values", "Verstehen",
+         "Warm bath theory", "Weberianism", "White-collar crime", "Index"],
+    ),
 }
+
+# 索引页与前置页（封面/版权/目录）对问答无用：目录页尤其有害——它把全书条目名
+# 塞进一页关键词，任何概念提问都会命中它。整页丢弃。
+SKIP_CHAPTERS = {"Index", "front"}
 
 STOP_EN = set(
     "a an the and or but of to in for on with by at from as is are was were be been being it its this that these those they them their he she his her we our you your not no do does did have has had what which who whom whose when where why how can could would should may might must about into than then also more most such only just because if there here their there some any all one two three four five six seven eight nine ten other others new first second same different more less very much many".split()
@@ -47,11 +73,35 @@ CAP_WORD = re.compile(r"\b[A-Z][a-z]{2,}\b")
 UNIT_LINE = re.compile(r"^\s*Unit\s+(\d{1,2}\.\d{1,2}(?:\.\d{1,2})?)\s+(.+)$")
 TERM_LINE = re.compile(r"^\*\*(.+?)\*\*\s*[—–-]\s*(.+)$")
 
+# PDF 常见的排版污染：连字（ﬁ ﬂ ﬃ）被抽成「连字 + 空格」，行末复合词被抽成「- 空格」。
+# 不清理会让检索词永远打不中（influence 与 inﬂ uence 是两个词），也让模型读到断开的词。
+LIGATURES = {"\ufb00": "ff", "\ufb01": "fi", "\ufb02": "fl", "\ufb03": "ffi", "\ufb04": "ffl"}
+QUOTES = {"\u2019": "'", "\u2018": "'", "\u201c": '"', "\u201d": '"', "\u2013": "-", "\u2014": "-"}
+
+
+def tidy(s: str) -> str:
+    """修连字与「- 空格」断词，保留大小写。"""
+    for k, v in LIGATURES.items():
+        s = s.replace(f"{k} ", v).replace(k, v)
+    for k, v in QUOTES.items():
+        s = s.replace(k, v)
+    s = re.sub(r"(?<=[a-z])-\s+(?=[a-z])", "-", s)
+    return s
+
+
+def norm(s: str) -> str:
+    """比较用的归一化：小写、去连字与标点差异（'Dark side' vs Dark side）、压空白。"""
+    s = tidy(s or "").lower()
+    s = re.sub(r"[^a-z0-9]+", " ", s)
+    return re.sub(r"\s+", " ", s).strip()
+
+
 # 蒸馏 skill 的术语表：`**English Term** — 中文释义 (Ch N)`。
 # 抽成「中文译名 → 英文术语」桥：中文提问先查本地词典（零延迟），查不到才调模型翻译。
 GLOSSARY = {
     "tb1": Path("C:/Users/rebir/.agents/skills/9699textbook1/glossary.md"),
     "tb2": Path("C:/Users/rebir/.agents/skills/9699textbook2/glossary.md"),
+    "tb3": Path("C:/Users/rebir/.agents/skills/keyconcepts/glossary.md"),
 }
 
 
@@ -117,7 +167,8 @@ def build_boilerplate(page_rows, total_pages):
     """页眉页脚：位于页首/页尾且跨 >=3 页重复出现的行。"""
     edge = defaultdict(set)
     for pno, rows in page_rows:
-        for txt, size, bold, y0 in rows:
+        for raw_txt, size, bold, y0 in rows:
+            txt = tidy(raw_txt)
             if len(txt) > 80:
                 continue
             if y0 < 0.10 or y0 > 0.90:
@@ -126,10 +177,19 @@ def build_boilerplate(page_rows, total_pages):
 
 
 def chapter_of(label: str, toc):
-    low = (label or "").lower()
+    low = norm(label)
+    if not low:
+        return None
     for name in toc:
-        if name.lower() in low:
+        # 按词边界匹配：否则 "Culture" 会命中 "Subculture" 的页眉，整段归属错乱
+        if re.search(rf"(?:^|\s){re.escape(norm(name))}(?:\s|$)", low):
             return name
+    # 页眉常被简写：目录写 "NRMs (New Religious Movements)"，页眉只有 "NRMs"。
+    # 仅当页眉足够长（>=4 字符）且不超过 3 个词时反向匹配，避免 "a"/"the" 这类误配。
+    if len(low) >= 4 and len(low.split()) <= 3:
+        for name in toc:
+            if re.search(rf"(?:^|\s){re.escape(low)}(?:\s|$)", norm(name)):
+                return name
     m = re.match(r"^\s*(\d{1,2})[\s.、-]", label or "") or re.search(r"Unit\s+(\d{1,2})[\s.、-]", label or "")
     if m:
         n = int(m.group(1))
@@ -221,15 +281,21 @@ def main():
     index = []   # {p, c, s, k}
     cur_chapter = None
     unit_rows = []   # (unit, title, pno, size)：正文里的 Unit 标题行
+    toc_keys = {norm(t) for t in toc}
 
     for pno, rows in page_rows:
         header_texts = []
         body = []
-        for txt, size, bold, y0 in rows:
+        for raw_txt, size, bold, y0 in rows:
+            txt = tidy(raw_txt)
             um = UNIT_LINE.match(txt)
             if um:
                 unit_rows.append((um.group(1), re.sub(r"\s+", " ", um.group(2)).strip(), pno, size))
-            if txt in boiler:
+            # 页顶栏名有两种：跨页重复的（boiler 命中），以及只出现 1~2 页的条目名
+            # （词典式教辅里每个概念条目常只有 2 页，永远进不了 boiler）。
+            # 后者只要与目录条目同名，也按「该页的章」处理，否则章归属会退到上一个概念。
+            is_header = txt in boiler or (y0 < 0.10 and norm(txt) in toc_keys)
+            if is_header:
                 if y0 < 0.10:      # 页顶栏名 → 该页的节标签
                     header_texts.append(txt)
                 continue
@@ -241,6 +307,8 @@ def main():
         ch = chapter_of(section, toc) or cur_chapter
         if ch:
             cur_chapter = ch
+        if (cur_chapter or "front") in SKIP_CHAPTERS:
+            continue        # 索引页/前置页：只有词条与页码、或目录，对问答无用
         text = re.sub(r"\s+", " ", " ".join(body)).strip()
         if len(text) < 80:
             continue        # 空白页/图片页/分隔页
