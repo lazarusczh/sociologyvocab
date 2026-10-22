@@ -25,7 +25,13 @@ export interface LabBrowserEnv {
   AGNES_API_KEY?: string;
   OPENROUTER_API_KEY?: string;
   MODELSCOPE_API_KEY?: string;
+  // /app-api/lab/web-probe：从 CF 边缘探测联网检索源（Tavily / OpenAlex）的出口可达性
+  TAVILY_API_KEY?: string;
+  OPENALEX_API_KEY?: string;
 }
+
+const LAB_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
+  '(KHTML, like Gecko) Chrome/128.0 Safari/537.36';
 
 const ALLOW_HOSTS = [
   'example.com',
@@ -200,6 +206,54 @@ export async function handleLabBrowser(
       }
     }
     return json(200, { ok: true, from: 'cloudflare-edge', results });
+  }
+
+  // 联网检索源探测：**从 CF 边缘真实发起**。
+  // 为什么必须单独测：本机脚本能通 != Cloudflare 边缘能通（本项目已两次踩坑：
+  // Agnes 国际站 1015、非浏览器 UA 被 1010）。这是"是否值得为联网功能动手"的前置结论。
+  // 无 key 也能得出结论：能收到源站自己的 401/403 ⇒ 网络路通（认证是第二道关）。
+  if (url.pathname === '/app-api/lab/web-probe') {
+    const q = url.searchParams.get('q') ?? 'Cameron 2011 riots family breakdown speech';
+    const tavilyKey = env.TAVILY_API_KEY ?? '';
+    // OpenAlex 必须带自己的 key：无 key 的每日预算按 IP 共享，CF 出口的共享 IP 早被用光（实测 429）
+    const oaKey = env.OPENALEX_API_KEY ?? '';
+    const out: Record<string, unknown>[] = [];
+
+    const attempt = async (name: string, fn: () => Promise<Response>) => {
+      const t0 = Date.now();
+      try {
+        const r = await fn();
+        const text = await r.text();
+        out.push({ name, status: r.status, ms: Date.now() - t0, snippet: text.slice(0, 300) });
+      } catch (e) {
+        const msg = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
+        out.push({ name, status: 0, ms: Date.now() - t0, error: msg.slice(0, 220) });
+      }
+    };
+
+    await attempt('tavily-search', () => fetch('https://api.tavily.com/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': LAB_UA,
+        ...(tavilyKey ? { Authorization: `Bearer ${tavilyKey}` } : {}),
+      },
+      body: JSON.stringify({ query: q, search_depth: 'basic', max_results: 3 }),
+    }));
+
+    await attempt('openalex-works', () => fetch(
+      `https://api.openalex.org/works?search=${encodeURIComponent(q)}&per_page=1`
+      + (oaKey ? `&api_key=${encodeURIComponent(oaKey)}` : ''),
+      { headers: { 'User-Agent': LAB_UA, Accept: 'application/json' } }));
+
+    return json(200, {
+      ok: true,
+      from: 'cloudflare-edge',
+      query: q,
+      hasTavilyKey: !!tavilyKey,
+      note: 'status 0 = 网络层失败（超时/TLS/被拦）；源站自己的 401/403 也算"路通"',
+      results: out,
+    });
   }
 
   return json(404, { error: 'not found' });
