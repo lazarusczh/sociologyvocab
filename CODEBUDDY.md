@@ -85,6 +85,7 @@ psql $conn -w -v ON_ERROR_STOP=1 -f db-migration-xxx.sql
 ## 四、绝不能动的既有流程
 
 - 现有「复制成绩（邮箱⇥分数）→ 油猴脚本在 ManageBac 页面粘贴」的手动兜底流程**必须原样保留**：`PaperResults.tsx` 与 `QuizManager.tsx` 的「复制成绩（ManageBac）」按钮、以及它输出的 `邮箱<Tab>分数` 格式，**不得移除、不得改格式**（该流程零凭证，是浏览器自动化不可用时的唯一退路）。新同步功能只能是**新增**。
+- **复制出去的值**：试卷侧是**折百分**（`bandLinear`，2026-10-28 起；与「写入 ManageBac」同一口径，须先设分数线，没设会直接报错而不是退回裸分）；测验/作业侧仍是最终**原始分**。改任一侧前先看 `PaperResults.tsx` 的 `copyGradesForManageBac` 与 `QuizManager.tsx` 的同名函数，两者口径**故意不同**。
 
 ## 五、隐私与仓库
 

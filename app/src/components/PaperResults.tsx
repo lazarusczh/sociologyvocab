@@ -384,27 +384,49 @@ export default function PaperResults() {
     }).catch((e) => setError((e as Error).message || '导出失败'));
   };
 
-  // 复制成绩（供 ManageBac 用户脚本导入）：每行「邮箱<Tab>原始分」
+  // 复制成绩（供 ManageBac 用户脚本导入）：每行「邮箱<Tab>折百分」
+  // 口径与「写入 ManageBac」完全一致（2026-09-16 定：试卷写折百分，测验/作业写原始分）。
+  // 2026-10-28 教师反馈：这里原先复制的是卷面裸分，油猴脚本粘进去后与线上同步的口径不一致。
   // 范围与当前筛选一致（切到某班则只复制该班）；手动添加的学生无邮箱，自动跳过
   const copyGradesForManageBac = async () => {
     if (!viewing || !entries) return;
     setError('');
     setMsg('');
     const scored = shown.filter((e) => e.raw != null);
-    const rows = scored.filter((e) => emailByKey[e.key]);
-    const skipped = scored.length - rows.length;
-    if (rows.length === 0) {
+    const withEmail = scored.filter((e) => emailByKey[e.key]);
+    const skipped = scored.length - withEmail.length;
+    if (withEmail.length === 0) {
       setError('没有可复制的成绩（需已录入分数且能对上邮箱；手动添加的学生没有邮箱）');
       return;
     }
-    const text = rows.map((e) => `${emailByKey[e.key]}\t${e.raw}`).join('\n');
+    // 折百分要用分数线做档内插值；没设分数线就换算不了，不能退回裸分（那正是本次要修的口径）
+    if (rows.length === 0) {
+      setError('本卷还没设分数线，算不出折百分（ManageBac 那一列是百分制）。请先设好分数线再复制');
+      return;
+    }
+    const lines: string[] = [];
+    let noConv = 0;
+    for (const e of withEmail) {
+      const conv = convOf(e.raw as number);
+      if (conv == null) { noConv++; continue; }
+      lines.push(`${emailByKey[e.key]}\t${Math.round(conv)}`);
+    }
+    if (lines.length === 0) {
+      setError('这些成绩都算不出折百分，请检查分数线是否低于满分');
+      return;
+    }
+    const text = lines.join('\n');
+    const skipNote = [
+      skipped ? `${skipped} 条无邮箱已跳过` : '',
+      noConv ? `${noConv} 条算不出折百分已跳过` : '',
+    ].filter(Boolean).join('；');
     try {
       const how = await copyText(text);
       if (how === 'failed') {
         setManualCopy(text);
-        setMsg(`剪贴板被此环境拒绝：请在下方文本框里选中后按 Ctrl+C（共 ${rows.length} 条）`);
+        setMsg(`剪贴板被此环境拒绝：请在下方文本框里选中后按 Ctrl+C（共 ${lines.length} 条）`);
       } else {
-        setMsg(`已复制 ${rows.length} 条（邮箱 + 原始分，本卷满分 ${viewing.full_raw}）${skipped ? `；${skipped} 条无邮箱已跳过` : ''}`);
+        setMsg(`已复制 ${lines.length} 条（邮箱 + 折百分，本卷满分 ${viewing.full_raw}）${skipNote ? `；${skipNote}` : ''}`);
       }
     } catch (e) {
       setError('复制失败：' + ((e as Error).message || String(e)));
@@ -933,7 +955,7 @@ export default function PaperResults() {
             </button>
           </div>
           <p className="muted" style={{ margin: '0.4rem 0 0', fontSize: '0.8rem' }}>
-            复制本页已录成绩（每行「邮箱 + 分数」），由油猴脚本在 ManageBac 页面粘贴。线上自动同步不可用时的退路。
+            复制本页已录成绩（每行「邮箱 + 折百分」，与上面「写入 ManageBac」同口径），由油猴脚本在 ManageBac 页面粘贴。线上自动同步不可用时的退路。
             {classFilter !== 'all' && classFilter !== 'none' ? '（只复制当前所选班级）' : ''}
           </p>
         </div>
