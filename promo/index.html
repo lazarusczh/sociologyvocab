@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>社会学词汇 · 把考点练到忘不掉</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-sc@5/400.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-sc@5/700.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-sc@5/900.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5/600.css" rel="stylesheet" />
+<style>
+/* ===== 品牌令牌（沿用站点 tokens.css：钴蓝主色 / 冷灰中性）===== */
+:root{
+  --c-primary:#0064E0; --c-primary-deep:#0457CB; --c-primary-bg:#EAF2FE;
+  --c-ink-deep:#0A1317; --c-ink:#1C1E21; --c-charcoal:#444950; --c-steel:#5D6C7B; --c-stone:#8595A4;
+  --c-page:#F5F7FA; --c-canvas:#FFFFFF; --c-surface-soft:#F1F4F7; --c-hairline-soft:#DEE3E9;
+  --c-success:#31A24C; --c-success-bg:#E9F6EC; --c-warning:#F7B928; --c-warning-bg:#FFF7E4; --c-critical:#E41E3F; --c-critical-bg:#FDEDF0;
+  --r-card:16px; --r-pill:999px;          /* 全页只两种圆角：卡片16 / 胶囊999（胶囊不计入混用）*/
+  --font-sans:"Noto Sans SC",-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  --font-term:"Inter","Noto Sans SC",sans-serif;
+  --maxw:860px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-sans);background:var(--c-page);color:var(--c-ink);-webkit-font-smoothing:antialiased;line-height:1.6;overflow-x:hidden}
+img{max-width:100%;display:block}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px}
+section{padding:56px 0}
+@media (max-width:520px){section{padding:44px 0}}
+
+/* ===== 顶部阅读进度（滚动联动）===== */
+#progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--c-primary);z-index:80;transform-origin:0 50%}
+
+/* ===== 顶栏 ===== */
+.topbar{position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--c-page) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--c-hairline-soft)}
+.topbar .row{max-width:var(--maxw);margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+.brand{font-weight:900;font-size:18px;letter-spacing:.01em}
+.brand b{color:var(--c-primary)}
+.tag{font-family:var(--font-term);font-size:12px;font-weight:600;color:var(--c-steel);background:var(--c-surface-soft);padding:5px 12px;border-radius:var(--r-pill)}
+
+/* ===== 通用排版 ===== */
+h1,h2,h3{color:var(--c-ink-deep);line-height:1.18;letter-spacing:-.01em}
+.sec-h{font-size:clamp(26px,7vw,34px);font-weight:900;margin-bottom:10px}
+.sec-sub{font-size:16px;color:var(--c-charcoal);max-width:38ch;margin-bottom:28px}
+.lead{font-size:16px;color:var(--c-charcoal)}
+
+/* ===== 按钮 / 胶囊 ===== */
+.btn{display:inline-block;background:var(--c-primary);color:#fff;font-weight:700;font-size:16px;padding:15px 28px;border-radius:var(--r-pill);text-decoration:none;transition:transform .15s ease,background .2s ease}
+.btn:hover{background:var(--c-primary-deep);transform:translateY(-2px)}
+.btn:active{transform:translateY(0)}
+
+/* ===== 首屏 Hero（方向C：货架/功能铺开 + 产品截图一览）===== */
+.hero{padding-top:40px}
+.hero h1{font-size:clamp(48px,13vw,60px);font-weight:900;margin-bottom:16px}
+.hero .lead{font-size:17px;max-width:30ch;margin-bottom:22px}
+.hero .cta-row{margin-bottom:34px}
+.gallery{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:8px}
+@media (min-width:760px){.gallery{grid-template-columns:repeat(4,1fr)}}
+.gallery figure{margin:0;background:var(--c-canvas);border:1px solid var(--c-hairline-soft);border-radius:var(--r-card);overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,.06)}
+.gallery img{width:100%;height:auto;display:block}
+
+/* ===== 具体词汇示例（融合B：可翻面闪卡 + 真实术语）===== */
+.demo{display:grid;grid-template-columns:1fr;gap:24px;align-items:center}
+@media (min-width:760px){.demo{grid-template-columns:300px 1fr}}
+.flip{position:relative;width:100%;max-width:300px;height:360px;perspective:1600px;cursor:pointer;margin:0 auto}
+.flip .inner{position:absolute;inset:0;transition:transform .7s cubic-bezier(.2,0,.2,1);transform-style:preserve-3d}
+.flip.go .inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;background:var(--c-canvas);border:1px solid var(--c-hairline-soft);border-radius:var(--r-card);box-shadow:0 16px 48px rgba(16,24,40,.16);padding:28px;display:flex;flex-direction:column}
+.face.front{align-items:center;justify-content:center;text-align:center}
+.face.back{transform:rotateY(180deg);text-align:left}
+.face .pos{font-size:13px;font-weight:700;color:var(--c-primary);letter-spacing:.04em}
+.face .term{font-family:var(--font-term);font-weight:600;font-size:42px;line-height:1.05;color:var(--c-ink-deep);margin:10px 0 6px}
+.face .ph{font-family:var(--font-term);font-size:17px;color:var(--c-steel);font-weight:600}
+.face .def{font-size:19px;font-weight:700;line-height:1.5;color:var(--c-ink-deep)}
+.face .ex{margin-top:14px;font-size:14px;line-height:1.7;color:var(--c-charcoal)}
+.face .ex b{color:var(--c-primary-deep);font-weight:700}
+.face .hint{margin-top:auto;font-size:12px;color:var(--c-stone)}
+.terms{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
+.terms span{font-family:var(--font-term);font-size:13px;font-weight:600;color:var(--c-charcoal);background:var(--c-canvas);border:1px solid var(--c-hairline-soft);border-radius:var(--r-pill);padding:7px 13px}
+
+/* ===== 六种模式（货架）===== */
+.modes{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+@media (min-width:760px){.modes{grid-template-columns:repeat(3,1fr)}}
+.mode{background:var(--c-canvas);border:1px solid var(--c-hairline-soft);border-radius:var(--r-card);padding:18px;box-shadow:0 1px 2px rgba(16,24,40,.06)}
+.mode h3{font-size:16px;font-weight:700;color:var(--c-ink-deep);margin-bottom:5px}
+.mode p{font-size:13px;color:var(--c-steel);line-height:1.5}
+.mode svg{width:22px;height:22px;margin-bottom:12px;display:block}
+.ic-b svg{stroke:var(--c-primary);fill:none;stroke-width:1.8}
+.ic-g svg{stroke:var(--c-success);fill:none;stroke-width:1.8}
+.ic-w svg{stroke:#A6741B;fill:none;stroke-width:1.8}
+.ic-c svg{stroke:var(--c-critical);fill:none;stroke-width:1.8}
+.ic-s svg{stroke:var(--c-steel);fill:none;stroke-width:1.8}
+
+/* ===== 真题对齐 ===== */
+.points{display:flex;flex-direction:column;gap:14px}
+.point{display:flex;gap:14px;align-items:flex-start}
+.point .mk{flex:none;width:34px;height:34px;border-radius:var(--r-pill);background:var(--c-primary-bg);display:grid;place-items:center}
+.point .mk svg{width:18px;height:18px;stroke:var(--c-primary);fill:none;stroke-width:2}
+.point b{display:block;font-size:16px;color:var(--c-ink-deep);font-weight:700;margin-bottom:2px}
+.point span{font-size:14px;color:var(--c-charcoal)}
+
+/* ===== 数据看板 ===== */
+.chart{background:var(--c-canvas);border:1px solid var(--c-hairline-soft);border-radius:var(--r-card);padding:22px;box-shadow:0 1px 2px rgba(16,24,40,.06)}
+.chart svg{width:100%;height:auto;display:block}
+.chart .note{font-size:12px;color:var(--c-stone);margin-top:12px}
+
+/* ===== 打卡 / 间隔复习 ===== */
+.checkin{display:flex;flex-direction:column;gap:18px}
+.stat-big{font-family:var(--font-term);font-weight:700;font-size:clamp(40px,11vw,56px);color:var(--c-ink-deep);line-height:1}
+.stat-big small{font-size:16px;color:var(--c-steel);font-weight:600;font-family:var(--font-sans);margin-left:6px}
+.week{display:flex;gap:8px;align-items:center}
+.week svg{flex:1;max-width:48px}
+
+/* ===== 页尾导流 ===== */
+.foot{border-top:2px solid var(--c-hairline-soft);padding:48px 0}
+.foot .grid{display:flex;flex-direction:column;gap:24px;align-items:flex-start}
+@media (min-width:760px){.foot .grid{flex-direction:row;align-items:center;justify-content:space-between}}
+.foot h2{font-size:24px;font-weight:900}
+.foot .addr{font-family:var(--font-term);font-size:15px;color:var(--c-charcoal);margin-top:6px}
+.foot .addr b{color:var(--c-primary-deep)}
+.foot .qr-block{display:flex;gap:16px;align-items:center}
+.foot .dl-qr{width:132px;height:132px}
+
+/* 进场初态（gsap 加载失败时仍可见）*/
+.reveal{opacity:1}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<header class="topbar">
+  <div class="row">
+    <div class="brand">社会学<b>词汇</b></div>
+    <div class="tag">sociologyvocab</div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- 首屏：方向C（功能铺开 + 产品截图一览）-->
+  <section class="hero">
+    <h1 class="reveal">把社会学考点，<br>练到忘不掉</h1>
+    <p class="lead reveal">六种练习方式、真题考点、各国社会数据，一个站，把考点从「见过」变成「会写」。</p>
+    <div class="cta-row reveal">
+      <a class="btn dl-link" href="#">扫码开始背词</a>
+    </div>
+    <div class="gallery reveal" id="gallery">
+      <figure><img src="img/home-mobile.png" alt="首页仪表盘（移动端）" /></figure>
+      <figure><img src="img/practice-mobile.png" alt="练习作答页（移动端）" /></figure>
+      <figure><img src="img/home-desktop.png" alt="首页仪表盘（桌面端）" /></figure>
+      <figure><img src="img/practice-desktop.png" alt="练习作答页（桌面端）" /></figure>
+    </div>
+  </section>
+
+  <!-- 具体词汇示例（融合B）-->
+  <section id="demo-sec">
+    <h2 class="sec-h reveal">一个词，怎么练</h2>
+    <p class="sec-sub reveal">正面英文术语 + 音标，翻面中文释义和例句。记不住就标「还没记住」，它会按遗忘曲线再找你。</p>
+    <div class="demo">
+      <div class="flip reveal" id="flip">
+        <div class="inner">
+          <div class="face front">
+            <div class="pos">NOUN · 名词</div>
+            <div class="term">anomie</div>
+            <div class="ph">/ˈanəmi/</div>
+            <div class="hint">轻点卡片翻面看释义</div>
+          </div>
+          <div class="face back">
+            <div class="pos">释义</div>
+            <div class="def">失范：社会规范失效，个体失去行为准则而迷失的状态。</div>
+            <div class="ex">涂尔干用 <b>anomie</b> 解释工业化城市里自杀率的上升。</div>
+            <div class="hint">轻点卡片翻回正面</div>
+          </div>
+        </div>
+      </div>
+      <div class="reveal">
+        <p class="lead">社会学有一批「长得像、意思各不同」的术语——meritocracy、bourgeoisie、patriarchy……混在一起最容易在考卷上写错。</p>
+        <p class="lead" style="margin-top:12px">这个站把每个词拆成「术语 + 音标 + 释义 + 例句 + 记忆线索」，用闪卡、选择题、拼写、填字反复见它几面，直到写 essay 时能直接调用。</p>
+        <div class="terms">
+          <span>meritocracy</span><span>bourgeoisie</span><span>patriarchy</span><span>capitalism</span><span>socialisation</span><span>anomie</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 六种练习模式（货架）-->
+  <section id="modes-sec">
+    <h2 class="sec-h reveal">六种方式，换着花样见考点</h2>
+    <p class="sec-sub reveal">不枯燥，不硬背。同一个词，换着形式见它几面，比抄十遍记得牢。</p>
+    <div class="modes reveal" id="modes">
+      <div class="mode ic-b"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 3v18"/></svg><h3>闪卡记忆</h3><p>正反面翻，术语 + 释义</p></div>
+      <div class="mode ic-g"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg><h3>选择题</h3><p>即时对错反馈</p></div>
+      <div class="mode ic-w"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4M4 17h16M15 17v3"/></svg><h3>拼写默写</h3><p>听音写词练拼写</p></div>
+      <div class="mode ic-c"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></svg><h3>纵横填字</h3><p>在格子里拼词</p></div>
+      <div class="mode ic-s"><svg viewBox="0 0 24 24"><path d="M4 7h7v7H4zM13 13h7v7h-7z"/></svg><h3>匹配题</h3><p>术语配对释义</p></div>
+      <div class="mode ic-b"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 4v5h5"/></svg><h3>错题练习</h3><p>专攻记不牢的</p></div>
+    </div>
+  </section>
+
+  <!-- 真题对齐 -->
+  <section id="exam-sec">
+    <h2 class="sec-h reveal">和真题考点，对齐着练</h2>
+    <p class="sec-sub reveal">不是泛泛背单词，只练考试真会考到的那部分。</p>
+    <div class="points reveal" id="points">
+      <div class="point"><div class="mk"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg></div><div><b>覆盖社会学真题 Paper 1–4</b><span>按考点切题，历年真题怎么考，这里就怎么练。</span></div></div>
+      <div class="point"><div class="mk"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg></div><div><b>理论流派与学者人名表</b><span>韦伯、涂尔干、马克思……谁提出、属于哪一派，一次理清。</span></div></div>
+      <div class="point"><div class="mk"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 16l3-4 3 2 4-6"/></svg></div><div><b>各国社会数据看板</b><span>出生率、基尼、贫困率……写 essay 直接当论据。</span></div></div>
+    </div>
+  </section>
+
+  <!-- 数据看板 -->
+  <section id="data-sec">
+    <h2 class="sec-h reveal">写 essay 要的数据，现成有</h2>
+    <p class="sec-sub reveal">各国社会指标实时拉取（World Bank 接口），背词之外，还能顺手给论述文找论据。</p>
+    <div class="chart reveal" id="chart">
+      <svg viewBox="0 0 400 220" role="img" aria-label="部分国家基尼系数示意（示例数据）">
+        <line x1="40" y1="180" x2="390" y2="180" stroke="#DEE3E9" stroke-width="1.5"/>
+        <rect x="60"  y="60"  width="46" height="120" rx="6" fill="#0064E0"/>
+        <rect x="140" y="96"  width="46" height="84"  rx="6" fill="#31A24C"/>
+        <rect x="220" y="120" width="46" height="60"  rx="6" fill="#F7B928"/>
+        <rect x="300" y="48"  width="46" height="132" rx="6" fill="#E41E3F"/>
+        <text x="83"  y="200" font-size="12" fill="#5D6C7B" text-anchor="middle" font-family="Inter,sans-serif">南非</text>
+        <text x="163" y="200" font-size="12" fill="#5D6C7B" text-anchor="middle" font-family="Inter,sans-serif">中国</text>
+        <text x="243" y="200" font-size="12" fill="#5D6C7B" text-anchor="middle" font-family="Inter,sans-serif">美国</text>
+        <text x="323" y="200" font-size="12" fill="#5D6C7B" text-anchor="middle" font-family="Inter,sans-serif">瑞典</text>
+      </svg>
+      <p class="note">示例：部分国家基尼系数（数值为示意，以站内实时数据为准）。</p>
+    </div>
+  </section>
+
+  <!-- 打卡 / 间隔复习 -->
+  <section id="checkin-sec">
+    <h2 class="sec-h reveal">背了，就不让它忘</h2>
+    <p class="sec-sub reveal">连续打卡给你节奏，间隔复习在快忘的时候把你拉回来。</p>
+    <div class="checkin reveal" id="checkin">
+      <div><span class="stat-big" id="streak">0</span><small>天连续学习（示例）</small></div>
+      <div class="week" aria-label="本周打卡">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#0064E0"/></svg>
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#0064E0"/></svg>
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#0064E0"/></svg>
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#EAF2FE" stroke="#0064E0" stroke-width="1.6"/></svg>
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#0064E0"/></svg>
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#0064E0"/></svg>
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#EAF2FE" stroke="#0064E0" stroke-width="1.6"/></svg>
+      </div>
+      <p class="lead">间隔复习：标记的难词会按遗忘曲线安排回看，不用自己记「该复习哪个」。</p>
+    </div>
+  </section>
+
+</main>
+
+<!-- 页尾导流 -->
+<footer class="foot">
+  <div class="wrap grid">
+    <div>
+      <h2>社会学词汇</h2>
+      <p class="addr">网页 / 安卓都能用 · 访问 <b>9699vocab.cn</b></p>
+      <p class="addr" style="margin-top:8px"><a class="btn dl-link" href="#" style="margin-top:4px">扫码或访问网站，开始背词</a></p>
+    </div>
+    <div class="qr-block">
+      <div class="dl-qr"></div>
+      <p class="addr">长按或扫描二维码<br>进入练习</p>
+    </div>
+  </div>
+</footer>
+
+<!-- 翻转交互（手感：像翻一张真实闪卡）-->
+<script>
+document.getElementById('flip').addEventListener('click',function(){this.classList.toggle('go')});
+</script>
+
+<!-- 滚动联动 + 进场动效（GSAP）-->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script src="kit/daoliu.js" data-shop="社会学词汇" data-link=""></script>
+<script>
+(function(){
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // 翻转卡片 CSS 过渡已提供基础动效；以下仅做增强
+  if(reduce || !window.gsap){return;}
+  var gsap = window.gsap, ST = window.ScrollTrigger;
+  gsap.registerPlugin(ST);
+
+  // 顶部阅读进度（滚动联动 · scrub）
+  gsap.to('#progress',{scaleX:1,ease:'none',transformOrigin:'0 50%',
+    scrollTrigger:{trigger:document.body,start:'top top',end:'bottom bottom',scrub:true}});
+
+  // 未来数（示例）随滚动增长 · scrub
+  var streakEl=document.getElementById('streak');
+  var o={v:0};
+  gsap.to(o,{v:48,ease:'none',scrollTrigger:{trigger:'#checkin-sec',start:'top 80%',end:'bottom 60%',scrub:true},
+    onUpdate:function(){streakEl.textContent=Math.round(o.v);}});
+
+  // 进场：分批用不同签名，避免「全是淡入上移」
+  var MM = gsap.matchMedia();
+  MM.add('(prefers-reduced-motion: no-preference)',function(){
+    // A: opacity + y（淡入上移）—— 上限 3 次
+    gsap.from('.hero h1',{opacity:0,y:28,duration:.7,ease:'power2.out'});
+    gsap.from('.hero .cta-row',{opacity:0,y:24,duration:.7,ease:'power2.out',delay:.08});
+    gsap.from('#exam-sec #points',{opacity:0,y:26,duration:.6,ease:'power2.out',
+      scrollTrigger:{trigger:'#exam-sec',start:'top 82%'}});
+    // B: opacity + x（从左滑入）—— 上限 3 次
+    gsap.from('.hero .lead',{opacity:0,x:-32,duration:.7,ease:'power2.out',delay:.04});
+    gsap.from('#demo-sec .lead',{opacity:0,x:-32,duration:.7,ease:'power2.out',
+      scrollTrigger:{trigger:'#demo-sec',start:'top 82%'}});
+    // C: opacity + scale（轻轻放大）—— 上限 3 次
+    gsap.from('#gallery',{opacity:0,scale:.94,duration:.6,ease:'power2.out',delay:.12});
+    gsap.from('#exam-sec .sec-sub',{opacity:0,scale:.96,duration:.6,ease:'power2.out',
+      scrollTrigger:{trigger:'#exam-sec',start:'top 85%'}});
+    gsap.from('#modes .mode',{opacity:0,scale:.94,duration:.55,ease:'power2.out',stagger:.05,
+      scrollTrigger:{trigger:'#modes',start:'top 80%'}});
+    // D: opacity + yPercent（轻微下沉）—— 上限 3 次
+    gsap.from('#chart',{opacity:0,yPercent:6,duration:.6,ease:'power2.out',
+      scrollTrigger:{trigger:'#data-sec',start:'top 82%'}});
+    gsap.from('#checkin',{opacity:0,yPercent:6,duration:.6,ease:'power2.out',
+      scrollTrigger:{trigger:'#checkin-sec',start:'top 82%'}});
+    gsap.from('.foot .grid',{opacity:0,yPercent:6,duration:.6,ease:'power2.out',
+      scrollTrigger:{trigger:'.foot',start:'top 90%'}});
+  });
+})();
+</script>
+</body>
+</html>

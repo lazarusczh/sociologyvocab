@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>方向A · 巨型数字（提分）</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-sc@5/400.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-sc@5/700.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-sc@5/900.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5/600.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/oswald@5/700.css" rel="stylesheet" />
+<style>
+:root{
+  --c-primary:#0064E0; --c-primary-deep:#0457CB; --c-primary-bg:#EAF2FE;
+  --c-ink-deep:#0A1317; --c-ink:#1C1E21; --c-charcoal:#444950; --c-steel:#5D6C7B; --c-stone:#8595A4;
+  --c-page:#F5F7FA; --c-canvas:#FFFFFF; --c-surface-soft:#F1F4F7; --c-hairline-soft:#DEE3E9;
+  --c-success:#31A24C; --c-success-bg:#E9F6EC;
+  --r-lg:24px; --r-md:16px; --r-sm:12px; --r-pill:999px;
+  --font-sans:"Noto Sans SC",-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  --font-num:"Oswald","Inter",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:var(--c-page);color:var(--c-ink);-webkit-font-smoothing:antialiased}
+.wrap{max-width:460px;margin:0 auto;padding:0 20px 64px;background:var(--c-page);min-height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
+.brand{font-weight:900;font-size:17px;letter-spacing:.02em}
+.brand b{color:var(--c-primary)}
+.topbar .tag{font-size:12px;color:var(--c-steel);background:var(--c-surface-soft);padding:5px 12px;border-radius:var(--r-pill)}
+/* 巨型数字 */
+.hero{padding:30px 0 8px}
+.kicker{font-size:13px;color:var(--c-steel);letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px}
+.bignum{font-family:var(--font-num);font-weight:700;font-size:128px;line-height:.9;color:var(--c-primary);letter-spacing:-.02em}
+.bignum .plus{font-size:64px;vertical-align:top;color:var(--c-primary-deep)}
+.bignum-cap{font-family:var(--font-sans);font-size:18px;font-weight:700;color:var(--c-ink-deep);margin-top:6px}
+.headline{font-size:30px;font-weight:900;line-height:1.25;color:var(--c-ink-deep);margin:26px 0 12px}
+.sub{font-size:15px;line-height:1.7;color:var(--c-charcoal)}
+.terms{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0}
+.term{font-family:"Inter",var(--font-sans);font-size:13px;font-weight:600;color:var(--c-charcoal);background:var(--c-canvas);border:1px solid var(--c-hairline-soft);border-radius:var(--r-pill);padding:7px 13px}
+.cta{display:block;width:100%;text-align:center;background:var(--c-primary);color:#fff;font-weight:700;font-size:16px;padding:15px;border-radius:var(--r-pill);margin-top:8px;text-decoration:none}
+.note{text-align:center;font-size:12px;color:var(--c-stone);margin-top:14px}
+.divider{height:1px;background:var(--c-hairline-soft);margin:34px 0}
+.minirow{display:flex;gap:12px}
+.minicard{flex:1;background:var(--c-canvas);border:1px solid var(--c-hairline-soft);border-radius:var(--r-md);padding:16px}
+.minicard .n{font-family:var(--font-num);font-weight:700;font-size:30px;color:var(--c-ink-deep)}
+.minicard .l{font-size:12px;color:var(--c-steel);margin-top:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">社会学<b>词汇</b></div>
+    <div class="tag">sociologyvocab</div>
+  </div>
+
+  <section class="hero">
+    <div class="kicker">和真题考点对齐</div>
+    <div class="bignum">1,000<span class="plus">+</span></div>
+    <div class="bignum-cap">个社会学真题考点词条</div>
+    <h1 class="headline">社会学考点，<br>一个站背完。</h1>
+    <p class="sub">理论流派、学者人名、各国社会数据——真题怎么考，这里就怎么练。不泛泛背单词，只背考试真会考到的那部分。</p>
+    <div class="terms">
+      <span class="term">anomie</span><span class="term">meritocracy</span><span class="term">bourgeoisie</span>
+      <span class="term">patriarchy</span><span class="term">capitalism</span><span class="term">socialisation</span>
+    </div>
+    <a class="cta" href="#">扫码开始背词</a>
+    <div class="note">免费 · 网页 / 安卓都能用 · 9699vocab.cn</div>
+  </section>
+
+  <div class="divider"></div>
+  <div class="minirow">
+    <div class="minicard"><div class="n">6</div><div class="l">种练习模式</div></div>
+    <div class="minicard"><div class="n">48</div><div class="l">天连续打卡</div></div>
+    <div class="minicard"><div class="n">4</div><div class="l">套真题 Paper</div></div>
+  </div>
+</div>
+</body>
+</html>

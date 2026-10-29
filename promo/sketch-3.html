@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>方向C · 货架（功能全）</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-sc@5/400.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-sc@5/700.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-sc@5/900.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5/600.css" rel="stylesheet" />
+<style>
+:root{
+  --c-primary:#0064E0; --c-primary-deep:#0457CB; --c-primary-bg:#EAF2FE;
+  --c-ink-deep:#0A1317; --c-ink:#1C1E21; --c-charcoal:#444950; --c-steel:#5D6C7B; --c-stone:#8595A4;
+  --c-page:#F5F7FA; --c-canvas:#FFFFFF; --c-surface-soft:#F1F4F7; --c-hairline-soft:#DEE3E9;
+  --c-success:#31A24C; --c-success-bg:#E9F6EC; --c-warning:#F7B928; --c-warning-bg:#FFF7E4; --c-critical:#E41E3F; --c-critical-bg:#FDEDF0;
+  --r-lg:24px; --r-md:16px; --r-sm:12px; --r-pill:999px;
+  --font-sans:"Noto Sans SC",-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  --font-term:"Inter",var(--font-sans);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:var(--c-page);color:var(--c-ink);-webkit-font-smoothing:antialiased}
+.wrap{max-width:460px;margin:0 auto;padding:0 20px 64px;min-height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
+.brand{font-weight:900;font-size:17px}.brand b{color:var(--c-primary)}
+.topbar .tag{font-size:12px;color:var(--c-steel);background:var(--c-surface-soft);padding:5px 12px;border-radius:var(--r-pill)}
+.hero{padding:18px 0 4px}
+.eyebrow{font-size:13px;color:var(--c-steel);letter-spacing:.16em;text-transform:uppercase;margin-bottom:10px}
+.headline{font-size:28px;font-weight:900;line-height:1.28;color:var(--c-ink-deep);margin-bottom:10px}
+.sub{font-size:15px;line-height:1.7;color:var(--c-charcoal);margin-bottom:22px}
+.shelf{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mode{background:var(--c-canvas);border:1px solid var(--c-hairline-soft);border-radius:var(--r-md);padding:16px;box-shadow:0 1px 2px rgba(16,24,40,.06)}
+.mode .ic{width:38px;height:38px;border-radius:var(--r-sm);display:grid;place-items:center;margin-bottom:10px}
+.mode h3{font-size:15px;font-weight:700;color:var(--c-ink-deep)}
+.mode p{font-size:12px;color:var(--c-steel);line-height:1.5;margin-top:4px}
+.ic.b{background:var(--c-primary-bg)} .ic.b svg{stroke:var(--c-primary)}
+.ic.g{background:var(--c-success-bg)} .ic.g svg{stroke:var(--c-success)}
+.ic.w{background:var(--c-warning-bg)} .ic.w svg{stroke:var(--c-warning-ink,#A6741B)}
+.ic.c{background:var(--c-critical-bg)} .ic.c svg{stroke:var(--c-critical)}
+.ic.s{background:var(--c-surface-soft)} .ic.s svg{stroke:var(--c-steel)}
+.ic svg{width:20px;height:20px;fill:none;stroke-width:1.8}
+.cta{display:block;width:100%;text-align:center;background:var(--c-primary);color:#fff;font-weight:700;font-size:16px;padding:15px;border-radius:var(--r-pill);margin-top:24px;text-decoration:none}
+.note{text-align:center;font-size:12px;color:var(--c-stone);margin-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">社会学<b>词汇</b></div>
+    <div class="tag">sociologyvocab</div>
+  </div>
+
+  <section class="hero">
+    <div class="eyebrow">不枯燥 · 不硬背</div>
+    <h1 class="headline">六种方式练词汇，<br>总有一种让你记住</h1>
+    <p class="sub">把考点变成每天的小习惯：翻卡片、做选择题、默写拼写、玩填字、配对、刷错题——同一个词，换着花样见它几面。</p>
+
+    <div class="shelf">
+      <div class="mode"><div class="ic b"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 3v18"/></svg></div><h3>闪卡记忆</h3><p>正反面翻，术语+释义</p></div>
+      <div class="mode"><div class="ic g"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></div><h3>选择题</h3><p>即时对错反馈</p></div>
+      <div class="mode"><div class="ic w"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4M4 17h16M15 17v3"/></svg></div><h3>拼写默写</h3><p>听音写词练拼写</p></div>
+      <div class="mode"><div class="ic c"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></svg></div><h3>纵横填字</h3><p>在格子里拼词</p></div>
+      <div class="mode"><div class="ic s"><svg viewBox="0 0 24 24"><path d="M4 7h7v7H4zM13 13h7v7h-7z"/></svg></div><h3>匹配题</h3><p>术语配对释义</p></div>
+      <div class="mode"><div class="ic b"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 4v5h5"/></svg></div><h3>错题练习</h3><p>专攻记不牢的</p></div>
+    </div>
+
+    <a class="cta" href="#">扫码开始背词</a>
+    <div class="note">免费 · 网页 / 安卓都能用 · 9699vocab.cn</div>
+  </section>
+</div>
+</body>
+</html>
