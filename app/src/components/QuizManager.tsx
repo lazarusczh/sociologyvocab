@@ -6,7 +6,8 @@ import { PAPER_ORDER } from '../lib/storage';
 import { unitListFor } from '../lib/unitMapping';
 import { maskEmail } from '../lib/shuffle';
 import { copyText } from '../lib/clipboard';
-import { createQuiz, updateQuiz, updateQuizQuestions, listQuizzes, listQuizSubmissions, deleteQuiz, listDeveloperIds, deleteSubmission, countSubmittedByQuizzes, regradeQuizSubmissions, ensureQuizShortCode, listMbTaskLinksForQuiz, listMbRoster, listClassesWithMb, matchMbTask, replaceMbTaskLink, deleteMbTaskLink, fetchMbMarks, writeMbMarks, type MbTaskLinkRow, type ClassMbRow } from '../lib/cloud';
+import { createQuiz, updateQuiz, updateQuizQuestions, listQuizzes, listQuizSubmissions, deleteQuiz, listDeveloperIds, deleteSubmission, countSubmittedByQuizzes, regradeQuizSubmissions, ensureQuizShortCode, listMbTaskLinksForQuiz, listMbRoster, listClassesWithMb, matchMbTask, replaceMbTaskLink, deleteMbTaskLink, fetchMbMarks, writeMbMarks, listSubmissionsByQuizzes, latestMbWriteLogs, logMbWrite, type MbTaskLinkRow, type ClassMbRow, type MbWriteLogRow } from '../lib/cloud';
+import { staleAgainstSnapshot, staleLabel, finalScoreOf, type StaleResult } from '../lib/mbStale';
 import { classMatchesGrade, firstPaperNumber, inferGrade, type Grade } from '../lib/mbSync';
 import QuizWrongBoard from './QuizWrongBoard';
 import ScrollText from './ScrollText';
@@ -23,6 +24,8 @@ interface QuizMbLine {
   mbScore: string;        // ManageBac 当前值
   email: string | null;   // 由名单反查到的邮箱
   stName: string | null;  // 对应的站内学生
+  /** 站内学生 user_id（登分快照的键用它，不用显示名 —— 改名会错位）；对不上站内时为 null */
+  userId: string | null;
   finalScore: number | null; // 要写入的值（最终分）
   rawScore: number | null;   // 卷面原始分（仅供参考）
   penalty: number;           // 迟交罚分（非 0 时提示）
@@ -176,6 +179,11 @@ export default function QuizManager() {
   const [subs, setSubs] = useState<QuizSubmission[]>([]);
   const [regrading, setRegrading] = useState(false);
   const [submissionCounts, setSubmissionCounts] = useState<Record<string, number>>({});
+  // —— ManageBac 登分快照（db-migration-mb-write-log.sql）——
+  // 每卷最新一条 mb_write_log。用于在卷列表标「需重新登分」——纯站内计算，不抓 ManageBac。
+  const [writeLogs, setWriteLogs] = useState<Record<string, MbWriteLogRow>>({});
+  // 跨卷的答卷（仅卷列表用；与 viewing 时的 subs 分开，避免互相覆盖）
+  const [listSubs, setListSubs] = useState<QuizSubmission[]>([]);
   const [detailUser, setDetailUser] = useState<string | null>(null); // 正在查看答卷详情的学生 user_id
   const [devIds, setDevIds] = useState<Set<string>>(new Set()); // developer 账户 user_id（识别测试记录）
   const [manualSearch, setManualSearch] = useState(''); // 手动勾选词条的检索词
@@ -188,9 +196,20 @@ export default function QuizManager() {
       const qs = await listQuizzes();
       setQuizzes(qs);
       if (qs.length > 0) {
-        setSubmissionCounts(await countSubmittedByQuizzes(qs.map((q) => q.id)));
+        const ids = qs.map((q) => q.id);
+        // 三件事一起拉：已提交人数、登分快照、跨卷答卷（后者只用于「需重新登分」判定）
+        const [counts, logs, allSubs] = await Promise.all([
+          countSubmittedByQuizzes(ids),
+          latestMbWriteLogs(ids),
+          listSubmissionsByQuizzes(ids),
+        ]);
+        setSubmissionCounts(counts);
+        setWriteLogs(logs);
+        setListSubs(allSubs);
       } else {
         setSubmissionCounts({});
+        setWriteLogs({});
+        setListSubs([]);
       }
     } catch (e) {
       setError((e as Error).message);
@@ -201,6 +220,24 @@ export default function QuizManager() {
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  // 每卷的「需重新登分」判定（纯站内计算，不抓 ManageBac）。
+  // ⚠ 与 previewSync 的过滤口径保持一致：排除 developer 测试账号。
+  const staleByQuiz = useMemo<Record<string, StaleResult>>(() => {
+    const out: Record<string, StaleResult> = {};
+    // 先按 quiz_id 分组，再逐卷判定 —— 避免每卷都全量扫一遍
+    const byQuiz = new Map<string, QuizSubmission[]>();
+    for (const s of listSubs) {
+      if (devIds.has(s.user_id)) continue;
+      const arr = byQuiz.get(s.quiz_id);
+      if (arr) arr.push(s); else byQuiz.set(s.quiz_id, [s]);
+    }
+    for (const q of quizzes) {
+      const log = writeLogs[q.id];
+      out[q.id] = staleAgainstSnapshot(byQuiz.get(q.id) ?? [], log ?? null);
+    }
+    return out;
+  }, [quizzes, listSubs, writeLogs, devIds]);
 
   // 启动时检测是否有暂存草稿
   useEffect(() => {
@@ -704,6 +741,7 @@ export default function QuizManager() {
           mbScore: r.score,
           email,
           stName: sub?.name ?? null,
+          userId: sub?.user_id ?? null,
           finalScore,
           rawScore: sub ? sub.score : null,
           penalty: sub?.grading?.penalty ?? 0,
@@ -775,6 +813,30 @@ export default function QuizManager() {
         unconfirmed.length ? `${unconfirmed.length} 行写了两遍都没回读到（逐行步骤见下方排查信息）` : '',
       ].filter(Boolean).join('；');
       setMsg(`已写入并确认 ${done} 行${extra ? `；${extra}` : ''}`);
+      // 落一行登分快照，供卷列表判断「需重新登分」。
+      // ⚠ 只记 saved === true 的行：未确认的行记进去，会让「需重新登分」永远不出现。
+      // ⚠ 键用 user_id（不是 mbName）：显示名改名会错位。
+      // 快照失败不影响写入结果本身（分数已经进 ManageBac 了），只提示一句。
+      try {
+        const scores: Record<string, string> = {};
+        for (const l of todo) {
+          const v = verified.find((x) => x.row === l.mbName);
+          if (!v || !v.ok || !v.saved) continue;
+          if (!l.userId) continue; // 定位不到站内学生的行无法建键，跳过
+          scores[l.userId] = String(l.finalScore ?? '');
+        }
+        if (Object.keys(scores).length > 0) {
+          await logMbWrite({
+            quizId: viewing.id,
+            classId: mbClass.id,
+            mbTaskId: curLink.mb_task_id,
+            scores,
+            source: 'auto',
+          });
+        }
+      } catch (e) {
+        setError(`分数已写入，但登分快照没记上（${(e as Error).message}）——「需重新登分」标记会不准`);
+      }
       // 用云端回读的结果更新表格，不再多跑一次（省额度）
       setMbPreview((p) =>
         p
@@ -796,6 +858,57 @@ export default function QuizManager() {
       );
     } catch (e) {
       setError('写入失败：' + ((e as Error).message || String(e)));
+    } finally {
+      setMbBusy(false);
+    }
+  };
+
+  /**
+   * 「我已手动登分」—— 给油猴脚本 / 手工填分那条兜底路径用。
+   *
+   * 那条路不经过 `writeMbMarks`，系统无从得知分数已经登上去了，
+   * 于是「需重新登分」会一直亮着（狼来了）。教师点一下即可消除。
+   *
+   * 语义 = 「ManageBac 现在与站内一致了」⇒ 快照取**站内当前全量**（不是只取勾选的行）。
+   */
+  const markManualWritten = async () => {
+    if (!viewing || !curLink || !mbClass) return;
+    // 与 previewSync 同口径：已交卷、有邮箱、排除 developer 测试账号、同一学生取最近一次
+    const byUser = new Map<string, QuizSubmission>();
+    for (const s of subs) {
+      if (s.status !== 'submitted' || !s.email || devIds.has(s.user_id)) continue;
+      const prev = byUser.get(s.user_id);
+      if (!prev || (s.submitted_at ?? '') > (prev.submitted_at ?? '')) byUser.set(s.user_id, s);
+    }
+    const scores: Record<string, string> = {};
+    for (const s of byUser.values()) scores[s.user_id] = String(finalScoreOf(s));
+    if (Object.keys(scores).length === 0) {
+      setError('这份卷还没有已交卷的学生，没有可标记的分数');
+      return;
+    }
+    const go = confirm(
+      `标记为「已在 ManageBac 手动登好分」？\n\n`
+      + `将把当前站内 ${Object.keys(scores).length} 名学生的最终分记成登分快照，`
+      + `「需重新登分」标记随之消除。\n`
+      + '请确认你确实已经把这些分填进 ManageBac 了 —— 这只改标记，不动线上成绩册。',
+    );
+    if (!go) return;
+    setMbBusy(true);
+    setError('');
+    setMsg('');
+    try {
+      await logMbWrite({
+        quizId: viewing.id,
+        classId: mbClass.id,
+        mbTaskId: curLink.mb_task_id,
+        scores,
+        source: 'manual',
+      });
+      setMsg(`已标记为手动登分（${Object.keys(scores).length} 人）`);
+      // 刷新卷列表上的「需重新登分」徽章
+      void refresh();
+    } catch (e) {
+      setError('标记失败：' + ((e as Error).message || String(e)));
     } finally {
       setMbBusy(false);
     }
@@ -1020,6 +1133,13 @@ export default function QuizManager() {
                       将写入 {mbPreview.lines.filter((l) => l.checked).length} 行 · 本卷满分 {mbPreview.maxPts}
                     </span>
                     <span className="spacer" />
+                    <button
+                      onClick={() => void markManualWritten()}
+                      disabled={mbBusy}
+                      title="用油猴脚本或手工把分数填进 ManageBac 之后点这里，消除「需重新登分」标记（不改线上成绩册）"
+                    >
+                      我已手动登分
+                    </button>
                     <button
                       className="primary"
                       onClick={() => void writeSync()}
@@ -1570,6 +1690,7 @@ export default function QuizManager() {
                 <th>类型</th>
                 <th>密码</th>
                 <th>已提交</th>
+                <th>ManageBac</th>
                 <th>题数</th>
                 <th>题型</th>
                 <th>限时</th>
@@ -1585,6 +1706,32 @@ export default function QuizManager() {
                   <td>{KIND_LABELS[q.kind]}</td>
                   <td className="term" style={{ fontWeight: 600 }}>{q.code}</td>
                   <td>{submissionCounts[q.id] ?? 0}</td>
+                  <td style={{ fontSize: '0.8rem' }}>
+                    {/* 「需重新登分」：纯站内计算（当前最终分 vs 上次登分快照），不抓 ManageBac。
+                        点「成绩」进去用 previewSync 做权威的逐行比对。 */}
+                    {(() => {
+                      const r = staleByQuiz[q.id];
+                      if (!r) return <span className="muted">—</span>;
+                      if (!r.lastWrittenAt) {
+                        return <span className="muted" title="这份卷还没通过站内「写入 ManageBac」登过分，也没有点过「我已手动登分」">未记录登分</span>;
+                      }
+                      if (!r.stale) {
+                        return (
+                          <span className="muted" title={`上次登分：${new Date(r.lastWrittenAt).toLocaleString()}`}>
+                            已同步
+                          </span>
+                        );
+                      }
+                      return (
+                        <span
+                          className="badge warn"
+                          title={`上次登分：${new Date(r.lastWrittenAt).toLocaleString()}（${r.lastSource === 'manual' ? '手动标记' : '站内写入'}）· 之后有 ${r.changedCount} 人的分数变了（订正 / 加分卡）`}
+                        >
+                          {staleLabel(r)}
+                        </span>
+                      );
+                    })()}
+                  </td>
                   <td>{q.question_count}</td>
                   <td className="muted" style={{ fontSize: '0.8rem' }}>{q.question_types.map((t) => TYPE_LABELS[t as QuizQuestionType]).join('、')}</td>
                   <td>{formatDuration(q.duration_minutes)}</td>

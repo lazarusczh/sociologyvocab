@@ -993,3 +993,74 @@ export async function setStudentMbExempt(userId: string, exempt: boolean): Promi
   const { error } = await supabase.from('student_data').update({ mb_exempt: exempt }).eq('user_id', userId);
   if (error) throw error;
 }
+
+// ============================================================================
+// ManageBac 登分快照（db-migration-mb-write-log.sql）
+//
+// 用途：判断「站内最终分变了之后，有没有重新登过分」。
+// 没有这张表就只能每次实时抓 ManageBac 才知道，而抓一次消耗 CF 浏览器额度。
+// ============================================================================
+
+export interface MbWriteLogRow {
+  id: number;
+  quiz_id: string;
+  class_id: string | null;
+  mb_task_id: string;
+  /** { "<user_id>": "<写入的分数>" }，只含实际写进去的行 */
+  scores: Record<string, string>;
+  source: 'auto' | 'manual';
+  written_by: string | null;
+  written_at: string;
+}
+
+/**
+ * 记一行登分快照。
+ *
+ * ⚠ `scores` 必须**只含真正写成功的行** —— 调用方要自己过滤。
+ *   把「写了但回读未确认」的行也记进来，会让「需重新登分」永远不出现。
+ * ⚠ 键用 `user_id` 而非 ManageBac 显示名：显示名会因改名而错位。
+ */
+export async function logMbWrite(input: {
+  quizId: string;
+  classId: string | null;
+  mbTaskId: string;
+  scores: Record<string, string>;
+  source: 'auto' | 'manual';
+}): Promise<void> {
+  const { data: auth } = await supabase.auth.getUser();
+  const { error } = await supabase.from('mb_write_log').insert({
+    quiz_id: input.quizId,
+    class_id: input.classId,
+    mb_task_id: input.mbTaskId,
+    scores: input.scores,
+    source: input.source,
+    written_by: auth?.user?.id ?? null,
+  });
+  if (error) throw error;
+}
+
+/**
+ * 取多份卷各自的**最新**登分快照（每卷一行，没有记录的卷不出现在结果里）。
+ *
+ * ⚠ 按 `written_at desc` 拉回后在前端取每卷第一条，而不是用 SQL 的 distinct on ——
+ *   本库为 AnalyticDB / Greenplum 内核，对 DISTINCT ON 的支持不确定。
+ */
+export async function latestMbWriteLogs(quizIds: string[]): Promise<Record<string, MbWriteLogRow>> {
+  if (quizIds.length === 0) return {};
+  const out: Record<string, MbWriteLogRow> = {};
+  const CHUNK = 100;
+  for (let i = 0; i < quizIds.length; i += CHUNK) {
+    const chunk = quizIds.slice(i, i + CHUNK);
+    const { data, error } = await supabase
+      .from('mb_write_log')
+      .select('*')
+      .in('quiz_id', chunk)
+      .order('written_at', { ascending: false });
+    if (error) throw error;
+    for (const row of (data ?? []) as MbWriteLogRow[]) {
+      // 已按 written_at 倒序 ⇒ 第一次见到的就是该卷最新的一条
+      if (!out[row.quiz_id]) out[row.quiz_id] = row;
+    }
+  }
+  return out;
+}
