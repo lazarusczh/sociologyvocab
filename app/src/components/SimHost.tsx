@@ -378,7 +378,7 @@ export default function SimHost() {
           questions={questions}
           limit={limit}
           onFrozen={(v) => {
-            setMsg(`问卷已冻结（version ${v}），进入投喂阶段。`);
+            setMsg(`问卷已定稿（version ${v}），接下来由三位受访者作答。`);
             void refresh(session.id);
           }}
         />
@@ -398,7 +398,7 @@ export default function SimHost() {
             onChanged={() => void refresh(session.id)}
           />
         ) : (
-          <div className="card"><p className="muted" style={{ margin: 0 }}>正在载入冻结的问卷…</p></div>
+          <div className="card"><p className="muted" style={{ margin: 0 }}>正在载入已定稿的问卷…</p></div>
         )}
       </>
     );

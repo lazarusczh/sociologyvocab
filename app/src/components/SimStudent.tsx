@@ -1,6 +1,6 @@
 // 学生端：模拟调研（live_sessions.kind='sim'）
 //
-// 阶段（config.phase）：lobby 点名 → grouped 组内写题 → frozen 定稿 → answered 已投喂 → reveal 揭晓
+// 阶段（config.phase）：lobby 点名 → grouped 组内写题 → frozen 定稿 → answered 已作答 → reveal 揭晓
 // 口径：
 //   · 加入走 RPC sim_join_lobby（服务端决定分组；迟到者自动进人数最少的组）
 //   · 只有作者能改自己的题，队友只读 —— 服务端 RPC 是权威，这里只是不给按钮

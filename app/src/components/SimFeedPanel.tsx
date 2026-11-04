@@ -1,10 +1,10 @@
-// 教师端：把冻结问卷投给三张人设卡（阶段 frozen → answered）
+// 教师端：让三张人设卡按冻结问卷作答（阶段 frozen → answered）
 //
 // 口径（见《模拟调研人设卡.md》第四节）：
 //   · 一次调用同时产出答案与内心；RPC 在同一事务里写两张表
 //   · 任一份不合格就整份丢弃并重试，不允许"答案落了、内心没落"
 //   · 逐人进度 + 单人重试；三人不齐不进揭晓（服务端也会卡住阶段）
-//   · 顺序投喂，避免免费池并发 429
+//   · 一个人一个人生成，避免免费池并发 429
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { callComplete } from '../lib/ai';
 import {
@@ -83,7 +83,7 @@ export default function SimFeedPanel({ sessionId, paper, personas, onChanged }: 
           });
           setRuns((r) => ({
             ...r,
-            [persona.id]: { status: 'ok', msg: `${written.answers}/${written.needed} 人已完成` },
+            [persona.id]: { status: 'ok', msg: `已记录（三人进度 ${written.answers}/${written.needed}）` },
           }));
           onChanged();
           return true;
@@ -130,11 +130,11 @@ export default function SimFeedPanel({ sessionId, paper, personas, onChanged }: 
     <>
       <div className="card" style={{ marginBottom: '0.8rem' }}>
         <div className="row" style={{ alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <strong>投喂三位受访者（{doneCount}/{personas.length} 已完成）</strong>
+          <strong>三位受访者的回答（{doneCount}/{personas.length} 已生成）</strong>
           <span className="badge">AI 模拟</span>
           <span className="spacer" />
           <button className="primary" onClick={runAll} disabled={busy || doneCount >= personas.length}>
-            {busy ? '生成中…' : doneCount === 0 ? '开始投喂' : '继续投喂'}
+            {busy ? '生成中…' : doneCount === 0 ? '开始生成' : '继续生成'}
           </button>
         </div>
         <p className="muted" style={{ fontSize: '0.82rem', margin: '0.35rem 0 0' }}>

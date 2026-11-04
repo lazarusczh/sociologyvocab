@@ -465,7 +465,7 @@ export default function LiveHost() {
     );
   }
 
-  // 模拟调研有自己的控制台（点名 / 分组 / 后续合并投喂）
+  // 模拟调研有自己的控制台（点名 / 分组 / 合并 / 作答 / 揭晓）
   if (session.kind === 'sim') {
     return <SimHost />;
   }
