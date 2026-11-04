@@ -58,6 +58,14 @@ app/scripts/send-apk.ps1
 # ManageBac 成绩填入油猴脚本（教师个人自用工具，且会写入真实学生姓名/邮箱，不纳入公开备份）
 managebac-grade-filler.user.js
 
+# ManageBac 等第批量填入（同一性质的个人工具，与词汇项目无关）：脚本会读班级导出表，
+# 使用说明与脚本配套存在本机。两者都不入库（xlsx 由上面的 *.xlsx 覆盖）
+managebac-term-grade-filler.user.js
+ManageBac-TermGrades*.md
+
+# 期末评语写作产物（含真实学生姓名、成绩与逐人评语，绝不入库；同名 xlsx 由 *.xlsx 覆盖）
+Term评语-*
+
 # 模拟调研人设卡：教学内容，公开仓库不得包含（结构见 db-migration-sim.sql 末尾说明）
 db-seed-sim-personas.local.sql
 
