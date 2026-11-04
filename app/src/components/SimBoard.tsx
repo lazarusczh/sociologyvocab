@@ -4,6 +4,7 @@
 // 内心只在这块屏幕上出现（教师 JWT 才有读权限），学生手机什么都不拿。
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  answerText,
   fetchAnswers,
   fetchInner,
   fetchLatestPaper,
@@ -14,7 +15,6 @@ import {
   subscribeSim,
   type SimAnswerRow,
   type SimPaper,
-  type SimPaperItem,
   type SimPersona,
   type SimReveal,
   type SimSession,
@@ -25,23 +25,6 @@ interface InnerRow {
   inner_json: { qid: string; text: string }[];
   closing: string | null;
 }
-
-const valueText = (item: SimPaperItem, value: unknown): string => {
-  if (Array.isArray(value)) {
-    return value
-      .map((k) => {
-        const o = item.options.find((x) => x.key === String(k));
-        return o ? o.label || o.key : String(k);
-      })
-      .join(' / ');
-  }
-  if (item.qtype === 'scale') {
-    const n = Number(value);
-    return Number.isFinite(n) ? `${n}` : String(value);
-  }
-  const o = item.options.find((x) => x.key === String(value));
-  return o ? o.label || o.key : String(value);
-};
 
 export default function SimBoard({ sessionId }: { sessionId: string }) {
   const [session, setSession] = useState<SimSession | null>(null);
@@ -95,7 +78,10 @@ export default function SimBoard({ sessionId }: { sessionId: string }) {
   if (!paper || !item) {
     return (
       <div style={big}>
-        <h1 style={{ fontSize: '2.2rem', margin: '0 0 1rem' }}>{session.title || '模拟调研'}</h1>
+        <h1 style={{ fontSize: '2.2rem', margin: '0 0 0.6rem' }}>{session.title || '模拟调研'}</h1>
+        <p style={{ fontSize: '1.1rem', margin: '0 0 1.2rem' }}>
+          <span className="badge">AI 模拟</span> 回答由 AI 按人设卡生成，不是真实调查数据
+        </p>
         <p style={{ fontSize: '2rem', ...muted }}>
           {phase === 'answered' ? '三位受访者已作答，等老师逐题揭晓…' : '等待老师公布答案…'}
         </p>
@@ -107,7 +93,10 @@ export default function SimBoard({ sessionId }: { sessionId: string }) {
 
   return (
     <div style={big}>
-      <h1 style={{ fontSize: '2rem', margin: '0 0 0.4rem' }}>{session.title || '模拟调研'}</h1>
+      <h1 style={{ fontSize: '2rem', margin: '0 0 0.3rem' }}>{session.title || '模拟调研'}</h1>
+      <p style={{ fontSize: '1rem', margin: '0 0 0.7rem' }}>
+        <span className="badge">AI 模拟</span> 回答与内心由 AI 按人设卡生成，不是真实调查数据
+      </p>
       <p style={{ fontSize: '1.3rem', margin: '0 0 1.2rem', ...muted }}>
         第 {idx + 1} / {paper.items.length} 题{item.source_group ? ` · 这题来自第 ${item.source_group} 组` : ''}
       </p>
@@ -118,7 +107,7 @@ export default function SimBoard({ sessionId }: { sessionId: string }) {
         {personas.map((p) => {
           const row = answers.find((a) => a.persona_id === p.id);
           const hit = row?.answers.find((a) => a.qid === item.qid);
-          const text = !hit ? '未作答' : hit.skipped ? '（留空）' : valueText(item, hit.value);
+          const text = !hit ? '未作答' : hit.skipped ? '（留空）' : answerText(item, hit.value);
           return (
             <div key={p.id} className="card" style={{ margin: 0, padding: '0.9rem 1.3rem' }}>
               <span style={{ fontSize: '1.7rem', fontWeight: 600 }}>{p.name}</span>

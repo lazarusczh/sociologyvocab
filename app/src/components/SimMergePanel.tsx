@@ -7,6 +7,7 @@
 import { useMemo, useState } from 'react';
 import {
   freezePaper,
+  simErrorMessage,
   similarStem,
   type SimGroup,
   type SimOption,
@@ -107,7 +108,7 @@ export default function SimMergePanel({ sessionId, groups, participants, questio
       const version = await freezePaper(sessionId, items);
       onFrozen(version);
     } catch (e) {
-      setMsg((e as Error).message);
+      setMsg(simErrorMessage(e));
     } finally {
       setBusy(false);
     }

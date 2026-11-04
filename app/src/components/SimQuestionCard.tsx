@@ -10,6 +10,7 @@ import {
   optionKeyAt,
   questionError,
   saveQuestion,
+  simErrorMessage,
   type SimOption,
   type SimQType,
 } from '../lib/sim';
@@ -195,7 +196,7 @@ export default function SimQuestionCard({
       try {
         await flush(qtype, stem, options);
       } catch (e) {
-        if (aliveRef.current) setMsg((e as Error).message);
+        if (aliveRef.current) setMsg(simErrorMessage(e));
       } finally {
         savingRef.current = false;
         if (aliveRef.current) setSaving(false);

@@ -6,15 +6,16 @@
 //   · 内心默认折叠：控制台可能被投屏，别让它自己漏出来
 import { useCallback, useEffect, useState } from 'react';
 import {
+  answerText,
   fetchInner,
   fetchAnswers,
   fetchPersonas,
   fetchReveals,
   reveal,
+  simErrorMessage,
   subscribeSim,
   type SimAnswerRow,
   type SimPaper,
-  type SimPaperItem,
   type SimPersona,
   type SimReveal,
 } from '../lib/sim';
@@ -31,22 +32,7 @@ interface Props {
   pack: string;
 }
 
-const valueText = (item: SimPaperItem, value: unknown): string => {
-  if (Array.isArray(value)) {
-    return value
-      .map((k) => {
-        const o = item.options.find((x) => x.key === String(k));
-        return o ? `${o.key}. ${o.label || '（空）'}` : String(k);
-      })
-      .join('  ');
-  }
-  if (item.qtype === 'scale') {
-    const n = Number(value);
-    return Number.isFinite(n) ? `${n} / ${item.options.length}` : String(value);
-  }
-  const o = item.options.find((x) => x.key === String(value));
-  return o ? `${o.key}. ${o.label || '（空）'}` : String(value);
-};
+
 
 export default function SimRevealPanel({ sessionId, paper, pack }: Props) {
   const [personas, setPersonas] = useState<SimPersona[]>([]);
@@ -71,7 +57,7 @@ export default function SimRevealPanel({ sessionId, paper, pack }: Props) {
   }, [sessionId, paper.version, pack]);
 
   useEffect(() => {
-    void refresh().catch((e: Error) => setMsg(e.message));
+    void refresh().catch((e: unknown) => setMsg(simErrorMessage(e)));
   }, [refresh]);
 
   useEffect(() => subscribeSim(sessionId, () => void refresh()), [sessionId, refresh]);
@@ -86,7 +72,7 @@ export default function SimRevealPanel({ sessionId, paper, pack }: Props) {
       await reveal(sessionId, qid, stage);
       await refresh();
     } catch (e) {
-      setMsg((e as Error).message);
+      setMsg(simErrorMessage(e));
     } finally {
       setBusy('');
     }
@@ -101,7 +87,7 @@ export default function SimRevealPanel({ sessionId, paper, pack }: Props) {
     const hit = row?.answers.find((a) => a.qid === qid);
     if (!hit) return { text: '（未作答）', skipped: false };
     if (hit.skipped) return { text: '（留空）', skipped: true };
-    return { text: valueText(paper.items.find((x) => x.qid === qid)!, hit.value), skipped: false };
+    return { text: answerText(paper.items.find((x) => x.qid === qid)!, hit.value), skipped: false };
   };
 
   const innerOf = (personaId: string, qid: string): string => {
@@ -120,6 +106,7 @@ export default function SimRevealPanel({ sessionId, paper, pack }: Props) {
       <div className="card" style={{ marginBottom: '0.8rem' }}>
         <div className="row" style={{ alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
           <strong>逐题揭晓</strong>
+          <span className="badge">AI 模拟</span>
           <span className="badge">答案 {answersDone}/{paper.items.length}</span>
           <span className="badge">内心 {innerDone}/{paper.items.length}</span>
           <span className="spacer" />

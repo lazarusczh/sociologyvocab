@@ -428,3 +428,56 @@ export function similarStem(a: string, b: string): boolean {
   if (x.length < 4 || y.length < 4) return false;
   return x === y || x.includes(y) || y.includes(x);
 }
+
+/** 答案 → 给人看的文字（学生端只读、教师控制台、投屏、历史共用一份口径） */
+export function answerText(item: SimPaperItem, value: unknown): string {
+  if (Array.isArray(value)) {
+    return value
+      .map((k) => {
+        const o = item.options.find((x) => x.key === String(k));
+        return o ? `${o.key}. ${o.label || '（空）'}` : String(k);
+      })
+      .join(' / ');
+  }
+  if (item.qtype === 'scale') {
+    const n = Number(value);
+    return Number.isFinite(n) ? `${n} / ${item.options.length}` : String(value);
+  }
+  const o = item.options.find((x) => x.key === String(value));
+  return o ? `${o.key}. ${o.label || '（空）'}` : String(value);
+}
+
+/** 服务端 RPC 的报错是英文短句：翻成课堂里能懂的提示；不认识的原样透出，不猜 */
+export function simErrorMessage(e: unknown): string {
+  const raw = e instanceof Error ? e.message : String(e ?? '');
+  if (!raw) return '操作失败，请重试';
+  const m = raw.toLowerCase();
+  const has = (s: string) => m.includes(s);
+  if (has('not authenticated')) return '请先登录';
+  if (has('teacher only')) return '只有教师账号能操作这一步';
+  if (has('not a sim session')) return '这场活动不是模拟调研';
+  if (has('session not found')) return '这场活动不存在（可能已被删除）';
+  if (has('session not running')) return '这场活动已经结束了';
+  if (has('not in editing phase')) return '现在不在写题阶段（问卷已定稿或活动已结束）';
+  if (has('not grouped yet')) return '还没分组，等老师点「开始分组」';
+  const limit = raw.match(/group reached limit (\d+)/i);
+  if (limit) return `本组已满 ${limit[1]} 题，删一题再加`;
+  if (has('not your question')) return '只能改自己写的题（想改队友的，让他来改）';
+  if (has('question not found')) return '这道题不存在（可能已被删除）';
+  if (has('bad qtype')) return '题型不对，请重选题型';
+  if (has('stem length must be 6..80')) return '题干需要 6–80 个字';
+  if (has('need 2..6 options')) return '选项需要 2–6 个';
+  if (has('option too long')) return '单个选项最多 16 个字';
+  if (has('3, 5 or 7')) return '程度量表只能是 3 / 5 / 7 点';
+  if (has('option keys must be')) return '选项编号异常，刷新后再试';
+  if (has('nobody joined yet')) return '还没有人加入，无法分组';
+  if (has('students already wrote questions')) return '已有学生写了题，不能再重新分组';
+  if (has('cannot regroup at phase')) return '当前阶段不能重新分组';
+  if (has('paper must have 1..8')) return '班级问卷需要 1–8 题';
+  if (has('unknown qid')) return '有题目已失效，请刷新后重选';
+  if (has('missing or invalid answer')) return '这份作答不完整，已丢弃重试';
+  if (has('not ready to reveal')) return '三位受访者还没全部答完';
+  if (has('reveal answers first')) return '先公布答案，再公布内心';
+  if (has('bad stage')) return '揭晓步骤不对';
+  return raw;
+}

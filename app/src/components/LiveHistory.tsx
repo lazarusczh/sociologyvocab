@@ -3,6 +3,7 @@
 //   学生：只看得到自己的成绩与名次（沿用「学生端不公示别人名次」的口径；大屏由投屏窗口承担）
 import { useCallback, useEffect, useState } from 'react';
 import { useStore } from '../lib/store';
+import SimHistory from './SimHistory';
 import {
   fetchParticipants,
   fetchRecentSessions,
@@ -38,9 +39,11 @@ export default function LiveHistory() {
     return () => { alive = false; };
   }, []);
 
-  const open = useCallback(async (id: string) => {
+  const open = useCallback(async (id: string, kind: string) => {
     setOpenId(id);
     setMsg('');
+    // 模拟调研不做积分榜，记录由 SimHistory 自己读
+    if (kind === 'sim') return;
     try {
       setParts(await fetchParticipants(id));
       setRows(await fetchSessionState(id));
@@ -72,7 +75,9 @@ export default function LiveHistory() {
     <>
       <div className="card">
         <h2 style={{ marginTop: 0 }}>历史与成绩</h2>
-        <p className="muted" style={{ fontSize: '0.9rem' }}>最近 10 场课堂活动。点开可看该场积分榜。</p>
+        <p className="muted" style={{ fontSize: '0.9rem' }}>
+          最近 10 场课堂活动。点开可看该场积分榜；模拟调研点开是问卷与访谈记录（仅教师可见）。
+        </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem' }}>
           {sessions.map((s) => (
             <div key={s.id} className="row" style={{ alignItems: 'center', gap: '0.5rem' }}>
@@ -83,8 +88,8 @@ export default function LiveHistory() {
               </span>
               {s.state === 'running' && <span className="badge">进行中</span>}
               <span className="spacer" />
-              <button className="ghost" onClick={() => void open(s.id)}>
-                {openId === s.id ? '已展开' : '查看成绩'}
+              <button className="ghost" onClick={() => void open(s.id, s.kind)}>
+                {openId === s.id ? '已展开' : s.kind === 'sim' ? '查看记录' : '查看成绩'}
               </button>
             </div>
           ))}
@@ -92,13 +97,15 @@ export default function LiveHistory() {
         {msg && <p style={{ color: 'var(--danger)', fontSize: '0.9rem' }}>{msg}</p>}
       </div>
 
-      {openId && (
+      {openId && sessions.find((x) => x.id === openId)?.kind === 'sim' && (
+        <SimHistory sessionId={openId} isTeacher={isTeacher} />
+      )}
+
+      {openId && sessions.find((x) => x.id === openId)?.kind !== 'sim' && (
         <div className="card">
           {/* 口头速答不计分：没有积分榜可看（回答本身在活动进行时可见） */}
           {sessions.find((x) => x.id === openId)?.kind === 'oral' ? (
             <p className="muted">口头速答不计分，因此没有积分榜。活动进行中的回答可在控制台查看。</p>
-          ) : sessions.find((x) => x.id === openId)?.kind === 'sim' ? (
-            <p className="muted">模拟调研不计分。问卷、三位受访者的答案与内心都留在云端，回看界面还在实装中。</p>
           ) : isTeacher ? (
             board.length === 0 ? (
               <p className="muted">这场没有成绩记录。</p>

@@ -19,6 +19,7 @@ import {
   joinLobby,
   phaseOf,
   saveQuestion,
+  simErrorMessage,
   subscribeSim,
   type SimGroup,
   type SimOption,
@@ -119,7 +120,7 @@ export default function SimStudent({ sessionId }: { sessionId: string }) {
         await joinLobby(sessionId);
         await refresh();
       } catch (e) {
-        setMsg((e as Error).message);
+        setMsg(simErrorMessage(e));
       }
     })();
   }, [joined, session, participants, uid, sessionId, refresh]);
@@ -132,7 +133,7 @@ export default function SimStudent({ sessionId }: { sessionId: string }) {
       setJoined(true);
       await refresh();
     } catch (e) {
-      setMsg((e as Error).message);
+      setMsg(simErrorMessage(e));
     } finally {
       setBusy(false);
     }
@@ -167,7 +168,7 @@ export default function SimStudent({ sessionId }: { sessionId: string }) {
       setDrafts((ds) => ds.filter((d) => d.key !== card.key));
       await refresh();
     } catch (e) {
-      setMsg((e as Error).message);
+      setMsg(simErrorMessage(e));
     }
   };
 
@@ -177,7 +178,7 @@ export default function SimStudent({ sessionId }: { sessionId: string }) {
       await deleteQuestion(sessionId, q.id);
       await refresh();
     } catch (e) {
-      setMsg((e as Error).message);
+      setMsg(simErrorMessage(e));
     }
   };
 
@@ -200,7 +201,7 @@ export default function SimStudent({ sessionId }: { sessionId: string }) {
       });
       await refresh();
     } catch (e) {
-      setMsg((e as Error).message);
+      setMsg(simErrorMessage(e));
     }
   };
 
@@ -435,6 +436,9 @@ export default function SimStudent({ sessionId }: { sessionId: string }) {
           {phase === 'answered'
             ? '老师会逐题公布他们的答案，然后才公布他们心里真正的想法。'
             : '答案与内心的揭晓在大屏上进行，手机上不用操作。'}
+        </p>
+        <p className="muted" style={{ fontSize: '0.82rem', marginTop: '0.4rem', marginBottom: 0 }}>
+          大屏上的三位受访者由 AI 按人设卡扮演，不是真人 —— 这正是我们要看「问卷量到了什么、漏掉了什么」的地方。
         </p>
       </div>
     </>

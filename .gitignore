@@ -90,6 +90,9 @@ backups/
 theory-diagnostic-report.md
 theory-cleanup-list.md
 
+# 概念网络关系边的一次性诊断记录（v97/v100 对拍；结论已进实现，报告本身不入库）
+logic-v97-probe*.md
+
 # 流派/理论关系设计决策文件（教师教学设计与知识产权，不纳入公开备份）
 流派设计决策.md
 

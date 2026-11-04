@@ -20,6 +20,7 @@ import {
   fetchSimSession,
   groupLimitOf,
   phaseOf,
+  simErrorMessage,
   subscribeSim,
   targetSizeOf,
   type SimGroup,
@@ -150,7 +151,7 @@ export default function SimHost() {
       setQuestions([]);
       setParticipants([]);
     } catch (e) {
-      setMsg((e as Error).message);
+      setMsg(simErrorMessage(e));
     } finally {
       setBusy(false);
     }
@@ -165,7 +166,7 @@ export default function SimHost() {
       await refresh(session.id);
       setMsg(`已分成 ${r.groups} 组（${r.joined} 人），学生端会自动看到自己的组号与队友。`);
     } catch (e) {
-      setMsg((e as Error).message);
+      setMsg(simErrorMessage(e));
     } finally {
       setBusy(false);
     }
@@ -183,7 +184,7 @@ export default function SimHost() {
       setQuestions([]);
       setMsg('活动已结束。');
     } catch (e) {
-      setMsg((e as Error).message);
+      setMsg(simErrorMessage(e));
     } finally {
       setBusy(false);
     }

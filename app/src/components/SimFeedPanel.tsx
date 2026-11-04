@@ -131,6 +131,7 @@ export default function SimFeedPanel({ sessionId, paper, personas, onChanged }: 
       <div className="card" style={{ marginBottom: '0.8rem' }}>
         <div className="row" style={{ alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
           <strong>投喂三位受访者（{doneCount}/{personas.length} 已完成）</strong>
+          <span className="badge">AI 模拟</span>
           <span className="spacer" />
           <button className="primary" onClick={runAll} disabled={busy || doneCount >= personas.length}>
             {busy ? '生成中…' : doneCount === 0 ? '开始投喂' : '继续投喂'}
