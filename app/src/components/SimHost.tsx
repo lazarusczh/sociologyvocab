@@ -213,31 +213,46 @@ export default function SimHost() {
           </p>
         )}
 
-        <div className="row" style={{ gap: '0.9rem', flexWrap: 'wrap', marginBottom: '0.7rem' }}>
-          <label style={{ flex: 1, minWidth: 160 }}>
-            <span className="muted" style={{ fontSize: '0.8rem' }}>活动名称</span>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={30} style={{ width: '100%' }} />
+        {/* 三格用 grid 而不是 .row：.row 是 inline 流 + align-items:center，
+            标签文字与输入框会各自换行，三列高低对不齐（2026-11-04 教师反馈） */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(9rem, 1fr))',
+            gap: '0.9rem',
+            alignItems: 'end',
+            marginBottom: '0.7rem',
+          }}
+        >
+          <label style={{ display: 'block', minWidth: 0 }}>
+            <span className="muted" style={{ display: 'block', fontSize: '0.8rem', marginBottom: '0.25rem' }}>活动名称</span>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              maxLength={30}
+              style={{ width: '100%', boxSizing: 'border-box' }}
+            />
           </label>
-          <label>
-            <span className="muted" style={{ fontSize: '0.8rem' }}>每组目标人数</span>
+          <label style={{ display: 'block', minWidth: 0 }}>
+            <span className="muted" style={{ display: 'block', fontSize: '0.8rem', marginBottom: '0.25rem' }}>每组目标人数</span>
             <input
               type="number"
               min={2}
               max={10}
               value={targetSize}
               onChange={(e) => setTargetSize(e.target.value)}
-              style={{ maxWidth: '6rem' }}
+              style={{ width: '100%', boxSizing: 'border-box' }}
             />
           </label>
-          <label>
-            <span className="muted" style={{ fontSize: '0.8rem' }}>本组题数上限</span>
+          <label style={{ display: 'block', minWidth: 0 }}>
+            <span className="muted" style={{ display: 'block', fontSize: '0.8rem', marginBottom: '0.25rem' }}>每组题数上限</span>
             <input
               type="number"
               min={1}
               max={10}
               value={perGroup}
               onChange={(e) => setPerGroup(e.target.value)}
-              style={{ maxWidth: '6rem' }}
+              style={{ width: '100%', boxSizing: 'border-box' }}
             />
           </label>
         </div>

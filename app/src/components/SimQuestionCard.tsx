@@ -296,32 +296,40 @@ export default function SimQuestionCard({
 
       {qtype === 'scale' ? (
         <div style={{ marginTop: '0.55rem' }}>
-          <div className="row" style={{ gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <label style={{ flex: 1, minWidth: 120 }}>
-              <span className="muted" style={{ fontSize: '0.78rem' }}>左端文案</span>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'minmax(8rem, 1fr) minmax(8rem, 1fr) 5rem',
+              gap: '0.5rem',
+              alignItems: 'end',
+            }}
+          >
+            <label style={{ display: 'block', minWidth: 0 }}>
+              <span className="muted" style={{ display: 'block', fontSize: '0.78rem', marginBottom: '0.2rem' }}>左端文案</span>
               <input
                 value={options[0]?.label ?? ''}
                 onChange={(e) => setLabel(0, e.target.value)}
                 placeholder="很不满意"
                 maxLength={16}
-                style={{ width: '100%' }}
+                style={{ width: '100%', boxSizing: 'border-box' }}
               />
             </label>
-            <label style={{ flex: 1, minWidth: 120 }}>
-              <span className="muted" style={{ fontSize: '0.78rem' }}>右端文案</span>
+            <label style={{ display: 'block', minWidth: 0 }}>
+              <span className="muted" style={{ display: 'block', fontSize: '0.78rem', marginBottom: '0.2rem' }}>右端文案</span>
               <input
                 value={options[options.length - 1]?.label ?? ''}
                 onChange={(e) => setLabel(options.length - 1, e.target.value)}
                 placeholder="很满意"
                 maxLength={16}
-                style={{ width: '100%' }}
+                style={{ width: '100%', boxSizing: 'border-box' }}
               />
             </label>
-            <label>
-              <span className="muted" style={{ fontSize: '0.78rem' }}>点数</span>
+            <label style={{ display: 'block', minWidth: 0 }}>
+              <span className="muted" style={{ display: 'block', fontSize: '0.78rem', marginBottom: '0.2rem' }}>点数</span>
               <select
                 value={options.length}
                 onChange={(e) => setPointCount(Number(e.target.value) as 3 | 5 | 7)}
+                style={{ width: '100%', boxSizing: 'border-box' }}
               >
                 <option value={3}>3</option>
                 <option value={5}>5</option>
