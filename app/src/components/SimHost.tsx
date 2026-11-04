@@ -12,7 +12,9 @@ import {
   closeSimSession,
   createSimSession,
   fetchGroups,
+  fetchLatestPaper,
   fetchParticipants,
+  fetchPersonas,
   fetchQuestions,
   fetchRunningSimSession,
   fetchSimSession,
@@ -21,10 +23,15 @@ import {
   subscribeSim,
   targetSizeOf,
   type SimGroup,
+  type SimPaper,
   type SimParticipant,
+  type SimPersona,
   type SimQuestion,
   type SimSession,
 } from '../lib/sim';
+import SimMergePanel from './SimMergePanel';
+import SimFeedPanel from './SimFeedPanel';
+import SimRevealPanel from './SimRevealPanel';
 
 const PHASE_LABEL: Record<string, string> = {
   lobby: '点名中',
@@ -50,6 +57,8 @@ export default function SimHost() {
   const [participants, setParticipants] = useState<SimParticipant[]>([]);
   const [groups, setGroups] = useState<SimGroup[]>([]);
   const [questions, setQuestions] = useState<SimQuestion[]>([]);
+  const [paper, setPaper] = useState<SimPaper | null>(null);
+  const [personas, setPersonas] = useState<SimPersona[]>([]);
 
   const [title, setTitle] = useState('模拟调研');
   const [targetSize, setTargetSize] = useState('5');
@@ -73,11 +82,22 @@ export default function SimHost() {
     if (ph === 'lobby') {
       setGroups([]);
       setQuestions([]);
+      setPaper(null);
+      setPersonas([]);
       return;
     }
     const [gs, qs] = await Promise.all([fetchGroups(sid), fetchQuestions(sid)]);
     setGroups(gs);
     setQuestions(qs);
+    if (ph === 'grouped') {
+      setPaper(null);
+      setPersonas([]);
+      return;
+    }
+    // 冻结之后：问卷快照 + 这个包的人设卡（卡只有教师读得到）
+    const p = await fetchLatestPaper(sid);
+    setPaper(p);
+    setPersonas(p ? await fetchPersonas(s?.config?.pack ?? 'unpaid_labour') : []);
   }, []);
 
   useEffect(() => {
@@ -332,61 +352,66 @@ export default function SimHost() {
               已有学生提交题目，重新分组会打乱作者与题目的归属，所以已禁用。
             </p>
           )}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem', marginTop: '0.5rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginTop: '0.45rem' }}>
             {groups.map((g) => {
               const members = participants.filter((p) => p.group_id === g.id);
-              const qs = questions.filter((q) => q.group_id === g.id);
+              const n = questions.filter((q) => q.group_id === g.id).length;
               return (
-                <div key={g.id} style={{ borderTop: '1px dashed var(--border)', paddingTop: '0.5rem' }}>
-                  <div className="row" style={{ alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <span className="badge">第 {g.group_no} 组</span>
-                    <span className="muted" style={{ fontSize: '0.85rem' }}>
-                      {members.length} 人 · {qs.length}/{limit} 题
-                    </span>
-                    <span className="spacer" />
-                    <span className="muted" style={{ fontSize: '0.82rem' }}>
-                      {members.map((p) => p.name || '未命名同学').join('、') || '暂无成员'}
-                    </span>
-                  </div>
-                  {qs.length > 0 && (
-                    <div style={{ marginTop: '0.3rem', display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
-                      {qs.map((q, i) => (
-                        <span key={q.id} style={{ fontSize: '0.85rem' }}>
-                          {i + 1}. {q.stem}
-                          <span className="muted">（{q.qtype === 'scale' ? '量表' : q.qtype === 'multi' ? '多选' : '单选'}）</span>
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                <div key={g.id} className="row" style={{ alignItems: 'baseline', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <span className="badge">第 {g.group_no} 组</span>
+                  <span className="muted" style={{ fontSize: '0.85rem' }}>{members.length} 人 · {n}/{limit} 题</span>
+                  <span className="muted" style={{ fontSize: '0.82rem' }}>
+                    {members.map((p) => p.name || '未命名同学').join('、') || '暂无成员'}
+                  </span>
                 </div>
               );
             })}
           </div>
           {msg && <p style={{ color: 'var(--danger)', fontSize: '0.9rem' }}>{msg}</p>}
         </div>
-        <div className="card">
-          <p className="muted" style={{ marginTop: 0 }}>
-            下一步是「按组挑题、合成班级问卷，再请三位受访者作答」—— 那部分界面还在实装中，
-            现阶段可以先用这页看各组进度。
-          </p>
-        </div>
+
+        <SimMergePanel
+          sessionId={session.id}
+          groups={groups}
+          participants={participants}
+          questions={questions}
+          limit={limit}
+          onFrozen={(v) => {
+            setMsg(`问卷已冻结（version ${v}），进入投喂阶段。`);
+            void refresh(session.id);
+          }}
+        />
       </>
     );
   }
 
+  if (phase === 'frozen') {
+    return (
+      <>
+        {header}
+        {paper ? (
+          <SimFeedPanel
+            sessionId={session.id}
+            paper={paper}
+            personas={personas}
+            onChanged={() => void refresh(session.id)}
+          />
+        ) : (
+          <div className="card"><p className="muted" style={{ margin: 0 }}>正在载入冻结的问卷…</p></div>
+        )}
+      </>
+    );
+  }
+
+  // answered / reveal
   return (
     <>
       {header}
-      <div className="card">
-        <p style={{ marginTop: 0 }}>阶段：{PHASE_LABEL[phase] ?? phase}</p>
-        <p className="muted" style={{ marginBottom: 0 }}>
-          {phase === 'frozen'
-            ? '班级问卷已定稿，接下来投喂三位受访者（合并与投喂界面在实装中）。'
-            : phase === 'answered'
-              ? '三位受访者已作答，可以逐题揭晓（投屏界面在实装中）。'
-              : '正在逐题揭晓，学生端只提示「请看大屏」。'}
-        </p>
-      </div>
+      {paper ? (
+        <SimRevealPanel sessionId={session.id} paper={paper} pack={session.config?.pack ?? 'unpaid_labour'} />
+      ) : (
+        <div className="card"><p className="muted" style={{ margin: 0 }}>正在载入问卷…</p></div>
+      )}
     </>
   );
 }

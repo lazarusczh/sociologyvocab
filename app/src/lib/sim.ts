@@ -106,6 +106,7 @@ export interface SimReveal {
   session_id: string;
   qid: string;
   stage: 'answers' | 'inner';
+  revealed_at: string;
 }
 
 export const phaseOf = (s: SimSession | null): SimPhase =>

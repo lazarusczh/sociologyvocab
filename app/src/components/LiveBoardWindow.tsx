@@ -23,6 +23,7 @@ import {
   type LiveStateRow,
 } from '../lib/live';
 import LiveBoard from './LiveBoard';
+import SimBoard from './SimBoard';
 
 export default function LiveBoardWindow({ sessionId }: { sessionId: string }) {
   const [session, setSession] = useState<LiveSession | null>(null);
@@ -40,6 +41,8 @@ export default function LiveBoardWindow({ sessionId }: { sessionId: string }) {
     const s = await fetchSession(sessionId);
     setSession(s);
     if (!s) return;
+    // 模拟调研由 SimBoard 自己取数（问卷 / 答案 / 内心 / 揭晓进度）
+    if (s.kind === 'sim') return;
     setParticipants(await fetchParticipants(sessionId));
     if (s.kind === 'oral') {
       const r = await fetchLatestOralRound(sessionId);
@@ -74,6 +77,10 @@ export default function LiveBoardWindow({ sessionId }: { sessionId: string }) {
 
   if (!session) {
     return <div style={big}><p style={{ fontSize: '1.4rem', ...muted }}>正在载入投屏数据…</p></div>;
+  }
+
+  if (session.kind === 'sim') {
+    return <SimBoard sessionId={sessionId} />;
   }
 
   if (session.kind === 'oral') {
