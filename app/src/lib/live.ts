@@ -52,7 +52,8 @@ export function roundSeconds(config: Partial<LiveConfig> | null | undefined, sta
 // ---- 行类型 ----
 export interface LiveSession {
   id: string;
-  kind: 'spell' | 'guess' | 'oral';
+  // sim = 模拟调研（控制台与数据层在 lib/sim.ts，这里只用于分派）
+  kind: 'spell' | 'guess' | 'oral' | 'sim';
   class_id: string | null;
   host_id: string | null;
   title: string | null;

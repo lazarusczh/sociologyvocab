@@ -43,6 +43,7 @@ import {
 import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
 import LiveBoard from './LiveBoard';
 import LiveOralHost from './LiveOralHost';
+import SimHost from './SimHost';
 
 // 输入框 -> 秒数：允许教师留空（回落默认），并夹在 5s ~ 600s 之间
 function toSeconds(v: string, fallback: number): number {
@@ -176,7 +177,7 @@ export default function LiveHost() {
     // "cannot add postgres_changes callbacks ... after subscribe()"，
     // 而 effect 抛错 = React 卸载整棵树 = **整页白屏**（2026-10-08 事故）。
     // hooks 都在条件 return 之前，所以必须在这里显式跳过，不能靠"不渲染"来回避。
-    if (!session || session.kind === 'oral') return;
+    if (!session || session.kind === 'oral' || session.kind === 'sim') return;
     return subscribeLive(session.id, () => void refresh(session.id));
   }, [session, refresh]);
 
@@ -462,6 +463,11 @@ export default function LiveHost() {
         {msg && <p style={{ color: 'var(--danger)', fontSize: '0.9rem' }}>{msg}</p>}
       </div>
     );
+  }
+
+  // 模拟调研有自己的控制台（点名 / 分组 / 后续合并投喂）
+  if (session.kind === 'sim') {
+    return <SimHost />;
   }
 
   // 口头速答交给它自己的控制台（与拼写竞赛完全分开）

@@ -104,7 +104,7 @@ create table if not exists public.sim_persona_inner (
   session_id uuid not null,
   paper_version int not null,
   persona_id uuid not null,
-  inner jsonb not null,
+  inner_json jsonb not null,   -- 列名不能叫 inner（PostgreSQL 保留字）
   closing text,
   raw jsonb,
   created_at timestamptz not null default now(),
@@ -674,10 +674,10 @@ begin
   on conflict (session_id, paper_version, persona_id)
   do update set answers = excluded.answers, created_at = now();
 
-  insert into public.sim_persona_inner (session_id, paper_version, persona_id, inner, closing, raw)
+  insert into public.sim_persona_inner (session_id, paper_version, persona_id, inner_json, closing, raw)
   values (p_session_id, p_version, p_persona_id, coalesce(p_inner, '[]'::jsonb), p_closing, p_raw)
   on conflict (session_id, paper_version, persona_id)
-  do update set inner = excluded.inner, closing = excluded.closing, raw = excluded.raw, created_at = now();
+  do update set inner_json = excluded.inner_json, closing = excluded.closing, raw = excluded.raw, created_at = now();
 
   -- 三人齐了才把阶段推到 answered
   select count(*) into v_have from public.sim_persona_answers a

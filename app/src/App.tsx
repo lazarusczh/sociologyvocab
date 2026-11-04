@@ -29,6 +29,7 @@ import ConceptMapView from './components/ConceptMapView';
 import PastPaperTopics from './components/PastPaperTopics';
 import LiveRoom from './components/LiveRoom';
 import LiveHistory from './components/LiveHistory';
+import SimHost from './components/SimHost';
 import LiveBoardWindow from './components/LiveBoardWindow';
 
 export type View =
@@ -53,6 +54,7 @@ export type View =
   | 'backup'
   | 'profile'
   | 'live'
+  | 'sim'
   | 'liveHistory'
   | 'dev';
 
@@ -119,6 +121,7 @@ const NAV_PILLS: NavPill[] = [
   // 还要分辨是登录态问题还是部署问题。
   { group: '课堂活动', items: [
     { key: 'live', label: '创建课堂活动', role: 'teacher' },
+    { key: 'sim', label: '模拟调研', role: 'teacher' },
     { key: 'live', label: '加入课堂活动', role: 'student' },
     { key: 'liveHistory', label: '历史与成绩' },
   ]},
@@ -567,6 +570,7 @@ function AppBody() {
         {view === 'conceptmap' && <ConceptMapView />}
         {view === 'papers' && <PastPaperTopics />}
         {view === 'live' && <LiveRoom />}
+        {view === 'sim' && (isTeacher ? <SimHost /> : <LiveRoom />)}
         {view === 'liveHistory' && <LiveHistory />}
         {view === 'profile' && authUser && <ProfilePanel />}
         {view === 'dev' && isDeveloper && <DevPanel />}

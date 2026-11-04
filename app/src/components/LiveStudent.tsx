@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from '../lib/store';
 import LiveOralStudent from './LiveOralStudent';
+import SimStudent from './SimStudent';
 import {
   fetchGroupState,
   fetchLatestRound,
@@ -91,7 +92,8 @@ export default function LiveStudent() {
         const s = await fetchRunningSession();
         if (!alive) return;
         setSession(s);
-        if (s) await refresh(s.id);
+        // 模拟调研有自己的数据层与阶段，不走拼写竞赛那套刷新
+        if (s && s.kind !== 'sim') await refresh(s.id);
       } catch (e) {
         setMsg((e as Error).message);
       } finally {
@@ -121,9 +123,9 @@ export default function LiveStudent() {
           sessionIdRef.current = s?.id ?? null;
           setSession(s);
           setInput('');
-          if (s) {
+          if (s && s.kind !== 'sim') {
             await refresh(s.id);
-          } else {
+          } else if (!s) {
             setParticipants([]);
             setJoined(false);
             setRound(null);
@@ -147,7 +149,7 @@ export default function LiveStudent() {
   useEffect(() => {
     // 同 LiveHost：口头速答的订阅归 LiveOralStudent，这里必须跳过，
     // 否则两个组件订阅同名 channel 会在 subscribe() 之后再加回调而抛错（白屏）。
-    if (!session || !joined || session.kind === 'oral') return;
+    if (!session || !joined || session.kind === 'oral' || session.kind === 'sim') return;
     return subscribeLive(session.id, (sig) => {
       if (sig.table !== 'live_participants') void refresh(session.id);
     });
@@ -194,6 +196,11 @@ export default function LiveStudent() {
         <p className="muted">当前没有进行中的课堂活动。老师发起后这里会出现加入按钮，首页也会有提示。</p>
       </div>
     );
+  }
+
+  // 模拟调研：整段交给 SimStudent（它自己处理加入、分组与阶段）
+  if (session.kind === 'sim') {
+    return <SimStudent sessionId={session.id} />;
   }
 
   const header = (
