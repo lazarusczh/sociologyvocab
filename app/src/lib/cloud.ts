@@ -380,11 +380,27 @@ export async function useBonusCard(submissionId: string): Promise<BonusCardResul
   return (data ?? { ok: false, reason: 'unknown' }) as BonusCardResult;
 }
 
-// 教师重判某试卷：传入 submission_id -> 新分数，RPC 批量更新（security definer，仅 teacher/developer 可调用）
-export async function regradeQuizSubmissions(quizId: string, scores: Record<string, number>): Promise<number> {
+// 重判的入参：每份答卷的新分数 **和** 重算后的订正加分。
+//
+// ⚠ 为什么 bonus 要前端算好再传（而不是让 SQL 自己算）：
+//   `correctionBonus(S, M, percent)` 依赖原始分 S，重判改了 score 就得按新 S 重算
+//   ——「跟着变」这个判断只有前端做得对，因为判分逻辑（别名 / 单复数 / 学者姓氏 /
+//   拼写容错）全在 TS 里，SQL 侧复刻等于重写 `answers.ts`。
+//   SQL 只做算术：final_score = clamp(score − penalty + bonus + card_bonus, 0, M)。
+//   详见 db-migration-regrade-v2.sql 头部。
+export interface RegradeEntry {
+  score: number;
+  bonus: number;
+}
+
+// 教师重判某试卷：批量更新分数与最终分（security definer，仅 teacher/developer 可调用）
+export async function regradeQuizSubmissions(
+  quizId: string,
+  grades: Record<string, RegradeEntry>,
+): Promise<number> {
   const { data, error } = await supabase.rpc('regrade_quiz_submissions', {
     p_quiz_id: quizId,
-    p_scores: scores,
+    p_scores: grades,
   });
   if (error) throw error;
   return Number(data ?? 0);

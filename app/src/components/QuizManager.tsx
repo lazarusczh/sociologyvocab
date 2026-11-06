@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useStore } from '../lib/store';
 import type { VocabItem, Quiz, QuizSubmission, QuizQuestionType, QuizKind } from '../lib/types';
-import { buildQuizQuestions, sampleItems, TYPE_LABELS, KIND_LABELS, formatDuration, isAnswerCorrect, answerText, correctAnswerText, totalPoints, matchingCorrectCount, gradeQuiz, refreshQuestionAliases, crosswordClueResults } from '../lib/quiz';
+import { buildQuizQuestions, sampleItems, TYPE_LABELS, KIND_LABELS, formatDuration, isAnswerCorrect, answerText, correctAnswerText, totalPoints, matchingCorrectCount, gradeQuiz, refreshQuestionAliases, correctionBonus, crosswordClueResults } from '../lib/quiz';
 import { PAPER_ORDER } from '../lib/storage';
 import { unitListFor } from '../lib/unitMapping';
 import { maskEmail } from '../lib/shuffle';
 import { copyText } from '../lib/clipboard';
-import { createQuiz, updateQuiz, updateQuizQuestions, listQuizzes, listQuizSubmissions, deleteQuiz, listDeveloperIds, deleteSubmission, countSubmittedByQuizzes, regradeQuizSubmissions, ensureQuizShortCode, listMbTaskLinksForQuiz, listMbRoster, listClassesWithMb, matchMbTask, replaceMbTaskLink, deleteMbTaskLink, fetchMbMarks, writeMbMarks, listSubmissionsByQuizzes, latestMbWriteLogs, logMbWrite, type MbTaskLinkRow, type ClassMbRow, type MbWriteLogRow } from '../lib/cloud';
+import { createQuiz, updateQuiz, updateQuizQuestions, listQuizzes, listQuizSubmissions, deleteQuiz, listDeveloperIds, deleteSubmission, countSubmittedByQuizzes, regradeQuizSubmissions, ensureQuizShortCode, listMbTaskLinksForQuiz, listMbRoster, listClassesWithMb, matchMbTask, replaceMbTaskLink, deleteMbTaskLink, fetchMbMarks, writeMbMarks, listSubmissionsByQuizzes, latestMbWriteLogs, logMbWrite, type MbTaskLinkRow, type ClassMbRow, type MbWriteLogRow, type RegradeEntry } from '../lib/cloud';
 import { staleAgainstSnapshot, staleLabel, finalScoreOf, type StaleResult } from '../lib/mbStale';
+import { aliasClusters, driftLabel, scoreDrift, type HintSub } from '../lib/regradeHints';
 import { classMatchesGrade, firstPaperNumber, inferGrade, type Grade } from '../lib/mbSync';
 import QuizWrongBoard from './QuizWrongBoard';
 import ScrollText from './ScrollText';
@@ -238,6 +239,31 @@ export default function QuizManager() {
     }
     return out;
   }, [quizzes, listSubs, writeLogs, devIds]);
+
+  // 重判前检查：口径漂移 + 疑似别名缺口（纯站内计算，不抓 ManageBac，不耗配额）。
+  // 只在进入某卷成绩页时算 —— 主列表一次算全部卷会白跑（绝大多数是已同步的卷）。
+  // ⚠ 排除 developer 测试账号，口径与 staleByQuiz / previewSync 一致。
+  const regradeHints = useMemo(() => {
+    if (!viewing) return null;
+    const itemById = new Map(vocab.map((i) => [i.id, i]));
+    const refreshed = refreshQuestionAliases(viewing.questions, itemById);
+    const hints: HintSub[] = subs
+      .filter((s) => s.status === 'submitted' && !devIds.has(s.user_id))
+      .map((s) => ({
+        id: s.id,
+        user_id: s.user_id,
+        status: s.status,
+        score: s.score,
+        name: s.name,
+        answers: s.answers,
+      }));
+    return {
+      drift: scoreDrift(refreshed, hints),
+      // 阈值 3：同题同一错法要 3 人才提示 —— 2 人可能是各自拼错，
+      // 又会把班级小卷刷成满屏提示；够不到阈值的仍能在「错题分析」里看到。
+      clusters: aliasClusters(refreshed, hints, 3),
+    };
+  }, [viewing, subs, vocab, devIds]);
 
   // 启动时检测是否有暂存草稿
   useEffect(() => {
@@ -488,15 +514,28 @@ export default function QuizManager() {
   // 关键：题目快照的 aliases 不随词库发布自动更新——教师在词库新增/修改容错后，
   // 先用「当前词库」刷新拼写题快照再判分，并把新快照写回，保证学生端历史详情、
   // 后续迟交作答与错题分析都同口径（旧卷此前按快照判错是「没加分」的根因）。
+  //
+  // ⚠ 订正加分必须**跟着新 score 一起重算**：`correctionBonus(S, M, percent)` 的自变量
+  //   就是原始分 S，重判改了 S 而 bonus 不动，最终分就会算错。这也正是
+  //   db-migration-regrade-v2.sql 里 bonus 由前端传入（而非 SQL 自己算）的原因。
+  //   用户已确认：实测中人工重判都是及时的，不存在「学生先订正、教师后改 alias」的错乱，
+  //   故不必为历史数据做特殊规避。
   const regrade = async () => {
     if (!viewing) return;
     const itemById = new Map(vocab.map((i) => [i.id, i]));
     const refreshedQuestions = refreshQuestionAliases(viewing.questions, itemById);
     const questionsChanged = refreshedQuestions.some((q, i) => q !== viewing.questions[i]);
-    const scores: Record<string, number> = {};
+    const maxPoints = totalPoints(refreshedQuestions);
+    const percent = viewing.grading_rules?.correction_bonus?.percent ?? 10;
+    const grades: Record<string, RegradeEntry> = {};
     for (const s of subs) {
       if (s.status !== 'submitted') continue;
-      scores[s.id] = gradeQuiz(refreshedQuestions, s.answers ?? {});
+      const score = gradeQuiz(refreshedQuestions, s.answers ?? {});
+      // 订正加分口径与 CorrectionPractice.tsx:94-120 完全一致：只有「订正全对」且作业才加分
+      const bonus = s.correction?.all_correct && viewing.kind === 'homework'
+        ? correctionBonus(score, maxPoints, percent)
+        : 0;
+      grades[s.id] = { score, bonus };
     }
     try {
       setRegrading(true);
@@ -505,11 +544,11 @@ export default function QuizManager() {
         await updateQuizQuestions(viewing.id, refreshedQuestions);
         setViewing({ ...viewing, questions: refreshedQuestions });
       }
-      if (Object.keys(scores).length === 0) {
+      if (Object.keys(grades).length === 0) {
         setError(questionsChanged ? '已按当前词库刷新拼写题容错快照，但暂无已提交答卷可重判。' : '没有已提交的答卷可重判。');
         return;
       }
-      const n = await regradeQuizSubmissions(viewing.id, scores);
+      const n = await regradeQuizSubmissions(viewing.id, grades);
       setSubs(await listQuizSubmissions(viewing.id));
       setMsg(
         questionsChanged
@@ -517,7 +556,7 @@ export default function QuizManager() {
           : `已按最新容错规则重判 ${n} 份答卷。`,
       );
     } catch (e) {
-      setError(`重判失败：${(e as Error).message}（如尚未执行重判 RPC，请先在 Supabase SQL Editor 运行 db-migration-regrade.sql）`);
+      setError(`重判失败：${(e as Error).message}（如尚未执行重判 RPC，请先在 Supabase SQL Editor 运行 db-migration-regrade-v2.sql）`);
     } finally {
       setRegrading(false);
     }
@@ -935,6 +974,10 @@ export default function QuizManager() {
 
   if (viewing) {
     const detailSubmission = detailUser ? subs.find((s) => s.user_id === detailUser) : null;
+    // 重判前检查（B/C）合并成一张卡片，避免两条提示各占一块、把页面顶乱
+    const driftNote = regradeHints ? driftLabel(regradeHints.drift) : null;
+    const clusters = regradeHints?.clusters ?? [];
+    const shownClusters = clusters.slice(0, 6);
     return (
       <div>
         <div className="card" style={{ marginBottom: '0.8rem' }}>
@@ -948,6 +991,61 @@ export default function QuizManager() {
             <span className="muted" style={{ fontSize: '0.85rem' }}>密码 {viewing.code} · 共 {viewing.question_count} 题</span>
           </div>
         </div>
+
+        {/* 重判前检查：两块提示合并成一张卡（用户要求 BC 同时出现时也不能乱）。
+            两块都是纯站内比对——不抓 ManageBac，不耗配额，也不改任何数据。 */}
+        {(driftNote || clusters.length > 0) && (
+          <div className="card" style={{ marginBottom: '0.8rem', padding: '0.8rem' }}>
+            <div className="row" style={{ alignItems: 'center', gap: '0.4rem' }}>
+              <strong>重判前检查</strong>
+              <span className="badge warn">建议先看</span>
+              <span className="spacer" />
+              <span className="muted" style={{ fontSize: '0.78rem' }}>只做站内比对，不抓 ManageBac</span>
+            </div>
+
+            {driftNote && (
+              <div style={{ marginTop: '0.55rem' }}>
+                <div className="row tight" style={{ alignItems: 'center' }}>
+                  <span className="badge review">口径已变</span>
+                  <span style={{ fontSize: '0.88rem' }}>{driftNote}</span>
+                </div>
+                <div className="muted" style={{ fontSize: '0.8rem', marginTop: '0.2rem' }}>
+                  {regradeHints!.drift.samples.slice(0, 3).map((s) => `${s.name} ${s.from}→${s.to}`).join('，')}
+                  {regradeHints!.drift.changed > 3 ? ` 等 ${regradeHints!.drift.changed} 人` : ''}
+                  <span> · 重判会按当前容错规则改分（已订正的会连带重算订正加分）</span>
+                </div>
+              </div>
+            )}
+
+            {clusters.length > 0 && (
+              <div style={{ marginTop: driftNote ? '0.6rem' : '0.55rem', paddingTop: driftNote ? '0.6rem' : 0, borderTop: driftNote ? '1px dashed var(--border)' : undefined }}>
+                <div className="row tight" style={{ alignItems: 'center' }}>
+                  <span className="badge review">疑似别名缺口</span>
+                  <span style={{ fontSize: '0.88rem' }}>
+                    {clusters.length} 处同一错法被多个学生写出，可能是容错规则缺了写法
+                  </span>
+                </div>
+                <ul className="muted" style={{ margin: '0.35rem 0 0', paddingLeft: '1.1rem', fontSize: '0.82rem' }}>
+                  {shownClusters.map((c) => (
+                    <li key={`${c.itemId}\u0000${c.answer}`}>
+                      <strong style={{ color: 'var(--text)' }}>{c.term}</strong>
+                      {' · '}
+                      {c.users} 人写「{c.answer}」
+                      <span>（{c.names.join('、')}{c.users > c.names.length ? ' 等' : ''}）</span>
+                    </li>
+                  ))}
+                  {clusters.length > shownClusters.length && (
+                    <li>还有 {clusters.length - shownClusters.length} 处，见「错题分析」</li>
+                  )}
+                </ul>
+                <div className="muted" style={{ fontSize: '0.78rem', marginTop: '0.3rem' }}>
+                  这是候选不是结论——也可能是学生都拼错。确认是写法问题时去「词条管理」加别名，再点「重判」。
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {error && <div className="card" style={{ marginBottom: '0.8rem', background: 'var(--warn-bg)', borderColor: 'var(--warn)' }}>{error}</div>}
         {msg && <div className="card" style={{ marginBottom: '0.8rem', background: 'var(--ok-bg)', borderColor: 'var(--ok)' }}>{msg}</div>}
 
