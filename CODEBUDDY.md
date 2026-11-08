@@ -43,6 +43,7 @@
   - `app/android` 现在是个 **junction**，指向 `C:\vocab-build\android`。内容不在 OneDrive 内，OneDrive 看不见、不同步它。
   - **本仓库已不跟踪 `app/android`**（2026-09-22；它另有自己的 git 仓库）。所以对它内部的改动（例如版本号）不会出现在本仓库的 `git status` 里 —— 读到「改了 build.gradle 但 status 里没有」不要以为是没保存。
   - **不要删除、移动、或以普通目录的方式复制 `app/android` 本身** —— 会破坏联接。要换位置就删掉 junction 再重建。
+  - **AI 的进程穿不过 junction**：读 `app\android\app\build.gradle` 会报「路径不存在」（与 `cap sync android` 的 `WinError 448` 同一限制，2026-11-08 实测）⇒ **改版本号直接操作真实路径 `C:\vocab-build\android\app\build.gradle`**，不要以为文件丢了。
   - 若它突然变成"无法访问的文件夹"：说明 `C:\vocab-build\android` 丢了，从 `C:\vocab-build\android.od-bak`（迁移前的完整副本，791 文件 / 44.8 MB）恢复即可；确认无需回退后可删该副本。
   - `app/android/app/build.gradle` 与 `app/android/build.gradle` 里的 `layout.buildDirectory.set(...)` **保留**，作为第二层保险。
   - **起因**：OneDrive 会把 `android` 下的条目接管成"云占位"（属性 `525328`/`525360`/`525344`，含 `PINNED | REPARSE_POINT`）。先是 `:app:packageRelease` 删不掉中间目录，后来 `:app:mergeReleaseAssets` 报 `Cannot snapshot ...: not a regular file`（文件内容不在本地，Gradle 的 `Files.isRegularFile()` 返回 false）。**后者无法靠 Gradle 配置绕过**（assets 必须真读出来打进 APK），只能让文件脱离 OneDrive。当天还遇到 OneDrive 自身卡死（`metadata.sqlite-shm` 被锁、卡在 61%、暂停同步也点不动），使 `android/app/src` 全体进入中间态，最后靠重启电脑恢复；**不要强杀 OneDrive 进程**（教师反馈曾导致重启后它认不出同步根配置）。
