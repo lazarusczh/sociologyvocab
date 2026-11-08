@@ -4,10 +4,11 @@ import { useRoundXp } from '../lib/xpSummary';
 import XpGain from './XpGain';
 import type { Quiz, QuizQuestion, QuizSubmission } from '../lib/types';
 import { getQuizByCode, getMySubmission, upsertSubmission, submitQuizSubmission, listMySubmissions, useBonusCard } from '../lib/cloud';
-import { gradeQuiz, shuffleQuestionsBySeed, randomOrderSeed, formatDuration, TYPE_LABELS, KIND_LABELS, isAnswerCorrect, answerText, correctAnswerText, matchingCorrectCount, totalPoints, extractWrongItemIds, crosswordClueResults } from '../lib/quiz';
+import { gradeQuiz, shuffleQuestionsBySeed, randomOrderSeed, formatDuration, TYPE_LABELS, KIND_LABELS, isAnswerCorrect, answerText, correctAnswerText, matchingCorrectCount, totalPoints, extractWrongItemIds, crosswordClueResults, crosswordCellKey } from '../lib/quiz';
 import { shuffle } from '../lib/shuffle';
 import CorrectionPractice from './CorrectionPractice';
 import CrosswordAnswer, { CrosswordClueResults } from './CrosswordAnswer';
+import ConfirmModal from './ConfirmModal';
 import { isServerCheckinEnabled } from '../lib/checkinMode';
 import { useCardBalance } from '../lib/cards';
 
@@ -33,6 +34,28 @@ function formatLateDuration(ms: number): string {
   return `${Math.max(1, mins)} 分钟`;
 }
 
+/** 某题是否已作答：只用于交卷确认里的「还有 N 题未作答」提示，不参与判分。
+ *  块型题（匹配 / 填字）按「是否填满」判定，与判分口径无关。 */
+function isQuestionAnswered(q: QuizQuestion, answers: Record<string, string | number>): boolean {
+  if (q.type === 'matching') {
+    const pairs = q.pairs ?? [];
+    if (pairs.length === 0) return false;
+    return pairs.every((p) => answers[p.itemId] !== undefined && String(answers[p.itemId]) !== '');
+  }
+  if (q.type === 'crossword') {
+    const cw = q.crossword;
+    if (!cw) return false;
+    for (let r = 0; r < cw.grid.length; r++) {
+      for (let c = 0; c < cw.grid[r].length; c++) {
+        if (!cw.grid[r][c].blocked && !answers[crosswordCellKey(q.id, r, c)]) return false;
+      }
+    }
+    return true;
+  }
+  const v = answers[q.itemId];
+  return v !== undefined && String(v).trim() !== '';
+}
+
 export default function QuizTaker() {
   const { authUser, setInQuiz, recordItem } = useStore();
   const [phase, setPhase] = useState<Phase>('enter');
@@ -46,6 +69,8 @@ export default function QuizTaker() {
   const [qi, setQi] = useState(0);
   const [score, setScore] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [submitConfirm, setSubmitConfirm] = useState(false); // 交卷确认弹层（防误触：最后一题的按钮位置就是「下一题」的位置）
+  const [confirmArmed, setConfirmArmed] = useState(false); // 弹层里的「确认交卷」延迟可点，防止连点两下直接穿过弹层
   const [grading, setGrading] = useState<QuizSubmission['grading']>(null); // 交卷后回读的评分结算（迟交罚分等）
 
   const [seed, setSeed] = useState(0);
@@ -289,6 +314,7 @@ export default function QuizTaker() {
     if (!quiz || !authUser || submittedRef.current) return;
     submittedRef.current = true;
     setSubmitted(true);
+    setSubmitConfirm(false); // 超时自动交卷时若弹层正开着，一并关掉
     setBusy(true);
     setError('');
     const finalScore = gradeQuiz(questions, answers);
@@ -326,6 +352,23 @@ export default function QuizTaker() {
       setBusy(false);
     }
   }, [quiz, authUser, questions, answers, seed, setInQuiz, recordQuizResults]);
+
+  // 学生点「交卷」的入口（各题型的「下一题」在最后一题会变成「交卷」，且与全局交卷按钮相邻）：
+  // 一律先弹确认，避免误触直接把作业交掉。超时自动交卷不走这里，直接 doSubmit。
+  const requestSubmit = useCallback(() => {
+    if (submittedRef.current) return;
+    setSubmitConfirm(true);
+  }, []);
+
+  // 弹层里的「确认交卷」延迟 400ms 才可点：连点两下时第二次点击不会穿过弹层直接交卷
+  useEffect(() => {
+    if (!submitConfirm) {
+      setConfirmArmed(false);
+      return;
+    }
+    const t = setTimeout(() => setConfirmArmed(true), 400);
+    return () => clearTimeout(t);
+  }, [submitConfirm]);
 
   // 作业模式：保存并退出（不判分，记录草稿）
   const saveAndExit = async () => {
@@ -557,6 +600,8 @@ export default function QuizTaker() {
 
   // taking
   const q = questions[qi];
+  const unanswered = questions.filter((qq) => !isQuestionAnswered(qq, answers)).length;
+  const armedLabel = confirmArmed ? '确认交卷' : '请稍候…';
   if (!q) {
     // 理论上不会到这里（超时/交卷会切走），兜底显示
     return <div className="card center"><p className="muted">加载中…</p></div>;
@@ -599,11 +644,11 @@ export default function QuizTaker() {
         <h2 style={{ margin: '0.5rem 0 1rem' }}>{q.prompt}</h2>
 
         {q.type === 'spelling' && (
-          <SpellingAnswer key={q.id} q={q} value={answers[q.itemId]} onChange={setAnswer} onNext={() => setQi((i) => i + 1)} isLast={qi === questions.length - 1} onSubmit={() => doSubmit()} />
+          <SpellingAnswer key={q.id} q={q} value={answers[q.itemId]} onChange={setAnswer} onNext={() => setQi((i) => i + 1)} isLast={qi === questions.length - 1} onSubmit={requestSubmit} />
         )}
 
         {q.type === 'choice' && q.options && (
-          <ChoiceAnswer key={q.id} q={q} value={answers[q.itemId]} onChange={setAnswer} onNext={() => setQi((i) => i + 1)} isLast={qi === questions.length - 1} onSubmit={() => doSubmit()} />
+          <ChoiceAnswer key={q.id} q={q} value={answers[q.itemId]} onChange={setAnswer} onNext={() => setQi((i) => i + 1)} isLast={qi === questions.length - 1} onSubmit={requestSubmit} />
         )}
 
         {q.type === 'matching' && (
@@ -615,7 +660,7 @@ export default function QuizTaker() {
             onUnpair={(termId) => setAnswers((prev) => { const next = { ...prev }; delete next[termId]; return next; })}
             onNext={() => setQi((i) => i + 1)}
             isLast={qi === questions.length - 1}
-            onSubmit={() => doSubmit()}
+            onSubmit={requestSubmit}
           />
         )}
 
@@ -632,7 +677,7 @@ export default function QuizTaker() {
             })}
             onNext={() => setQi((i) => i + 1)}
             isLast={qi === questions.length - 1}
-            onSubmit={() => doSubmit()}
+            onSubmit={requestSubmit}
           />
         )}
       </div>
@@ -648,9 +693,31 @@ export default function QuizTaker() {
           {quiz?.allow_resume && (
             <button className="ghost" onClick={saveAndExit} disabled={busy}>保存并退出</button>
           )}
-          <button className="primary" onClick={() => doSubmit()} disabled={submitted || busy || pastDue}>{busy ? '交卷中…' : '交卷'}</button>
+          <button className="primary" onClick={requestSubmit} disabled={submitted || busy || pastDue}>{busy ? '交卷中…' : '交卷'}</button>
         </div>
       </div>
+
+      {/* 交卷确认：最后一题的作答按钮会从「下一题 →」变成「交卷」，位置不变，容易误触 */}
+      <ConfirmModal
+        open={submitConfirm}
+        title="确认交卷？"
+        body={
+          <>
+            {unanswered > 0
+              ? `还有 ${unanswered} 题未作答（共 ${questions.length} 题）。`
+              : `已答完全部 ${questions.length} 题。`}
+            {'\n'}交卷后不能再修改答案，也不能重新作答。
+            {isLate ? '\n本次为迟交，将按迟交天数扣分。' : ''}
+            {'\n'}要不要先检查一遍？点「继续作答」返回。
+          </>
+        }
+        confirmText={armedLabel}
+        cancelText="继续作答"
+        confirmDisabled={!confirmArmed}
+        dismissOnBackdrop={false}
+        onCancel={() => setSubmitConfirm(false)}
+        onConfirm={() => { setSubmitConfirm(false); doSubmit(); }}
+      />
     </div>
   );
 }

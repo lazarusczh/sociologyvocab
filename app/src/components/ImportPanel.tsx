@@ -1,35 +1,9 @@
-import { useState, useRef, type ReactNode } from 'react';
+import { useState, useRef } from 'react';
 import { useStore } from '../lib/store';
 import { publishVocab, pullLatestVocab, replaceAnswerForms } from '../lib/cloud';
 import { saveVocabVersion } from '../lib/storage';
 import type { ImportResult } from '../lib/types';
-
-// 通用确认弹层：替代 window.confirm（iframe 预览沙箱中 confirm 被禁用，自定义 UI 在 iframe/APK WebView 中都可靠）
-function ConfirmModal({ open, title, body, confirmText = '确认', onCancel, onConfirm }: {
-  open: boolean;
-  title: string;
-  body: ReactNode;
-  confirmText?: string;
-  onCancel: () => void;
-  onConfirm: () => void;
-}) {
-  if (!open) return null;
-  return (
-    <div
-      style={{ position: 'fixed', inset: 0, background: 'rgba(15, 20, 27, 0.45)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
-      onClick={onCancel}
-    >
-      <div className="card" style={{ maxWidth: 440, width: '100%', padding: '1rem' }} onClick={(e) => e.stopPropagation()}>
-        <h3 style={{ marginTop: 0 }}>{title}</h3>
-        <div className="muted" style={{ fontSize: '0.9rem', whiteSpace: 'pre-line' }}>{body}</div>
-        <div className="row" style={{ justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.9rem' }}>
-          <button onClick={onCancel}>取消</button>
-          <button className="primary" onClick={onConfirm}>{confirmText}</button>
-        </div>
-      </div>
-    </div>
-  );
-}
+import ConfirmModal from './ConfirmModal';
 
 export default function ImportPanel() {
   const { vocab, importFiles, appendVocab, replaceVocab, clearAll, surnameOverrides, setSurnameOverride, removeSurnameOverride, replaceSurnameOverrides, unitOrder, vocabDirty, clearVocabDirty } = useStore();
