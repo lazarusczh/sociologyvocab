@@ -241,6 +241,53 @@ export async function createQuiz(input: {
   return code;
 }
 
+// 教师把某份卷「另存为补交卷」（给个别学生补做用）：全新短码、题目快照原样复制、时间窗口重置。
+//
+// ⚠ 必须复制 `questions` 快照，不能走「编辑后重新生成」：重新组题会得到另一份卷
+//   （拼写题容错快照、匹配分组、填字网格都会变），学生做的就不是原来那份了。
+//
+// 三处刻意重置的字段：
+//   open_at = null        立即开放（源卷的开考时间通常已经过去）
+//   due_at  = now + N 小时 重新给窗口 —— 照抄源卷已过的 due_at 会把学生直接拦在门外
+//   allow_late = true     补交本来就是例外，截止后仍要能交（否则交卷 RPC 硬拦）
+// `mb_short_code` 刻意不复制：那是 ManageBac task 绑定的身份，复制会产生两条同码记录。
+export async function duplicateQuiz(
+  source: Quiz,
+  opts: { title: string; dueInHours: number | null; createdBy: string | null },
+): Promise<string> {
+  const dueAt = opts.dueInHours == null || source.kind !== 'homework'
+    ? null
+    : new Date(Date.now() + opts.dueInHours * 3600_000).toISOString();
+  const row = {
+    title: opts.title,
+    kind: source.kind,
+    selection_mode: source.selection_mode,
+    papers: source.papers ?? [],
+    category: source.category,
+    units: source.units ?? [],
+    question_count: source.question_count,
+    duration_minutes: source.duration_minutes,
+    question_types: source.question_types,
+    questions: source.questions,
+    open_at: null,
+    due_at: dueAt,
+    allow_resume: source.allow_resume,
+    allow_late: true,
+    allow_correction: source.allow_correction ?? source.kind === 'homework',
+    type_filter: source.type_filter ?? 'all',
+    grading_rules: source.grading_rules ?? null,
+    created_by: opts.createdBy,
+  };
+  // 短码是 4 位随机数，撞码概率不高但存在（唯一约束）⇒ 换一个重试
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const code = String(Math.floor(1000 + Math.random() * 9000));
+    const { error } = await supabase.from('quizzes').insert({ ...row, code });
+    if (!error) return code;
+    if (error.code !== '23505') throw error;
+  }
+  throw new Error('短码连续冲突，请重试');
+}
+
 // 教师更新测验/作业（编辑后保存；code 保持不变）
 export async function updateQuiz(
   quizId: string,

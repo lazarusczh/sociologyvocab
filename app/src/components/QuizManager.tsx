@@ -6,7 +6,7 @@ import { PAPER_ORDER } from '../lib/storage';
 import { unitListFor } from '../lib/unitMapping';
 import { maskEmail } from '../lib/shuffle';
 import { copyText } from '../lib/clipboard';
-import { createQuiz, updateQuiz, updateQuizQuestions, listQuizzes, listQuizSubmissions, deleteQuiz, listDeveloperIds, deleteSubmission, countSubmittedByQuizzes, regradeQuizSubmissions, ensureQuizShortCode, listMbTaskLinksForQuiz, listMbRoster, listClassesWithMb, matchMbTask, replaceMbTaskLink, deleteMbTaskLink, fetchMbMarks, writeMbMarks, listSubmissionsByQuizzes, latestMbWriteLogs, logMbWrite, type MbTaskLinkRow, type ClassMbRow, type MbWriteLogRow, type RegradeEntry } from '../lib/cloud';
+import { createQuiz, updateQuiz, updateQuizQuestions, listQuizzes, listQuizSubmissions, deleteQuiz, listDeveloperIds, deleteSubmission, countSubmittedByQuizzes, regradeQuizSubmissions, ensureQuizShortCode, listMbTaskLinksForQuiz, listMbRoster, listClassesWithMb, matchMbTask, replaceMbTaskLink, deleteMbTaskLink, fetchMbMarks, writeMbMarks, listSubmissionsByQuizzes, latestMbWriteLogs, logMbWrite, duplicateQuiz, type MbTaskLinkRow, type ClassMbRow, type MbWriteLogRow, type RegradeEntry } from '../lib/cloud';
 import { staleAgainstSnapshot, staleLabel, finalScoreOf, type StaleResult } from '../lib/mbStale';
 import { aliasClusters, driftLabel, scoreDrift, type HintSub } from '../lib/regradeHints';
 import { classMatchesGrade, firstPaperNumber, inferGrade, type Grade } from '../lib/mbSync';
@@ -175,6 +175,12 @@ export default function QuizManager() {
   const [draft, setDraft] = useState<Draft | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
+  // —— 「另存为补交卷」：给个别学生补做（复制题目快照，不重新组题）——
+  const [dupSource, setDupSource] = useState<Quiz | null>(null);
+  const [dupTitle, setDupTitle] = useState('');
+  const [dupHours, setDupHours] = useState<number | null>(24);
+  const [dupBusy, setDupBusy] = useState(false);
+  const [dupResult, setDupResult] = useState<{ title: string; code: string } | null>(null);
   const [viewing, setViewing] = useState<Quiz | null>(null); // 正在查看成绩的试卷
   const [analysisOpen, setAnalysisOpen] = useState(false);   // 跨卷全局错题榜视图
   const [subs, setSubs] = useState<QuizSubmission[]>([]);
@@ -507,6 +513,36 @@ export default function QuizManager() {
       if (viewing?.id === q.id) setViewing(null);
     } catch (e) {
       setError((e as Error).message);
+    }
+  };
+
+  // 另存为补交卷：题目快照原样复制，只换新短码与时间窗口。
+  // 用途是「个别学生误交/缺考，只给他一个人补做」——原卷与原成绩完全不受影响。
+  const openDuplicate = (q: Quiz) => {
+    setDupSource(q);
+    setDupTitle(`【补交】${q.title}`);
+    setDupHours(q.kind === 'homework' ? 24 : null); // 测验靠限时，不需要截止时间
+    setDupResult(null);
+    setError('');
+  };
+  const confirmDuplicate = async () => {
+    if (!dupSource) return;
+    const title = dupTitle.trim();
+    if (!title) {
+      setError('补交卷需要一个标题');
+      return;
+    }
+    setDupBusy(true);
+    setError('');
+    try {
+      const code = await duplicateQuiz(dupSource, { title, dueInHours: dupHours, createdBy: authUser?.id ?? null });
+      setDupResult({ title, code });
+      setDupSource(null);
+      refresh();
+    } catch (e) {
+      setError('另存失败：' + ((e as Error).message || String(e)));
+    } finally {
+      setDupBusy(false);
     }
   };
 
@@ -1838,6 +1874,12 @@ export default function QuizManager() {
                   <td>
                     <button onClick={() => viewSubmissions(q)}>成绩</button>
                     <button onClick={() => startEdit(q)}>编辑</button>
+                    <button
+                      onClick={() => openDuplicate(q)}
+                      title="把这份卷的题目原样复制成一份新的临时卷（新短码），只发给需要补做的学生；原卷与原成绩不受影响"
+                    >
+                      另存为补交
+                    </button>
                     {confirmingDelete === q.id ? (
                       <>
                         <button className="danger" onClick={() => remove(q)}>确认删除</button>
@@ -1853,6 +1895,71 @@ export default function QuizManager() {
           </table>
         )}
       </div>
+
+      {/* 另存为补交卷：题目快照原样复制，只换新短码与时间窗口 */}
+      {dupSource && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(15, 20, 27, 0.45)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
+          onClick={() => { if (!dupBusy) setDupSource(null); }}
+        >
+          <div className="card" style={{ maxWidth: 460, width: '100%', padding: '1rem' }} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ marginTop: 0 }}>另存为补交卷</h3>
+            <p className="muted" style={{ fontSize: '0.85rem', marginTop: 0 }}>
+              题目、题型、单元与「{dupSource.title}」完全一致（复制快照，不重新抽题）。会生成一个新短码，原卷与原成绩不受影响。
+            </p>
+            <label style={{ display: 'block', marginTop: '0.6rem' }}>
+              <span className="muted" style={{ fontSize: '0.8rem' }}>标题</span>
+              <input value={dupTitle} onChange={(e) => setDupTitle(e.target.value)} style={{ width: '100%' }} disabled={dupBusy} />
+            </label>
+            {dupSource.kind === 'homework' && (
+              <label style={{ display: 'block', marginTop: '0.6rem' }}>
+                <span className="muted" style={{ fontSize: '0.8rem' }}>补交截止</span>
+                <select
+                  value={dupHours == null ? 'none' : String(dupHours)}
+                  onChange={(e) => setDupHours(e.target.value === 'none' ? null : Number(e.target.value))}
+                  disabled={dupBusy}
+                >
+                  <option value="24">24 小时后</option>
+                  <option value="72">3 天后</option>
+                  <option value="168">7 天后</option>
+                  <option value="none">不设截止</option>
+                </select>
+              </label>
+            )}
+            <p className="muted" style={{ fontSize: '0.8rem', marginBottom: 0 }}>
+              补交卷一律允许迟交（否则源卷已过的截止时间会直接拦住学生）。登分后记得删除这份临时卷 —— 删除会连它的答卷一起删，先看分。
+            </p>
+            <div className="row" style={{ justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.9rem' }}>
+              <button onClick={() => setDupSource(null)} disabled={dupBusy}>取消</button>
+              <button className="primary" onClick={confirmDuplicate} disabled={dupBusy}>{dupBusy ? '生成中…' : '生成补交卷'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {dupResult && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(15, 20, 27, 0.45)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
+          onClick={() => setDupResult(null)}
+        >
+          <div className="card center" style={{ maxWidth: 380, width: '100%', padding: '1rem' }} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ marginTop: 0 }}>已生成补交卷</h3>
+            <p className="muted" style={{ marginBottom: '0.2rem' }}>{dupResult.title}</p>
+            <p style={{ fontSize: '2rem', fontWeight: 700, letterSpacing: '0.3rem', margin: '0.4rem 0' }}>{dupResult.code}</p>
+            <div className="row" style={{ justifyContent: 'center', gap: '0.5rem' }}>
+              <button
+                onClick={async () => {
+                  const m = await copyText(dupResult.code);
+                  setMsg(m === 'failed' ? '复制失败，请手动抄下密码' : '已复制密码');
+                }}
+              >
+                复制密码
+              </button>
+              <button className="primary" onClick={() => setDupResult(null)}>知道了</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
