@@ -360,24 +360,26 @@ input:focus, textarea:focus, select:focus {
 /* 词库视图切换器：分段控件。
    选中底色不是长在按钮上，而是一块独立滑块（.syl-switch__thumb）用
    transform 滑动 —— 按钮各自改 background 只能瞬间硬切，看不到"移动"。
-   滑块位移用 index * 100%（相对自身高度），所以不必用 JS 量高度。 */
+   尺寸刻意与下拉菜单里的其它条目（「个人中心」等）对齐：同高（--h-btn）、
+   同内边距（--sp-6）、同字号字重、同条目间距（--syl-gap 与 .nav-group-items
+   的 gap 一致），这样切换器不会在菜单里单独缩成一小块。
+   容器不铺底色 —— 整块保持下拉菜单的白，只有选中项那一格是浅蓝。 */
 .syl-switch {
-  --syl-item-h: 28px;
+  --syl-item-h: var(--h-btn);
+  --syl-gap: 0.2rem;
   position: relative;
   display: flex;
   flex-direction: column;
-  margin: 0.15rem 0 0.25rem;
-  padding: 3px;
-  border-radius: var(--r-ctrl);
-  background: var(--c-surface-soft);
+  gap: var(--syl-gap);
+  background: transparent;
 }
 .syl-switch__thumb {
   position: absolute;
-  top: 3px;
-  left: 3px;
-  right: 3px;
+  top: 0;
+  left: 0;
+  right: 0;
   height: var(--syl-item-h);
-  border-radius: calc(var(--r-ctrl) - 3px);
+  border-radius: var(--r-ctrl);
   background: var(--c-primary-bg);
   pointer-events: none;
   transition: transform var(--dur) var(--ease);
@@ -385,37 +387,43 @@ input:focus, textarea:focus, select:focus {
 /* 基础样式写在不带前缀的选择器上，组件放到任何容器里都能自洽。
    后面串上 `.nav-group-items` / `.nav-account-mobile` 两个前缀，是为了压过
    `.nav-group-items button`、`.nav-account-mobile button`（都是 0,1,1，
-   比单个类 0,1,0 高）：它们的 min-height:44px / padding / font-size
-   会把滑块撑错位，且统一刷下来的 color 会盖掉选中态强调色。
+   比单个类 0,1,0 高）：它们的 min-height / padding / font-size 与本组件
+   要的尺寸不同，且统一刷下来的 color 会盖掉选中态强调色。
    合成一条选择器列表即可，不必再复制一份带前缀的规则。 */
 .syl-switch__opt,
 .nav-group-items .syl-switch__opt,
 .nav-account-mobile .syl-switch__opt {
   position: relative;
+  z-index: 1;
   width: 100%;
   height: var(--syl-item-h);
   min-height: 0;
-  padding: 0 0.7rem;
+  padding: 0 var(--sp-6);
   background: transparent;
-  border: none;
-  border-radius: calc(var(--r-ctrl) - 3px);
-  color: var(--c-charcoal);
-  font-size: 0.9rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
+  border: 1px solid transparent;
+  border-radius: var(--r-ctrl);
+  color: var(--c-ink);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: normal;
   text-align: left;
   cursor: pointer;
   transition: color var(--dur-fast) var(--ease);
 }
+/* 悬停表现与上方其它菜单条目一致；选中项保持透明底色，让滑块透出来 */
 .syl-switch__opt:hover,
 .nav-group-items .syl-switch__opt:hover,
 .nav-account-mobile .syl-switch__opt:hover {
-  background: transparent;
+  background: var(--c-surface-soft);
   color: var(--c-ink);
 }
 .syl-switch__opt.is-active,
 .nav-group-items .syl-switch__opt.is-active,
-.nav-account-mobile .syl-switch__opt.is-active {
+.nav-account-mobile .syl-switch__opt.is-active,
+.syl-switch__opt.is-active:hover,
+.nav-group-items .syl-switch__opt.is-active:hover,
+.nav-account-mobile .syl-switch__opt.is-active:hover {
+  background: transparent;
   color: var(--c-primary);
   font-weight: 600;
 }
@@ -654,10 +662,15 @@ input:focus, textarea:focus, select:focus {
     font-size: 0.78rem;
   }
 
-  /* 窄屏把切换器做高一点：28px 是桌面鼠标尺寸，手指点不合适；
-     滑块高度跟着 --syl-item-h 走，改一个变量就整体对齐。 */
-  .nav-account-mobile .syl-switch { --syl-item-h: 40px; }
-  .nav-account-mobile .syl-switch__opt { font-size: 1rem; }
+  /* 窄屏与 .nav-account-mobile button 对齐：同触控高度、同内边距、同字号；
+     窄屏菜单条目之间本来就没有间距，这里也把 --syl-gap 收到 0。 */
+  .nav-account-mobile .syl-switch { --syl-item-h: var(--touch-min); --syl-gap: 0; }
+  .nav-account-mobile .syl-switch__opt,
+  .nav-account-mobile .syl-switch__opt.is-active {
+    padding: 0.55rem 0.8rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
 }
 
 .container {
