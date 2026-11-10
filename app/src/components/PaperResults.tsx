@@ -8,7 +8,7 @@ import {
 } from '../lib/cloud';
 import { maskEmail } from '../lib/shuffle';
 import { bandLinear, buildRows, type RowSpec, type ThresholdRows } from '../lib/score';
-import { inferGrade, type Grade } from '../lib/mbSync';
+import { asGrade, GRADE_OPTIONS, inferGrade, type Grade } from '../lib/mbSync';
 import { copyText } from '../lib/clipboard';
 import type { AssembleSlot, BankItem } from '../lib/grouper';
 import { exportPaperToDocx } from '../lib/exportPaper';
@@ -34,12 +34,18 @@ interface ClassRow {
   id: string;
   name: string;
   papers?: string[] | null;
+  syllabus?: string | null;       // 归属大纲：'9699' / '0495'
   mb_class_url?: string | null;   // ManageBac 成绩册链接（班级管理页绑定）
   mb_class_id?: string | null;    // 从链接解析出的 ManageBac 班级号
 }
 
-// 班级分组别名（A1 与 AS 同义：学校目前把 A1 班登记为 AS）
-const GROUP_ALIASES: Record<'A1' | 'A2', string[]> = { A1: ['A1', 'AS'], A2: ['A2'] };
+// 班级分组别名（A1 与 AS 同义：学校目前把 A1 班登记为 AS；0495 的 IGCSE 班按年级叫 G1 / G2）
+const GROUP_ALIASES: Record<Grade, string[]> = {
+  A1: ['A1', 'AS'],
+  A2: ['A2'],
+  G1: ['G1'],
+  G2: ['G2'],
+};
 
 // —— 差异预览（只读）——
 // **以 ManageBac 成绩册的行为主视角**：把该 task 里的全班逐行列出来，再往站内对应。
@@ -69,18 +75,27 @@ interface MbPreview {
 }
 
 // 依「作业范围」与「卷名」推断目标班级 id（无匹配或该班无学生则返回 ''）
-// 规则：卷名里写了 AS/A1/A2 优先采信；否则 P1/P2 → A1、P3/P4 → A2（A1 学 Paper1-2、A2 学 Paper3-4）
+// 规则：卷名里写了 AS/A1/A2/G1/G2 优先采信；9699 再按 P1/P2 → A1、P3/P4 → A2；
+// 0495 的 G1/G2 是教学年级，卷号推不出来 ⇒ 不猜，返回 ''（教师在下拉里手选年级与班级）
 function inferClassId(run: GrouperRunRow, classList: ClassRow[], list: GrouperRunScore[]): string {
   if (classList.length === 0) return '';
+  // 0495 的作业只能在 0495 的班里找：同名的 G1 班与 A1 班不是一份成绩册
+  const syl = run.syllabus ?? '9699';
+  const pool = classList.filter((c) => (c.syllabus ?? '9699') === syl);
+  if (pool.length === 0) return '';
   const t = (run.title || '').toUpperCase();
-  let group: 'A1' | 'A2';
-  if (/\bAS\b/.test(t) || /\bA\s*1\b/.test(t)) group = 'A1';
+  let group: Grade | null;
+  if (/\bG\s*2\b/.test(t)) group = 'G2';
+  else if (/\bG\s*1\b/.test(t)) group = 'G1';
+  else if (/\bAS\b/.test(t) || /\bA\s*1\b/.test(t)) group = 'A1';
   else if (/\bA\s*2\b/.test(t)) group = 'A2';
+  else if (syl === '0495') group = null; // G1/G2 无法从卷号推断
   else group = run.paper <= 2 ? 'A1' : 'A2';
+  if (!group) return '';
   const names = GROUP_ALIASES[group];
   const normName = (s: string) => s.replace(/\s+/g, '').toUpperCase();
-  const cls = classList.find((c) => names.includes(normName(c.name)))
-    ?? classList.find((c) => names.some((n) => normName(c.name).includes(n)));
+  const cls = pool.find((c) => names.includes(normName(c.name)))
+    ?? pool.find((c) => names.some((n) => normName(c.name).includes(n)));
   if (!cls) return '';
   return list.some((e) => (e.classId ?? '') === cls.id) ? cls.id : '';
 }
@@ -119,7 +134,8 @@ export default function PaperResults() {
   const [writeReport, setWriteReport] = useState<{ row: string; ok: boolean; want: string; actual: string; reason?: string; steps?: string[] }[]>([]);
   // 写入诊断已收进 worker 的 MB_WRITE_DIAG 开关（2026-09-18 写入跑通后）。
   // 这里的 writeDiag UI 一并撤掉：正常路径不需要，出问题时把开关打开、看线上日志即可。
-  const [gradePick, setGradePick] = useState<Grade>('A1');
+  // 年级位：null = 还没法确定（0495 的 G1/G2 只能人选，不允许默认塞一个 A1）
+  const [gradePick, setGradePick] = useState<Grade | null>(null);
 
   const refresh = useCallback(async () => {
     setLoadingList(true);
@@ -149,11 +165,11 @@ export default function PaperResults() {
     setLinks([]);
     setRosterCount(null);
     setRegenCode(false);
-    setGradePick(inferGrade(run.title, run.paper));
+    setGradePick(inferGrade(run.title, run.paper, run.syllabus));
     // 拉班级 + 已注册学生名单（与打卡核验同口径），与已存成绩合并
     try {
       const [clsRes, devRes, stuRes] = await Promise.all([
-        supabase.from('classes').select('id, name, papers, mb_class_url, mb_class_id').order('name'),
+        supabase.from('classes').select('id, name, papers, syllabus, mb_class_url, mb_class_id').order('name'),
         supabase.from('user_roles').select('user_id').eq('role', 'developer'),
         supabase
           .from('student_data')
@@ -267,6 +283,11 @@ export default function PaperResults() {
     setMsg('');
     try {
       const code = await ensureRunShortCode(viewing.id, viewing.title, viewing.paper, forced, gradePick);
+      if (!code) {
+        // 0495：G1/G2 推不出，必须手选 —— 说明白，别让人以为是失败
+        setError('这条记录属于 0495：G1 / G2 无法自动推断（Paper 1、2 是同一张证书），请在左边下拉里选好年级再点生成。');
+        return;
+      }
       setShortCode(code);
       setRegenCode(false);
       setViewing((v) => (v ? { ...v, mb_short_code: code } : v));
@@ -301,7 +322,7 @@ export default function PaperResults() {
   const fixShortCode = () => {
     if (!shortCode) return;
     const g = shortCode.split('-')[0];
-    setGradePick(g === 'A2' ? 'A2' : 'A1');
+    setGradePick(asGrade(g));
     setRegenCode(true);
   };
 
@@ -748,11 +769,17 @@ export default function PaperResults() {
               </>
             ) : (
               <>
-                <select value={gradePick} onChange={(e) => setGradePick(e.target.value as Grade)} style={{ width: '5rem' }}>
-                  <option value="A1">A1</option>
-                  <option value="A2">A2</option>
+                <select
+                  value={gradePick ?? ''}
+                  onChange={(e) => setGradePick(asGrade(e.target.value))}
+                  style={{ width: '5.5rem' }}
+                >
+                  <option value="" disabled>年级…</option>
+                  {GRADE_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
                 </select>
-                <button className="primary" onClick={() => void applyShortCode()} disabled={mbBusy}>
+                <button className="primary" onClick={() => void applyShortCode()} disabled={mbBusy || !gradePick}>
                   {mbBusy ? '生成中…' : (regenCode ? '按此年级重算' : '生成短码')}
                 </button>
                 {regenCode && (

@@ -1,12 +1,13 @@
 import { useState, useRef } from 'react';
 import { useStore } from '../lib/store';
-import { publishVocab, pullLatestVocab, replaceAnswerForms } from '../lib/cloud';
-import { saveVocabVersion } from '../lib/storage';
+import { publishVocab, pullLatestVocab, replaceAnswerForms, getLatestVocabVersion } from '../lib/cloud';
+import { saveVocabVersionFor } from '../lib/storage';
+import { DEFAULT_SYLLABUS, SYLLABUS_LABELS, type SyllabusId } from '../lib/syllabus';
 import type { ImportResult } from '../lib/types';
 import ConfirmModal from './ConfirmModal';
 
 export default function ImportPanel() {
-  const { vocab, importFiles, appendVocab, replaceVocab, clearAll, surnameOverrides, setSurnameOverride, removeSurnameOverride, replaceSurnameOverrides, unitOrder, vocabDirty, clearVocabDirty } = useStore();
+  const { vocab, importFiles, appendVocab, replaceVocab, clearAll, surnameOverrides, setSurnameOverride, removeSurnameOverride, replaceSurnameOverrides, unitOrder, vocabDirty, clearVocabDirty, activeSyllabus } = useStore();
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [error, setError] = useState('');
@@ -21,13 +22,25 @@ export default function ImportPanel() {
   const [restoreOpen, setRestoreOpen] = useState(false); // 从云端恢复确认
   const [restoring, setRestoring] = useState(false);
 
+  // 发布目标 syllabus：
+  // 默认发布到 9699 这条「共享主干」——词库是一份，里面带 syllabus 标记的词条由视图过滤，
+  // 这样 0495 与 9699 始终同步，不会分叉。
+  // 只有当当前 syllabus 自己已经有一条版本链（说明已切到「独立模式」）时，才往它自己发布。
+  // 这一步是为了防止 0495 教师误发一条 0495 链，把 9699 后续更新挡在外面。
+  const targetSyllabus = async (): Promise<SyllabusId> => {
+    if (activeSyllabus === DEFAULT_SYLLABUS) return DEFAULT_SYLLABUS;
+    const own = await getLatestVocabVersion(activeSyllabus, false);
+    return own > 0 ? activeSyllabus : DEFAULT_SYLLABUS;
+  };
+
   const handlePublish = async () => {
     if (vocab.length === 0) return;
     setPublishing(true);
     setPublishMsg('');
     try {
-      const v = await publishVocab(vocab, undefined, unitOrder, surnameOverrides);
-      const base = `已发布 v${v}（${vocab.length} 条词条，含特殊姓氏覆盖 ${Object.keys(surnameOverrides).length} 条）`;
+      const target = await targetSyllabus();
+      const v = await publishVocab(vocab, undefined, unitOrder, surnameOverrides, target);
+      const base = `已发布 ${SYLLABUS_LABELS[target] ?? target} v${v}（${vocab.length} 条词条，含特殊姓氏覆盖 ${Object.keys(surnameOverrides).length} 条）`;
       clearVocabDirty();
       // 发布后同步重建服务端答案判定表（课堂竞赛 / 猜词的服务端判分依赖它）。
       // 这一步失败不影响词库发布本身，但要明确报出来（可点「重建判定表」重试）。
@@ -63,11 +76,12 @@ export default function ImportPanel() {
   };
 
   // 从云端最新发布版本恢复本地词库（含逻辑关系）
+  // 恢复源与发布源对称：当前 syllabus 有独立版本链就恢复它自己，否则恢复共享主干的 9699。
   const handleRestore = async () => {
     setRestoring(true);
     setPublishMsg('');
     try {
-      const pulled = await pullLatestVocab();
+      const pulled = await pullLatestVocab(activeSyllabus);
       if (!pulled || pulled.data.length === 0) {
         setPublishMsg('云端没有可用词库，或拉取为空。');
         return;
@@ -77,8 +91,9 @@ export default function ImportPanel() {
       // 历史版本没有该字段时保持本机配置不动，避免误清。
       if (pulled.surnameOverrides) replaceSurnameOverrides(pulled.surnameOverrides);
       clearVocabDirty();
-      saveVocabVersion(pulled.version);
-      setPublishMsg(`已从云端恢复 v${pulled.version}（${pulled.data.length} 条词条），本地词库已覆盖。`);
+      saveVocabVersionFor(pulled.syllabus, pulled.version);
+      const label = SYLLABUS_LABELS[pulled.syllabus] ?? pulled.syllabus;
+      setPublishMsg(`已从云端恢复 ${label} v${pulled.version}（${pulled.data.length} 条词条），本地词库已覆盖。`);
     } catch (e) {
       setPublishMsg(`恢复失败：${(e as Error).message}`);
     } finally {

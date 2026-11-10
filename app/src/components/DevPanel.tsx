@@ -5,6 +5,8 @@ import { isCorrectAnswer, getAcceptableForms } from '../lib/answers';
 import type { VocabItem } from '../lib/types';
 // XP 双跑对照（本地口径 vs 服务端口径）—— 切换打卡判定前的差异诊断工具
 import XpShadowPanel from './XpShadowPanel';
+// 账户 / 角色 / 班级归属（授予教师、指定哪个班由谁任教）
+import AccountsPanel from './AccountsPanel';
 
 // 开发后台：仅 developer 账号可见，用于指定词条测试答案判定（无需靠随机刷题）
 export default function DevPanel() {
@@ -257,6 +259,8 @@ export default function DevPanel() {
           </pre>
         )}
       </div>
+
+      <AccountsPanel />
 
       <XpShadowPanel />
     </div>

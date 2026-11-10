@@ -2,14 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useStore } from '../lib/store';
 import type { VocabItem, Quiz, QuizSubmission, QuizQuestionType, QuizKind } from '../lib/types';
 import { buildQuizQuestions, sampleItems, TYPE_LABELS, KIND_LABELS, formatDuration, isAnswerCorrect, answerText, correctAnswerText, totalPoints, matchingCorrectCount, gradeQuiz, refreshQuestionAliases, correctionBonus, crosswordClueResults } from '../lib/quiz';
-import { PAPER_ORDER } from '../lib/storage';
 import { unitListFor } from '../lib/unitMapping';
 import { maskEmail } from '../lib/shuffle';
 import { copyText } from '../lib/clipboard';
 import { createQuiz, updateQuiz, updateQuizQuestions, listQuizzes, listQuizSubmissions, deleteQuiz, listDeveloperIds, deleteSubmission, countSubmittedByQuizzes, regradeQuizSubmissions, ensureQuizShortCode, listMbTaskLinksForQuiz, listMbRoster, listClassesWithMb, matchMbTask, replaceMbTaskLink, deleteMbTaskLink, fetchMbMarks, writeMbMarks, listSubmissionsByQuizzes, latestMbWriteLogs, logMbWrite, duplicateQuiz, type MbTaskLinkRow, type ClassMbRow, type MbWriteLogRow, type RegradeEntry } from '../lib/cloud';
 import { staleAgainstSnapshot, staleLabel, finalScoreOf, type StaleResult } from '../lib/mbStale';
 import { aliasClusters, driftLabel, scoreDrift, type HintSub } from '../lib/regradeHints';
-import { classMatchesGrade, firstPaperNumber, inferGrade, type Grade } from '../lib/mbSync';
+import { asGrade, classMatchesGrade, firstPaperNumber, GRADE_OPTIONS, inferGrade, type Grade } from '../lib/mbSync';
 import QuizWrongBoard from './QuizWrongBoard';
 import ScrollText from './ScrollText';
 import { CrosswordClueResults } from './CrosswordAnswer';
@@ -154,7 +153,9 @@ function toLocalInput(iso: string): string {
 }
 
 export default function QuizManager() {
-  const { vocab, authUser, unitOrder } = useStore();
+  // `vocab` 全量：用来按 id 反查历史题目（0495 学生做过 9699 时期的题也不能找不到）。
+  // `scopedVocab` 当前大纲可见：抽题池只用它，否则 0495 教师能抽到 Paper 4 的词。
+  const { vocab, scopedVocab, papers, authUser, unitOrder, activeSyllabus } = useStore();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -164,7 +165,8 @@ export default function QuizManager() {
   const [mbLinks, setMbLinks] = useState<MbTaskLinkRow[]>([]);
   const [mbClasses, setMbClasses] = useState<ClassMbRow[]>([]);
   const [mbRosterCount, setMbRosterCount] = useState<number | null>(null);
-  const [mbGrade, setMbGrade] = useState<Grade>('A1');
+  // 年级位：null = 还没法确定（0495 的 G1/G2 只能人选，不允许默认塞一个 A1）
+  const [mbGrade, setMbGrade] = useState<Grade | null>(null);
   const [mbBusy, setMbBusy] = useState(false);
   const [mbPreview, setMbPreview] = useState<QuizMbPreview | null>(null); // 同步预览（只读）
   // 未确认成功的行：ok=false 是「没能写入」（定位不到行/没有分数框），ok=true 而没 saved 是「写进去了但回读还没看到」
@@ -339,21 +341,21 @@ export default function QuizManager() {
   // random 模式抽题池：按 考卷 / 主题 / 单元（多选）/ 类型 过滤
   // （此前主题与单元未参与随机抽题，选了单元对抽题不生效，本次一并修正）
   const paperItems = useMemo(
-    () => (draft ? vocab.filter((i) =>
+    () => (draft ? scopedVocab.filter((i) =>
       (draft.paper === 'all' || i.paper === draft.paper) &&
       (draft.cat === 'all' || i.category === draft.cat) &&
       (draft.units.length === 0 || (i.unit ?? []).some((u) => draft.units.includes(u))) &&
       (draft.typeFilter === 'all' || i.type === draft.typeFilter),
     ) : []),
-    [vocab, draft?.paper, draft?.cat, draft?.units, draft?.typeFilter],
+    [scopedVocab, draft?.paper, draft?.cat, draft?.units, draft?.typeFilter],
   );
   // 主题列表来源：仅按考卷过滤，避免选了某主题后其它主题从选项中消失
   const paperPool = useMemo(
-    () => (draft ? vocab.filter((i) =>
+    () => (draft ? scopedVocab.filter((i) =>
       (draft.paper === 'all' || i.paper === draft.paper) &&
       (draft.typeFilter === 'all' || i.type === draft.typeFilter),
     ) : []),
-    [vocab, draft?.paper, draft?.typeFilter],
+    [scopedVocab, draft?.paper, draft?.typeFilter],
   );
   const subLabels = useMemo(() => {
     if (!draft || draft.paper === 'all') return [];
@@ -361,13 +363,13 @@ export default function QuizManager() {
   }, [draft?.paper, paperPool]);
   const units = useMemo(() => {
     if (!draft) return [];
-    return unitListFor(vocab, draft.paper, draft.cat, unitOrder);
-  }, [draft?.paper, draft?.cat, vocab, unitOrder]);
+    return unitListFor(scopedVocab, draft.paper, draft.cat, unitOrder);
+  }, [draft?.paper, draft?.cat, scopedVocab, unitOrder]);
 
   // 干扰项来源池：按类型筛选，保证术语题的干扰项不混入学者（反之亦然）
   const typePool = useMemo(
-    () => (draft && draft.typeFilter !== 'all' ? vocab.filter((i) => i.type === draft.typeFilter) : vocab),
-    [vocab, draft?.typeFilter],
+    () => (draft && draft.typeFilter !== 'all' ? scopedVocab.filter((i) => i.type === draft.typeFilter) : scopedVocab),
+    [scopedVocab, draft?.typeFilter],
   );
 
   // 手动模式下的候选词条（按 paper/cat/unit/类型 筛选 + 检索词过滤）
@@ -376,7 +378,7 @@ export default function QuizManager() {
     if (!draft) return [];
     const kw = manualSearch.trim();
     const kwLower = kw.toLowerCase();
-    const filtered = vocab.filter((i) => {
+    const filtered = scopedVocab.filter((i) => {
       if (draft.paper !== 'all' && i.paper !== draft.paper) return false;
       if (draft.cat !== 'all' && i.category !== draft.cat) return false;
       if (draft.units.length > 0 && !(i.unit ?? []).some((u) => draft.units.includes(u))) return false;
@@ -394,7 +396,7 @@ export default function QuizManager() {
       .map((i) => ({ i, picked: draft.manualIds.includes(i.id) }))
       .sort((a, b) => Number(b.picked) - Number(a.picked))
       .map((x) => x.i);
-  }, [draft?.paper, draft?.cat, draft?.units, draft?.typeFilter, vocab, manualSearch, draft?.manualIds]);
+  }, [draft?.paper, draft?.cat, draft?.units, draft?.typeFilter, scopedVocab, manualSearch, draft?.manualIds]);
 
   const toggleType = (t: QuizQuestionType) => {
     setDraft((d) => {
@@ -462,6 +464,8 @@ export default function QuizManager() {
       allow_correction: draft.kind === 'homework' && draft.allowCorrection,
       // 评分规则快照：仅作业携带（测验无罚分）；创建时同时记忆教师默认规则
       grading_rules: draft.kind === 'homework' ? buildGradingRules(draft.lateEnabled, draft.latePercents) : null,
+      // 归属大纲：0495 只有一张证书，短码不能落成 A1（见 db-migration-run-syllabus.sql）
+      syllabus: activeSyllabus,
     };
     if (draft.kind === 'homework') saveDefaultPercents(draft.latePercents);
     try {
@@ -639,9 +643,9 @@ export default function QuizManager() {
       setMbRosterCount(null);
       return;
     }
-    const g = inferGrade(viewing.title, firstPaperNumber(viewing.papers));
+    const g = inferGrade(viewing.title, firstPaperNumber(viewing.papers), viewing.syllabus);
     setShortCode(viewing.mb_short_code ?? null);
-    setMbGrade(g);
+    setMbGrade(g); // 0495 推不出 → null，等教师手选
     setRegenCode(false);
     let alive = true;
     void (async () => {
@@ -653,7 +657,10 @@ export default function QuizManager() {
         if (!alive) return;
         setMbClasses(cls);
         setMbLinks(links);
-        const clsHit = cls.find((c) => classMatchesGrade(c.name, g)) ?? null;
+        // 只在同一 syllabus 的班里找：0495 的班与 9699 的班不是同一份成绩册
+        // 年级位推不出（0495）时先不取名单人数 —— 教师选好 G1/G2 后 mbClass 会自动接上
+        const sameSyllabus = cls.filter((c) => (c.syllabus ?? '9699') === (viewing.syllabus ?? '9699'));
+        const clsHit = (g ? sameSyllabus.find((c) => classMatchesGrade(c.name, g)) : undefined) ?? null;
         setMbRosterCount(clsHit ? (await listMbRoster(clsHit.id)).length : null);
       } catch {
         if (alive) { setMbLinks([]); setMbRosterCount(null); }
@@ -663,8 +670,10 @@ export default function QuizManager() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewingId]);
 
-  // 当前年级位对应的班级（班级名含 A1/AS 或 A2）
-  const mbClass = mbClasses.find((c) => classMatchesGrade(c.name, mbGrade)) ?? null;
+  // 当前年级位对应的班级（班级名含 A1/AS、A2、G1 或 G2；且必须同一 syllabus）
+  const mbClass = (mbGrade
+    ? mbClasses.find((c) => (c.syllabus ?? '9699') === (viewing?.syllabus ?? '9699') && classMatchesGrade(c.name, mbGrade))
+    : undefined) ?? null;
 
   // 当前班已绑定的那条 task（一份测验在每个班只保留一条）
   const curLink = mbLinks.find((l) => l.class_id === mbClass?.id) ?? null;
@@ -677,6 +686,11 @@ export default function QuizManager() {
     try {
       const forced = regenCode;
       const code = await ensureQuizShortCode(viewing.id, viewing.title, viewing.papers, mbGrade, forced);
+      if (!code) {
+        // 0495：G1/G2 推不出，必须手选 —— 说明白，别让人以为是失败
+        setError('这份作业属于 0495：G1 / G2 无法自动推断（Paper 1、2 是同一张证书），请先在左边下拉里选好年级。');
+        return;
+      }
       setShortCode(code);
       setRegenCode(false);
       setViewing((v) => (v ? { ...v, mb_short_code: code } : v));
@@ -1046,9 +1060,12 @@ export default function QuizManager() {
                   <span style={{ fontSize: '0.88rem' }}>{driftNote}</span>
                 </div>
                 <div className="muted" style={{ fontSize: '0.8rem', marginTop: '0.2rem' }}>
+                  <span>原始分　</span>
                   {regradeHints!.drift.samples.slice(0, 3).map((s) => `${s.name} ${s.from}→${s.to}`).join('，')}
                   {regradeHints!.drift.changed > 3 ? ` 等 ${regradeHints!.drift.changed} 人` : ''}
-                  <span> · 重判会按当前容错规则改分（已订正的会连带重算订正加分）</span>
+                </div>
+                <div className="muted" style={{ fontSize: '0.78rem', marginTop: '0.2rem' }}>
+                  重判只改原始分和订正加分；迟交罚分在交卷时已按当时的分数算定，重判不会重算它。
                 </div>
               </div>
             )}
@@ -1098,11 +1115,17 @@ export default function QuizManager() {
               </>
             ) : (
               <>
-                <select value={mbGrade} onChange={(e) => setMbGrade(e.target.value as Grade)} style={{ width: '5rem' }}>
-                  <option value="A1">A1</option>
-                  <option value="A2">A2</option>
+                <select
+                  value={mbGrade ?? ''}
+                  onChange={(e) => setMbGrade(asGrade(e.target.value))}
+                  style={{ width: '5.5rem' }}
+                >
+                  <option value="" disabled>年级…</option>
+                  {GRADE_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
                 </select>
-                <button className="primary" onClick={() => void genShortCode()} disabled={mbBusy}>
+                <button className="primary" onClick={() => void genShortCode()} disabled={mbBusy || !mbGrade}>
                   {mbBusy ? '生成中…' : (regenCode ? '按此年级重算' : '生成短码')}
                 </button>
                 {regenCode && (
@@ -1735,7 +1758,7 @@ export default function QuizManager() {
             </div>
             <div className="tag-filter" style={{ marginTop: '0.3rem' }}>
               <button className={draft.paper === 'all' ? 'active' : ''} onClick={() => setDraft({ ...draft, paper: 'all', cat: 'all', units: [] })}>全部考卷</button>
-              {PAPER_ORDER.map((p) => (
+              {papers.map((p) => (
                 <button key={p} className={draft.paper === p ? 'active' : ''} onClick={() => setDraft({ ...draft, paper: p, cat: 'all', units: [] })}>{p}</button>
               ))}
             </div>

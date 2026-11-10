@@ -40,7 +40,7 @@ const VERDICT_SCORE: Record<Verdict, number> = { correct: 1, partial: 0.5, wrong
 const covMark = (v: number) => (v >= 0.99 ? '✓' : v >= 0.4 ? '◐' : '✗');
 
 export default function DefinitionPractice() {
-  const { vocab, recordItem, authUser } = useStore();
+  const { scopedVocab: vocab, recordItem, authUser } = useStore();
   const [pool, setPool] = useState<DefinitionItem[] | null>(null);
   const [loadErr, setLoadErr] = useState('');
   const [round, setRound] = useState<RoundItem[]>([]);

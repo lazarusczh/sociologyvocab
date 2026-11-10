@@ -6,7 +6,7 @@ import type { VocabItem } from '../lib/types';
 
 // 闪卡：纯自学浏览工具，不含掌握度评价
 export default function Flashcards() {
-  const { vocab, papers, categories } = useStore();
+  const { scopedVocab: vocab, papers, categories } = useStore();
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
   const [units, setUnits] = useState<string[]>([]);

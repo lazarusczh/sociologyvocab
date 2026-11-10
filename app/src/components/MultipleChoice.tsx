@@ -55,7 +55,7 @@ function buildQuestion(item: VocabItem, pool: VocabItem[]): Question {
 }
 
 export default function MultipleChoice() {
-  const { vocab, recordItem, papers, categories } = useStore();
+  const { scopedVocab: vocab, recordItem, papers, categories } = useStore();
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
   const [units, setUnits] = useState<string[]>([]);

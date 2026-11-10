@@ -4,6 +4,8 @@ import type { VocabItem } from '../lib/types';
 import { stableId } from '../lib/shuffle';
 import { unitsForPaper, subsForPaper } from '../lib/unitMapping';
 import { PAPER_ORDER } from '../lib/storage';
+import { DEFAULT_SYLLABUS, SYLLABUS_LABELS } from '../lib/syllabus';
+import { overriddenIds } from '../lib/vocabOverrides';
 import ScrollText from './ScrollText';
 
 // 表单草稿
@@ -19,6 +21,8 @@ interface Draft {
   theory: string;
   theories: string[]; // 理论流派（多选标签）
   notes: string;
+  /** 归属大纲：空 = 所有大纲共享；'0495' = 只在 0495 视图出现 */
+  syllabus: string;
 }
 
 function toDraft(item: VocabItem): Draft {
@@ -37,6 +41,7 @@ function toDraft(item: VocabItem): Draft {
     theory: item.theory ?? '',
     theories,
     notes: item.notes ?? '',
+    syllabus: item.syllabus ?? '',
   };
 }
 
@@ -56,11 +61,16 @@ function fromDraft(d: Draft, oldId?: string): VocabItem {
     theory: d.type === 'scholar' ? (d.theory.trim() || undefined) : undefined,
     theories: d.theories.length ? d.theories : undefined,
     notes: d.type === 'scholar' ? (d.notes.trim() || undefined) : undefined,
+    // 空字符串表示「所有大纲共享」——不要写成空串，否则 itemBelongsTo 会把它当成专属
+    syllabus: d.syllabus.trim() || undefined,
   };
 }
 
 export default function VocabManager() {
-  const { vocab, replaceVocab, unitOrder, addUnit, removeUnit, moveUnit, renameUnit, vocabDirty } = useStore();
+  const { vocab, scopedVocab, overrides, saveOverride, clearOverride, replaceVocab, unitOrder, addUnit, removeUnit, moveUnit, renameUnit, vocabDirty, activeSyllabus } =
+    useStore();
+  // 哪些 id 在本大纲下被单独改写过（列表里打「已改写」标记、提供「恢复为 9699 原样」）
+  const overriddenIdSet = useMemo(() => overriddenIds(overrides), [overrides]);
   const [paperFilter, setPaperFilter] = useState('all');
   const [unitFilter, setUnitFilter] = useState('all');
   const [theoryFilter, setTheoryFilter] = useState('all');
@@ -91,7 +101,22 @@ export default function VocabManager() {
   // 理论流派（多选标签）
   const [newTheory, setNewTheory] = useState('');
 
-  const units = useMemo(() => unitsForPaper(paperFilter, unitOrder), [paperFilter, unitOrder]);
+  // unitsForPaper 多传一份「当前卷实际出现的 category」：
+  // 0495 的 Paper 2 同时含家庭与教育，只按 key 前缀收会漏掉另一个次级标签的单元。
+  const paperCats = useMemo(
+    () => [...new Set(scopedVocab.filter((i) => i.paper === paperFilter).map((i) => i.category).filter(Boolean))],
+    [scopedVocab, paperFilter],
+  );
+  const units = useMemo(
+    () => unitsForPaper(paperFilter, unitOrder, paperCats),
+    [paperFilter, unitOrder, paperCats],
+  );
+  // 表单里的单元候选：草稿卷变化时要跟着换。0495 下 Paper 2 含家庭+教育，
+  // 所以同样要把该卷实际出现的 category 一并传进去，否则教育单元选不到。
+  const draftUnits = useMemo(() => {
+    const cats = [...new Set(scopedVocab.filter((i) => i.paper === draft?.paper).map((i) => i.category).filter(Boolean))];
+    return unitsForPaper(draft?.paper ?? 'Paper 1', unitOrder, cats);
+  }, [scopedVocab, unitOrder, draft?.paper]);
   const unitMgmtSubs = useMemo(() => subsForPaper(unitMgmtPaper, unitOrder), [unitMgmtPaper, unitOrder]);
   const unitMgmtList = unitOrder[`${unitMgmtPaper}|${unitMgmtSub}`] ?? [];
   // 所有单元（用于批量迁移目标下拉）
@@ -132,16 +157,22 @@ export default function VocabManager() {
     wasOpenRef.current = isOpen;
   }, [draft]);
 
+  // 列表按当前大纲可见范围展示：0495 教师不该在这里看到 Paper 4 词条，
+  // 也不该在 9699 视图里看到 0495 独有条目。
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return vocab.filter((i) => {
+    return scopedVocab.filter((i) => {
       if (paperFilter !== 'all' && i.paper !== paperFilter) return false;
       if (unitFilter !== 'all' && !(i.unit ?? []).includes(unitFilter)) return false;
       if (theoryFilter !== 'all' && !(i.theory === theoryFilter || (i.theories ?? []).includes(theoryFilter))) return false;
       if (q && !(i.term.toLowerCase().includes(q) || i.chinese.toLowerCase().includes(q))) return false;
       return true;
     });
-  }, [vocab, paperFilter, unitFilter, theoryFilter, search]);
+  }, [scopedVocab, paperFilter, unitFilter, theoryFilter, search]);
+
+  // 该词条是不是「继承自 9699 的基础词条」（即在本大纲下编辑时应写覆盖层，而非改本体）
+  const isInherited = (item: VocabItem) =>
+    activeSyllabus !== DEFAULT_SYLLABUS && item.syllabus !== activeSyllabus;
 
   const startCreate = () => {
     setDraft({
@@ -156,6 +187,8 @@ export default function VocabManager() {
       theory: '',
       theories: [],
       notes: '',
+      // 在当前大纲下新建，默认就归该大纲独占：0495 教师加词时不会污染 9699 视图
+      syllabus: activeSyllabus === DEFAULT_SYLLABUS ? '' : activeSyllabus,
     });
     setEditingId(null);
     setMsg('');
@@ -200,6 +233,10 @@ export default function VocabManager() {
     setNewTheory('');
   };
 
+  // 只有与 9699 基础版不同的字段才写进覆盖层，避免把整条词条（含 9699 自己的措辞）固化成 0495 的副本：
+  // 以后 9699 修订了某个没被改的字段，0495 学生仍能自动看到新内容。
+  const OVERRIDE_FIELDS = ['term', 'chinese', 'definition', 'paper', 'category', 'unit', 'aliases', 'theory', 'theories', 'notes', 'syllabus'] as const;
+
   const save = () => {
     if (!draft) return;
     if (!draft.term.trim() || !draft.definition.trim()) {
@@ -208,8 +245,28 @@ export default function VocabManager() {
     }
     const item = fromDraft(draft, editingId ?? undefined);
     if (editingId) {
-      replaceVocab(vocab.map((i) => (i.id === editingId ? item : i)));
-      setMsg('已保存修改');
+      const base = vocab.find((i) => i.id === editingId);
+      if (base && isInherited(base)) {
+        // 继承词条：只写覆盖层，绝不改 9699 本体
+        const patch: Record<string, unknown> = {};
+        const nextRec = item as unknown as Record<string, unknown>;
+        const prevRec = base as unknown as Record<string, unknown>;
+        for (const f of OVERRIDE_FIELDS) {
+          if (JSON.stringify(nextRec[f] ?? null) !== JSON.stringify(prevRec[f] ?? null)) patch[f] = nextRec[f];
+        }
+        if (Object.keys(patch).length === 0) {
+          setMsg('没有改动');
+          setDraft(null);
+          setEditingId(null);
+          return;
+        }
+        void saveOverride(editingId, 'edit', patch as Partial<VocabItem>)
+          .then(() => setMsg(`已在「${SYLLABUS_LABELS[activeSyllabus]}」下单独保存（未改动 9699 原词条）`))
+          .catch((e: unknown) => setMsg(`保存失败：${e instanceof Error ? e.message : String(e)}`));
+      } else {
+        replaceVocab(vocab.map((i) => (i.id === editingId ? item : i)));
+        setMsg('已保存修改');
+      }
     } else {
       replaceVocab([...vocab, item]);
       setMsg('已新增词条');
@@ -219,6 +276,15 @@ export default function VocabManager() {
   };
 
   const remove = (item: VocabItem) => {
+    if (isInherited(item)) {
+      // 继承词条：隐藏而非删除，9699 原词条不动，可随时恢复
+      if (confirm(`在「${SYLLABUS_LABELS[activeSyllabus]}」下隐藏「${item.term}」？\n不会删除 9699 的原词条，可随时恢复。`)) {
+        void saveOverride(item.id, 'hide', {})
+          .then(() => setMsg(`已在「${SYLLABUS_LABELS[activeSyllabus]}」下隐藏`))
+          .catch((e: unknown) => setMsg(`操作失败：${e instanceof Error ? e.message : String(e)}`));
+      }
+      return;
+    }
     if (confirm(`确定删除「${item.term}」？`)) {
       replaceVocab(vocab.filter((i) => i.id !== item.id));
     }
@@ -373,6 +439,17 @@ export default function VocabManager() {
             </label>
           </div>
           <label style={{ display: 'block', marginTop: '0.6rem' }}>
+            <span className="muted" style={{ fontSize: '0.8rem' }}>归属大纲</span>
+            <select value={draft.syllabus} onChange={(e) => setDraft({ ...draft, syllabus: e.target.value })}>
+              <option value="">所有大纲共享（9699 与 0495 都可见）</option>
+              <option value="9699">{SYLLABUS_LABELS['9699']} 独占</option>
+              <option value="0495">{SYLLABUS_LABELS['0495']} 独占</option>
+            </select>
+            <span className="muted" style={{ display: 'block', fontSize: '0.75rem', marginTop: '0.2rem' }}>
+              独占词条只在对应大纲的视图里出现，词条 id 不受影响。改归属不会改变学生已有的掌握度与错题记录。
+            </span>
+          </label>
+          <label style={{ display: 'block', marginTop: '0.6rem' }}>
             <span className="muted" style={{ fontSize: '0.8rem' }}>释义</span>
             <input value={draft.definition} onChange={(e) => setDraft({ ...draft, definition: e.target.value })} />
           </label>
@@ -412,10 +489,10 @@ export default function VocabManager() {
           <div style={{ marginTop: '0.6rem' }}>
             <span className="muted" style={{ fontSize: '0.8rem' }}>单元（可多选）</span>
             <div className="tag-filter" style={{ marginTop: '0.3rem' }}>
-              {unitsForPaper(draft.paper, unitOrder).map((u) => (
+              {draftUnits.map((u) => (
                 <button key={u} className={draft.units.includes(u) ? 'active' : ''} onClick={() => toggleUnit(u)}>{u}</button>
               ))}
-              {unitsForPaper(draft.paper, unitOrder).length === 0 && <span className="muted" style={{ fontSize: '0.8rem' }}>该考卷暂无单元</span>}
+              {draftUnits.length === 0 && <span className="muted" style={{ fontSize: '0.8rem' }}>该考卷暂无单元</span>}
             </div>
           </div>
           <label style={{ display: 'block', marginTop: '0.6rem' }}>
@@ -663,6 +740,7 @@ export default function VocabManager() {
                 <th>术语/学者</th>
                 <th>中文</th>
                 <th>考卷</th>
+                <th title="该词条在哪几个大纲的视图里出现">归属</th>
                 <th>单元</th>
                 <th>理论流派</th>
                 <th>可接受答案</th>
@@ -684,7 +762,21 @@ export default function VocabManager() {
                   )}
                   <td><ScrollText text={i.term} /></td>
                   <td className="muted">{i.chinese || '—'}</td>
-                  <td>{i.paper}</td>
+                  <td>
+                    {i.paper}
+                    {overriddenIdSet.has(i.id) && (
+                      <span className="badge warn" style={{ marginLeft: '0.3rem' }} title="在本大纲下单独改写过，9699 原词条未变">已改写</span>
+                    )}
+                  </td>
+                  <td className="muted" style={{ fontSize: '0.8rem' }}>
+                    {i.syllabus ? (
+                      <span className="badge" title="该词条只在指定大纲的视图里出现">
+                        {SYLLABUS_LABELS[i.syllabus as keyof typeof SYLLABUS_LABELS] ?? i.syllabus} 专属
+                      </span>
+                    ) : (
+                      <span title="9699 与 0495 都可见">共享</span>
+                    )}
+                  </td>
                   <td className="muted" style={{ fontSize: '0.8rem' }}>{(i.unit ?? []).join('、') || '—'}</td>
                   <td className="muted" style={{ fontSize: '0.8rem' }}>
                     <span
@@ -703,7 +795,20 @@ export default function VocabManager() {
                     ) : (
                       <>
                         <button onClick={() => startEdit(i)}>编辑</button>
-                        <button className="danger" onClick={() => remove(i)}>删除</button>
+                        {overriddenIdSet.has(i.id) && (
+                          <button
+                            className="ghost"
+                            title="清掉本大纲的改写，恢复成 9699 的原始内容"
+                            onClick={() => {
+                              void clearOverride(i.id)
+                                .then(() => setMsg('已恢复为 9699 原样'))
+                                .catch((e: unknown) => setMsg(`恢复失败：${e instanceof Error ? e.message : String(e)}`));
+                            }}
+                          >
+                            恢复原样
+                          </button>
+                        )}
+                        <button className="danger" onClick={() => remove(i)}>{isInherited(i) ? '隐藏' : '删除'}</button>
                       </>
                     )}
                   </td>

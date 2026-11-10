@@ -53,7 +53,7 @@ function toSeconds(v: string, fallback: number): number {
 }
 
 export default function LiveHost() {
-  const { authUser, vocab, papers, categories } = useStore();
+  const { authUser, scopedVocab: vocab, papers, categories } = useStore();
   const uid = authUser?.id ?? '';
 
   const [loading, setLoading] = useState(true);

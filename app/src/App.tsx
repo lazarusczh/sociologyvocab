@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { StoreProvider, useStore } from './lib/store';
+import { SYLLABUS_OPTIONS } from './lib/syllabus';
 import { installTableFreeze } from './lib/tableFreeze';
 import IdentityGate from './components/IdentityGate';
 import Home from './components/Home';
@@ -135,7 +136,8 @@ function AppBody() {
   // 窄屏二级面板进出场：expandedGroup 是目标值，panelGroup 是实际渲染值（退场时延迟卸载）
   const [panelGroup, setPanelGroup] = useState<string | null>(null);
   const [panelExiting, setPanelExiting] = useState(false);
-  const { authUser, isTeacher, isDeveloper, skipped, inQuiz, exitSkip } = useStore();
+  const { authUser, isTeacher, isDeveloper, skipped, inQuiz, exitSkip, activeSyllabus, setActiveSyllabus } =
+    useStore();
   const viewRef = useRef(view);
   const navRef = useRef<HTMLElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -314,6 +316,21 @@ function AppBody() {
                 >
                   开发后台
                 </button>
+              )}
+              {authUser && isTeacher && (
+                <>
+                  <div className="nav-menu-label">词库视图</div>
+                  {SYLLABUS_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      className={activeSyllabus === opt.value ? 'active' : ''}
+                      onClick={() => { setActiveSyllabus(opt.value); setMenuOpen(false); }}
+                      disabled={inQuiz}
+                    >
+                      {activeSyllabus === opt.value ? `✓ ${opt.label}` : opt.label}
+                    </button>
+                  ))}
+                </>
               )}
               {!authUser && skipped && (
                 <>
@@ -509,6 +526,22 @@ function AppBody() {
                   >
                     开发后台
                   </button>
+                )}
+                {authUser && isTeacher && (
+                  <>
+                    <div className="nav-menu-label">词库视图</div>
+                    {SYLLABUS_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        className={activeSyllabus === opt.value ? 'active' : ''}
+                        onClick={() => setActiveSyllabus(opt.value)}
+                        disabled={inQuiz}
+                        title={activeSyllabus === opt.value ? '当前正在看这个大纲的词库' : '切到这个大纲看词库'}
+                      >
+                        {activeSyllabus === opt.value ? `✓ ${opt.label}` : opt.label}
+                      </button>
+                    ))}
+                  </>
                 )}
                 {!authUser && skipped && (
                   <>

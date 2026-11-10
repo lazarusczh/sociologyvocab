@@ -349,6 +349,13 @@ input:focus, textarea:focus, select:focus {
   color: var(--c-ink);
 }
 .nav-group-items button:hover { background: var(--c-surface-soft); color: var(--c-ink); }
+/* 账户菜单里的分组小标题（如「词库视图」）：只是标签，不可点 */
+.nav-menu-label {
+  padding: 0.25rem 0.5rem 0.1rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
 
 /* 内容区顶部返回首页按钮（仅网页端、非首页时显示） */
 .back-btn {
@@ -570,6 +577,10 @@ input:focus, textarea:focus, select:focus {
     font-size: 0.8rem;
     color: var(--text-muted);
     padding: 0.4rem 0.8rem 0.5rem;
+  }
+  .nav-account-mobile .nav-menu-label {
+    padding: 0.5rem 0.8rem 0.15rem;
+    font-size: 0.78rem;
   }
 }
 

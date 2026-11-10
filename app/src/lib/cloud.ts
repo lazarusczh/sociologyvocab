@@ -4,6 +4,8 @@ import { apiUrl } from './apiBase';
 import type { CheckInState, Progress, WrongBook, VocabItem, Quiz, QuizSubmission, CorrectionResult, SurnameOverrides } from './types';
 import { classMatchesGrade, firstPaperNumber, gradeFromPapers, inferGrade, pickShortCode, shortCodeBase, type Grade, type RosterEntry } from './mbSync';
 import { getAcceptableKeys } from './answers';
+import { DEFAULT_SYLLABUS, normalizeSyllabus, type SyllabusId } from './syllabus';
+import type { OverrideOp, VocabOverride } from './vocabOverrides';
 
 // 云端 student_data.data 里存储的 JSON 结构（checkin/progress/wrongBook 三块 + 姓名）
 export interface CloudStudentData {
@@ -111,66 +113,165 @@ export async function pushCloudData(
   if (error) throw error;
 }
 
-// ---- 词库发布 / 拉取 ----
+// 查学生所属班级的大纲（学生端启动时用来决定看到哪套卷结构）。
+// 返回 null 表示未分班或班级没设大纲 —— 调用方应回落到本地偏好/默认 9699。
+//
+// 走两步查询而不是 PostgREST 内联关联：student_data.class_id 没有指向 classes.id 的
+// 外键约束，内联 embed 依赖外键自动推断，这里不可靠。
+export async function pullStudentSyllabus(userId: string): Promise<SyllabusId | null> {
+  try {
+    const { data: row } = await supabase
+      .from('student_data')
+      .select('class_id')
+      .eq('user_id', userId)
+      .maybeSingle();
+    const classId = (row as { class_id: string | null } | null)?.class_id ?? null;
+    if (!classId) return null;
+    const { data: cls } = await supabase
+      .from('classes')
+      .select('syllabus')
+      .eq('id', classId)
+      .maybeSingle();
+    const syl = (cls as { syllabus: string | null } | null)?.syllabus;
+    return syl ? normalizeSyllabus(syl) : null;
+  } catch {
+    // 查不到就当作未分班，不影响登录
+    return null;
+  }
+}
 
-// 查最新词库版本号（轻量，用于「检查更新」；无版本返回 0）
-export async function getLatestVocabVersion(): Promise<number> {
+// ---- 词库发布 / 拉取 ----
+//
+// 多 syllabus：vocab_releases 每行带 syllabus 列（'9699' / '0495'）。
+// 版本号在各自 syllabus 内自增（(syllabus, version) 唯一）。
+// 0495 若还没有自己的发布，pullLatestVocab('0495') 会回落取 9699 的最新版——
+// 这就是「投影模式」：内容同源，只有视图不同；一旦 0495 教师发布了自己的版本，
+// 同一个函数自动切成「独立模式」，调用方无需区分。
+
+// 查某 syllabus 最新词库版本号（轻量，用于「检查更新」；无版本返回 0）
+// allowFallback=true 时，该 syllabus 无发布则回落取 9699 的版本号
+export async function getLatestVocabVersion(
+  syllabus: SyllabusId = DEFAULT_SYLLABUS,
+  allowFallback = true,
+): Promise<number> {
   const { data } = await supabase
     .from('vocab_releases')
     .select('version')
+    .eq('syllabus', syllabus)
     .order('version', { ascending: false })
     .limit(1)
     .maybeSingle();
-  return ((data as { version: number } | null)?.version ?? 0);
+  const v = (data as { version: number } | null)?.version;
+  if (v != null) return v;
+  if (allowFallback && syllabus !== DEFAULT_SYLLABUS) {
+    return getLatestVocabVersion(DEFAULT_SYLLABUS, false);
+  }
+  return 0;
 }
 
-// 拉取最新词库（含整份词条 + 单元列表 + 特殊姓氏覆盖 + 版本号；无版本返回 null）
+// 拉取某 syllabus 最新词库（含整份词条 + 单元列表 + 特殊姓氏覆盖 + 版本号；无版本返回 null）
 // 注意 surname_overrides 是后加的列：历史发布该字段为 null，调用方需按「没有就用本机」降级。
-export async function pullLatestVocab(): Promise<{
+export async function pullLatestVocab(syllabus: SyllabusId = DEFAULT_SYLLABUS): Promise<{
   version: number;
   data: VocabItem[];
   unitOrder: Record<string, string[]> | null;
   surnameOverrides: SurnameOverrides | null;
+  /** 实际取到内容的那个 syllabus（可能与请求的不同，见回落规则） */
+  syllabus: SyllabusId;
 } | null> {
   const { data, error } = await supabase
     .from('vocab_releases')
-    .select('version, data, unit_order, surname_overrides')
+    .select('version, data, unit_order, surname_overrides, syllabus')
+    .eq('syllabus', syllabus)
     .order('version', { ascending: false })
     .limit(1)
     .maybeSingle();
   if (error) throw error;
-  if (!data) return null;
+  if (!data) {
+    // 回落：0495 尚无自己的发布 → 取 9699 最新版，按 0495 投影展示
+    if (syllabus !== DEFAULT_SYLLABUS) return pullLatestVocab(DEFAULT_SYLLABUS);
+    return null;
+  }
   const row = data as {
     version: number;
     data: VocabItem[];
     unit_order: Record<string, string[]> | null;
     surname_overrides: SurnameOverrides | null;
+    syllabus: string | null;
   };
   return {
     version: row.version,
     data: row.data ?? [],
     unitOrder: row.unit_order ?? null,
     surnameOverrides: row.surname_overrides ?? null,
+    syllabus: normalizeSyllabus(row.syllabus ?? syllabus),
   };
 }
 
-// 教师发布词库：插入新版本（version 自增），含词条、单元列表与特殊姓氏覆盖，返回新版本号
+// 教师发布词库：插入新版本（该 syllabus 内 version 自增），含词条、单元列表与特殊姓氏覆盖，返回新版本号
 export async function publishVocab(
   items: VocabItem[],
   note?: string,
   unitOrder?: Record<string, string[]>,
   surnameOverrides?: SurnameOverrides,
+  syllabus: SyllabusId = DEFAULT_SYLLABUS,
 ): Promise<number> {
-  const nextVersion = (await getLatestVocabVersion()) + 1;
+  const nextVersion = (await getLatestVocabVersion(syllabus, false)) + 1;
   const { error } = await supabase.from('vocab_releases').insert({
     version: nextVersion,
     data: items,
     note: note ?? '',
     unit_order: unitOrder ?? null,
     surname_overrides: surnameOverrides ?? null,
+    syllabus,
   });
   if (error) throw error;
   return nextVersion;
+}
+
+// ---- 词条覆盖层（vocab_overrides）----
+//
+// 0495 默认复用 9699 词库（运行时投影）。0495 教师改动某条词条时，改动存这里，
+// 不动 9699 的原始行，也不复制整份词库 —— 详见 vocabOverrides.ts 与迁移文件第 5 节。
+
+export async function pullVocabOverrides(syllabus: SyllabusId): Promise<VocabOverride[]> {
+  try {
+    const { data, error } = await supabase
+      .from('vocab_overrides')
+      .select('syllabus, item_id, op, patch')
+      .eq('syllabus', syllabus);
+    if (error) return []; // 表还没建 / 无权限时静默降级，不影响主流程
+    return (data ?? []) as VocabOverride[];
+  } catch {
+    return [];
+  }
+}
+
+/** 写入一条覆盖（upsert）。op='hide' 时 patch 传空对象即可。 */
+export async function saveVocabOverride(
+  syllabus: SyllabusId,
+  itemId: string,
+  op: OverrideOp,
+  patch: Partial<VocabItem>,
+): Promise<void> {
+  const { error } = await supabase.from('vocab_overrides').upsert({
+    syllabus,
+    item_id: itemId,
+    op,
+    patch,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) throw error;
+}
+
+/** 撤销一条覆盖（回到复用 9699 的原始状态） */
+export async function deleteVocabOverride(syllabus: SyllabusId, itemId: string): Promise<void> {
+  const { error } = await supabase
+    .from('vocab_overrides')
+    .delete()
+    .eq('syllabus', syllabus)
+    .eq('item_id', itemId);
+  if (error) throw error;
 }
 
 // ---- 服务端答案判定表（vocab_answer_forms）----
@@ -234,6 +335,8 @@ export async function createQuiz(input: {
   allow_correction: boolean;
   grading_rules: unknown;
   created_by: string | null;
+  /** 归属大纲；不传落库默认 '9699'。短码的年级位靠它区分 A1 / IG。 */
+  syllabus?: string;
 }): Promise<string> {
   const code = String(Math.floor(1000 + Math.random() * 9000));
   const { error } = await supabase.from('quizzes').insert({ ...input, code });
@@ -276,6 +379,8 @@ export async function duplicateQuiz(
     allow_correction: source.allow_correction ?? source.kind === 'homework',
     type_filter: source.type_filter ?? 'all',
     grading_rules: source.grading_rules ?? null,
+    // 补交卷沿用源卷的归属：0495 的补交卷不能变成 9699 的短码
+    syllabus: source.syllabus ?? null,
     created_by: opts.createdBy,
   };
   // 短码是 4 位随机数，撞码概率不高但存在（唯一约束）⇒ 换一个重试
@@ -621,6 +726,8 @@ export interface GrouperRunRow {
   a_star: number | null;
   scores: GrouperRunScore[];
   mb_short_code: string | null;        // ManageBac 短码（形如 A1-0712）：创建时生成、之后固定不变
+  /** 归属大纲（'9699' / '0495'）：短码的年级位靠它区分 A1 / IG，见 db-migration-run-syllabus.sql */
+  syllabus: string | null;
   created_by: string | null;
   created_at: string;
 }
@@ -636,6 +743,8 @@ export async function createGrouperRun(input: {
   thresholds: GrouperThreshold;
   a_star: number | null;
   created_by: string | null;
+  /** 归属大纲；不传落库默认 '9699'。短码的年级位靠它区分 A1 / IG。 */
+  syllabus?: string;
 }): Promise<string> {
   const { data, error } = await supabase
     .from('grouper_runs')
@@ -688,12 +797,14 @@ export interface ClassMbRow {
   papers: string[] | null;
   mb_class_url: string | null;
   mb_class_id: string | null;
+  syllabus: string | null;
+  teacher_id: string | null;
 }
 
 export async function listClassesWithMb(): Promise<ClassMbRow[]> {
   const { data, error } = await supabase
     .from('classes')
-    .select('id, name, papers, mb_class_url, mb_class_id')
+    .select('id, name, papers, mb_class_url, mb_class_id, syllabus, teacher_id')
     .order('name');
   if (error) throw error;
   return (data ?? []) as ClassMbRow[];
@@ -730,35 +841,52 @@ export async function setRunShortCode(runId: string, code: string): Promise<void
   if (error) throw error;
 }
 
-/** 年级位：优先用同名班级的 papers（P1/P2 → A1、P3/P4 → A2），否则按卷名/paper */
-async function gradeForRun(title: string, paper: number): Promise<Grade> {
-  const guess = inferGrade(title, paper);
+/**
+ * 年级位：优先用同名班级的 papers（P1/P2 → A1、P3/P4 → A2），否则按卷名/paper。
+ *
+ * `syllabus` 是从记录行上读出来的归属（db-migration-run-syllabus.sql），
+ * 不是界面当前状态 —— 换个人打开同一条记录也必须推成同一个年级位。
+ *
+ * 0495 返回 `null`：G1/G2 是教学年级，卷号与卷名都推不出来，必须教师手选
+ * （见 `needsManualGrade`）。调用方据此要求先选年级，而不是硬塞一个 A1。
+ */
+async function gradeForRun(title: string, paper: number, syllabus?: string | null): Promise<Grade | null> {
+  const guess = inferGrade(title, paper, syllabus);
+  if (!guess) return null; // 0495：不猜
   try {
-    const { data } = await supabase.from('classes').select('name, papers');
-    const rows = (data ?? []) as { name: string; papers: string[] | null }[];
-    const hit = rows.find((c) => classMatchesGrade(c.name, guess));
-    return (hit ? gradeFromPapers(hit.papers) : null) ?? guess;
+    const { data } = await supabase.from('classes').select('name, papers, syllabus');
+    const rows = (data ?? []) as { name: string; papers: string[] | null; syllabus: string | null }[];
+    // 只在同一 syllabus 的班里找同名班：0495 的 "IGCSE" 班和 9699 的 "AS" 班不是一回事
+    const sameSyllabus = rows.filter((c) => (c.syllabus || '9699') === (syllabus || '9699'));
+    const hit = sameSyllabus.find((c) => classMatchesGrade(c.name, guess));
+    return (hit ? gradeFromPapers(hit.papers, syllabus) : null) ?? guess;
   } catch {
     return guess;
   }
 }
 
-/** 生成并落库短码（幂等：已有则原样返回）。新记录在 createGrouperRun 里自动调用。 */
+/**
+ * 生成并落库短码（幂等：已有则原样返回）。
+ * 返回 `null` 表示年级位推不出（0495 的 G1/G2）—— 需要教师在界面上手选后重试。
+ */
 export async function ensureRunShortCode(
   runId: string,
   title: string,
   paper: number,
   force = false,
   gradeOverride: Grade | null = null,
-): Promise<string> {
+): Promise<string | null> {
   const { data: cur } = await supabase
     .from('grouper_runs')
-    .select('mb_short_code')
+    .select('mb_short_code, syllabus')
     .eq('id', runId)
     .single();
-  const existing = (cur as { mb_short_code: string | null } | null)?.mb_short_code ?? null;
+  const row = cur as { mb_short_code: string | null; syllabus: string | null } | null;
+  const existing = row?.mb_short_code ?? null;
   if (existing && !force) return existing;
-  const grade = gradeOverride ?? await gradeForRun(title, paper);
+  const grade = gradeOverride ?? await gradeForRun(title, paper, row?.syllabus);
+  // 0495：G1/G2 无法推断，交给教师手选。这里不写任何码，也不占号。
+  if (!grade) return null;
   const taken = await listShortCodes();
   // force 时排除自己现用的码，避免查重把旧码算成冲突
   const code = pickShortCode(shortCodeBase(grade), taken.filter((c) => c !== existing));
@@ -1021,7 +1149,8 @@ export async function replaceMbRoster(
 
 /**
  * 生成并落库测验 / 作业的短码（幂等：已有则原样返回）。
- * 年级位由 quizzes.papers 推（P1/P2 → A1、P3/P4 → A2）；推不出时用 gradeOverride（教师在界面上选）。
+ * 年级位由 quizzes.syllabus + papers 推；推不出时用 gradeOverride（教师在界面上选）。
+ * 返回 `null` 表示年级位推不出（0495 的 G1/G2）—— 必须由教师手选后重试。
  */
 export async function ensureQuizShortCode(
   quizId: string,
@@ -1029,16 +1158,19 @@ export async function ensureQuizShortCode(
   papers: string[] | null | undefined,
   gradeOverride?: Grade | null,
   force = false,
-): Promise<string> {
+): Promise<string | null> {
   const { data: cur } = await supabase
     .from('quizzes')
-    .select('mb_short_code')
+    .select('mb_short_code, syllabus')
     .eq('id', quizId)
     .single();
-  const existing = (cur as { mb_short_code: string | null } | null)?.mb_short_code ?? null;
+  const row = cur as { mb_short_code: string | null; syllabus: string | null } | null;
+  const existing = row?.mb_short_code ?? null;
   if (existing && !force) return existing;
-  // 年级位：**优先读作业名**（教师会在名字里写 AS / A2，2026-09-15 明确），其次 papers，最后 A1
-  const grade = gradeOverride ?? inferGrade(title, firstPaperNumber(papers));
+  // 年级位：**优先读作业名**（教师会在名字里写 AS / A2，2026-09-15 明确），
+  // 其次按记录上的 syllabus 与 papers 推；0495 一律推不出，等教师手选。
+  const grade = gradeOverride ?? inferGrade(title, firstPaperNumber(papers), row?.syllabus);
+  if (!grade) return null;
   const taken = await listShortCodes();
   // force 时排除自己现用的码，避免查重把旧码算成冲突
   const code = pickShortCode(shortCodeBase(grade), taken.filter((c) => c !== existing));

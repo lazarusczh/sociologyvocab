@@ -4,7 +4,7 @@ import { MASTERY_LABELS, masteryLevel } from '../lib/storage';
 import CategoryFilter, { filterByPaperCat } from './CategoryFilter';
 
 export default function ProgressView() {
-  const { vocab, progress, resetProgress, papers, categories } = useStore();
+  const { scopedVocab: vocab, progress, resetProgress, papers, categories } = useStore();
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
   const [units, setUnits] = useState<string[]>([]);

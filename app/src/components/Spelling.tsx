@@ -10,7 +10,7 @@ import type { VocabItem } from '../lib/types';
 const ROUND = 10;
 
 export default function Spelling() {
-  const { vocab, recordItem, papers, categories } = useStore();
+  const { scopedVocab: vocab, recordItem, papers, categories } = useStore();
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
   const [units, setUnits] = useState<string[]>([]);

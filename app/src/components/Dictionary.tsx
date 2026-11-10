@@ -5,7 +5,8 @@ import type { VocabItem } from '../lib/types';
 
 // 词典：纯社会学词典检索工具，只做查询展示，不参与打卡与掌握度计算
 export default function Dictionary() {
-  const { vocab } = useStore();
+  // 用 scopedVocab：0495 学生不该在词典里搜到 Paper 4 的词条（9699 下两者等价）
+  const { scopedVocab: vocab } = useStore();
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<'term' | 'scholar'>('term');
   const [expandedId, setExpandedId] = useState<string | null>(null);

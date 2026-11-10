@@ -27,7 +27,7 @@ const toItem = (r: QbRow): BankItem => ({
 type Mode = 'template' | 'single' | 'free';
 
 export default function Grouper({ onOpenResults }: { onOpenResults?: () => void }) {
-  const { authUser } = useStore();
+  const { authUser, activeSyllabus } = useStore();
   const [mode, setMode] = useState<Mode>('template');
   const [paper, setPaper] = useState<PaperId>(1);
   const [templateIdx, setTemplateIdx] = useState(0);
@@ -289,6 +289,8 @@ export default function Grouper({ onOpenResults }: { onOpenResults?: () => void 
         full_raw: score.fullRaw,
         thresholds: { A: score.t.A, B: score.t.B, C: score.t.C, D: score.t.D, E: score.t.E },
         a_star: aStar.trim() === '' ? null : Math.max(0, Math.round(Number(aStar) || 0)),
+        // 归属大纲：0495 的组卷短码不能落成 A1（见 db-migration-run-syllabus.sql）
+        syllabus: activeSyllabus,
         created_by: authUser?.id ?? null,
       });
       setSavedMsg(`已保存「${title}」`);

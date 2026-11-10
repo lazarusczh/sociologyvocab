@@ -1,15 +1,16 @@
-﻿import {
+import {
   createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode,
 } from 'react';
 import type { VocabItem, Progress, ContextPassage, ImportResult, CheckInState, WrongBook, PracticeMode, SurnameOverrides, AuthUser } from './types';
 import {
   loadVocab, saveVocab, clearVocab,
-  loadProgress, saveProgress, recordAnswer, resetMastery, PAPER_ORDER,
+  loadProgress, saveProgress, recordAnswer, resetMastery,
   loadContexts, saveContexts, isConfigured, setConfigured,
   loadCheckIn, saveCheckIn, loadWrongBook, saveWrongBook,
   loadSurnameOverrides, saveSurnameOverrides, saveCloudSurnameOverrides, setDataScope,
   migrateVocabStableIds, migrateAllProgressKeys,
-  loadVocabVersion, saveVocabVersion,
+  loadVocabVersionFor, saveVocabVersionFor,
+  loadActiveSyllabus, saveActiveSyllabus,
 } from './storage';
 import {
   recordFormalAnswer, addStudySeconds, applyMakeup as applyMakeupCheck,
@@ -20,7 +21,11 @@ import { loadUnitOrder, saveUnitOrder } from './unitMapping';
 import { vocabSnapshotKey } from './vocabSnapshot';
 import { exportBackupJson, performImport } from './backup';
 import { supabase } from './supabase';
-import { pullCloudData, pushCloudData, mergeStudentData, type CloudStudentData, getLatestVocabVersion, pullLatestVocab } from './cloud';
+import { pullCloudData, pushCloudData, mergeStudentData, pullStudentSyllabus, pullVocabOverrides, saveVocabOverride, deleteVocabOverride, type CloudStudentData, getLatestVocabVersion, pullLatestVocab } from './cloud';
+import { applyVocabOverrides, type OverrideOp, type VocabOverride } from './vocabOverrides';
+import {
+  DEFAULT_SYLLABUS, normalizeSyllabus, papersFor, projectItems, type SyllabusId,
+} from './syllabus';
 // XP 体系（C 档）：事件构造与本地队列。设计与契约见《XP-C档改造方案.md》。
 // 这里只做「产出一条事件并入队」，不做任何算分 —— 算分全在服务端，
 // 故改分值不必发前端版本，也不会出现新旧客户端口径分叉。
@@ -109,6 +114,21 @@ interface StoreValue {
   authUser: AuthUser | null;
   isTeacher: boolean;
   isDeveloper: boolean;
+  // 当前大纲：决定卷结构（0495 只有两卷）与可见词条范围
+  activeSyllabus: SyllabusId;
+  /** 手动切换大纲（教师预览用；学生由班级决定，一般不需要调） */
+  setActiveSyllabus: (s: SyllabusId) => void;
+  /** 当前大纲下可见的词条（已按 syllabus 过滤） */
+  scopedVocab: VocabItem[];
+  /** 当前大纲的覆盖层（0495 教师改过的词条）；9699 恒为空数组 */
+  overrides: VocabOverride[];
+  /**
+   * 在当前大纲下改写一条**继承自 9699** 的词条：只写覆盖层，不动基础词库。
+   * 9699 下调用会直接抛错 —— 9699 是基础库，改动就该走正常编辑 + 发布。
+   */
+  saveOverride: (itemId: string, op: OverrideOp, patch: Partial<VocabItem>) => Promise<void>;
+  /** 撤销当前大纲下某条覆盖，回到「复用 9699 原始内容」 */
+  clearOverride: (itemId: string) => Promise<void>;
   vocabUpdateBanner: string;
   syncVocabFromCloud: () => void;
   dismissVocabBanner: () => void;
@@ -136,6 +156,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [isTeacher, setIsTeacher] = useState(false);
   const [isDeveloper, setIsDeveloper] = useState(false);
+  // 当前生效的大纲（决定卷结构：0495 只有两卷，且 P2 = 家庭 + 教育）
+  // 解析顺序：学生所属班级 classes.syllabus → 本地偏好 → 默认 9699
+  const [activeSyllabus, setActiveSyllabusState] = useState<SyllabusId>(() =>
+    normalizeSyllabus(loadActiveSyllabus()),
+  );
+  // 0495 教师改过的词条（覆盖层）。9699 始终为空。
+  const [overrides, setOverrides] = useState<VocabOverride[]>([]);
   const [vocabUpdateBanner, setVocabUpdateBanner] = useState('');
   const [surnameOverrides, setSurnameOverrides] = useState<SurnameOverrides>({});
   const [checkinCelebration, setCheckinCelebration] = useState(false);
@@ -168,6 +195,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setProgress(merged.progress);
     setWrongBook(merged.wrongBook);
     setAuthUser(u);
+    // 解析当前学生该看哪套大纲：班级优先，其次本地偏好，最后默认 9699。
+    // 未分班 / 班级没设大纲 → 保持现状，老用户行为零变化。
+    (async () => {
+      try {
+        const fromClass = await pullStudentSyllabus(u.id);
+        if (fromClass) {
+          setActiveSyllabusState(fromClass);
+          saveActiveSyllabus(fromClass);
+        }
+      } catch {
+        // 查不到就不动，沿用本地偏好 / 默认值
+      }
+    })();
     // 判断当前用户角色（用于显示教师后台 / 打卡核验）
     (async () => {
       try {
@@ -283,14 +323,75 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setVocab(items);
   }, []);
 
+  // 手动切换大纲（教师预览 / 无班级用户自选）。写本地偏好，下次启动沿用。
+  const setActiveSyllabus = useCallback((s: SyllabusId) => {
+    const next = normalizeSyllabus(s);
+    setActiveSyllabusState(next);
+    saveActiveSyllabus(next);
+  }, []);
+
+  // 覆盖层：0495 教师改过的词条。只在非默认 syllabus 下拉取（9699 是基础库，不需要覆盖）。
+  // 拉取失败一律降级为空数组 —— 覆盖层是增强，不能因为表未建/网络差把整个词库挂掉。
+  useEffect(() => {
+    if (activeSyllabus === DEFAULT_SYLLABUS) {
+      setOverrides([]);
+      return;
+    }
+    let alive = true;
+    void (async () => {
+      const list = await pullVocabOverrides(activeSyllabus);
+      if (alive) setOverrides(list);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [activeSyllabus]);
+
+  // 重新拉取当前大纲的覆盖层（写完之后刷新用）
+  const reloadOverrides = useCallback(async (syllabus: SyllabusId) => {
+    const list = await pullVocabOverrides(syllabus);
+    setOverrides(list);
+  }, []);
+
+  // 在当前大纲下改写「继承自 9699」的词条：只写覆盖层，不动基础词库。
+  //
+  // 为什么不在 9699 下也走覆盖层：9699 是基础库，教师对它的改动本来就该通过
+  // 「编辑 + 发布 vocab_releases」进入主流程；给它再叠一层覆盖，会让版本号与内容两处都能变，
+  // 排查问题时无法判断学生看到的到底是哪一份。
+  const saveOverride = useCallback(
+    async (itemId: string, op: OverrideOp, patch: Partial<VocabItem>) => {
+      if (activeSyllabus === DEFAULT_SYLLABUS) {
+        throw new Error('9699 是基础词库，请直接编辑并发布，不要写覆盖层');
+      }
+      await saveVocabOverride(activeSyllabus, itemId, op, patch);
+      await reloadOverrides(activeSyllabus);
+    },
+    [activeSyllabus, reloadOverrides],
+  );
+
+  const clearOverride = useCallback(
+    async (itemId: string) => {
+      if (activeSyllabus === DEFAULT_SYLLABUS) return;
+      await deleteVocabOverride(activeSyllabus, itemId);
+      await reloadOverrides(activeSyllabus);
+    },
+    [activeSyllabus, reloadOverrides],
+  );
+
   // 从云端同步词库：启动/回首页时调用（登录用户和离线游客都同步），检查最新版本并静默拉取
+  //
+  // 版本号按 syllabus 分开记：0495 若还没有自己的发布，pullLatestVocab('0495') 会回落
+  // 取 9699 的最新版（投影模式）；但版本号仍按 0495 自己的序列记，避免两边互相顶掉。
   const syncVocabFromCloud = useCallback(async () => {
+    const syllabus = activeSyllabus;
     try {
-      const latestVersion = await getLatestVocabVersion();
-      if (latestVersion > loadVocabVersion()) {
-        const pulled = await pullLatestVocab();
+      const latestVersion = await getLatestVocabVersion(syllabus);
+      if (latestVersion > loadVocabVersionFor(syllabus)) {
+        const pulled = await pullLatestVocab(syllabus);
         if (pulled) {
           if (pulled.data.length > 0) {
+            // 词库本体始终按 9699 的原生形状存本地：0495 只是视图投影，
+            // 这样切回 9699 不用重新拉取，同源词条的 stableId 也不会变。
             const migrated = migrateVocabStableIds(migrateVocabItems(pulled.data)).vocab;
             persistVocab(migrated);
             setVocabUpdateBanner(`词库已更新到 v${pulled.version}（${migrated.length} 条）`);
@@ -307,13 +408,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           // 所以必须落到本地，学生端才能用上教师指定的覆盖。
           // 历史发布没有该字段（null）时不动本机已有值，避免误清。
           if (pulled.surnameOverrides) saveCloudSurnameOverrides(pulled.surnameOverrides);
-          saveVocabVersion(pulled.version);
+          saveVocabVersionFor(syllabus, pulled.version);
         }
       }
     } catch {
       // 离线/失败：用本地缓存，不提示
     }
-  }, [persistVocab]);
+  }, [persistVocab, activeSyllabus]);
 
   const dismissVocabBanner = useCallback(() => {
     setVocabUpdateBanner('');
@@ -691,8 +792,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return error ? error.message : '';
   }, []);
 
-  const categories = [...new Set(vocab.map((i) => i.category).filter(Boolean))].sort();
-  const papers = PAPER_ORDER.filter((p) => vocab.some((v) => v.paper === p));
+  // 当前大纲下可见的词条：先合并覆盖层（0495 教师改过的内容），再按大纲投影卷结构
+  // （0495 里原生 Paper 3 教育词条展示为 Paper 2；只在 Paper 4 出现的词条被剔除）。
+  // 9699 走快路径返回同一数组引用，行为与引入 syllabus 之前完全一致。
+  const scopedVocab = projectItems(applyVocabOverrides(vocab, overrides), activeSyllabus);
+  const categories = [...new Set(scopedVocab.map((i) => i.category).filter(Boolean))].sort();
+  // 卷列表按 syllabus 定义给出，再按「实际有词」裁剪：
+  // 9699 = 四卷；0495 = 两卷（P1 研究方法/身份/分层、P2 家庭+教育）
+  const papers = papersFor(activeSyllabus).filter((p) => scopedVocab.some((v) => v.paper === p));
 
   const value: StoreValue = {
     vocab,
@@ -700,6 +807,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     contexts,
     categories,
     papers,
+    activeSyllabus,
+    setActiveSyllabus,
+    scopedVocab,
+    overrides,
+    saveOverride,
+    clearOverride,
     checkin,
     wrongBook,
     surnameOverrides,

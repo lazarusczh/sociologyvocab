@@ -89,8 +89,20 @@ export function attachUnits(items: VocabItem[]): VocabItem[] {
 }
 
 // 某 paper+category 下的单元（按大纲顺序；order 为自定义单元列表，缺省用默认）
+//
+// 回退：精确 key 找不到时，按 category 名在其它卷里找同名次级标签。
+// 这是为多 syllabus 准备的——0495 把教育并进了 Paper 2，而教育单元在
+// UNIT_ORDER 里仍挂在 'Paper 3|Education' 下，不回退就会显示「暂无单元」。
+// 9699 下精确 key 必然命中，回退分支不会触发，行为零变化。
 export function unitOrderFor(paper: string, category: string, order?: Record<string, string[]>): string[] {
-  return (order ?? UNIT_ORDER)[`${paper}|${category}`] ?? [];
+  const src = order ?? UNIT_ORDER;
+  const exact = src[`${paper}|${category}`];
+  if (exact) return exact;
+  if (!category) return [];
+  for (const [key, list] of Object.entries(src)) {
+    if (key.endsWith(`|${category}`)) return list;
+  }
+  return [];
 }
 
 // 某 paper+category 当前应展示的单元列表：
@@ -104,11 +116,22 @@ export function unitListFor(items: VocabItem[], paper: string, cat: string, orde
 }
 
 // 某 paper 下的所有单元（Paper 4 合并 Globalisation/Media；order 缺省用默认）
-export function unitsForPaper(paper: string, order?: Record<string, string[]>): string[] {
+//
+// 多 syllabus：某个卷在 UNIT_ORDER 里可能只有一个次级标签（0495 的 Paper 2 只有教育），
+// 而投影后该卷还包含家庭。所以除了按 key 前缀收，还要把该卷实际出现的 category
+// 对应的单元一并并进来（passed categories 由调用方从词条现算）。
+export function unitsForPaper(
+  paper: string,
+  order?: Record<string, string[]>,
+  categories: string[] = [],
+): string[] {
   const src = order ?? UNIT_ORDER;
   const units = new Set<string>();
   for (const [key, list] of Object.entries(src)) {
     if (key.startsWith(`${paper}|`)) list.forEach((u) => units.add(u));
+  }
+  for (const c of categories) {
+    for (const list of [unitOrderFor(paper, c, order)]) list.forEach((u) => units.add(u));
   }
   return [...units];
 }

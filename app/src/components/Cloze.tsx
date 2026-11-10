@@ -111,7 +111,8 @@ const betaTag = (
 );
 
 export default function Cloze() {
-  const { vocab, recordItem } = useStore();
+  // scopedVocab：0495 下 Paper 4 的词条不该出现在选项里（9699 下与 vocab 等价）
+  const { scopedVocab: vocab, recordItem, activeSyllabus } = useStore();
   const [passages, setPassages] = useState<ClozePassage[]>([]);
   const [paper, setPaper] = useState('all');
   const [mode, setMode] = useState<Mode>('spelling');
@@ -137,11 +138,17 @@ export default function Cloze() {
     return () => { cancelled = true; };
   }, []);
 
-  const papers = useMemo(() => [...new Set(passages.map((p) => p.category))], [passages]);
+  // 0495 只有两卷：把 Paper 4 的语境题整段滤掉，否则筛选里会出现该大纲没有的卷
+  const usablePassages = useMemo(
+    () => (activeSyllabus === '9699' ? passages : passages.filter((p) => p.category !== 'Paper 4')),
+    [passages, activeSyllabus],
+  );
+
+  const papers = useMemo(() => [...new Set(usablePassages.map((p) => p.category))], [usablePassages]);
 
   const filtered = useMemo(
-    () => passages.filter((p) => paper === 'all' || p.category === paper),
-    [passages, paper],
+    () => usablePassages.filter((p) => paper === 'all' || p.category === paper),
+    [usablePassages, paper],
   );
 
   const start = useCallback(() => {

@@ -36,7 +36,9 @@ const MODES: { key: View; title: string; desc: string }[] = [
 const WEEK_LABELS = ['一', '二', '三', '四', '五', '六', '日'];
 
 export default function Home({ go }: Props) {
-  const { vocab, progress, wrongBook, checkin: localCheckin, isTeacher, vocabUpdateBanner, syncVocabFromCloud, dismissVocabBanner } = useStore();
+  // scopedVocab：首页「已掌握 / 总数」应按当前大纲可见范围统计（0495 不含 Paper 4 的词条）。
+  // 注意 syncVocabFromCloud 仍用原始 vocab 全量同步，这里只影响展示口径。
+  const { scopedVocab: vocab, progress, wrongBook, checkin: localCheckin, isTeacher, vocabUpdateBanner, syncVocabFromCloud, dismissVocabBanner } = useStore();
 
   useEffect(() => { syncVocabFromCloud(); }, [syncVocabFromCloud]);
 

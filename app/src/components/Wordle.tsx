@@ -54,7 +54,7 @@ function pickTarget(items: Target[]): Target | null {
 }
 
 export default function Wordle() {
-  const { vocab, papers, categories } = useStore();
+  const { scopedVocab: vocab, papers, categories } = useStore();
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
   const [units, setUnits] = useState<string[]>([]);

@@ -4,7 +4,8 @@ import ConceptMapViewer from './ConceptMapViewer';
 // 概念网络展示页（资料区二级，面向所有用户）：复用教师后台「关系网络」图谱组件，
 // 只读浏览术语/学者间的逻辑关系；默认不显示派生同级（全开会过密/卡顿），也不提供开关。
 export default function ConceptMapView() {
-  const { vocab } = useStore();
+  // scopedVocab：0495 下不显示 Paper 4 的词条节点（9699 下与 vocab 等价）
+  const { scopedVocab: vocab } = useStore();
 
   return (
     <div>

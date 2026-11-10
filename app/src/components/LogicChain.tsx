@@ -31,7 +31,7 @@ interface InputRun {
 const betaTag = <span style={{ fontSize: '0.65rem', verticalAlign: 'super', color: 'var(--accent)', fontWeight: 700, letterSpacing: '0.02em' }}>Beta</span>;
 
 export default function LogicChain() {
-  const { vocab, recordItem, recordChainComplete, papers, categories } = useStore();
+  const { scopedVocab: vocab, recordItem, recordChainComplete, papers, categories } = useStore();
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
   const [units, setUnits] = useState<string[]>([]);

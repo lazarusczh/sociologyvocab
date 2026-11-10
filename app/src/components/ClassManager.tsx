@@ -4,6 +4,7 @@ import { maskEmail } from '../lib/shuffle';
 import ScrollText from './ScrollText';
 import { countMbRosterByClass, listClassesWithMb, replaceMbRoster, setClassMbBinding, setStudentMbExempt } from '../lib/cloud';
 import { parseMbClassUrl, parseRosterSheet } from '../lib/mbSync';
+import { SYLLABUS_LABELS, SYLLABUS_OPTIONS } from '../lib/syllabus';
 
 // 班级（含 ManageBac 绑定：成绩册 URL 与解析出的班级号）
 interface ClassRow {
@@ -12,6 +13,8 @@ interface ClassRow {
   papers: string[] | null;
   mb_class_url: string | null;
   mb_class_id: string | null;
+  syllabus: string | null;
+  teacher_id: string | null;
 }
 
 // 云端 student_data 表的完整行（含 user_id / email / data / class_id）
@@ -33,6 +36,8 @@ export default function ClassManager() {
 
   // 新建班级名草稿
   const [newName, setNewName] = useState('');
+  // 新建班级所属大纲（默认 9699，行为与之前一致）
+  const [newSyllabus, setNewSyllabus] = useState<string>('9699');
   // 重命名草稿：{ id -> 名称 }
   const [editingName, setEditingName] = useState<{ id: string; name: string } | null>(null);
 
@@ -100,13 +105,19 @@ export default function ClassManager() {
   const createClass = async () => {
     const name = newName.trim();
     if (!name) return;
-    const { error: err } = await supabase.from('classes').insert({ name });
+    // teacher_id 必须显式写入自己：classes_write 策略要求「写的是自己的班」，
+    // 不带 teacher_id 会被 RLS 拒绝（2026-11-10 加归属隔离后）。
+    const { data: sess } = await supabase.auth.getSession();
+    const uid = sess.session?.user?.id ?? null;
+    const { error: err } = await supabase
+      .from('classes')
+      .insert({ name, teacher_id: uid, syllabus: newSyllabus });
     if (err) {
       setError(err.message);
       return;
     }
     setNewName('');
-    setMsg(`已创建班级「${name}」`);
+    setMsg(`已创建班级「${name}」${newSyllabus === '9699' ? '' : `（大纲 ${newSyllabus}）`}`);
     load();
   };
 
@@ -292,7 +303,7 @@ export default function ClassManager() {
         )}
 
         {/* 新建班级 */}
-        <div className="row" style={{ marginTop: '0.8rem', gap: '0.5rem', alignItems: 'center' }}>
+        <div className="row" style={{ marginTop: '0.8rem', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <input
             type="text"
             placeholder="新班级名，如 A1 社会学"
@@ -300,6 +311,16 @@ export default function ClassManager() {
             onChange={(e) => setNewName(e.target.value)}
             style={{ flex: 1, maxWidth: '20rem' }}
           />
+          {/* 大纲决定这个班的学生看到哪套卷结构（0495 只有两卷） */}
+          <select
+            value={newSyllabus}
+            onChange={(e) => setNewSyllabus(e.target.value)}
+            style={{ maxWidth: '13rem' }}
+          >
+            {SYLLABUS_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
           <button className="primary" onClick={createClass} disabled={!newName.trim()}>
             + 创建班级
           </button>
@@ -322,6 +343,11 @@ export default function ClassManager() {
               ) : (
                 <span key={c.id} className="row" style={{ gap: '0.4rem', alignItems: 'center' }}>
                   <button className="active" style={{ cursor: 'default' }}>{c.name}</button>
+                  {c.syllabus && c.syllabus !== '9699' && (
+                    <span className="badge warn" title="该班学生看到的是对应大纲的卷结构">
+                      {SYLLABUS_LABELS[c.syllabus] ?? c.syllabus}
+                    </span>
+                  )}
                   <button onClick={() => setEditingName({ id: c.id, name: c.name })}>重命名</button>
                   <button className="danger" onClick={() => deleteClass(c)}>删除</button>
                 </span>

@@ -1,0 +1,612 @@
+[
+  {
+    "term": "Aims",
+    "topic": "methods",
+    "definition": "What a researcher sets out to achieve through their research, for example, to find out why something happens."
+  },
+  {
+    "term": "Anti-school sub-culture",
+    "topic": "education",
+    "definition": "A group of learners whose norms and values reject those of the school."
+  },
+  {
+    "term": "Benefits",
+    "topic": "strat",
+    "definition": "Money paid by governments to people who are ill, unemployed or poor."
+  },
+  {
+    "term": "Capitalism",
+    "topic": "strat",
+    "definition": "The economic system of most countries today; based on private ownership of the means of production."
+  },
+  {
+    "term": "Caste",
+    "topic": "strat",
+    "definition": "A closed stratification system in which a group’s status is fixed at birth and cannot be changed."
+  },
+  {
+    "term": "Causation",
+    "topic": "methods",
+    "definition": "When a change in one variable has a direct effect on another variable."
+  },
+  {
+    "term": "Child-centredness",
+    "topic": "family",
+    "definition": "When a child’s needs and wishes are the most important considerations."
+  },
+  {
+    "term": "Childless families",
+    "topic": "family",
+    "definition": "A couple who live together and have no children."
+  },
+  {
+    "term": "Conflict",
+    "topic": "identity",
+    "definition": "Disagreement; this term is used to describe a perspective on society which assumes there are basic disagreements between social groups (for example, based on social class or gender differences)."
+  },
+  {
+    "term": "Consumption",
+    "topic": "identity",
+    "definition": "The buying and use of goods and resources."
+  },
+  {
+    "term": "Consumption lifestyle",
+    "topic": "identity",
+    "definition": "A lifestyle based on what people buy and consume (rather than, for example, the work they do)."
+  },
+  {
+    "term": "Consumption patterns",
+    "topic": "identity",
+    "definition": "Variations in consumption depending on time, place and group."
+  },
+  {
+    "term": "Correlation",
+    "topic": "methods",
+    "definition": "When two variables change at the same time, suggesting they are connected."
+  },
+  {
+    "term": "Cultural appropriation",
+    "topic": "identity",
+    "definition": "Where culturally significant practices and artefacts from one part of the world are adopted by people in another part of the world, in a way that uses them as a fashion statement and strips them of their meaning."
+  },
+  {
+    "term": "Cultural racism",
+    "topic": "identity",
+    "definition": "Racism based on differences between ways of life, such as religion and customs, rather than supposed biological differences."
+  },
+  {
+    "term": "Culture of poverty",
+    "topic": "strat",
+    "definition": "When poor people have a different set of values to the majority, which keeps them poor."
+  },
+  {
+    "term": "Cycle of poverty",
+    "topic": "strat",
+    "definition": "When poor families become trapped in poverty for at least three generations because they have no access to the resources or qualifications to lift themselves out of it."
+  },
+  {
+    "term": "Death rate",
+    "topic": "family",
+    "definition": "The number of deaths per 1000 people in a population in one year; also called the mortality rate."
+  },
+  {
+    "term": "Demographic trends",
+    "topic": "family",
+    "definition": "Changes in a population, such as the birth rate and death rate."
+  },
+  {
+    "term": "Ddigital self",
+    "topic": "identity",
+    "definition": "The way that someone presents themselves online, and the personae they adopt in online communities, such as forums and social media. See also online identities."
+  },
+  {
+    "term": "Digital sources",
+    "topic": "methods",
+    "definition": "The internet and other online sources."
+  },
+  {
+    "term": "Distribution of wealth",
+    "topic": "strat",
+    "definition": "The way in which the wealth and income of a society are divided among its population."
+  },
+  {
+    "term": "Diverse",
+    "topic": "identity",
+    "definition": "Variety; cultural diversity refers to the wide differences between human cultures."
+  },
+  {
+    "term": "Divorce",
+    "topic": "family",
+    "definition": "The formal, legal ending of a marriage."
+  },
+  {
+    "term": "Domestic division of labour",
+    "topic": "family",
+    "definition": "The way in which tasks in the home (such as cooking, cleaning, childcare and repairs) are divided between men and women."
+  },
+  {
+    "term": "Dual worker families",
+    "topic": "family",
+    "definition": "Families in which both partners do paid work."
+  },
+  {
+    "term": "Dysfunctional family",
+    "topic": "family",
+    "definition": "A family that fails to carry out the expected functions; for example, where children are neglected."
+  },
+  {
+    "term": "Educational achievement",
+    "topic": "education",
+    "definition": "How well individuals do in the school system, usually measured by exam results."
+  },
+  {
+    "term": "Educational inequality",
+    "topic": "education",
+    "definition": "When different groups (based on class, gender and ethnicity) are treated or educated differently or have different levels of educational achievement."
+  },
+  {
+    "term": "Emigration",
+    "topic": "identity",
+    "definition": "Moving away from your home country and settling in another."
+  },
+  {
+    "term": "Equal opportunities",
+    "topic": "education",
+    "definition": "When everyone has the same chance of succeeding."
+  },
+  {
+    "term": "Extended family",
+    "topic": "family",
+    "definition": "A family with parent(s) and children living with or close to other relatives, such as grandparents or aunts and uncles."
+  },
+  {
+    "term": "Family functions",
+    "topic": "family",
+    "definition": "The functions of the family; the roles it plays and for whom, according to functionalist theory."
+  },
+  {
+    "term": "Family roles",
+    "topic": "family",
+    "definition": "The parts played by different members of a family."
+  },
+  {
+    "term": "Friends as family",
+    "topic": "family",
+    "definition": "When friendships between people who are not related to each other form a support network similar to a more traditional family."
+  },
+  {
+    "term": "Functions of education",
+    "topic": "education",
+    "definition": "The ways in which education contributes to society."
+  },
+  {
+    "term": "Gender equality",
+    "topic": "identity",
+    "definition": "Where men and women are treated the same and have equal outcomes in all aspects of society."
+  },
+  {
+    "term": "Gender hierarchy",
+    "topic": "identity",
+    "definition": "A system where one gender has a higher status than the other gender; in a patriarchal society, males benefit from the gender hierarchy."
+  },
+  {
+    "term": "Gender inequalities",
+    "topic": "identity",
+    "definition": "Differences in experience and outcomes for males and females, based on their gender; for example, in terms of educational achievement."
+  },
+  {
+    "term": "Gender roles",
+    "topic": "identity",
+    "definition": "The roles and expectations associated with being male or female. See also gender."
+  },
+  {
+    "term": "Gendered division of labour",
+    "topic": "family",
+    "definition": "The way in which societies expect women to be responsible for some tasks (such as cleaning and preparing food) and men for others."
+  },
+  {
+    "term": "Gendered socialisation",
+    "topic": "identity",
+    "definition": "The way that males and females are taught the expectations relating to their gender roles."
+  },
+  {
+    "term": "Global culture",
+    "topic": "identity",
+    "definition": "The idea that, as a result of globalisation, there is or will be a single culture shared by people all around the world."
+  },
+  {
+    "term": "Global differences in education",
+    "topic": "education",
+    "definition": "Differences in educational provision, outcomes and experience in different countries and regions of the world."
+  },
+  {
+    "term": "Hegemonic",
+    "topic": "identity",
+    "definition": "Relating to something that is widely accepted and difficult to escape from."
+  },
+  {
+    "term": "Historical documents",
+    "topic": "methods",
+    "definition": "Written sources from the past used as sources of information by sociologists."
+  },
+  {
+    "term": "Homeschooling",
+    "topic": "education",
+    "definition": "Education of school-aged children in the home, rather than at school."
+  },
+  {
+    "term": "Homogenisation of identities",
+    "topic": "identity",
+    "definition": "When the differences between identities of people around the world disappear, so they become similar."
+  },
+  {
+    "term": "Immigration",
+    "topic": "identity",
+    "definition": "Arriving and settling in a new country."
+  },
+  {
+    "term": "Inadequate socialisation",
+    "topic": "identity",
+    "definition": "Socialisation that does not fully instil the shared norms and values of a society; individuals who are inadequately socialised are more likely to become deviant."
+  },
+  {
+    "term": "Interviewer bias",
+    "topic": "methods",
+    "definition": "Ways in which the interviewer asks questions or interprets answers that have an effect on the findings"
+  },
+  {
+    "term": "Interviewer effect",
+    "topic": "methods",
+    "definition": "Ways in which an interviewer may influence participants’ responses, for example through their characteristics, appearance or verbal cues, such as facial expressions and tone of voice."
+  },
+  {
+    "term": "Lifestyle",
+    "topic": "identity",
+    "definition": "The typical way of life of an individual, group or culture."
+  },
+  {
+    "term": "Lone-parent family",
+    "topic": "family",
+    "definition": "One parent and their dependent children living together. See also one-parent family and single-parent family."
+  },
+  {
+    "term": "Love marriage",
+    "topic": "family",
+    "definition": "A marriage where the couple decide to get married, with or without the consent of their families."
+  },
+  {
+    "term": "Macro approaches",
+    "topic": "identity",
+    "definition": "Approaches that take a large-scale view of whole societies."
+  },
+  {
+    "term": "Marriage",
+    "topic": "family",
+    "definition": "The formal joining of a man and a woman in a relationship with rights and responsibilities; some countries now allow same-sex marriage (involving two men or two women)."
+  },
+  {
+    "term": "Master status",
+    "topic": "identity",
+    "definition": "When a label becomes the single most important thing about a person in the eyes of others, and is then internalised by the labelled person."
+  },
+  {
+    "term": "Media content",
+    "topic": "identity",
+    "definition": "The content of newspapers, magazines, film, television and radio programmes and other forms of media."
+  },
+  {
+    "term": "Micro approaches",
+    "topic": "identity",
+    "definition": "Approaches that take a small-scale view of social interaction between individuals and groups in society."
+  },
+  {
+    "term": "Misogyny",
+    "topic": "identity",
+    "definition": "Hatred of women, primarily by men."
+  },
+  {
+    "term": "Modern slavery",
+    "topic": "identity",
+    "definition": "The severe exploitation of vulnerable people for personal or commercial gain."
+  },
+  {
+    "term": "Multicultural society",
+    "topic": "identity",
+    "definition": "A society in which many different cultures or sub-cultures exist alongside each other."
+  },
+  {
+    "term": "Multiple-choice questions",
+    "topic": "methods",
+    "definition": "Closed questions with a number of answers from which the respondent has to choose the correct option."
+  },
+  {
+    "term": "Non-official statistics",
+    "topic": "methods",
+    "definition": "Statistical data produced by other organisations, such as charities and think-tanks."
+  },
+  {
+    "term": "Non-selective schools",
+    "topic": "education",
+    "definition": "Schools which accept all learners, regardless of ability."
+  },
+  {
+    "term": "Official curriculum",
+    "topic": "education",
+    "definition": "The subjects that are taught and the content to be covered."
+  },
+  {
+    "term": "Official statistics",
+    "topic": "methods",
+    "definition": "Statistical data produced by government and official agencies."
+  },
+  {
+    "term": "One-parent family",
+    "topic": "family",
+    "definition": "One parent and their dependent children living together. See also lone parent family and single-parent family."
+  },
+  {
+    "term": "One-person household",
+    "topic": "family",
+    "definition": "When only one person lives in a residence. See also single person household."
+  },
+  {
+    "term": "Online identities",
+    "topic": "identity",
+    "definition": "The way that someone presents themselves online, and the personae they adopt in online communities, such as forums and social media. See also digital self."
+  },
+  {
+    "term": "Online learning",
+    "topic": "education",
+    "definition": "Distance education delivered electronically, via the internet, using digital technology."
+  },
+  {
+    "term": "Online sub-cultures",
+    "topic": "identity",
+    "definition": "Groups of people who connect with each other online, through social media or other websites. They share distinct norms and values, often related to a particular interest or issue."
+  },
+  {
+    "term": "Ostracise",
+    "topic": "identity",
+    "definition": "Exclude someone from a community or group."
+  },
+  {
+    "term": "Patterns",
+    "topic": "methods",
+    "definition": "Links between different variables, for example, gender, ethnicity or age."
+  },
+  {
+    "term": "Peer group",
+    "topic": "identity",
+    "definition": "People of the same status (for example, people the same age)."
+  },
+  {
+    "term": "Personal documents",
+    "topic": "methods",
+    "definition": "Documents such as letters and diaries produced by individuals for their own purposes."
+  },
+  {
+    "term": "Perspectives",
+    "topic": "identity",
+    "definition": "Ways of viewing society and social life."
+  },
+  {
+    "term": "Pick-and-mix society",
+    "topic": "identity",
+    "definition": "In a postmodern society, people can choose from a range of options and select what suits them best."
+  },
+  {
+    "term": "Pivot generation",
+    "topic": "family",
+    "definition": "Middle-aged adults who care for their ageing parents, as well as for their children. See also sandwich generation."
+  },
+  {
+    "term": "Progressive schooling",
+    "topic": "education",
+    "definition": "Education which breaks away from traditional lessons and curriculum and focuses on experience."
+  },
+  {
+    "term": "Progressive taxation",
+    "topic": "strat",
+    "definition": "When those who earn more pay a higher rate of tax on some of their earnings than those who earn less."
+  },
+  {
+    "term": "Pro-school sub-culture",
+    "topic": "education",
+    "definition": "A group of learners whose norms and values agree with those of the school."
+  },
+  {
+    "term": "Protest group",
+    "topic": "identity",
+    "definition": "A group of people who protest in order to bring about a change in society."
+  },
+  {
+    "term": "Redistribution of wealth",
+    "topic": "strat",
+    "definition": "The transfer of some of the income and wealth from richer individuals to those who are poorer, through systems such as taxation and welfare payments."
+  },
+  {
+    "term": "Relative deprivation",
+    "topic": "strat",
+    "definition": "Feeling disadvantaged in comparison to others in your society."
+  },
+  {
+    "term": "Relativity of culture",
+    "topic": "identity",
+    "definition": "The idea that all cultures vary and change; culture is not fixed, but relative to time and place."
+  },
+  {
+    "term": "Religious sub-culture",
+    "topic": "identity",
+    "definition": "A sub-culture based on religious faith and practices which are distinct from those of the wider culture."
+  },
+  {
+    "term": "Reserve army of labour",
+    "topic": "strat",
+    "definition": "People who are employed when an economy is booming or when they are needed, but who find themselves out of work when they are not required."
+  },
+  {
+    "term": "Response rate",
+    "topic": "methods",
+    "definition": "The proportion of people in the original sample who actually take part in the research, for example, by completing and returning the questionnaire."
+  },
+  {
+    "term": "Role modelling",
+    "topic": "identity",
+    "definition": "When someone acts as an example, so their behaviour is copied by others."
+  },
+  {
+    "term": "Sample",
+    "topic": "methods",
+    "definition": "The group of people on whom research is carried out, used to represent the target population."
+  },
+  {
+    "term": "Sampling methods / techniques",
+    "topic": "methods",
+    "definition": "The different ways in which samples can be chosen."
+  },
+  {
+    "term": "Sandwich generation",
+    "topic": "family",
+    "definition": "Middle-aged adults who care for their ageing parents, as well as for their children. See also pivot generation."
+  },
+  {
+    "term": "Scaled questions",
+    "topic": "methods",
+    "definition": "Closed questions where the possible answers cover a range of statements or opinions."
+  },
+  {
+    "term": "Scientific method",
+    "topic": "methods",
+    "definition": "The way in which scientists work, by observing, formulating and testing hypotheses, analysing the results and drawing conclusions."
+  },
+  {
+    "term": "Selective education",
+    "topic": "education",
+    "definition": "When schools choose their learners, usually based on their ability."
+  },
+  {
+    "term": "Self-report studies",
+    "topic": "methods",
+    "definition": "Research that asks people what crimes or deviant acts they have committed."
+  },
+  {
+    "term": "Setting",
+    "topic": "education",
+    "definition": "When children are taught a particular subject with other children of a similar ability."
+  },
+  {
+    "term": "Single-parent family",
+    "topic": "family",
+    "definition": "One parent and their dependent children living together. See also lone parent family and one-parent family."
+  },
+  {
+    "term": "Social cohesion",
+    "topic": "identity",
+    "definition": "The sense of belonging and amount of connectedness between groups in society."
+  },
+  {
+    "term": "Social conformity",
+    "topic": "identity",
+    "definition": "Acting in accordance with norms and social expectations in order to fit in with others."
+  },
+  {
+    "term": "Social differentiation",
+    "topic": "identity",
+    "definition": "The assignment of different roles and statuses to groups and individuals within a society."
+  },
+  {
+    "term": "Social exclusion",
+    "topic": "strat",
+    "definition": "When society does not provide a group with the rights and benefits available to others in the same society."
+  },
+  {
+    "term": "Social facts",
+    "topic": "identity",
+    "definition": "Laws, values, customs and other social rules over which individuals have no control."
+  },
+  {
+    "term": "Social factors",
+    "topic": "identity",
+    "definition": "Things that affect lifestyle and life chances, such as wealth, religion and occupation."
+  },
+  {
+    "term": "Socialisation",
+    "topic": "identity",
+    "definition": "The process of learning the norms and values of a culture."
+  },
+  {
+    "term": "Social inequality",
+    "topic": "strat",
+    "definition": "The differences between groups in a stratification system; for example, in income or wealth."
+  },
+  {
+    "term": "Social media",
+    "topic": "identity",
+    "definition": "Internet-based applications for sharing content and communicating online, such as Instagram and Weibo."
+  },
+  {
+    "term": "Standardised testing",
+    "topic": "education",
+    "definition": "When all learners take the same assessments, which are marked in the same way."
+  },
+  {
+    "term": "Status",
+    "topic": "identity",
+    "definition": "A position that someone has in a society; status can be ascribed (fixed by others) or achieved."
+  },
+  {
+    "term": "Stereotyping",
+    "topic": "identity",
+    "definition": "Applying and acting upon an oversimplified set of ideas about a particular type of person or social group."
+  },
+  {
+    "term": "Sub-culture",
+    "topic": "identity",
+    "definition": "A group of people within a larger culture which has its own distinctive norms and values."
+  },
+  {
+    "term": "Surveys",
+    "topic": "methods",
+    "definition": "Large-scale pieces of research which tend to generate quantitative data through methods such as questionnaires or structured interviews."
+  },
+  {
+    "term": "Systematic sampling",
+    "topic": "methods",
+    "definition": "When there is a regular pattern in selecting from the sampling frame, for example, every tenth name on a list."
+  },
+  {
+    "term": "Target population",
+    "topic": "methods",
+    "definition": "The whole group that the research relates to and to whom the findings of the research will be applied."
+  },
+  {
+    "term": "Trends",
+    "topic": "methods",
+    "definition": "Changes over time in a particular direction."
+  },
+  {
+    "term": "Universal basic income",
+    "topic": "strat",
+    "definition": "When the government pays everyone a fixed amount of money as a regular income."
+  },
+  {
+    "term": "Universal education",
+    "topic": "education",
+    "definition": "Schooling provided for all children, regardless of their background."
+  },
+  {
+    "term": "Unschooling",
+    "topic": "education",
+    "definition": "Informal learning without lessons or a curriculum, in which the learner chooses what and how to learn."
+  },
+  {
+    "term": "Virtual community",
+    "topic": "identity",
+    "definition": "An online group of individuals who share interests, personal opinions or backgrounds."
+  },
+  {
+    "term": "Youth sub-culture",
+    "topic": "identity",
+    "definition": "A sub-culture of adolescents or young adults who are usually distinguishable by their style, dress and / or musical preferences."
+  }
+]

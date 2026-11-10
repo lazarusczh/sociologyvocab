@@ -2,18 +2,71 @@
 // 约定与流程见仓库根目录《分数同步到ManageBac方案.md》；表结构见 db-migration-mb-sync.sql
 import * as XLSX from 'xlsx';
 
-export type Grade = 'A1' | 'A2';
+// 短码的年级位。
+//
+// 9699（A Level）分 A1 / A2：A1 学 Paper 1-2、A2 学 Paper 3-4。
+// 0495（IGCSE）**没有 A1/A2 之分**，只有一张证书；但学校实际按 G1 / G2 两个年级分开教，
+// 所以短码前缀需要 G1 / G2 两个位（2026-11-10 用户确认：实际存在 G1 与 G2 年级）。
+//
+// ⚠ 0495 的 G1/G2 **无法自动推断**：Paper 1 与 Paper 2 是同一张证书、同一场考试，
+// 卷号推不出年级；班级名也只能说明「这是 G1 班」，不知道这条记录该发给谁。
+// 因此 0495 一律由教师在下拉里手选（见 needsManualGrade），这里不做任何猜测。
+// 早期实现只有 'A1' | 'A2'，0495 的卷子会被 `paper <= 2` 判成 A1，
+// 短码就和 A1 班撞在同一个前缀上，教师按短码去 ManageBac 找 task 时会对到错的成绩册。
+// 详见 db-migration-run-syllabus.sql —— 归属落在行上，不靠界面当前状态。
+export type Grade = 'A1' | 'A2' | 'G1' | 'G2';
+
+/** 年级下拉的选项（顺序即展示顺序）；0495 只会用到 G1 / G2 */
+export const GRADE_OPTIONS: { value: Grade; label: string }[] = [
+  { value: 'A1', label: 'A1' },
+  { value: 'A2', label: 'A2' },
+  { value: 'G1', label: 'G1' },
+  { value: 'G2', label: 'G2' },
+];
 
 // 班级名与年级的别名（与 PaperResults.tsx 的 GROUP_ALIASES 同口径：学校目前把 A1 班登记为 AS）
-const GROUP_ALIASES: Record<Grade, string[]> = { A1: ['A1', 'AS'], A2: ['A2'] };
+const GROUP_ALIASES: Record<Grade, string[]> = {
+  A1: ['A1', 'AS'],
+  A2: ['A2'],
+  // IGCSE 班按年级登记为 "G1 Sociology" / "G2 Sociology"
+  G1: ['G1'],
+  G2: ['G2'],
+};
+
+/**
+ * 该大纲的年级位是否必须由教师手选（0495 → G1/G2 无法推断）。
+ * 调用点用它决定：下拉是否留空等选、自动生成短码是否跳过。
+ */
+export function needsManualGrade(syllabus?: string | null): boolean {
+  return (syllabus || '') === '0495';
+}
+
+/** 把任意字符串收窄成 Grade（短码前缀、下拉值都用它兜底）；认不出返回 null */
+export function asGrade(v: unknown): Grade | null {
+  const s = String(v ?? '').trim().toUpperCase();
+  return GRADE_OPTIONS.find((o) => o.value === s)?.value ?? null;
+}
 
 const norm = (s: string) => (s || '').replace(/\s+/g, '').toUpperCase();
 
-/** 年级位：优先采信卷名里写明的 AS/A1/A2；否则 P1/P2 → A1、P3/P4 → A2 */
-export function inferGrade(title: string, paper: number): Grade {
+/**
+ * 年级位：优先采信卷名里写明的 AS/A1/A2/G1/G2；否则按卷号推。
+ *
+ * ⚠ 0495 在卷名没写年级时返回 `null`（推不出）：它只有一张证书，
+ * G1/G2 是教学年级而不是考试层级，卷号给不出答案 —— 必须由教师在下拉里手选，
+ * 见 `needsManualGrade`。
+ *
+ * `syllabus` 缺省视为 9699 —— 保持历史行为不变（调用点都是既有代码）。
+ */
+export function inferGrade(title: string, paper: number, syllabus?: string | null): Grade | null {
   const t = (title || '').toUpperCase();
+  // 卷名里明写的优先：教师写 "G2 家庭" / "A2 家庭" 比自动推断更可靠，两个大纲都照此
+  if (/\bG\s*2\b/.test(t)) return 'G2';
+  if (/\bG\s*1\b/.test(t)) return 'G1';
   if (/\bAS\b/.test(t) || /\bA\s*1\b/.test(t)) return 'A1';
   if (/\bA\s*2\b/.test(t)) return 'A2';
+  // 0495 其余情况一律不猜：G1/G2 只能靠人
+  if (needsManualGrade(syllabus)) return null;
   return paper <= 2 ? 'A1' : 'A2';
 }
 
@@ -41,8 +94,12 @@ export function firstPaperNumber(papers: string[] | null | undefined): number {
  * （见 QuizManager 的 `papers: [draft.paper]`，draft.paper 取值 'Paper N'）。
  * 早期实现只 `replace(/^P/,'')` → "APER 3" → Number() 得 NaN → 判定推不出 → 兜底成 A1 ✗。
  * 因此这里改为**取字符串里的数字**，兼容 '3' / 'P3' / 'Paper 3' / 'paper3' 等写法。
+ *
+ * ⚠ 0495 传 syllabus 进来时**直接返回 null**：它只有一张证书，G1/G2 是教学年级而非考试层级，
+ * 卷号里没有这个信息（见 `needsManualGrade`）。
  */
-export function gradeFromPapers(papers: string[] | null | undefined): Grade | null {
+export function gradeFromPapers(papers: string[] | null | undefined, syllabus?: string | null): Grade | null {
+  if (needsManualGrade(syllabus)) return null;
   const nums = (papers ?? [])
     .map((p) => {
       const m = /(\d+)/.exec(String(p ?? ''));

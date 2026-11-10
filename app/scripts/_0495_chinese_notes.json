@@ -1,0 +1,612 @@
+[
+  {
+    "term": "Aims",
+    "chinese": "研究目的",
+    "note": "研究者希望通过研究达成的目标，例如查明某事发生的原因。"
+  },
+  {
+    "term": "Anti-school sub-culture",
+    "chinese": "反学校亚文化",
+    "note": "其规范与价值观拒绝学校规范与价值观的学习者群体。"
+  },
+  {
+    "term": "Benefits",
+    "chinese": "福利金",
+    "note": "政府向患病、失业或贫困的人支付的款项。"
+  },
+  {
+    "term": "Capitalism",
+    "chinese": "资本主义",
+    "note": "当今大多数国家的经济制度，以生产资料的私人所有制为基础。"
+  },
+  {
+    "term": "Caste",
+    "chinese": "种姓制度",
+    "note": "一种封闭的分层制度，群体的地位在出生时即被固定、无法改变。"
+  },
+  {
+    "term": "Causation",
+    "chinese": "因果关系",
+    "note": "一个变量的变化对另一个变量产生直接影响。"
+  },
+  {
+    "term": "Child-centredness",
+    "chinese": "以孩子为中心",
+    "note": "儿童的需要与意愿成为最重要考量的情形。"
+  },
+  {
+    "term": "Childless families",
+    "chinese": "无子女家庭",
+    "note": "共同生活且没有子女的伴侣。"
+  },
+  {
+    "term": "Conflict",
+    "chinese": "冲突",
+    "note": "分歧；这一术语用来描述一种社会观，即认为不同社会群体（例如基于阶级或性别差异的群体）之间存在根本性的分歧。"
+  },
+  {
+    "term": "Consumption",
+    "chinese": "消费",
+    "note": "对商品与资源的购买和使用。"
+  },
+  {
+    "term": "Consumption lifestyle",
+    "chinese": "消费生活方式",
+    "note": "以人们购买和消费什么（而非例如从事什么工作）为基础的生活方式。"
+  },
+  {
+    "term": "Consumption patterns",
+    "chinese": "消费规律",
+    "note": "消费随时间、地点和群体而出现的差异。"
+  },
+  {
+    "term": "Correlation",
+    "chinese": "相关关系",
+    "note": "两个变量同时发生变化，提示二者可能存在联系（但不等于因果）。"
+  },
+  {
+    "term": "Cultural appropriation",
+    "chinese": "文化挪用",
+    "note": "世界某一地区具有文化意义的做法与物品，被世界另一地区的人采用，并以将其当作时尚点缀的方式使用，从而剥离了其原有意义。"
+  },
+  {
+    "term": "Cultural racism",
+    "chinese": "文化种族主义",
+    "note": "以生活方式（如宗教与习俗）的差异、而非假定的生物学差异为基础的种族主义。"
+  },
+  {
+    "term": "Culture of poverty",
+    "chinese": "贫困文化",
+    "note": "贫困者拥有与多数人不同的一套价值观，这套价值观使他们持续贫困。"
+  },
+  {
+    "term": "Cycle of poverty",
+    "chinese": "贫困循环",
+    "note": "贫困家庭因无法获得摆脱贫困所需的资源或资历，而至少连续三代陷入贫困的情形。"
+  },
+  {
+    "term": "Death rate",
+    "chinese": "死亡率",
+    "note": "一年内人口中每千人里的死亡人数，亦称 mortality rate。"
+  },
+  {
+    "term": "Demographic trends",
+    "chinese": "人口趋势",
+    "note": "人口的变化，例如出生率与死亡率。"
+  },
+  {
+    "term": "Ddigital self",
+    "chinese": "数字自我",
+    "note": "某人在网上呈现自己的方式，以及其在论坛、社交媒体等网络社群中所采用的人格形象；另见网络身份认同。"
+  },
+  {
+    "term": "Digital sources",
+    "chinese": "数字资料",
+    "note": "互联网及其他线上来源的资料。"
+  },
+  {
+    "term": "Distribution of wealth",
+    "chinese": "财富分配",
+    "note": "一个社会的财富与收入在其人口中分配的方式。"
+  },
+  {
+    "term": "Diverse",
+    "chinese": "多元",
+    "note": "多样性；文化多样性指不同人类文化之间的广泛差异。"
+  },
+  {
+    "term": "Divorce",
+    "chinese": "离婚",
+    "note": "婚姻在形式上与法律上的终结。"
+  },
+  {
+    "term": "Domestic division of labour",
+    "chinese": "家务分工",
+    "note": "家庭中的任务（如做饭、清洁、照护孩子与维修）在男女之间的分配方式。"
+  },
+  {
+    "term": "Dual worker families",
+    "chinese": "双职工家庭",
+    "note": "伴侣双方都从事有酬工作的家庭。"
+  },
+  {
+    "term": "Dysfunctional family",
+    "chinese": "功能失调家庭",
+    "note": "未能履行应有功能的家庭，例如孩子受到忽视的家庭。"
+  },
+  {
+    "term": "Educational achievement",
+    "chinese": "教育成就",
+    "note": "个人在学校体系中表现的好坏，通常以考试成绩衡量。"
+  },
+  {
+    "term": "Educational inequality",
+    "chinese": "教育不平等",
+    "note": "不同群体（基于阶级、性别与族裔）受到不同对待或接受不同教育，或教育成就水平不同的情形。"
+  },
+  {
+    "term": "Emigration",
+    "chinese": "移民出境",
+    "note": "离开自己的国家，到另一个国家定居。"
+  },
+  {
+    "term": "Equal opportunities",
+    "chinese": "平等机会",
+    "note": "每个人都有相同的成功机会。"
+  },
+  {
+    "term": "Extended family",
+    "chinese": "扩大家庭",
+    "note": "父母与子女同其他亲属（如祖父母或叔伯姑姨）共同居住或住得很近的家庭。"
+  },
+  {
+    "term": "Family functions",
+    "chinese": "家庭功能",
+    "note": "家庭的功能，即按照功能主义理论，家庭发挥的作用以及为谁发挥这些作用。"
+  },
+  {
+    "term": "Family roles",
+    "chinese": "家庭角色",
+    "note": "家庭中不同成员所扮演的角色。"
+  },
+  {
+    "term": "Friends as family",
+    "chinese": "朋友如家人",
+    "note": "没有亲属关系的人之间的友谊形成类似传统家庭的支持网络的情形。"
+  },
+  {
+    "term": "Functions of education",
+    "chinese": "教育功能",
+    "note": "教育为社会作出贡献的各种方式。"
+  },
+  {
+    "term": "Gender equality",
+    "chinese": "性别平等",
+    "note": "男女受到相同对待，并在社会各个方面取得相同结果。"
+  },
+  {
+    "term": "Gender hierarchy",
+    "chinese": "性别等级",
+    "note": "一种某一性别地位高于另一性别的制度；在父权社会中，男性从性别等级中获益。"
+  },
+  {
+    "term": "Gender inequalities",
+    "chinese": "性别不平等",
+    "note": "男女基于性别而在经历与结果上存在的差异，例如在教育成就方面。"
+  },
+  {
+    "term": "Gender roles",
+    "chinese": "性别角色",
+    "note": "与身为男性或女性相关联的角色和期待；另见（社会的）性别。"
+  },
+  {
+    "term": "Gendered division of labour",
+    "chinese": "性别化分工",
+    "note": "社会期望女性负责某些任务（如清洁与准备食物）、男性负责另一些任务的方式。"
+  },
+  {
+    "term": "Gendered socialisation",
+    "chinese": "性别社会化",
+    "note": "男女被教导与其性别角色相关期待的方式。"
+  },
+  {
+    "term": "Global culture",
+    "chinese": "全球文化",
+    "note": "认为由于全球化，世界上所有人已经或将会共享同一种文化的观点。"
+  },
+  {
+    "term": "Global differences in education",
+    "chinese": "全球教育差异",
+    "note": "世界不同国家与地区在教育供给、结果与经历方面的差异。"
+  },
+  {
+    "term": "Hegemonic",
+    "chinese": "霸权的",
+    "note": "指某种被广泛接受、且难以摆脱的事物。"
+  },
+  {
+    "term": "Historical documents",
+    "chinese": "历史文献",
+    "note": "社会学家用作资料来源的、来自过去的书面材料。"
+  },
+  {
+    "term": "Homeschooling",
+    "chinese": "在家教育",
+    "note": "学龄儿童在家中而非学校接受教育。"
+  },
+  {
+    "term": "Homogenisation of identities",
+    "chinese": "身份同质化",
+    "note": "世界各地人们的身份认同之间的差异消失、因而变得相似的情形。"
+  },
+  {
+    "term": "Immigration",
+    "chinese": "移民入境",
+    "note": "抵达一个新的国家并在此定居。"
+  },
+  {
+    "term": "Inadequate socialisation",
+    "chinese": "社会化不充分",
+    "note": "未能充分灌输社会共同规范与价值观的社会化；社会化不充分的个体更容易变得越轨。"
+  },
+  {
+    "term": "Interviewer bias",
+    "chinese": "访谈者偏差",
+    "note": "访谈者在提问方式或答案解读上影响研究结果的情形。"
+  },
+  {
+    "term": "Interviewer effect",
+    "chinese": "访谈者效应",
+    "note": "访谈者可能影响受访者回答的方式，例如其身份特征、外表或语气神态等言语线索。"
+  },
+  {
+    "term": "Lifestyle",
+    "chinese": "生活方式",
+    "note": "个人、群体或文化典型的生活形态。"
+  },
+  {
+    "term": "Lone-parent family",
+    "chinese": "单亲家庭",
+    "note": "一位家长与其受抚养子女共同生活；另见 one-parent family 与 single-parent family。"
+  },
+  {
+    "term": "Love marriage",
+    "chinese": "恋爱婚姻",
+    "note": "由伴侣双方决定结婚的婚姻，无论是否得到双方家庭的同意。"
+  },
+  {
+    "term": "Macro approaches",
+    "chinese": "宏观视角",
+    "note": "着眼于整个社会、从大规模层面考察社会的取向。"
+  },
+  {
+    "term": "Marriage",
+    "chinese": "婚姻",
+    "note": "一名男性与一名女性在具有权利与责任的关系中的正式结合；一些国家现在允许同性婚姻（涉及两名男性或两名女性）。"
+  },
+  {
+    "term": "Master status",
+    "chinese": "首要地位",
+    "note": "某个标签在他人眼中成为一个人最重要的特征，随后又被贴上该标签的人本人所内化的情形。"
+  },
+  {
+    "term": "Media content",
+    "chinese": "媒体内容",
+    "note": "报纸、杂志、电影、电视与广播节目以及其他各种媒体形式的内容。"
+  },
+  {
+    "term": "Micro approaches",
+    "chinese": "微观视角",
+    "note": "着眼于社会中个人与群体之间的互动、从小规模层面考察社会的取向。"
+  },
+  {
+    "term": "Misogyny",
+    "chinese": "厌女",
+    "note": "对女性的憎恨，主要由男性持有。"
+  },
+  {
+    "term": "Modern slavery",
+    "chinese": "现代奴役",
+    "note": "为个人或商业利益而对弱势人群进行的严重剥削。"
+  },
+  {
+    "term": "Multicultural society",
+    "chinese": "多元文化社会",
+    "note": "许多不同文化或亚文化并存的社会。"
+  },
+  {
+    "term": "Multiple-choice questions",
+    "chinese": "选择题",
+    "note": "给出若干备选项、由受访者选出正确选项的封闭式问题。"
+  },
+  {
+    "term": "Non-official statistics",
+    "chinese": "非官方统计数据",
+    "note": "由慈善机构、智库等其他组织制作的数据。"
+  },
+  {
+    "term": "Non-selective schools",
+    "chinese": "非选拔性学校",
+    "note": "不论能力如何都接收所有学习者的学校。"
+  },
+  {
+    "term": "Official curriculum",
+    "chinese": "官方课程",
+    "note": "所教授的科目以及需要覆盖的内容。"
+  },
+  {
+    "term": "Official statistics",
+    "chinese": "官方统计数据",
+    "note": "由政府及官方机构制作的数据。"
+  },
+  {
+    "term": "One-parent family",
+    "chinese": "一位家长家庭",
+    "note": "一位家长与其受抚养子女共同生活；另见 lone-parent family 与 single-parent family。"
+  },
+  {
+    "term": "One-person household",
+    "chinese": "单人一户",
+    "note": "只有一个人居住在一处住所的情形；single person household 为同一概念的另一种说法。"
+  },
+  {
+    "term": "Online identities",
+    "chinese": "网络身份认同",
+    "note": "某人在网上呈现自己的方式，以及其在论坛、社交媒体等网络社群中所采用的人格形象；另见数字自我。"
+  },
+  {
+    "term": "Online learning",
+    "chinese": "在线学习",
+    "note": "借助互联网与数字技术、以电子方式提供的远程教育。"
+  },
+  {
+    "term": "Online sub-cultures",
+    "chinese": "网络亚文化",
+    "note": "通过网络（社交媒体或其他网站）相互联系的人群，他们共享往往与某一特定兴趣或议题相关的独特规范与价值观。"
+  },
+  {
+    "term": "Ostracise",
+    "chinese": "排斥",
+    "note": "把某人排除在某个社群或群体之外。"
+  },
+  {
+    "term": "Patterns",
+    "chinese": "规律",
+    "note": "不同变量（如性别、族群、年龄）之间的关联形态。"
+  },
+  {
+    "term": "Peer group",
+    "chinese": "同龄群体",
+    "note": "地位相同的人（例如年龄相同的人）。"
+  },
+  {
+    "term": "Personal documents",
+    "chinese": "个人文件",
+    "note": "个人为自己目的而写的信件、日记等材料。"
+  },
+  {
+    "term": "Perspectives",
+    "chinese": "视角",
+    "note": "看待社会与社会生活的方式。"
+  },
+  {
+    "term": "Pick-and-mix society",
+    "chinese": "自选混搭社会",
+    "note": "在后现代社会中，人们可以从一系列选项中挑选最适合自己的组合。"
+  },
+  {
+    "term": "Pivot generation",
+    "chinese": "支点世代",
+    "note": "既要照顾年迈父母、又要照顾子女的中年成年人；另见三明治世代。"
+  },
+  {
+    "term": "Progressive schooling",
+    "chinese": "进步主义教育",
+    "note": "摆脱传统课程与课堂教学、注重体验的教育。"
+  },
+  {
+    "term": "Progressive taxation",
+    "chinese": "累进税制",
+    "note": "收入较高者为其部分收入缴纳的税率高于收入较低者的情形。"
+  },
+  {
+    "term": "Pro-school sub-culture",
+    "chinese": "亲学校亚文化",
+    "note": "其规范与价值观与学校相合的学习者群体。"
+  },
+  {
+    "term": "Protest group",
+    "chinese": "抗议群体",
+    "note": "为促使社会发生改变而进行抗议的一群人。"
+  },
+  {
+    "term": "Redistribution of wealth",
+    "chinese": "财富再分配",
+    "note": "通过税收与福利支付等制度，把部分收入与财富从较富裕者转移给较贫困者的做法。"
+  },
+  {
+    "term": "Relative deprivation",
+    "chinese": "相对剥夺",
+    "note": "与本社会中的其他人相比而感到自己处于劣势。"
+  },
+  {
+    "term": "Relativity of culture",
+    "chinese": "文化相对性",
+    "note": "认为所有文化各不相同且不断变化的观点；文化并非固定不变，而是相对于时间与地点而言。"
+  },
+  {
+    "term": "Religious sub-culture",
+    "chinese": "宗教亚文化",
+    "note": "以有别于更广泛文化的宗教信仰与实践为基础的亚文化。"
+  },
+  {
+    "term": "Reserve army of labour",
+    "chinese": "劳动力后备军",
+    "note": "在经济繁荣或需要时被雇用、而在不再被需要时失业的人。"
+  },
+  {
+    "term": "Response rate",
+    "chinese": "应答率",
+    "note": "原始样本中实际参与研究的人所占比例。"
+  },
+  {
+    "term": "Role modelling",
+    "chinese": "榜样示范",
+    "note": "某人充当范例、其行为被他人模仿的情形。"
+  },
+  {
+    "term": "Sample",
+    "chinese": "样本",
+    "note": "实际接受研究、用以代表目标总体的那部分人。"
+  },
+  {
+    "term": "Sampling methods / techniques",
+    "chinese": "抽样方法",
+    "note": "抽取样本的不同方式（如随机、分层、配额、雪球等）。"
+  },
+  {
+    "term": "Sandwich generation",
+    "chinese": "三明治世代",
+    "note": "既要照顾年迈父母、又要照顾子女的中年成年人；另见支点世代。"
+  },
+  {
+    "term": "Scaled questions",
+    "chinese": "量表题",
+    "note": "备选答案覆盖一系列陈述或程度意见的封闭式问题。"
+  },
+  {
+    "term": "Scientific method",
+    "chinese": "科学方法",
+    "note": "科学家的工作方式——观察、提出并检验假设、分析结果、得出结论。"
+  },
+  {
+    "term": "Selective education",
+    "chinese": "选拔性教育",
+    "note": "学校挑选其学习者的教育，通常依据学习者的能力。"
+  },
+  {
+    "term": "Self-report studies",
+    "chinese": "自我报告研究",
+    "note": "通过询问人们自己曾实施过哪些犯罪或越轨行为来收集资料的研究。"
+  },
+  {
+    "term": "Setting",
+    "chinese": "学科分层",
+    "note": "让儿童与能力相近的其他儿童一起学习某一特定科目的做法。"
+  },
+  {
+    "term": "Single-parent family",
+    "chinese": "单亲家庭",
+    "note": "一位家长与其受抚养子女共同生活；另见 lone-parent family 与 one-parent family。"
+  },
+  {
+    "term": "Social cohesion",
+    "chinese": "社会凝聚力",
+    "note": "社会中各群体之间的归属感与联结程度。"
+  },
+  {
+    "term": "Social conformity",
+    "chinese": "社会遵从",
+    "note": "为融入他人而按照规范与社会期待行事。"
+  },
+  {
+    "term": "Social differentiation",
+    "chinese": "社会分化",
+    "note": "把不同的角色与地位分派给社会中的群体与个人。"
+  },
+  {
+    "term": "Social exclusion",
+    "chinese": "社会排斥",
+    "note": "社会未能让某一群体获得同一社会中其他人所享有的权利与福利的情形。"
+  },
+  {
+    "term": "Social facts",
+    "chinese": "社会事实",
+    "note": "法律、价值观、习俗以及其他个人无法控制的社会规则。"
+  },
+  {
+    "term": "Social factors",
+    "chinese": "社会因素",
+    "note": "影响生活方式与人生机会的事物，例如财富、宗教与职业。"
+  },
+  {
+    "term": "Socialisation",
+    "chinese": "社会化",
+    "note": "学习某一文化规范与价值观的过程。"
+  },
+  {
+    "term": "Social inequality",
+    "chinese": "社会不平等",
+    "note": "分层体系中不同群体之间的差异，例如在收入或财富方面。"
+  },
+  {
+    "term": "Social media",
+    "chinese": "社交媒体",
+    "note": "用于在线分享内容与交流的互联网应用，例如 Instagram 与微博。"
+  },
+  {
+    "term": "Standardised testing",
+    "chinese": "标准化测评",
+    "note": "所有学习者参加相同的测评，并以相同方式评分。"
+  },
+  {
+    "term": "Status",
+    "chinese": "社会地位",
+    "note": "一个人在社会中所处的位置；地位可以是被赋予的（由他人固定），也可以是获得的。"
+  },
+  {
+    "term": "Stereotyping",
+    "chinese": "刻板印象化",
+    "note": "对某一类型的人或某个社会群体套用一套过度简化的观念，并据此行事。"
+  },
+  {
+    "term": "Sub-culture",
+    "chinese": "亚文化",
+    "note": "较大文化内部的一个群体，拥有自身独特的规范与价值观。"
+  },
+  {
+    "term": "Surveys",
+    "chinese": "社会调查",
+    "note": "大规模研究，通常通过问卷或结构式访谈等方法产生定量数据。"
+  },
+  {
+    "term": "Systematic sampling",
+    "chinese": "系统抽样",
+    "note": "按固定规律从抽样框中选人，例如名单上每隔十人取一人。"
+  },
+  {
+    "term": "Target population",
+    "chinese": "目标总体",
+    "note": "研究涉及、且研究结论将适用其上的全部人群。"
+  },
+  {
+    "term": "Trends",
+    "chinese": "趋势",
+    "note": "随时间朝某一方向的持续变化。"
+  },
+  {
+    "term": "Universal basic income",
+    "chinese": "全民基本收入",
+    "note": "政府向每个人定期支付一笔固定金额作为收入的做法。"
+  },
+  {
+    "term": "Universal education",
+    "chinese": "普及教育",
+    "note": "为所有儿童提供的学校教育，不论其背景如何。"
+  },
+  {
+    "term": "Unschooling",
+    "chinese": "非学校化",
+    "note": "没有课时与课程的非正式学习，学什么、怎么学由学习者自己选择。"
+  },
+  {
+    "term": "Virtual community",
+    "chinese": "虚拟社群",
+    "note": "由共享兴趣、个人观点或背景的个体组成的在线群体。"
+  },
+  {
+    "term": "Youth sub-culture",
+    "chinese": "青年亚文化",
+    "note": "由青少年或年轻成年人构成的亚文化，通常可借其风格、衣着和／或音乐偏好加以辨识。"
+  }
+]

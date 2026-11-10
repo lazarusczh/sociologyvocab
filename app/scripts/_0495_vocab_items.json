@@ -1,0 +1,1588 @@
+[
+  {
+    "id": "term_185kmy01sm9dcq",
+    "type": "term",
+    "term": "Aims",
+    "chinese": "研究目的",
+    "definition": "What a researcher sets out to achieve through their research, for example, to find out why something happens.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "研究方法"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_13e999j1ofzf59",
+    "type": "term",
+    "term": "Anti-school sub-culture",
+    "chinese": "反学校亚文化",
+    "definition": "A group of learners whose norms and values reject those of the school.",
+    "paper": "Paper 3",
+    "category": "Education",
+    "unit": [
+      "教育功能"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_fxqfz71n5qav",
+    "type": "term",
+    "term": "Benefits",
+    "chinese": "福利金",
+    "definition": "Money paid by governments to people who are ill, unemployed or poor.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "阶级认同"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1nm6p5mmrz5pk",
+    "type": "term",
+    "term": "Capitalism",
+    "chinese": "资本主义",
+    "definition": "The economic system of most countries today; based on private ownership of the means of production.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "阶级认同"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_16mofxfpc3eub",
+    "type": "term",
+    "term": "Caste",
+    "chinese": "种姓制度",
+    "definition": "A closed stratification system in which a group’s status is fixed at birth and cannot be changed.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "阶级认同"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_18ee7ad1lgrjit",
+    "type": "term",
+    "term": "Causation",
+    "chinese": "因果关系",
+    "definition": "When a change in one variable has a direct effect on another variable.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "研究方法"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_10dwz8zmerkdp",
+    "type": "term",
+    "term": "Child-centredness",
+    "chinese": "以孩子为中心",
+    "definition": "When a child’s needs and wishes are the most important considerations.",
+    "paper": "Paper 2",
+    "category": "Family",
+    "unit": [
+      "家庭多样性"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1qiki3t1ok460h",
+    "type": "term",
+    "term": "Childless families",
+    "chinese": "无子女家庭",
+    "definition": "A couple who live together and have no children.",
+    "paper": "Paper 2",
+    "category": "Family",
+    "unit": [
+      "家庭多样性"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_gp0h96j6o85e",
+    "type": "term",
+    "term": "Conflict",
+    "chinese": "冲突",
+    "definition": "Disagreement; this term is used to describe a perspective on society which assumes there are basic disagreements between social groups (for example, based on social class or gender differences).",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1cje35z1vwl9b",
+    "type": "term",
+    "term": "Consumption",
+    "chinese": "消费",
+    "definition": "The buying and use of goods and resources.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1gvcwt41m96u0a",
+    "type": "term",
+    "term": "Consumption lifestyle",
+    "chinese": "消费生活方式",
+    "definition": "A lifestyle based on what people buy and consume (rather than, for example, the work they do).",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1xzy7o8u1uex8",
+    "type": "term",
+    "term": "Consumption patterns",
+    "chinese": "消费规律",
+    "definition": "Variations in consumption depending on time, place and group.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_2cy1hc1u9hncc",
+    "type": "term",
+    "term": "Correlation",
+    "chinese": "相关关系",
+    "definition": "When two variables change at the same time, suggesting they are connected.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "研究方法"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_105vbcs4niyee",
+    "type": "term",
+    "term": "Cultural appropriation",
+    "chinese": "文化挪用",
+    "definition": "Where culturally significant practices and artefacts from one part of the world are adopted by people in another part of the world, in a way that uses them as a fashion statement and strips them of their meaning.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_dd71t0w5933k",
+    "type": "term",
+    "term": "Cultural racism",
+    "chinese": "文化种族主义",
+    "definition": "Racism based on differences between ways of life, such as religion and customs, rather than supposed biological differences.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "族裔认同"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_ds3o5h1jbizxt",
+    "type": "term",
+    "term": "Culture of poverty",
+    "chinese": "贫困文化",
+    "definition": "When poor people have a different set of values to the majority, which keeps them poor.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "阶级认同"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_iew70x1wuxp7t",
+    "type": "term",
+    "term": "Cycle of poverty",
+    "chinese": "贫困循环",
+    "definition": "When poor families become trapped in poverty for at least three generations because they have no access to the resources or qualifications to lift themselves out of it.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "阶级认同"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1n8b52u1d6tisw",
+    "type": "term",
+    "term": "Death rate",
+    "chinese": "死亡率",
+    "definition": "The number of deaths per 1000 people in a population in one year; also called the mortality rate.",
+    "paper": "Paper 2",
+    "category": "Family",
+    "unit": [
+      "家庭多样性"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_j99dqv1qm27jp",
+    "type": "term",
+    "term": "Demographic trends",
+    "chinese": "人口趋势",
+    "definition": "Changes in a population, such as the birth rate and death rate.",
+    "paper": "Paper 2",
+    "category": "Family",
+    "unit": [
+      "家庭多样性"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1lvatmckwc0wy",
+    "type": "term",
+    "term": "Ddigital self",
+    "chinese": "数字自我",
+    "definition": "The way that someone presents themselves online, and the personae they adopt in online communities, such as forums and social media. See also online identities.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_11ay1ogoxfuke",
+    "type": "term",
+    "term": "Digital sources",
+    "chinese": "数字资料",
+    "definition": "The internet and other online sources.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "研究方法"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_12jx1591ql4zvt",
+    "type": "term",
+    "term": "Distribution of wealth",
+    "chinese": "财富分配",
+    "definition": "The way in which the wealth and income of a society are divided among its population.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "阶级认同"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_rqzshm5h8cei",
+    "type": "term",
+    "term": "Diverse",
+    "chinese": "多元",
+    "definition": "Variety; cultural diversity refers to the wide differences between human cultures.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_14tcgz41fmbvhw",
+    "type": "term",
+    "term": "Divorce",
+    "chinese": "离婚",
+    "definition": "The formal, legal ending of a marriage.",
+    "paper": "Paper 2",
+    "category": "Family",
+    "unit": [
+      "家庭多样性"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_2ocs7v1wbh8l1",
+    "type": "term",
+    "term": "Domestic division of labour",
+    "chinese": "家务分工",
+    "definition": "The way in which tasks in the home (such as cooking, cleaning, childcare and repairs) are divided between men and women.",
+    "paper": "Paper 2",
+    "category": "Family",
+    "unit": [
+      "家庭多样性"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1mupcryc64cbo",
+    "type": "term",
+    "term": "Dual worker families",
+    "chinese": "双职工家庭",
+    "definition": "Families in which both partners do paid work.",
+    "paper": "Paper 2",
+    "category": "Family",
+    "unit": [
+      "家庭多样性"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_ta7qyxe0vapz",
+    "type": "term",
+    "term": "Dysfunctional family",
+    "chinese": "功能失调家庭",
+    "definition": "A family that fails to carry out the expected functions; for example, where children are neglected.",
+    "paper": "Paper 2",
+    "category": "Family",
+    "unit": [
+      "家庭多样性"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1pd99elhqjvdb",
+    "type": "term",
+    "term": "Educational achievement",
+    "chinese": "教育成就",
+    "definition": "How well individuals do in the school system, usually measured by exam results.",
+    "paper": "Paper 3",
+    "category": "Education",
+    "unit": [
+      "教育功能"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_12xb53t1ho5zwf",
+    "type": "term",
+    "term": "Educational inequality",
+    "chinese": "教育不平等",
+    "definition": "When different groups (based on class, gender and ethnicity) are treated or educated differently or have different levels of educational achievement.",
+    "paper": "Paper 3",
+    "category": "Education",
+    "unit": [
+      "教育功能"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_sgrfzr9cy0kr",
+    "type": "term",
+    "term": "Emigration",
+    "chinese": "移民出境",
+    "definition": "Moving away from your home country and settling in another.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1sbh0y01fh4tde",
+    "type": "term",
+    "term": "Equal opportunities",
+    "chinese": "平等机会",
+    "definition": "When everyone has the same chance of succeeding.",
+    "paper": "Paper 3",
+    "category": "Education",
+    "unit": [
+      "教育功能"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_h0tqs7a3yrt",
+    "type": "term",
+    "term": "Extended family",
+    "chinese": "扩大家庭",
+    "definition": "A family with parent(s) and children living with or close to other relatives, such as grandparents or aunts and uncles.",
+    "paper": "Paper 2",
+    "category": "Family",
+    "unit": [
+      "家庭多样性"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_14suoe71g949hf",
+    "type": "term",
+    "term": "Family functions",
+    "chinese": "家庭功能",
+    "definition": "The functions of the family; the roles it plays and for whom, according to functionalist theory.",
+    "paper": "Paper 2",
+    "category": "Family",
+    "unit": [
+      "家庭多样性"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_i1oigb11xvcmd",
+    "type": "term",
+    "term": "Family roles",
+    "chinese": "家庭角色",
+    "definition": "The parts played by different members of a family.",
+    "paper": "Paper 2",
+    "category": "Family",
+    "unit": [
+      "家庭多样性"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1put0qtlgmen9",
+    "type": "term",
+    "term": "Friends as family",
+    "chinese": "朋友如家人",
+    "definition": "When friendships between people who are not related to each other form a support network similar to a more traditional family.",
+    "paper": "Paper 2",
+    "category": "Family",
+    "unit": [
+      "家庭多样性"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_u9jod1qkrczb",
+    "type": "term",
+    "term": "Functions of education",
+    "chinese": "教育功能",
+    "definition": "The ways in which education contributes to society.",
+    "paper": "Paper 3",
+    "category": "Education",
+    "unit": [
+      "教育功能"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_waurez17okfer",
+    "type": "term",
+    "term": "Gender equality",
+    "chinese": "性别平等",
+    "definition": "Where men and women are treated the same and have equal outcomes in all aspects of society.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "性别认同"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1bl5plo1ba5dxc",
+    "type": "term",
+    "term": "Gender hierarchy",
+    "chinese": "性别等级",
+    "definition": "A system where one gender has a higher status than the other gender; in a patriarchal society, males benefit from the gender hierarchy.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "性别认同"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1bz89u21xreu00",
+    "type": "term",
+    "term": "Gender inequalities",
+    "chinese": "性别不平等",
+    "definition": "Differences in experience and outcomes for males and females, based on their gender; for example, in terms of educational achievement.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "性别认同"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_15244ivolveg",
+    "type": "term",
+    "term": "Gender roles",
+    "chinese": "性别角色",
+    "definition": "The roles and expectations associated with being male or female. See also gender.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "性别认同"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_2n4h6p13m44fn",
+    "type": "term",
+    "term": "Gendered division of labour",
+    "chinese": "性别化分工",
+    "definition": "The way in which societies expect women to be responsible for some tasks (such as cleaning and preparing food) and men for others.",
+    "paper": "Paper 2",
+    "category": "Family",
+    "unit": [
+      "家庭多样性"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1gtgpaw1rktaqg",
+    "type": "term",
+    "term": "Gendered socialisation",
+    "chinese": "性别社会化",
+    "definition": "The way that males and females are taught the expectations relating to their gender roles.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "性别认同"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_w43q2lkcvc1v",
+    "type": "term",
+    "term": "Global culture",
+    "chinese": "全球文化",
+    "definition": "The idea that, as a result of globalisation, there is or will be a single culture shared by people all around the world.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_2ujrzhn2zzlt",
+    "type": "term",
+    "term": "Global differences in education",
+    "chinese": "全球教育差异",
+    "definition": "Differences in educational provision, outcomes and experience in different countries and regions of the world.",
+    "paper": "Paper 3",
+    "category": "Education",
+    "unit": [
+      "教育功能"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1b2e5fbaluidr",
+    "type": "term",
+    "term": "Hegemonic",
+    "chinese": "霸权的",
+    "definition": "Relating to something that is widely accepted and difficult to escape from.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_189z3uq11e1xs6",
+    "type": "term",
+    "term": "Historical documents",
+    "chinese": "历史文献",
+    "definition": "Written sources from the past used as sources of information by sociologists.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "研究方法"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1x93bdm1bqajh8",
+    "type": "term",
+    "term": "Homeschooling",
+    "chinese": "在家教育",
+    "definition": "Education of school-aged children in the home, rather than at school.",
+    "paper": "Paper 3",
+    "category": "Education",
+    "unit": [
+      "教育功能"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_17gd8qb1edk9ij",
+    "type": "term",
+    "term": "Homogenisation of identities",
+    "chinese": "身份同质化",
+    "definition": "When the differences between identities of people around the world disappear, so they become similar.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1yztoq0i3bbn4",
+    "type": "term",
+    "term": "Immigration",
+    "chinese": "移民入境",
+    "definition": "Arriving and settling in a new country.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1iqw1wb1nsa42t",
+    "type": "term",
+    "term": "Inadequate socialisation",
+    "chinese": "社会化不充分",
+    "definition": "Socialisation that does not fully instil the shared norms and values of a society; individuals who are inadequately socialised are more likely to become deviant.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_npmdaa19jd4lg",
+    "type": "term",
+    "term": "Interviewer bias",
+    "chinese": "访谈者偏差",
+    "definition": "Ways in which the interviewer asks questions or interprets answers that have an effect on the findings",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "研究设计"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1ai0xv41657m5o",
+    "type": "term",
+    "term": "Interviewer effect",
+    "chinese": "访谈者效应",
+    "definition": "Ways in which an interviewer may influence participants’ responses, for example through their characteristics, appearance or verbal cues, such as facial expressions and tone of voice.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "研究设计"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_3xw1i11rgmav9",
+    "type": "term",
+    "term": "Lifestyle",
+    "chinese": "生活方式",
+    "definition": "The typical way of life of an individual, group or culture.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1rt9d1nil6ne3",
+    "type": "term",
+    "term": "Lone-parent family",
+    "chinese": "单亲家庭",
+    "definition": "One parent and their dependent children living together. See also one-parent family and single-parent family.",
+    "paper": "Paper 2",
+    "category": "Family",
+    "unit": [
+      "家庭多样性"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1b59rhe7bktqu",
+    "type": "term",
+    "term": "Love marriage",
+    "chinese": "恋爱婚姻",
+    "definition": "A marriage where the couple decide to get married, with or without the consent of their families.",
+    "paper": "Paper 2",
+    "category": "Family",
+    "unit": [
+      "家庭多样性"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_eluim8iu0lbe",
+    "type": "term",
+    "term": "Macro approaches",
+    "chinese": "宏观视角",
+    "definition": "Approaches that take a large-scale view of whole societies.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1n2cer043hotq",
+    "type": "term",
+    "term": "Marriage",
+    "chinese": "婚姻",
+    "definition": "The formal joining of a man and a woman in a relationship with rights and responsibilities; some countries now allow same-sex marriage (involving two men or two women).",
+    "paper": "Paper 2",
+    "category": "Family",
+    "unit": [
+      "家庭多样性"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_ai1kfswej9be",
+    "type": "term",
+    "term": "Master status",
+    "chinese": "首要地位",
+    "definition": "When a label becomes the single most important thing about a person in the eyes of others, and is then internalised by the labelled person.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_rl4hoj12knd31",
+    "type": "term",
+    "term": "Media content",
+    "chinese": "媒体内容",
+    "definition": "The content of newspapers, magazines, film, television and radio programmes and other forms of media.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1waqxu0cg7aw2",
+    "type": "term",
+    "term": "Micro approaches",
+    "chinese": "微观视角",
+    "definition": "Approaches that take a small-scale view of social interaction between individuals and groups in society.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_hze9jb1u4pbzz",
+    "type": "term",
+    "term": "Misogyny",
+    "chinese": "厌女",
+    "definition": "Hatred of women, primarily by men.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_193tjubxp1q1j",
+    "type": "term",
+    "term": "Modern slavery",
+    "chinese": "现代奴役",
+    "definition": "The severe exploitation of vulnerable people for personal or commercial gain.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_6fwgan1nuamd3",
+    "type": "term",
+    "term": "Multicultural society",
+    "chinese": "多元文化社会",
+    "definition": "A society in which many different cultures or sub-cultures exist alongside each other.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_17ncma519fujhf",
+    "type": "term",
+    "term": "Multiple-choice questions",
+    "chinese": "选择题",
+    "definition": "Closed questions with a number of answers from which the respondent has to choose the correct option.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "研究方法"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1ndo9z27ewiba",
+    "type": "term",
+    "term": "Non-official statistics",
+    "chinese": "非官方统计数据",
+    "definition": "Statistical data produced by other organisations, such as charities and think-tanks.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "研究方法"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_l34tmq1avb9ig",
+    "type": "term",
+    "term": "Non-selective schools",
+    "chinese": "非选拔性学校",
+    "definition": "Schools which accept all learners, regardless of ability.",
+    "paper": "Paper 3",
+    "category": "Education",
+    "unit": [
+      "教育功能"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_mtu4r7jrvdfh",
+    "type": "term",
+    "term": "Official curriculum",
+    "chinese": "官方课程",
+    "definition": "The subjects that are taught and the content to be covered.",
+    "paper": "Paper 3",
+    "category": "Education",
+    "unit": [
+      "教育功能"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1fbnweeslmzau",
+    "type": "term",
+    "term": "Official statistics",
+    "chinese": "官方统计数据",
+    "definition": "Statistical data produced by government and official agencies.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "研究方法"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1i6akzjh5uua9",
+    "type": "term",
+    "term": "One-parent family",
+    "chinese": "一位家长家庭",
+    "definition": "One parent and their dependent children living together. See also lone parent family and single-parent family.",
+    "paper": "Paper 2",
+    "category": "Family",
+    "unit": [
+      "家庭多样性"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_16fzowl1cdngf",
+    "type": "term",
+    "term": "One-person household",
+    "chinese": "单人一户",
+    "definition": "When only one person lives in a residence. See also single person household.",
+    "paper": "Paper 2",
+    "category": "Family",
+    "unit": [
+      "家庭多样性"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_ijzxdr1bu3629",
+    "type": "term",
+    "term": "Online identities",
+    "chinese": "网络身份认同",
+    "definition": "The way that someone presents themselves online, and the personae they adopt in online communities, such as forums and social media. See also digital self.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1wmfmps1n45kxk",
+    "type": "term",
+    "term": "Online learning",
+    "chinese": "在线学习",
+    "definition": "Distance education delivered electronically, via the internet, using digital technology.",
+    "paper": "Paper 3",
+    "category": "Education",
+    "unit": [
+      "教育功能"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_qwrq1nsz344b",
+    "type": "term",
+    "term": "Online sub-cultures",
+    "chinese": "网络亚文化",
+    "definition": "Groups of people who connect with each other online, through social media or other websites. They share distinct norms and values, often related to a particular interest or issue.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1pqk0s546s2o3",
+    "type": "term",
+    "term": "Ostracise",
+    "chinese": "排斥",
+    "definition": "Exclude someone from a community or group.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_x1cdwvb25exx",
+    "type": "term",
+    "term": "Patterns",
+    "chinese": "规律",
+    "definition": "Links between different variables, for example, gender, ethnicity or age.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "研究方法"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_15gkjhd1lebsj7",
+    "type": "term",
+    "term": "Peer group",
+    "chinese": "同龄群体",
+    "definition": "People of the same status (for example, people the same age).",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_93ofw41wqw5sg",
+    "type": "term",
+    "term": "Personal documents",
+    "chinese": "个人文件",
+    "definition": "Documents such as letters and diaries produced by individuals for their own purposes.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "研究方法"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1qgoeqth9m94t",
+    "type": "term",
+    "term": "Perspectives",
+    "chinese": "视角",
+    "definition": "Ways of viewing society and social life.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_rhm6i2177jtjm",
+    "type": "term",
+    "term": "Pick-and-mix society",
+    "chinese": "自选混搭社会",
+    "definition": "In a postmodern society, people can choose from a range of options and select what suits them best.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_16q3fsy15ijffe",
+    "type": "term",
+    "term": "Pivot generation",
+    "chinese": "支点世代",
+    "definition": "Middle-aged adults who care for their ageing parents, as well as for their children. See also sandwich generation.",
+    "paper": "Paper 2",
+    "category": "Family",
+    "unit": [
+      "家庭多样性"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_97y57u1g0uzwm",
+    "type": "term",
+    "term": "Progressive schooling",
+    "chinese": "进步主义教育",
+    "definition": "Education which breaks away from traditional lessons and curriculum and focuses on experience.",
+    "paper": "Paper 3",
+    "category": "Education",
+    "unit": [
+      "教育功能"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_5uqz4kcnnp44",
+    "type": "term",
+    "term": "Progressive taxation",
+    "chinese": "累进税制",
+    "definition": "When those who earn more pay a higher rate of tax on some of their earnings than those who earn less.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "阶级认同"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1b2tuloy7bdu0",
+    "type": "term",
+    "term": "Pro-school sub-culture",
+    "chinese": "亲学校亚文化",
+    "definition": "A group of learners whose norms and values agree with those of the school.",
+    "paper": "Paper 3",
+    "category": "Education",
+    "unit": [
+      "教育功能"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_uxl4eedja664",
+    "type": "term",
+    "term": "Protest group",
+    "chinese": "抗议群体",
+    "definition": "A group of people who protest in order to bring about a change in society.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_9z0i9w13nrlxy",
+    "type": "term",
+    "term": "Redistribution of wealth",
+    "chinese": "财富再分配",
+    "definition": "The transfer of some of the income and wealth from richer individuals to those who are poorer, through systems such as taxation and welfare payments.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "阶级认同"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1sa5jx0gw2seq",
+    "type": "term",
+    "term": "Relative deprivation",
+    "chinese": "相对剥夺",
+    "definition": "Feeling disadvantaged in comparison to others in your society.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "阶级认同"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1oj4nam1axyqmi",
+    "type": "term",
+    "term": "Relativity of culture",
+    "chinese": "文化相对性",
+    "definition": "The idea that all cultures vary and change; culture is not fixed, but relative to time and place.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_10w4zli9g5vry",
+    "type": "term",
+    "term": "Religious sub-culture",
+    "chinese": "宗教亚文化",
+    "definition": "A sub-culture based on religious faith and practices which are distinct from those of the wider culture.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_bt8s3mp4c15m",
+    "type": "term",
+    "term": "Reserve army of labour",
+    "chinese": "劳动力后备军",
+    "definition": "People who are employed when an economy is booming or when they are needed, but who find themselves out of work when they are not required.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "阶级认同"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_193bym11hp9n5b",
+    "type": "term",
+    "term": "Response rate",
+    "chinese": "应答率",
+    "definition": "The proportion of people in the original sample who actually take part in the research, for example, by completing and returning the questionnaire.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "研究方法"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_4brchh1tqo3r3",
+    "type": "term",
+    "term": "Role modelling",
+    "chinese": "榜样示范",
+    "definition": "When someone acts as an example, so their behaviour is copied by others.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_7jny291vamxlx",
+    "type": "term",
+    "term": "Sample",
+    "chinese": "样本",
+    "definition": "The group of people on whom research is carried out, used to represent the target population.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "研究设计"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_12bplfq1wtjo3e",
+    "type": "term",
+    "term": "Sampling methods / techniques",
+    "chinese": "抽样方法",
+    "definition": "The different ways in which samples can be chosen.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "研究设计"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_15y78qp10tib0b",
+    "type": "term",
+    "term": "Sandwich generation",
+    "chinese": "三明治世代",
+    "definition": "Middle-aged adults who care for their ageing parents, as well as for their children. See also pivot generation.",
+    "paper": "Paper 2",
+    "category": "Family",
+    "unit": [
+      "家庭多样性"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_lapkwlzdzcch",
+    "type": "term",
+    "term": "Scaled questions",
+    "chinese": "量表题",
+    "definition": "Closed questions where the possible answers cover a range of statements or opinions.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "研究方法"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_2hlghs2gbd12",
+    "type": "term",
+    "term": "Scientific method",
+    "chinese": "科学方法",
+    "definition": "The way in which scientists work, by observing, formulating and testing hypotheses, analysing the results and drawing conclusions.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "研究方法"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_9ijbnvnmghe9",
+    "type": "term",
+    "term": "Selective education",
+    "chinese": "选拔性教育",
+    "definition": "When schools choose their learners, usually based on their ability.",
+    "paper": "Paper 3",
+    "category": "Education",
+    "unit": [
+      "教育功能"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1jbo5yq2uftjm",
+    "type": "term",
+    "term": "Self-report studies",
+    "chinese": "自我报告研究",
+    "definition": "Research that asks people what crimes or deviant acts they have committed.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "研究方法"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_6uptftra78ql",
+    "type": "term",
+    "term": "Setting",
+    "chinese": "学科分层",
+    "definition": "When children are taught a particular subject with other children of a similar ability.",
+    "paper": "Paper 3",
+    "category": "Education",
+    "unit": [
+      "教育功能"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_pgx5q71kt07ll",
+    "type": "term",
+    "term": "Single-parent family",
+    "chinese": "单亲家庭",
+    "definition": "One parent and their dependent children living together. See also lone parent family and one-parent family.",
+    "paper": "Paper 2",
+    "category": "Family",
+    "unit": [
+      "家庭多样性"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_bclg4b15x426h",
+    "type": "term",
+    "term": "Social cohesion",
+    "chinese": "社会凝聚力",
+    "definition": "The sense of belonging and amount of connectedness between groups in society.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1nrpfrhaqpgvz",
+    "type": "term",
+    "term": "Social conformity",
+    "chinese": "社会遵从",
+    "definition": "Acting in accordance with norms and social expectations in order to fit in with others.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1wwrqn29wu6aq",
+    "type": "term",
+    "term": "Social differentiation",
+    "chinese": "社会分化",
+    "definition": "The assignment of different roles and statuses to groups and individuals within a society.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_gxqg7c1y91qnc",
+    "type": "term",
+    "term": "Social exclusion",
+    "chinese": "社会排斥",
+    "definition": "When society does not provide a group with the rights and benefits available to others in the same society.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "阶级认同"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_srw9h0v0uvcw",
+    "type": "term",
+    "term": "Social facts",
+    "chinese": "社会事实",
+    "definition": "Laws, values, customs and other social rules over which individuals have no control.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_phbws5c0fmw3",
+    "type": "term",
+    "term": "Social factors",
+    "chinese": "社会因素",
+    "definition": "Things that affect lifestyle and life chances, such as wealth, religion and occupation.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_13cuy3e16j9xgc",
+    "type": "term",
+    "term": "Socialisation",
+    "chinese": "社会化",
+    "definition": "The process of learning the norms and values of a culture.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1bosw6rxl0px3",
+    "type": "term",
+    "term": "Social inequality",
+    "chinese": "社会不平等",
+    "definition": "The differences between groups in a stratification system; for example, in income or wealth.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "阶级认同"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1kykjmrd3gwcj",
+    "type": "term",
+    "term": "Social media",
+    "chinese": "社交媒体",
+    "definition": "Internet-based applications for sharing content and communicating online, such as Instagram and Weibo.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_16q30sf1r8o5rd",
+    "type": "term",
+    "term": "Standardised testing",
+    "chinese": "标准化测评",
+    "definition": "When all learners take the same assessments, which are marked in the same way.",
+    "paper": "Paper 3",
+    "category": "Education",
+    "unit": [
+      "教育功能"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_8fwqq4z9joma",
+    "type": "term",
+    "term": "Status",
+    "chinese": "社会地位",
+    "definition": "A position that someone has in a society; status can be ascribed (fixed by others) or achieved.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_ldn0xh15ad43p",
+    "type": "term",
+    "term": "Stereotyping",
+    "chinese": "刻板印象化",
+    "definition": "Applying and acting upon an oversimplified set of ideas about a particular type of person or social group.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1n6co4jvxfvbt",
+    "type": "term",
+    "term": "Sub-culture",
+    "chinese": "亚文化",
+    "definition": "A group of people within a larger culture which has its own distinctive norms and values.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1f9c61c1jkqjq4",
+    "type": "term",
+    "term": "Surveys",
+    "chinese": "社会调查",
+    "definition": "Large-scale pieces of research which tend to generate quantitative data through methods such as questionnaires or structured interviews.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "研究设计"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1day4cw1u16z3e",
+    "type": "term",
+    "term": "Systematic sampling",
+    "chinese": "系统抽样",
+    "definition": "When there is a regular pattern in selecting from the sampling frame, for example, every tenth name on a list.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "研究设计"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_xbxsa8syscz6",
+    "type": "term",
+    "term": "Target population",
+    "chinese": "目标总体",
+    "definition": "The whole group that the research relates to and to whom the findings of the research will be applied.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "研究方法"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1pqidrikl6o6q",
+    "type": "term",
+    "term": "Trends",
+    "chinese": "趋势",
+    "definition": "Changes over time in a particular direction.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "研究方法"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1i498ndkj6mvn",
+    "type": "term",
+    "term": "Universal basic income",
+    "chinese": "全民基本收入",
+    "definition": "When the government pays everyone a fixed amount of money as a regular income.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "阶级认同"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_1nimmdc1j8qdc",
+    "type": "term",
+    "term": "Universal education",
+    "chinese": "普及教育",
+    "definition": "Schooling provided for all children, regardless of their background.",
+    "paper": "Paper 3",
+    "category": "Education",
+    "unit": [
+      "教育功能"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_i65sus8pnhpe",
+    "type": "term",
+    "term": "Unschooling",
+    "chinese": "非学校化",
+    "definition": "Informal learning without lessons or a curriculum, in which the learner chooses what and how to learn.",
+    "paper": "Paper 3",
+    "category": "Education",
+    "unit": [
+      "教育功能"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_iy83xwto07k6",
+    "type": "term",
+    "term": "Virtual community",
+    "chinese": "虚拟社群",
+    "definition": "An online group of individuals who share interests, personal opinions or backgrounds.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "社会认同基础"
+    ],
+    "syllabus": "0495"
+  },
+  {
+    "id": "term_14fuyci5y3jhw",
+    "type": "term",
+    "term": "Youth sub-culture",
+    "chinese": "青年亚文化",
+    "definition": "A sub-culture of adolescents or young adults who are usually distinguishable by their style, dress and / or musical preferences.",
+    "paper": "Paper 1",
+    "category": "",
+    "unit": [
+      "年龄认同"
+    ],
+    "syllabus": "0495"
+  }
+]

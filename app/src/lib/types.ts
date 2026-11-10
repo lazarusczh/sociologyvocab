@@ -17,6 +17,17 @@ export interface VocabItem {
   theories?: string[]; // 理论流派（多选标签，教师后台逐个编辑；学者与术语均可使用）
   notes?: string;      // 备注（仅学者）
   relations?: ItemRelations; // 词对逻辑关系（教师后台「逻辑管理」建立，随词库发布）
+  /**
+   * 归属大纲（多 syllabus 用）。
+   *
+   * 不填 = 所有大纲共享（现有 889 条都属于这种情况，行为零变化）；
+   * 填 '0495' = 只在 0495 视图里出现，9699 侧自动剔除。
+   *
+   * 刻意不用 category 打标（那样补充词条会自成一组「0495」主题，
+   * 无法与家庭/教育等既有主题合并），也不进 stableId
+   * （同名词条在不同大纲下 id 相同才能共享学生进度）。
+   */
+  syllabus?: string;
 }
 
 // 词对逻辑关系边（教师后台「逻辑管理」人工建立）
@@ -186,6 +197,8 @@ export interface Quiz {
     };
   } | null; // 评分规则快照（创建作业时固定；测验为 null）
   mb_short_code?: string | null; // ManageBac 短码（形如 A1-0915）：生成后固定不变
+  /** 归属大纲（'9699' / '0495'）：短码的年级位靠它区分 A1 / IG，见 db-migration-run-syllabus.sql */
+  syllabus?: string | null;
   created_by: string | null;
   created_at: string;
 }

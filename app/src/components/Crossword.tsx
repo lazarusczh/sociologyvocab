@@ -18,7 +18,7 @@ const MIN_CELL = 16;
 const MAX_CELL = 30;
 
 export default function Crossword() {
-  const { vocab, recordItem, papers, categories } = useStore();
+  const { scopedVocab: vocab, recordItem, papers, categories } = useStore();
   const [paper, setPaper] = useState('all');
   const [cat, setCat] = useState('all');
   const [units, setUnits] = useState<string[]>([]);

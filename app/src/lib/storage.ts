@@ -40,6 +40,7 @@ export function adjustMastery(mastery: number, correct: boolean, mode: PracticeM
 
 const VOCAB_KEY = 'socio_vocab_items';
 const VOCAB_VERSION_KEY = 'socio_vocab_version';
+const ACTIVE_SYLLABUS_KEY = 'socio_active_syllabus';
 const PROGRESS_KEY = 'socio_vocab_progress';
 const CONTEXT_KEY = 'socio_vocab_contexts';
 const CONFIG_KEY = 'socio_vocab_configured';
@@ -86,6 +87,27 @@ export function loadVocabVersion(): number {
 
 export function saveVocabVersion(v: number): void {
   localStorage.setItem(VOCAB_VERSION_KEY, String(v));
+}
+
+// ---- 当前大纲（syllabus）----
+// 词库版本号按 syllabus 各自计数，所以版本号也要分开存，否则 0495 发布 v101 会把
+// 9699 的「本地已是 v100」判断搞乱（表现为反复提示更新 / 或该更新时不更新）。
+export function loadVocabVersionFor(syllabus: string): number {
+  return Number(localStorage.getItem(`${VOCAB_VERSION_KEY}:${syllabus}`) ?? 0) || 0;
+}
+
+export function saveVocabVersionFor(syllabus: string, v: number): void {
+  localStorage.setItem(`${VOCAB_VERSION_KEY}:${syllabus}`, String(v));
+}
+
+// 本地记住的「当前大纲」偏好：学生所属班级解析优先，没班级时用它
+export function loadActiveSyllabus(): string {
+  return localStorage.getItem(ACTIVE_SYLLABUS_KEY) ?? '';
+}
+
+export function saveActiveSyllabus(syllabus: string): void {
+  if (!syllabus) localStorage.removeItem(ACTIVE_SYLLABUS_KEY);
+  else localStorage.setItem(ACTIVE_SYLLABUS_KEY, syllabus);
 }
 
 // ---- 稳定 id 迁移 ----
