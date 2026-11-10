@@ -86,10 +86,16 @@ export function scoreDrift(questions: QuizQuestion[], subs: HintSub[]): ScoreDri
   return { total: submitted.length, changed: diffs.length, samples: diffs.slice(0, 5) };
 }
 
-/** 漂移提示文案（无漂移返回 null） */
+/**
+ * 漂移提示文案（无漂移返回 null）。
+ *
+ * ⚠ 措辞必须写「原始分」：本函数比的是 `score`，**不含迟交罚分**。
+ *   迟交罚分在交卷那一刻就按下分算定写进 `grading.penalty`，此后不随重判变化
+ *   （见 db-migration-grading-rules.sql）。写「会变分」会让教师以为罚分被重算。
+ */
 export function driftLabel(d: ScoreDrift): string | null {
   if (d.changed === 0) return null;
-  return `${d.total} 份已交答卷里有 ${d.changed} 份按当前口径重放会变分`;
+  return `${d.total} 份已交答卷里，有 ${d.changed} 份的原始分与当前口径不一致`;
 }
 
 /**

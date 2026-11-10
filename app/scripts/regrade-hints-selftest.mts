@@ -87,7 +87,7 @@ console.log('scoreDrift');
   const d2 = scoreDrift(questions, [sub('s1', 'u1111', 'Ann', 'boundary', 'subculture', 1)]);
   check('有漂移 changed=1', d2.changed, 1);
   check('有漂移 samples', d2.samples, [{ name: 'Ann', from: 1, to: 2 }]);
-  check('有漂移 label', driftLabel(d2), '1 份已交答卷里有 1 份按当前口径重放会变分');
+  check('有漂移 label', driftLabel(d2), '1 份已交答卷里，有 1 份的原始分与当前口径不一致');
 
   // 未交卷不计入分母
   const d3 = scoreDrift(questions, [
@@ -98,6 +98,16 @@ console.log('scoreDrift');
   // 无姓名时退化显示，不泄露邮箱
   const d4 = scoreDrift(questions, [sub('s5', 'uabcd1234', '', 'boundary', 'subculture', 0)]);
   check('无名退化显示', d4.samples[0].name, '学生 uabc');
+
+  // ⚠ 迟交罚分不参与漂移判定：即使这条记录带着很大的 penalty / 很低的 final_score，
+  // 只要 score 与重放一致，就**不算**漂移（这也是教师看到「16→15」不该联想到罚分的原因）。
+  const lateSub = {
+    ...sub('s6', 'ulate001', '迟到生', 'boundary', 'subculture', 2),
+    grading: { penalty: 1, penalty_percent: 40, final_score: 1 },
+  } as unknown as HintSub;
+  const d5 = scoreDrift(questions, [lateSub]);
+  check('罚分不参与漂移 changed=0', d5.changed, 0);
+  check('罚分不参与漂移 label=null', driftLabel(d5), null);
 }
 
 console.log('aliasClusters');
