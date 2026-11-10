@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { StoreProvider, useStore } from './lib/store';
-import { SYLLABUS_OPTIONS } from './lib/syllabus';
+import SyllabusSwitch from './components/SyllabusSwitch';
 import { installTableFreeze } from './lib/tableFreeze';
 import IdentityGate from './components/IdentityGate';
 import Home from './components/Home';
@@ -320,16 +320,11 @@ function AppBody() {
               {authUser && isTeacher && (
                 <>
                   <div className="nav-menu-label">词库视图</div>
-                  {SYLLABUS_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      className={activeSyllabus === opt.value ? 'active' : ''}
-                      onClick={() => { setActiveSyllabus(opt.value); setMenuOpen(false); }}
-                      disabled={inQuiz}
-                    >
-                      {activeSyllabus === opt.value ? `✓ ${opt.label}` : opt.label}
-                    </button>
-                  ))}
+                  <SyllabusSwitch
+                    value={activeSyllabus}
+                    onChange={(s) => { setActiveSyllabus(s); setMenuOpen(false); }}
+                    disabled={inQuiz}
+                  />
                 </>
               )}
               {!authUser && skipped && (
@@ -530,17 +525,11 @@ function AppBody() {
                 {authUser && isTeacher && (
                   <>
                     <div className="nav-menu-label">词库视图</div>
-                    {SYLLABUS_OPTIONS.map((opt) => (
-                      <button
-                        key={opt.value}
-                        className={activeSyllabus === opt.value ? 'active' : ''}
-                        onClick={() => setActiveSyllabus(opt.value)}
-                        disabled={inQuiz}
-                        title={activeSyllabus === opt.value ? '当前正在看这个大纲的词库' : '切到这个大纲看词库'}
-                      >
-                        {activeSyllabus === opt.value ? `✓ ${opt.label}` : opt.label}
-                      </button>
-                    ))}
+                    <SyllabusSwitch
+                      value={activeSyllabus}
+                      onChange={setActiveSyllabus}
+                      disabled={inQuiz}
+                    />
                   </>
                 )}
                 {!authUser && skipped && (

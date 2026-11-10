@@ -357,6 +357,77 @@ input:focus, textarea:focus, select:focus {
   letter-spacing: 0.02em;
 }
 
+/* 词库视图切换器：分段控件。
+   选中底色不是长在按钮上，而是一块独立滑块（.syl-switch__thumb）用
+   transform 滑动 —— 按钮各自改 background 只能瞬间硬切，看不到"移动"。
+   滑块位移用 index * 100%（相对自身高度），所以不必用 JS 量高度。 */
+.syl-switch {
+  --syl-item-h: 28px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin: 0.15rem 0 0.25rem;
+  padding: 3px;
+  border-radius: var(--r-ctrl);
+  background: var(--c-surface-soft);
+}
+.syl-switch__thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  right: 3px;
+  height: var(--syl-item-h);
+  border-radius: calc(var(--r-ctrl) - 3px);
+  background: var(--c-primary-bg);
+  pointer-events: none;
+  transition: transform var(--dur) var(--ease);
+}
+/* 基础样式写在不带前缀的选择器上，组件放到任何容器里都能自洽。
+   后面串上 `.nav-group-items` / `.nav-account-mobile` 两个前缀，是为了压过
+   `.nav-group-items button`、`.nav-account-mobile button`（都是 0,1,1，
+   比单个类 0,1,0 高）：它们的 min-height:44px / padding / font-size
+   会把滑块撑错位，且统一刷下来的 color 会盖掉选中态强调色。
+   合成一条选择器列表即可，不必再复制一份带前缀的规则。 */
+.syl-switch__opt,
+.nav-group-items .syl-switch__opt,
+.nav-account-mobile .syl-switch__opt {
+  position: relative;
+  width: 100%;
+  height: var(--syl-item-h);
+  min-height: 0;
+  padding: 0 0.7rem;
+  background: transparent;
+  border: none;
+  border-radius: calc(var(--r-ctrl) - 3px);
+  color: var(--c-charcoal);
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-align: left;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease);
+}
+.syl-switch__opt:hover,
+.nav-group-items .syl-switch__opt:hover,
+.nav-account-mobile .syl-switch__opt:hover {
+  background: transparent;
+  color: var(--c-ink);
+}
+.syl-switch__opt.is-active,
+.nav-group-items .syl-switch__opt.is-active,
+.nav-account-mobile .syl-switch__opt.is-active {
+  color: var(--c-primary);
+  font-weight: 600;
+}
+.syl-switch__opt:disabled { opacity: 0.5; cursor: default; }
+
+/* 减少动态效果：滑块直接跳到目标位置，不做滑动。
+   这里只关 transition、不关其它任何东西 —— 选中态本身靠 is-active 类表达，
+   颜色和字重照常切换，不依赖动画。 */
+@media (prefers-reduced-motion: reduce) {
+  .syl-switch__thumb { transition: none; }
+}
+
 /* 内容区顶部返回首页按钮（仅网页端、非首页时显示） */
 .back-btn {
   display: inline-flex;
@@ -582,6 +653,11 @@ input:focus, textarea:focus, select:focus {
     padding: 0.5rem 0.8rem 0.15rem;
     font-size: 0.78rem;
   }
+
+  /* 窄屏把切换器做高一点：28px 是桌面鼠标尺寸，手指点不合适；
+     滑块高度跟着 --syl-item-h 走，改一个变量就整体对齐。 */
+  .nav-account-mobile .syl-switch { --syl-item-h: 40px; }
+  .nav-account-mobile .syl-switch__opt { font-size: 1rem; }
 }
 
 .container {
