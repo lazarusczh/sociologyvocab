@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '../lib/store';
 import type { VocabItem, Quiz, QuizSubmission, QuizQuestionType, QuizKind } from '../lib/types';
 import { buildQuizQuestions, sampleItems, TYPE_LABELS, KIND_LABELS, formatDuration, isAnswerCorrect, answerText, correctAnswerText, totalPoints, matchingCorrectCount, gradeQuiz, refreshQuestionAliases, correctionBonus, crosswordClueResults } from '../lib/quiz';
@@ -18,6 +18,7 @@ import { asGrade, classMatchesGrade, firstPaperNumber, GRADE_OPTIONS, inferGrade
 import QuizWrongBoard from './QuizWrongBoard';
 import ScrollText from './ScrollText';
 import { CrosswordClueResults } from './CrosswordAnswer';
+import { SYLLABUS_IDS, SYLLABUS_LABELS } from '../lib/syllabus';
 
 // —— ManageBac 同步预览（测验/作业）——
 // 与试卷成绩那边同一套视角：以成绩册的行为主，逐行往站内对应。
@@ -161,7 +162,7 @@ function toLocalInput(iso: string): string {
 export default function QuizManager() {
   // `vocab` 全量：用来按 id 反查历史题目（0495 学生做过 9699 时期的题也不能找不到）。
   // `scopedVocab` 当前大纲可见：抽题池只用它，否则 0495 教师能抽到 Paper 4 的词。
-  const { vocab, scopedVocab, papers, authUser, unitOrder, activeSyllabus } = useStore();
+  const { vocab, scopedVocab, papers, authUser, unitOrder, activeSyllabus, mySyllabi } = useStore();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -203,6 +204,18 @@ export default function QuizManager() {
   const [devIds, setDevIds] = useState<Set<string>>(new Set()); // developer 账户 user_id（识别测试记录）
   const [manualSearch, setManualSearch] = useState(''); // 手动勾选词条的检索词
   const [pendingDraft, setPendingDraft] = useState<SavedDraft | null>(null); // 启动时检测到的暂存草稿
+  // 列表按大纲筛选：'all' 之外用 syllabus id。教师可能同时教 9699 与 0495 两种班，
+  // 列表混在一起时很难分辨哪些卷属于哪个大纲 —— 默认仍看全部，不改变现有人的习惯。
+  const [listSyllabus, setListSyllabus] = useState<'all' | string>('all');
+  // 任教班级推出来的默认筛选：只设一次（首次拿到 mySyllabi 时），此后由教师自己切，
+  // 否则每次 mySyllabi 数组重建都会把教师手选的筛选顶回去。
+  const defaultedListSyllabus = useRef(false);
+  useEffect(() => {
+    if (defaultedListSyllabus.current) return;
+    if (mySyllabi.length !== 1) return; // 一个都没教 / 同时教两个大纲 → 保持「全部」
+    defaultedListSyllabus.current = true;
+    setListSyllabus(mySyllabi[0]);
+  }, [mySyllabi]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -353,6 +366,24 @@ export default function QuizManager() {
   // 当前大纲视图里有没有学者词条：0495 整类屏蔽学者，这时不给「学者」筛选按钮，
   // 否则教师选了它只会得到空题库。
   const hasScholarItem = useMemo(() => scopedVocab.some((i) => i.type === 'scholar'), [scopedVocab]);
+
+  // 列表按大纲筛选后的结果。quizzes.syllabus 是后加的列，历史行是 null ⇒ 视同 9699。
+  const visibleQuizzes = useMemo(
+    () => (listSyllabus === 'all'
+      ? quizzes
+      : quizzes.filter((q) => (q.syllabus ?? '9699') === listSyllabus)),
+    [quizzes, listSyllabus],
+  );
+  // 各大纲各有多少份卷：显示在筛选按钮上，让教师一眼看出另一个大纲有没有卷
+  const syllabusCounts = useMemo(() => {
+    const out: Record<string, number> = {};
+    for (const q of quizzes) {
+      const k = q.syllabus ?? '9699';
+      out[k] = (out[k] ?? 0) + 1;
+    }
+    return out;
+  }, [quizzes]);
+  // 筛选条在列表非空时始终显示：多 syllabus 之后它是一等维度，藏起来反而让人以为列表漏了东西。
 
   // random 模式抽题池：按 考卷 / 主题 / 单元（多选）/ 类型 过滤
   // （此前主题与单元未参与随机抽题，选了单元对抽题不生效，本次一并修正）
@@ -1622,6 +1653,32 @@ export default function QuizManager() {
         </p>
         {error && <div className="card" style={{ marginTop: '0.6rem', background: 'var(--warn-bg)', borderColor: 'var(--warn)' }}>{error}</div>}
         {msg && <div className="card" style={{ marginTop: '0.6rem', background: 'var(--ok-bg)', borderColor: 'var(--ok)' }}>{msg}</div>}
+        {/* 列表非空就给筛选条：多 syllabus 之后它是一等维度，藏起来会让人以为列表漏了卷 */}
+        {quizzes.length > 0 && (
+          <div className="tag-filter" style={{ marginTop: '0.6rem' }}>
+            <button
+              className={listSyllabus === 'all' ? 'active' : ''}
+              onClick={() => setListSyllabus('all')}
+            >
+              全部（{quizzes.length}）
+            </button>
+            {SYLLABUS_IDS.map((id) => (
+              <button
+                key={id}
+                className={listSyllabus === id ? 'active' : ''}
+                onClick={() => setListSyllabus(id)}
+                title={SYLLABUS_LABELS[id] ?? id}
+              >
+                {id}（{syllabusCounts[id] ?? 0}）
+              </button>
+            ))}
+            {mySyllabi.length === 1 && listSyllabus === mySyllabi[0] && (
+              <span className="muted" style={{ fontSize: '0.8rem', alignSelf: 'center' }}>
+                按你任教的班默认选中
+              </span>
+            )}
+          </div>
+        )}
         {pendingDraft && !draft && (
           <div className="card" style={{ marginTop: '0.6rem', background: 'var(--accent-bg)', borderColor: 'var(--accent)' }}>
             <div className="row" style={{ alignItems: 'center' }}>
@@ -1857,12 +1914,19 @@ export default function QuizManager() {
       <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
         {quizzes.length === 0 ? (
           <div className="empty-state" style={{ padding: '1rem' }}><p className="muted">还没有创建过测验/作业。</p></div>
+        ) : visibleQuizzes.length === 0 ? (
+          <div className="empty-state" style={{ padding: '1rem' }}>
+            <p className="muted">
+              还没有属于 {SYLLABUS_LABELS[listSyllabus] ?? listSyllabus} 的测验 / 作业。切到「全部」，或先创建一个属于该大纲的卷。
+            </p>
+          </div>
         ) : (
           <table className="check-table">
             <thead>
               <tr>
                 <th>标题</th>
                 <th>类型</th>
+                <th>大纲</th>
                 <th>密码</th>
                 <th>已提交</th>
                 <th>ManageBac</th>
@@ -1875,10 +1939,23 @@ export default function QuizManager() {
               </tr>
             </thead>
             <tbody>
-              {quizzes.map((q) => (
+              {visibleQuizzes.map((q) => (
                 <tr key={q.id}>
                   <td><ScrollText text={q.title} /></td>
                   <td>{KIND_LABELS[q.kind]}</td>
+                  <td>
+                    {(() => {
+                      const s = q.syllabus ?? '9699';
+                      return (
+                        <span
+                          className={s === '9699' ? 'badge' : 'badge warn'}
+                          title={`这份卷属于 ${SYLLABUS_LABELS[s] ?? s}；学生只会在该大纲的视图里看到它`}
+                        >
+                          {s}
+                        </span>
+                      );
+                    })()}
+                  </td>
                   <td className="term" style={{ fontWeight: 600 }}>{q.code}</td>
                   <td>{submissionCounts[q.id] ?? 0}</td>
                   <td style={{ fontSize: '0.8rem' }}>

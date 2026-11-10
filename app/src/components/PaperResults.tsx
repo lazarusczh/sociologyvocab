@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import {
   listGrouperRuns, updateGrouperRun, deleteGrouperRun, listMsSections,
@@ -12,6 +12,8 @@ import { asGrade, GRADE_OPTIONS, inferGrade, type Grade } from '../lib/mbSync';
 import { copyText } from '../lib/clipboard';
 import type { AssembleSlot, BankItem } from '../lib/grouper';
 import { exportPaperToDocx } from '../lib/exportPaper';
+import { SYLLABUS_IDS, SYLLABUS_LABELS } from '../lib/syllabus';
+import { useStore } from '../lib/store';
 import ScrollText from './ScrollText';
 
 const srcLabelFor = (it: BankItem) => `${it.source.session} QP${it.source.comp}${it.source.q ? ' Q' + it.source.q : ''}`;
@@ -101,6 +103,8 @@ function inferClassId(run: GrouperRunRow, classList: ClassRow[], list: GrouperRu
 }
 
 export default function PaperResults() {
+  // 任教班级 → 默认筛到我只教的那一个大纲（只设一次，之后由教师自己切）
+  const { mySyllabi } = useStore();
   // —— 列表 ——
   const [runs, setRuns] = useState<GrouperRunRow[]>([]);
   const [loadingList, setLoadingList] = useState(true);
@@ -108,6 +112,16 @@ export default function PaperResults() {
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
   const [confirmDel, setConfirmDel] = useState<string | null>(null);
+  // 列表按大纲筛选：只有一种大纲时不显示筛选条（见 hasMultiSyllabus）
+  const [listSyllabus, setListSyllabus] = useState<'all' | string>('all');
+  // 同 QuizManager：只在首次拿到 mySyllabi 时设一次，不覆盖教师后来的手动切换
+  const defaultedListSyllabus = useRef(false);
+  useEffect(() => {
+    if (defaultedListSyllabus.current) return;
+    if (mySyllabi.length !== 1) return;
+    defaultedListSyllabus.current = true;
+    setListSyllabus(mySyllabi[0]);
+  }, [mySyllabi]);
 
   // —— 详情 ——
   const [entries, setEntries] = useState<GrouperRunScore[] | null>(null); // null = 名单加载中
@@ -150,6 +164,24 @@ export default function PaperResults() {
   }, []);
 
   useEffect(() => { void refresh(); }, [refresh]);
+
+  // grouper_runs.syllabus 是后加的列，历史行是 null ⇒ 视同 9699。
+  const visibleRuns = useMemo(
+    () => (listSyllabus === 'all'
+      ? runs
+      : runs.filter((r) => (r.syllabus ?? '9699') === listSyllabus)),
+    [runs, listSyllabus],
+  );
+  const syllabusCounts = useMemo(() => {
+    const out: Record<string, number> = {};
+    for (const r of runs) {
+      const k = r.syllabus ?? '9699';
+      out[k] = (out[k] ?? 0) + 1;
+    }
+    return out;
+  }, [runs]);
+  // 筛选条在列表非空时始终显示：多 syllabus 之后它是一等维度。
+
 
   const openRun = async (run: GrouperRunRow) => {
     setViewing(run);
@@ -1170,6 +1202,31 @@ export default function PaperResults() {
           在「组卷器」生成并保存的试卷记录都在这里。点开回访卷面、对照 ms 阅卷，并给学生录入卷面分 → 自动换算百分制。
         </p>
         {error && <div className="card" style={{ marginTop: '0.6rem', padding: '0.5rem 0.7rem', background: 'var(--warn-bg)', borderColor: 'var(--warn)' }}>{error}</div>}
+        {!loadingList && runs.length > 0 && (
+          <div className="tag-filter" style={{ marginTop: '0.6rem' }}>
+            <button
+              className={listSyllabus === 'all' ? 'active' : ''}
+              onClick={() => setListSyllabus('all')}
+            >
+              全部（{runs.length}）
+            </button>
+            {SYLLABUS_IDS.map((id) => (
+              <button
+                key={id}
+                className={listSyllabus === id ? 'active' : ''}
+                onClick={() => setListSyllabus(id)}
+                title={SYLLABUS_LABELS[id] ?? id}
+              >
+                {id}（{syllabusCounts[id] ?? 0}）
+              </button>
+            ))}
+            {mySyllabi.length === 1 && listSyllabus === mySyllabi[0] && (
+              <span className="muted" style={{ fontSize: '0.8rem', alignSelf: 'center' }}>
+                按你任教的班默认选中
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
@@ -1177,11 +1234,18 @@ export default function PaperResults() {
           <div className="empty-state" style={{ padding: '2rem 1rem' }}>
             <p className="muted">还没有保存过试卷。去「组卷器」组一份卷并点「保存本卷」。</p>
           </div>
+        ) : !loadingList && visibleRuns.length === 0 ? (
+          <div className="empty-state" style={{ padding: '2rem 1rem' }}>
+            <p className="muted">
+              还没有属于 {SYLLABUS_LABELS[listSyllabus] ?? listSyllabus} 的试卷。切到「全部」，或去「组卷器」组一份该大纲的卷。
+            </p>
+          </div>
         ) : (
           <table className="check-table">
             <thead>
               <tr>
                 <th>标题</th>
+                <th>大纲</th>
                 <th>短码</th>
                 <th>卷种</th>
                 <th>满分</th>
@@ -1191,12 +1255,21 @@ export default function PaperResults() {
               </tr>
             </thead>
             <tbody>
-              {runs.map((r) => {
+              {visibleRuns.map((r) => {
                 const rec = r.scores.filter((s) => s.raw != null).length;
                 const total = r.scores.length;
+                const syl = r.syllabus ?? '9699';
                 return (
                   <tr key={r.id}>
                     <td style={{ fontWeight: 600 }}><ScrollText text={r.title} /></td>
+                    <td>
+                      <span
+                        className={syl === '9699' ? 'badge' : 'badge warn'}
+                        title={`这份卷属于 ${SYLLABUS_LABELS[syl] ?? syl}`}
+                      >
+                        {syl}
+                      </span>
+                    </td>
                     <td>{r.mb_short_code ? <code>[{r.mb_short_code}]</code> : <span className="muted">—</span>}</td>
                     <td>{modeLabel(r)}<span className="muted" style={{ marginLeft: '0.3rem' }}>P{r.paper}</span></td>
                     <td>{r.full_raw}</td>

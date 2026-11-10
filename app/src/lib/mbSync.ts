@@ -41,6 +41,18 @@ export function needsManualGrade(syllabus?: string | null): boolean {
   return (syllabus || '') === '0495';
 }
 
+/**
+ * 从班级名认出年级（G1 / G2 / AS→A1 / A2），认不出返回 null。
+ * 只用于「这位教师教的班」推默认筛选口径 —— 短码那边仍然是手选或按卷号推断，
+ * 不要拿它替代 inferGrade。
+ */
+export function gradeFromClassName(className: string): Grade | null {
+  for (const opt of GRADE_OPTIONS) {
+    if (classMatchesGrade(className, opt.value)) return opt.value;
+  }
+  return null;
+}
+
 /** 把任意字符串收窄成 Grade（短码前缀、下拉值都用它兜底）；认不出返回 null */
 export function asGrade(v: unknown): Grade | null {
   const s = String(v ?? '').trim().toUpperCase();

@@ -810,6 +810,20 @@ export async function listClassesWithMb(): Promise<ClassMbRow[]> {
   return (data ?? []) as ClassMbRow[];
 }
 
+/** 我任教的班（classes.teacher_id = 我）。开发者未任教任何班时返回空数组 */
+export interface MyClassRow { id: string; name: string; syllabus: string | null; }
+
+export async function listMyClasses(teacherId: string): Promise<MyClassRow[]> {
+  if (!teacherId) return [];
+  const { data, error } = await supabase
+    .from('classes')
+    .select('id, name, syllabus')
+    .eq('teacher_id', teacherId)
+    .order('name');
+  if (error) throw error;
+  return (data ?? []) as MyClassRow[];
+}
+
 /** 绑定 / 解除某班的 ManageBac 成绩册（url 传 null 即解除） */
 export async function setClassMbBinding(
   classId: string,

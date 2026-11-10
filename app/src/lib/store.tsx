@@ -21,10 +21,11 @@ import { loadUnitOrder, saveUnitOrder } from './unitMapping';
 import { vocabSnapshotKey } from './vocabSnapshot';
 import { exportBackupJson, performImport } from './backup';
 import { supabase } from './supabase';
-import { pullCloudData, pushCloudData, mergeStudentData, pullStudentSyllabus, pullVocabOverrides, saveVocabOverride, deleteVocabOverride, type CloudStudentData, getLatestVocabVersion, pullLatestVocab } from './cloud';
+import { pullCloudData, pushCloudData, mergeStudentData, pullStudentSyllabus, pullVocabOverrides, saveVocabOverride, deleteVocabOverride, listMyClasses, type CloudStudentData, type MyClassRow, getLatestVocabVersion, pullLatestVocab } from './cloud';
+import { gradeFromClassName, GRADE_OPTIONS, type Grade } from './mbSync';
 import { applyVocabOverrides, type OverrideOp, type VocabOverride } from './vocabOverrides';
 import {
-  DEFAULT_SYLLABUS, normalizeSyllabus, papersFor, projectItems, type SyllabusId,
+  DEFAULT_SYLLABUS, normalizeSyllabus, papersFor, projectItems, SYLLABUS_IDS, type SyllabusId,
 } from './syllabus';
 // XP 体系（C 档）：事件构造与本地队列。设计与契约见《XP-C档改造方案.md》。
 // 这里只做「产出一条事件并入队」，不做任何算分 —— 算分全在服务端，
@@ -120,6 +121,15 @@ interface StoreValue {
   setActiveSyllabus: (s: SyllabusId) => void;
   /** 当前大纲下可见的词条（已按 syllabus 过滤） */
   scopedVocab: VocabItem[];
+  /**
+   * 我任教的班（classes.teacher_id = 我）。由开发者后台在「账户与班级归属」里指定。
+   * 学生、未任教任何班的开发者都是空数组。
+   */
+  myClasses: MyClassRow[];
+  /** 我任教的班覆盖到的大纲（去重、按 SYLLABUS_IDS 顺序）。决定教师后台列表默认筛哪个大纲 */
+  mySyllabi: SyllabusId[];
+  /** 我任教的班覆盖到的年级（G1/G2/AS→A1/A2，按 GRADE_OPTIONS 顺序去重） */
+  myGrades: Grade[];
   /** 当前大纲的覆盖层（0495 教师改过的词条）；9699 恒为空数组 */
   overrides: VocabOverride[];
   /**
@@ -163,6 +173,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
   // 0495 教师改过的词条（覆盖层）。9699 始终为空。
   const [overrides, setOverrides] = useState<VocabOverride[]>([]);
+  // 我任教的班（开发者后台在「账户与班级归属」里指定 teacher_id）。
+  // 教师后台用它决定列表默认筛哪个大纲/年级 —— 教师只该看到自己那几个班的东西。
+  const [myClasses, setMyClasses] = useState<MyClassRow[]>([]);
   const [vocabUpdateBanner, setVocabUpdateBanner] = useState('');
   const [surnameOverrides, setSurnameOverrides] = useState<SurnameOverrides>({});
   const [checkinCelebration, setCheckinCelebration] = useState(false);
@@ -216,11 +229,25 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           .select('role')
           .eq('user_id', u.id);
         const roles = ((data ?? []) as { role: string }[]).map((r) => r.role);
-        setIsTeacher(roles.includes('teacher'));
+        const teacher = roles.includes('teacher');
+        setIsTeacher(teacher);
         setIsDeveloper(roles.includes('developer'));
+        // 任教班级：决定教师后台的试卷/测验列表默认筛哪个班与大纲。
+        // 学生没有任教的班 → 空数组，所有既有调用点都不受影响。
+        if (teacher) {
+          try {
+            const mine = await listMyClasses(u.id);
+            setMyClasses(mine);
+          } catch {
+            setMyClasses([]);
+          }
+        } else {
+          setMyClasses([]);
+        }
       } catch {
         setIsTeacher(false);
         setIsDeveloper(false);
+        setMyClasses([]);
       }
     })();
     // 回传合并结果，保证云端与本地一致
@@ -769,6 +796,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setAuthUser(null);
     setIsTeacher(false);
     setIsDeveloper(false);
+    setMyClasses([]);
     setDataScope('guest');
   }, []);
 
@@ -801,6 +829,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // 9699 = 四卷；0495 = 两卷（P1 研究方法/身份/分层、P2 家庭+教育）
   const papers = papersFor(activeSyllabus).filter((p) => scopedVocab.some((v) => v.paper === p));
 
+  // 我任教班覆盖的大纲 / 年级（去重、按各自声明的顺序）。
+  // 用途：教师后台的测验与试卷列表默认筛到自己教的那一档，不必每次手动切；
+  // 未任教任何班（含开发者、学生）时为空数组，那边保持「全部」的现状。
+  const mySyllabi = SYLLABUS_IDS.filter((id) => myClasses.some((c) => (c.syllabus ?? DEFAULT_SYLLABUS) === id));
+  const myGrades = GRADE_OPTIONS
+    .map((o) => o.value)
+    .filter((g) => myClasses.some((c) => gradeFromClassName(c.name) === g));
+
   const value: StoreValue = {
     vocab,
     progress,
@@ -810,6 +846,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     activeSyllabus,
     setActiveSyllabus,
     scopedVocab,
+    myClasses,
+    mySyllabi,
+    myGrades,
     overrides,
     saveOverride,
     clearOverride,
