@@ -35,8 +35,14 @@ const SYLLABI = {
       { id: 'p2', tag: 'Paper 2' },
     ],
     paperMap: { 'Paper 1': 'p1', 'Paper 2': 'p2', 'Paper 3': 'p2' },
+    // 0495 不考学者姓名：学者词条整类不进 0495 视图（见 syllabus.ts 的 hideTypes）
+    hideTypes: ['scholar'],
   },
 };
+
+function hiddenByType(item, syllabus) {
+  return SYLLABI[syllabus]?.hideTypes?.includes(item.type) ?? false;
+}
 
 function paperTagFor(item, syllabus) {
   const def = SYLLABI[syllabus];
@@ -47,7 +53,8 @@ function paperTagFor(item, syllabus) {
 
 function projectItems(items, syllabus) {
   const def = SYLLABI[syllabus];
-  if (def.id === '9699') {
+  const hides = def.hideTypes?.length ? def.hideTypes : null;
+  if (def.id === '9699' && !hides) {
     // 9699：剔掉 syllabus='0495' 的专属词条，其余原样返回同一引用
     if (!items.some((i) => i.syllabus === '0495')) return items;
     return items.filter((i) => i.syllabus !== '0495');
@@ -55,6 +62,7 @@ function projectItems(items, syllabus) {
   const out = [];
   for (const i of items) {
     if (i.syllabus === '9699') continue;
+    if (hiddenByType(i, syllabus)) continue;
     const tag = paperTagFor(i, syllabus);
     if (!tag) continue;
     out.push(tag === i.paper ? i : { ...i, paper: tag });
@@ -122,15 +130,30 @@ console.log('0495 投影后按卷+主题：', byCat);
 const seen = [...new Set(v0495.map((i) => i.paper))].sort();
 check('0495 卷名集合', seen, ['Paper 1', 'Paper 2']);
 
-// 4b) 0495 条数必须等于 共享词条里 P1+P2+P3 + 0495 专属
-const nativeCovered = native.filter((i) => ['Paper 1', 'Paper 2', 'Paper 3'].includes(i.paper)).length;
-check('0495 条数 = 共享 P1+P2+P3 + 专属', v0495.length, nativeCovered + supplement.length);
-console.log(`共享 P1+P2+P3 = ${nativeCovered}，0495 专属 ${supplement.length}，合计 ${v0495.length}`);
+// 4b) 0495 条数必须等于 共享词条里 P1+P2+P3 的**术语** + 0495 专属（学者整类被 hideTypes 屏蔽）
+const nativeCovered = native.filter(
+  (i) => ['Paper 1', 'Paper 2', 'Paper 3'].includes(i.paper) && i.type !== 'scholar',
+).length;
+const nativeScholars = native.filter(
+  (i) => ['Paper 1', 'Paper 2', 'Paper 3'].includes(i.paper) && i.type === 'scholar',
+).length;
+check('0495 条数 = 共享 P1+P2+P3 术语 + 专属', v0495.length, nativeCovered + supplement.length);
+console.log(
+  `共享 P1+P2+P3 术语 = ${nativeCovered}，0495 专属 ${supplement.length}，合计 ${v0495.length}` +
+    `（另有 ${nativeScholars} 条学者被 0495 屏蔽）`,
+);
+
+// 4d) 0495 视图里不得出现任何学者词条（用户 m04004：0495 不考学者姓名）
+check('0495 视图无学者词条', v0495.filter((i) => i.type === 'scholar').map((i) => i.term), []);
 
 // 4c) 9699 看不到任何 0495 专属词条（回归关键）
 const v9699 = projectItems(vocab, '9699');
 check('9699 条数不受 0495 专属影响', v9699.length, native.length);
 check('9699 里没有 syllabus=0495 的词条', v9699.some((i) => i.syllabus === '0495'), false);
+
+// 4e) 屏蔽是视图层的，9699 仍然完整保留学者的全部 239 条
+// （149 只是 P1–P3 那部分，P4 另有 90 条）
+check('9699 学者条数不受影响', v9699.filter((i) => i.type === 'scholar').length, 239);
 
 // 5) 同源词条 id 不变：0495 投影只改 paper，不新造 id
 const ids9699 = new Set(native.map((i) => i.id));

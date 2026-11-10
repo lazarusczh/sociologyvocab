@@ -43,6 +43,11 @@ export default function CategoryFilter({
   const { unitOrder } = useStore();
   const typeOk = (i: VocabItem) => typeFilter === 'all' || i.type === typeFilter;
 
+  // 「学者」选项只在该视图里真有学者词条时才给：0495 整类屏蔽学者后，
+  // 摆一个永远筛出 0 条的按钮只会让人误以为坏了。
+  const hasScholar = items.some((i) => i.type === 'scholar');
+  const typeOptions = (['all', 'term', 'scholar'] as const).filter((t) => t !== 'scholar' || hasScholar);
+
   const paperCount = (p: string) =>
     items.filter((i) => (p === 'all' || i.paper === p) && typeOk(i)).length;
 
@@ -71,7 +76,7 @@ export default function CategoryFilter({
       {onTypeChange && (
         <div className="row tight" style={{ marginBottom: '0.5rem' }}>
           <span className="muted" style={{ fontSize: '0.85rem' }}>类型：</span>
-          {(['all', 'term', 'scholar'] as const).map((t) => (
+          {typeOptions.map((t) => (
             <button
               key={t}
               className={typeFilter === t ? 'active' : ''}

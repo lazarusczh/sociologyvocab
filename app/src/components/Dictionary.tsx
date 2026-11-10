@@ -11,6 +11,12 @@ export default function Dictionary() {
   const [typeFilter, setTypeFilter] = useState<'term' | 'scholar'>('term');
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
+  // 0495 视图里学者词条被整类屏蔽：这时不显示「学者」选项，
+  // 且若当前正停在「学者」上（比如教师刚把视图切到 0495），自动落回「术语」，
+  // 否则会停在一个永远 0 条的状态里。
+  const hasScholar = vocab.some((i) => i.type === 'scholar');
+  const activeType = typeFilter === 'scholar' && !hasScholar ? 'term' : typeFilter;
+
   const results = useMemo(() => {
     const q = query.trim();
     if (!q) return [];
@@ -19,7 +25,7 @@ export default function Dictionary() {
     const scored: { item: VocabItem; score: number }[] = [];
 
     for (const item of vocab) {
-      if (item.type !== typeFilter) continue;
+      if (item.type !== activeType) continue;
       let best: number | null = null;
       for (const form of getSearchableForms(item)) {
         const norm = normalizeKey(form);
@@ -43,7 +49,7 @@ export default function Dictionary() {
 
     scored.sort((a, b) => a.score - b.score || a.item.term.localeCompare(b.item.term));
     return scored.map((s) => s.item);
-  }, [vocab, query, typeFilter]);
+  }, [vocab, query, activeType]);
 
   const toggle = (id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
@@ -54,6 +60,7 @@ export default function Dictionary() {
   }
 
   const searching = query.trim() !== '';
+  const typeOptions = (['term', 'scholar'] as const).filter((t) => t !== 'scholar' || hasScholar);
 
   return (
     <div>
@@ -67,10 +74,10 @@ export default function Dictionary() {
       />
 
       <div className="tag-filter" style={{ marginTop: '0.6rem' }}>
-        {(['term', 'scholar'] as const).map((t) => (
+        {typeOptions.map((t) => (
           <button
             key={t}
-            className={typeFilter === t ? 'active' : ''}
+            className={activeType === t ? 'active' : ''}
             onClick={() => setTypeFilter(t)}
           >
             {t === 'term' ? '术语' : '学者'}

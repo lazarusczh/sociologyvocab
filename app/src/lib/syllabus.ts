@@ -49,6 +49,23 @@ export interface SyllabusDef {
    * 例如分层/全球化里少数概念在 0495 的 P1 里仍会出现。
    */
   borrowTerms?: string[];
+  /**
+   * 本 syllabus 下整类屏蔽的词条类型。
+   *
+   * 0495 只在大纲的「关键研究」里点到方法论学者，原则上不要求学生记学者姓名
+   * （10 分题里的「研究者」通常是题干给定的），所以学者词条一律不进 0495 视图。
+   * 屏蔽只发生在视图投影这一层：词条本体、id、进度都照旧，9699 一条不受影响。
+   */
+  hideTypes?: Array<VocabItem['type']>;
+}
+
+/**
+ * 词条是否被该 syllabus 整类屏蔽（见 SyllabusDef.hideTypes）。
+ * 这是「视图层」判定，不改词条本体——换回 9699 时同一个 id 立刻恢复可见。
+ */
+export function hiddenByType(item: VocabItem, syllabus: SyllabusId): boolean {
+  const def = SYLLABI[syllabus] ?? P9699;
+  return def.hideTypes?.includes(item.type) ?? false;
 }
 
 /**
@@ -94,6 +111,8 @@ const P0495: SyllabusDef = {
     'Paper 3': 'p2', // 教育 —— 0495 与家庭同卷
     // Paper 4（Globalisation / Media）在 0495 中不存在，故不列出
   },
+  // 0495 不考学者姓名：149 条学者词条全部不进 0495 视图（剩 583 条术语）
+  hideTypes: ['scholar'],
 };
 
 /** 全部已定义的 syllabus。新增 syllabus 只往这里加一条，其余代码不用改。 */
@@ -159,12 +178,15 @@ export function paperTagFor(item: VocabItem, syllabus: SyllabusId): string | nul
  */
 export function visibleItems(items: VocabItem[], syllabus: SyllabusId): VocabItem[] {
   const def = SYLLABI[syllabus] ?? P9699;
-  if (def.id === DEFAULT_SYLLABUS) {
+  const hides = def.hideTypes?.length ? def.hideTypes : null;
+  if (def.id === DEFAULT_SYLLABUS && !hides) {
     // 快路径：没有 0495 专属词条时原样返回
     if (!items.some((i) => !itemBelongsTo(i, syllabus))) return items;
     return items.filter((i) => itemBelongsTo(i, syllabus));
   }
-  return items.filter((i) => itemBelongsTo(i, syllabus) && paperIdFor(i, syllabus) !== null);
+  return items.filter(
+    (i) => itemBelongsTo(i, syllabus) && !hiddenByType(i, syllabus) && paperIdFor(i, syllabus) !== null,
+  );
 }
 
 /**
@@ -178,8 +200,9 @@ export function visibleItems(items: VocabItem[], syllabus: SyllabusId): VocabIte
  */
 export function projectItems(items: VocabItem[], syllabus: SyllabusId): VocabItem[] {
   const def = SYLLABI[syllabus] ?? P9699;
+  const hides = def.hideTypes?.length ? def.hideTypes : null;
 
-  if (def.id === DEFAULT_SYLLABUS) {
+  if (def.id === DEFAULT_SYLLABUS && !hides) {
     // 9699 的 paperMap 是恒等映射，唯一要做的是剔掉 0495 专属词条
     if (!items.some((i) => !itemBelongsTo(i, syllabus))) return items;
     return items.filter((i) => itemBelongsTo(i, syllabus));
@@ -188,6 +211,7 @@ export function projectItems(items: VocabItem[], syllabus: SyllabusId): VocabIte
   const out: VocabItem[] = [];
   for (const i of items) {
     if (!itemBelongsTo(i, syllabus)) continue;
+    if (hiddenByType(i, syllabus)) continue; // 整类屏蔽（0495 不看学者词条）
     const tag = paperTagFor(i, syllabus);
     if (!tag) continue; // 该 syllabus 下不展示
     out.push(tag === i.paper ? i : { ...i, paper: tag });

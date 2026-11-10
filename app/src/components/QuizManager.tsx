@@ -350,6 +350,10 @@ export default function QuizManager() {
     setError('');
   };
 
+  // 当前大纲视图里有没有学者词条：0495 整类屏蔽学者，这时不给「学者」筛选按钮，
+  // 否则教师选了它只会得到空题库。
+  const hasScholarItem = useMemo(() => scopedVocab.some((i) => i.type === 'scholar'), [scopedVocab]);
+
   // random 模式抽题池：按 考卷 / 主题 / 单元（多选）/ 类型 过滤
   // （此前主题与单元未参与随机抽题，选了单元对抽题不生效，本次一并修正）
   const paperItems = useMemo(
@@ -1766,7 +1770,9 @@ export default function QuizManager() {
               <span className="muted" style={{ fontSize: '0.85rem', alignSelf: 'center' }}>类型：</span>
               <button className={draft.typeFilter === 'all' ? 'active' : ''} onClick={() => setDraft({ ...draft, typeFilter: 'all' })}>全部</button>
               <button className={draft.typeFilter === 'term' ? 'active' : ''} onClick={() => setDraft({ ...draft, typeFilter: 'term' })}>术语</button>
-              <button className={draft.typeFilter === 'scholar' ? 'active' : ''} onClick={() => setDraft({ ...draft, typeFilter: 'scholar' })}>学者</button>
+              {hasScholarItem && (
+                <button className={draft.typeFilter === 'scholar' ? 'active' : ''} onClick={() => setDraft({ ...draft, typeFilter: 'scholar' })}>学者</button>
+              )}
             </div>
             <div className="tag-filter" style={{ marginTop: '0.3rem' }}>
               <button className={draft.paper === 'all' ? 'active' : ''} onClick={() => setDraft({ ...draft, paper: 'all', cat: 'all', units: [] })}>全部考卷</button>

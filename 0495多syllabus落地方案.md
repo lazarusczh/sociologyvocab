@@ -1,10 +1,13 @@
-# 0495 多 syllabus 落地方案（草案 v4）
+# 0495 多 syllabus 落地方案（草案 v5）
 
-> 日期：2026-11-10　状态：**已上线 `97 / 1.13.0`**（2026-11-10 13:39 部署，APK 已发飞书；实施进度见 §九，剩余仅登录实测）　上位文档：`多科目架构与Subject Manifest草案.md`（2026-09-08）
+> 日期：2026-11-10　状态：**已上线 `97 / 1.13.0`（syllabus 主体）与 `98 / 1.13.1`（切换器 / 账户面板 / 重判假信号）**；**v5 学者屏蔽已写码、待随 `99` 发布**（实施进度见 §八，剩余仅登录实测）　上位文档：`多科目架构与Subject Manifest草案.md`（2026-09-08）
+>
+> **v5 相对 v4 的一处变更**（依据 2026-11-10 你的补充意见）：
+> **0495 视图整类屏蔽学者词条**。理由：0495 大纲基本不要求学生记学者姓名（题目里的研究者通常由题干给定）。落地方式是在 `SyllabusDef` 上加 `hideTypes: ['scholar']`，由 `projectItems()` / `visibleItems()` 在**视图投影层**剔除，词条本体、`id`、学生进度一律不动，9699 一条不受影响。连带数字：0495 词库 **732 → 583 条**（Paper 1 = 364、Paper 2 = 219），被屏蔽的 149 条学者（P1 36 / P2 59 / P3 54）在 9699 下照旧可见。
 >
 > **v4 相对 v3 的两处变更**（依据 2026-11-10 第三轮答复与实施实测）：
 > 1. **D1 直接落地**（你说「至少要做到 D1」）：`vocab_releases` 按 syllabus 隔离 + `(syllabus, version)` 唯一约束 + 覆盖层表 `vocab_overrides` + 属主级 RLS + 开发者后台账户面板。原 v3 的「本轮走 D0」作废。
-> 2. **补充词条 125 → 122 条**：与云端 v100（902 条，比内置 JSON 多 13 条修订）对拍后发现 `Age`、`Social identity`、`Role allocation` 云端已有，剔除。**发布 v101 后的实测终值**：0495 词库 **732 条**（共享 P1–P3 610 + 0495 专属 122），Paper 1 = **400**、Paper 2 = **332**（v4 起草时按内置 889 条算出的 719 / 393 / 326 作废）。
+> 2. **补充词条 125 → 122 条**：与云端 v100（902 条，比内置 JSON 多 13 条修订）对拍后发现 `Age`、`Social identity`、`Role allocation` 云端已有，剔除。**发布 v101 后的实测终值**：0495 词库 **732 条**（共享 P1–P3 610 + 0495 专属 122），Paper 1 = **400**、Paper 2 = **332**（v4 起草时按内置 889 条算出的 719 / 393 / 326 作废）；**v5 屏蔽学者后为 583 / 364 / 219**。
 >
 > **v3 相对 v2 的三处变更**：
 > 1. **复用优先原则收紧**——「能复用现有词条的我都倾向于复用，**包括翻译和释义**」。据此 10 条 glossary 术语不再新增（见 §2.3），补充数 135 → **125**（v4 再降到 122）；新增词条的中文一律沿用现有词库用词（`定性/定量` 而非 `质性/量化`，`可操作化` 而非 `操作化`）。
@@ -119,25 +122,27 @@
 
 > ⚠ 数字更新（2026-11-10 实施期实测）：补充数由 125 再降到 **122** —— 与云端 v100（902 条，比内置 JSON 多 13 条修订）对拍后发现 `Age`、`Social identity`、`Role allocation` 三条云端已有（其中 `Role allocation` 与 9699 的 `Functional importance` 同义），已剔除。连带：身份 52 → **49**，P1 补充 84 条。
 > **发布 v101 后的真实终值**（`syllabus-projection-selftest.mjs` 实测，脚本输出即权威）：共享 P1+P2+P3 = **610**、0495 专属 **122**、合计 **732**；投影后 Paper 1 = **400**、Paper 2 = **332**。早期按内置 889 条算出的 597 / 719 / 393 / 326 都已作废（云端比内置多 13 条修订）。
+> **v5 屏蔽学者后**：732 → **583**（Paper 1 = **364**、Paper 2 = **219**）。149 条学者词条只是不进 0495 视图，仍完整保留在 9699（P1 36 / P2 59 / P3 54）。
 
-> 对比：只做纯过滤（口径 A）会只剩 137~146 条，练习题库撑不起来；补齐后 732 条，密度接近现有 9699 的水平。
+> 对比：只做纯过滤（口径 A）会只剩 137~146 条，练习题库撑不起来；补齐后 732 条、屏蔽学者后仍 **583 条**，术语密度接近现有 9699 的水平。
 
 ### 2.4 补充词条的 topic 归属
 
 按关键词规则 + 人工 override 归属（`page` 字段**不可用**——glossary 的 page 只是按字母排序的分页，p3=A、p4=Ca、p5=Co，19 个取值 3–21，各 topic 的 page 分布完全交叠）：
 
-| 0495 topic | 落在 | 补充（v4） | 发布 v101 后实测 |
-|---|---|---|---|
-| 研究方法 | Paper 1 | 22 | 79 → **101** |
-| 身份与自我 | Paper 1 | 49 | 174 → **223** |
-| 社会分层与不平等 | Paper 1 | 13 | 63 → **76** |
-| 家庭 | Paper 2 | 21 | 161 → **182** |
-| 教育 | Paper 2 | 17 | 133 → **150** |
-| 犯罪（本轮不做） | Paper 2 | — | 0 |
-| **合计** | | **122** | **732** |
+| 0495 topic | 落在 | 补充（v4） | 发布 v101 后实测 | 屏蔽学者后（v5） |
+|---|---|---|---|---|
+| 研究方法 | Paper 1 | 22 | 79 → **101** | **90** |
+| 身份与自我 | Paper 1 | 49 | 174 → **223** | **201** |
+| 社会分层与不平等 | Paper 1 | 13 | 63 → **76** | **73** |
+| 家庭 | Paper 2 | 21 | 161 → **182** | **123** |
+| 教育 | Paper 2 | 17 | 133 → **150** | **96** |
+| 犯罪（本轮不做） | Paper 2 | — | 0 | 0 |
+| **合计** | | **122** | **732** | **583** |
 
 **对拍校验（发布 v101 后实测）**：Paper 1 = **400**；Paper 2 = **332**；400 + 332 = **732** ✅
-（脚本 `app/scripts/syllabus-projection-selftest.mjs` 输出即权威：`共享 P1+P2+P3 = 610，0495 专属 122，合计 732`。）
+**对拍校验（v5 屏蔽学者后）**：Paper 1 = **364**；Paper 2 = **219**；364 + 219 = **583** ✅（家庭 123 + 教育 96）
+（脚本 `app/scripts/syllabus-projection-selftest.mjs` 输出即权威：`共享 P1+P2+P3 术语 = 461，0495 专属 122，合计 583（另有 149 条学者被 0495 屏蔽）`。）
 
 > 表中 9699 侧基数（174 / 63 / 161 / 133）是**云端 v101 的口径**，与更早按内置 889 条算的 170 / 60 / 159 / 129 不同——差的那 13 条就是云端多出来的修订。别再拿内置 JSON 的数字对账。
 
@@ -211,6 +216,7 @@ export interface SyllabusDef {
   papers: SyllabusPaper[];
   paperMap: Record<string, string>; // 词条原生 paper → 本 syllabus 的卷 id
   borrowTerms?: string[];
+  hideTypes?: Array<'term' | 'scholar'>; // v5：整类屏蔽的词条类型（0495 屏蔽 scholar）
 }
 
 export const SYLLABI: Record<SyllabusId, SyllabusDef>;
@@ -221,6 +227,7 @@ export function getSyllabus(id?: string | null): SyllabusDef; // 未知 id 回�
 export function projectItems(items: VocabItem[], s: SyllabusId): VocabItem[];
 export function papersFor(s: SyllabusId): string[];
 export function itemBelongsTo(item: VocabItem, s: SyllabusId): boolean;
+export function hiddenByType(item: VocabItem, s: SyllabusId): boolean;
 ```
 
 **9699 的定义**（必须与现状完全等价）：
@@ -234,7 +241,7 @@ export function itemBelongsTo(item: VocabItem, s: SyllabusId): boolean;
 }
 ```
 
-**0495 的定义**（含 v2 决定：理论归身份；无犯罪）：
+**0495 的定义**（含 v2 决定：理论归身份；无犯罪；v5：屏蔽学者）：
 
 ```ts
 0495: {
@@ -242,6 +249,7 @@ export function itemBelongsTo(item: VocabItem, s: SyllabusId): boolean;
   label: 'Cambridge 0495 (IGCSE)',
   papers: [ { id: 'p1', tag: 'Paper 1' }, { id: 'p2', tag: 'Paper 2' } ],
   paperMap: { 'Paper 1': 'p1', 'Paper 2': 'p2', 'Paper 3': 'p2' }, // 教育归入 P2；Paper 4 缺席
+  hideTypes: ['scholar'], // 0495 不考学者姓名，149 条学者整类不进视图
 }
 ```
 
@@ -298,7 +306,9 @@ papers = papersFor(activeSyllabus).filter(p => scopedVocab.some(v => v.paper ===
 
 **规则 5：过滤只在一处发生。**
 
-`syllabus.ts` 的 `projectItems` + `vocabOverrides.ts` 的 `applyVocabOverrides` 就是全部逻辑，`store.tsx` 只算一次 `scopedVocab` 往下发。**9699 回归断言**：`syllabus-projection-selftest.mjs` 里 150 个组合逐 id 对拍 + P1 仍 309 条。
+`syllabus.ts` 的 `projectItems`（含 v5 的 `hiddenByType` 整类屏蔽）+ `vocabOverrides.ts` 的 `applyVocabOverrides` 就是全部逻辑，`store.tsx` 只算一次 `scopedVocab` 往下发。**9699 回归断言**：`syllabus-projection-selftest.mjs` 里 150 个组合逐 id 对拍 + P1 仍 316 条共享 + 9699 的 239 条学者一条不少。
+
+> **v5 附带的两处 UI 收敛**：`CategoryFilter`、`Dictionary`、`QuizManager` 的「类型」筛选里，只在当前视图**真有**学者词条时才显示「学者」按钮（`items.some(i => i.type === 'scholar')`）；`Dictionary` 还会把停在「学者」上的旧状态自动落回「术语」。否则 0495 视图里会多出一个永远 0 结果的按钮。
 
 ### 3.4 缓存与进度：不加 syllabus 维度
 
@@ -399,14 +409,14 @@ D2 仍留在 `KNOWN_ISSUES.md` 作为「多教师全面协作」的前置条件�
 | 改动 | `app/src/lib/cloud.ts` 新增 `pullStudentSyllabus(userId)`：两步查 `student_data.class_id` → `classes.syllabus` | ✅ |
 | 改动 | `store.tsx` 暴露 `activeSyllabus` / `scopedVocab` / `setActiveSyllabus`，10 个练习组件 + Dictionary/Cloze/ConceptMapView/Home 改读 `scopedVocab` | ✅ |
 | 改动 | `unitMapping.ts` 的 `unitOrderFor` 加跨卷 category 回退（0495 教育并进 P2 后仍能列单元） | ✅ |
-| 改动 | 顶栏/设置页加 syllabus 切换器（对 developer/teacher 可见；学生按班级自动） | ⏳ 待做 |
-| **验收** | ① 0495 身份登录：只见 Paper 1 / Paper 2，不见 Paper 4；② P2 下同时出现家庭 + 教育；③ P1 下出现研究方法 / 身份 / 分层；④ **Paper 1 计数 400、Paper 2 计数 332**；⑤ 切回 9699 一切复原（Paper 1 仍 316 条共享）；⑥ 同一词条两 syllabus 下 `id` 相同 | ① ④ ⑤ ⑥ 已由自测脚本覆盖（ALL PASS），②③ 待登录实测 |
+| 改动 | 顶栏/设置页加 syllabus 切换器（对 developer/teacher 可见；学生按班级自动） | ✅ 滑动分段开关 `SyllabusSwitch.tsx`，随 `98 / 1.13.1` 上线 |
+| **验收** | ① 0495 身份登录：只见 Paper 1 / Paper 2，不见 Paper 4；② P2 下同时出现家庭 + 教育；③ P1 下出现研究方法 / 身份 / 分层；④ **Paper 1 计数 364、Paper 2 计数 219（屏蔽学者后；屏蔽前 400 / 332）**；⑤ 切回 9699 一切复原（Paper 1 仍 316 条共享）；⑥ 同一词条两 syllabus 下 `id` 相同；⑦ 0495 视图里查不到任何学者词条，9699 的 239 条学者不受影响 | ① ④ ⑤ ⑥ ⑦ 已由自测脚本覆盖（ALL PASS），②③ 待登录实测 |
 
 ### 阶段 C：正确性补完
 
 | 项 | 内容 | 状态 |
 |---|---|---|
-| 改动 | `app/src/lib/mbSync.ts:45` `gradeFromPapers()` 按 syllabus 分叉：0495 班不做 A1/A2 判定（现逻辑 `max<=2 → 'A1'` 会把 0495 误判成 A1） | ⏳ |
+| 改动 | `app/src/lib/mbSync.ts:45` `gradeFromPapers()` 按 syllabus 分叉：0495 班不做 A1/A2 判定（现逻辑 `max<=2 → 'A1'` 会把 0495 误判成 A1） | ✅ 0495 一律返回 `null`，`Grade` 扩成 `A1/A2/G1/G2` 由教师手选 |
 | 改动 | `app/src/lib/cloud.ts:693` `listClassesWithMb()` 的 select 补 `syllabus`（已补 `teacher_id`） | ✅ |
 | 改动 | 教师建班/改班可选 syllabus（列已存在，只缺 UI） | ✅ 建班已加下拉，改名未加 |
 | **验收** | ① 建 0495 班 → 学生登录即得 0495 视图；② 该班短码不出现 A1/A2 误标；③ 9699 班短码行为不变 | ⏳ |
@@ -431,10 +441,10 @@ D2 仍留在 `KNOWN_ISSUES.md` 作为「多教师全面协作」的前置条件�
 
 | # | 风险 | 影响 | 处置 |
 |---|---|---|---|
-| 1 | unit 名精确匹配决定分组 | unit 改名/新增 → 分组错 | 补充词条组装时即写入既有 unit 名；对拍脚本锁条数（400 / 332 / 732） |
+| 1 | unit 名精确匹配决定分组 | unit 改名/新增 → 分组错 | 补充词条组装时即写入既有 unit 名；对拍脚本锁条数（364 / 219 / 583） |
 | 2 | 一条词条挂多个 unit | 分组重复或漏落 | 组装器按 `UNIT_HINTS` 取首匹配，逐条写入单值 unit |
 | 3 | 漏改某个消费 `vocab` 的组件 | 该处仍看到 Paper 4 | 已逐个核对 49 处 `useStore()`：按 id 反查的（WrongPractice/CorrectionPractice/QuizWrongBoard/LiveStudent）**故意保留全量**，其余展示型已切 `scopedVocab` |
-| 4 | **9699 被补充词条污染** | 9699 用户 Paper 1 突然多出 87 条 | 用 `VocabItem.syllabus` 字段标记归属 + `itemBelongsTo()` 集中过滤 + 9699 回归断言（P1 仍 309） |
+| 4 | **9699 被补充词条污染** | 9699 用户 Paper 1 突然多出 87 条 | 用 `VocabItem.syllabus` 字段标记归属 + `itemBelongsTo()` 集中过滤 + 9699 回归断言（P1 仍 316 条共享、学者仍 239 条） |
 | 5 | 122 条补充的 unit 归属靠关键词规则 | 部分词条可能归错单元 | 生成清单后逐条人工过一遍；归错只影响分组不影响可用 |
 | 6 | `quizzes` 无 subject/syllabus 列 | 0495 班测验 `papers` 写 `'Paper 2'` 与 9699 语义冲突；成绩聚合可能混卷 | 本次不解决，记入 `KNOWN_ISSUES.md`；0495 班暂不做随堂测验 |
 | 7 | 学生 `class_id` 为空（21 人中 3 人） | 这些学生按默认 9699 呈现 | 可接受（现有行为） |
@@ -489,11 +499,14 @@ D2 仍留在 `KNOWN_ISSUES.md` 作为「多教师全面协作」的前置条件�
 | **顶栏/账户菜单的 syllabus 切换器** | ✅ 账户菜单「词库视图」段，仅教师可见 |
 | **D2 属主级隔离记入 `KNOWN_ISSUES.md`** | ✅ 第 5 条 |
 | `VocabManager` 列表「归属」列（共享 / xx 专属） | ✅ |
+| **v5：0495 视图整类屏蔽学者词条** | ✅ 已实现（待发布）：`SyllabusDef.hideTypes: ['scholar']` + `hiddenByType()`，`projectItems` / `visibleItems` 两处统一剔除；`CategoryFilter` / `Dictionary` / `QuizManager` 的类型筛选改为「视图里真有学者才显示『学者』」；自测新增「0495 无学者」「9699 的 239 条学者不受影响」两条断言 |
 
 **仍未做（下一批）**：
 - 端到端实测：用 0495 班学生登录，确认只见 P1/P2、P2 下家庭 + 教育并列、切回 9699 复原。
 - 教师端「0495 词库视图」下改一条继承词条 → 确认写进 `vocab_overrides` 且 9699 视图不受影响（该表目前 0 行，尚未有真实写入）。
 - ~~提交与发布~~ ✅ 已发布 **`97 / 1.13.0`**（2026-11-10 13:39）：commit `bd88364`（syllabus 主体）+ `1bb45a9`（重判文案修正，属另一会话的改动，单独提交），APK 4,481,131 B 已发飞书；线上 bundle 与本地 dist SHA256 一致（`4D355A8A…B1B8B9`），线上 `vocab-data.json` 1024 条 / 专属 122 条。
+- ~~切换器 / 账户面板 / 重判假信号~~ ✅ 已随 **`98 / 1.13.1`**（2026-11-10 14:53）发布：`e0f5353`（滑动切换器）+ `82506df`（账户面板按需搜索 + dev watcher 修 EBUSY）+ `3938e02`（重判假信号）；APK 4,481,783 B 已发飞书，线上 bundle SHA256 与本地一致（`9FC74EB9…2F4F3B7`）。
+- **v5 学者屏蔽**已写码并通过自测/类型检查，**尚未提交、尚未发布**（下一批从 `99` 起）。
 
 **已知小瑕疵（不阻塞）**：
 - `VocabManager` 的「考卷」下拉仍给四卷（`PAPER_ORDER`），0495 教师理论上可把词条挂到 Paper 4 —— `projectItems` 会在 0495 视图里过滤掉，不会显示，但数据上不干净。
@@ -505,9 +518,9 @@ D2 仍留在 `KNOWN_ISSUES.md` 作为「多教师全面协作」的前置条件�
 ## 九、开工前检查清单
 
 - [x] `进行中.md` 里的「另存为补交卷」是否已发布（避免 Git 冲突）— 已随 `96 / 1.12.4` 上线
-- [x] 确认线上版本号（发布前为 `96 / 1.12.4`；本次发布 **`97 / 1.13.0`**，下一批从 `98` 起）
+- [x] 确认线上版本号（发布前为 `96 / 1.12.4`；`97 / 1.13.0` 与 `98 / 1.13.1` 已上线，下一批从 `99` 起）
 - [ ] 确认本次不开 `app/src/subjects/`、不动 `stableId`、不动 9699 的缓存 key
 - [ ] 122 条入库前先备份 `vocab_releases` 最新行（`version=100`，902 条）— **已做，v101 已发布**
 - [x] D1 的 `(syllabus, version)` 唯一约束（已上线，两人同时发布会报错而非静默覆盖）
 - [x] 教师角色授予不再需要 SQL：开发者后台「账户与权限」面板（`teacher_roles` 与 `user_roles` 同时写）
-- [ ] 9699 回归基线先量好：P1 = 309 / P2 = 159 / P3 = 129 / P4 = 292，合计 889（云端 v100 为 902 条，多了 13 条修订）— **v101 后的实测基线是共享词条 P1 = 316 / P2 = 161 / P3 = 133 / P4 = 292，合计 902**
+- [ ] 9699 回归基线先量好：P1 = 309 / P2 = 159 / P3 = 129 / P4 = 292，合计 889（云端 v100 为 902 条，多了 13 条修订）— **v101 后的实测基线是共享词条 P1 = 316 / P2 = 161 / P3 = 133 / P4 = 292，合计 902；学者 239 条、术语 663 条**
