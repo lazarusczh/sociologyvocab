@@ -64,7 +64,15 @@ export default defineConfig({
             join(import.meta.dirname, 'dist'),
             // 注意开头要允许没有分隔符的情况：chokidar 传进来的可能是相对路径（如 `android/...`），
             // 只写 [\\/] 会导致根目录下的这一级匹配不上，ignore 形同虚设。
-            (p: string) => /(^|[\\/])(android|_ocrlab_out|dist|node_modules|\.git)([\\/]|$)/.test(p),
+            //
+            // `.tmpdir`：编辑器的「原子保存」会在同目录下建 `.<file>.<pid>.<uuid>.tmpdir/` 再改名。
+            // OneDrive 路径下这个临时目录极容易被锁住，chokidar 一 watch 就 EBUSY 并让 dev server
+            // 整个进程崩掉（2026-11-10 复现：改 AccountsPanel.tsx / vite.config.ts 时各触发一次）。
+            // 这里只判「路径里出现过 .tmpdir 这个片段」，不依赖它所在层级或前后分隔符——
+            // chokidar 传来的可能是绝对路径也可能是相对路径（如 `.x.ts.1.abc.tmpdir/x.ts.tmp`）。
+            (p: string) =>
+              /(^|[\\/])(android|_ocrlab_out|dist|node_modules|\.git)([\\/]|$)/.test(p) ||
+              /\.tmpdir([\\/]|$)/.test(p),
           ],
         },
     proxy: {

@@ -38,6 +38,7 @@ export default function AccountsPanel() {
   const [accounts, setAccounts] = useState<AccountRow[]>([]);
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [loading, setLoading] = useState(false);
+  const [searched, setSearched] = useState(false);
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
@@ -67,25 +68,33 @@ export default function AccountsPanel() {
     );
   }, []);
 
-  const search = useCallback(async () => {
+  const search = useCallback(async (raw?: string) => {
+    const query = (raw ?? q).trim();
+    if (!query) {
+      // 不默认列出全量账号：这一栏是「找到某个人再改他」，不是通讯录。
+      setAccounts([]);
+      setSearched(false);
+      setError('');
+      setMsg('');
+      return;
+    }
     setLoading(true);
     setError('');
     setMsg('');
-    const { data, error: e } = await supabase.rpc('admin_search_accounts', { q });
+    const { data, error: e } = await supabase.rpc('admin_search_accounts', { q: query });
     setLoading(false);
     if (e) {
       setError(e.message);
       return;
     }
     setAccounts((data ?? []) as AccountRow[]);
+    setSearched(true);
   }, [q]);
 
   useEffect(() => {
-    void search();
     void loadClasses();
-    // 首次进入按空关键词拉一页，便于直接看到现有教师
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // 进入时只加载班级归属；账号列表等用户搜索后才出现。
+  }, [loadClasses]);
 
   const hasRole = (a: AccountRow, role: string) => (a.roles ?? []).includes(role);
 
@@ -131,10 +140,6 @@ export default function AccountsPanel() {
     <div className="card" style={{ marginTop: '0.8rem', marginBottom: '0.8rem' }}>
       <div className="row">
         <h3 style={{ margin: 0 }}>账户与班级归属</h3>
-        <span className="spacer" />
-        <button className="ghost" onClick={() => void search()} disabled={loading}>
-          {loading ? '检索中…' : '刷新'}
-        </button>
       </div>
       <p className="muted" style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}>
         给已注册账号授予「教师」后，该账号刷新页面即可看到教师后台。
@@ -155,16 +160,28 @@ export default function AccountsPanel() {
       <div className="row" style={{ marginTop: '0.8rem', gap: '0.5rem', alignItems: 'center' }}>
         <input
           type="text"
-          placeholder="按邮箱片段搜索，如 chensr 或 @student.dtd-edu.cn（留空列出前 60 个）"
+          placeholder="按邮箱片段搜索，如 chenzh 或 @student.dtd-edu.cn"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') void search(); }}
           style={{ flex: 1, maxWidth: '32rem' }}
         />
         <button className="primary" onClick={() => void search()} disabled={loading}>
-          搜索
+          {loading ? '检索中…' : '搜索'}
         </button>
       </div>
+
+      {!searched && (
+        <p className="muted" style={{ marginTop: '0.6rem', fontSize: '0.85rem' }}>
+          账号不会默认列出：输入邮箱片段再搜索，找到人以后再设置角色。
+        </p>
+      )}
+
+      {searched && accounts.length === 0 && (
+        <p className="muted" style={{ marginTop: '0.6rem', fontSize: '0.85rem' }}>
+          没有匹配「{q.trim()}」的账号。对方需要先自行注册登录一次，才会出现在这里。
+        </p>
+      )}
 
       {accounts.length > 0 && (
         <div style={{ overflowX: 'auto', marginTop: '0.8rem' }}>
@@ -175,6 +192,7 @@ export default function AccountsPanel() {
                 <th>角色</th>
                 <th>任教班级</th>
                 <th>最近登录</th>
+                <th>角色设置</th>
               </tr>
             </thead>
             <tbody>
