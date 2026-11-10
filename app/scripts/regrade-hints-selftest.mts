@@ -11,7 +11,14 @@
  * 了 `answers.ts` / `crossword.ts` / `shuffle.ts`——node 的 strip-types 不做路径补全，
  * 会报 `ERR_MODULE_NOT_FOUND: Cannot find module .../src/lib/quiz`。
  */
-import { aliasClusters, driftLabel, scoreDrift, type HintSub } from '../src/lib/regradeHints.ts';
+import {
+  aliasClusters,
+  aliasSnapshotChanged,
+  driftLabel,
+  hasMalformedAnswers,
+  scoreDrift,
+  type HintSub,
+} from '../src/lib/regradeHints.ts';
 import type { QuizQuestion } from '../src/lib/types.ts';
 
 let pass = 0;
@@ -87,7 +94,7 @@ console.log('scoreDrift');
   const d2 = scoreDrift(questions, [sub('s1', 'u1111', 'Ann', 'boundary', 'subculture', 1)]);
   check('有漂移 changed=1', d2.changed, 1);
   check('有漂移 samples', d2.samples, [{ name: 'Ann', from: 1, to: 2 }]);
-  check('有漂移 label', driftLabel(d2), '1 份已交答卷里，有 1 份的原始分与当前口径不一致');
+  check('有漂移 label', driftLabel(d2), '1 份可比对的答卷里，有 1 份的原始分与当前口径不一致');
 
   // 未交卷不计入分母
   const d3 = scoreDrift(questions, [
@@ -108,6 +115,67 @@ console.log('scoreDrift');
   const d5 = scoreDrift(questions, [lateSub]);
   check('罚分不参与漂移 changed=0', d5.changed, 0);
   check('罚分不参与漂移 label=null', driftLabel(d5), null);
+}
+
+console.log('hasMalformedAnswers');
+{
+  // spelling 收到词条 id —— 历史交卷 bug 的形态，必须识别出来
+  check('拼写题存 itemId', hasMalformedAnswers(questions, { 'it-boundary': 'term_141vk24u7ja26' }), true);
+  check('拼写题存 scholar id', hasMalformedAnswers(questions, { 'it-boundary': 'sch_abc123' }), true);
+  check('拼写题存数字', hasMalformedAnswers(questions, { 'it-boundary': 2 }), true);
+  // 正常作答
+  check('拼写题正常文本', hasMalformedAnswers(questions, { 'it-boundary': 'Boundry' }), false);
+  check('空答卷', hasMalformedAnswers(questions, {}), false);
+  check('空白作答', hasMalformedAnswers(questions, { 'it-boundary': '   ' }), false);
+
+  // 选择题：下标（数字 / 纯数字串）正常；文本异常
+  const choiceQ = [
+    { ...questions[0], type: 'choice', options: ['a', 'b'], answerIndex: 0 } as unknown as QuizQuestion,
+  ];
+  check('选择题存数字下标', hasMalformedAnswers(choiceQ, { 'it-boundary': 0 }), false);
+  check('选择题存数字串下标', hasMalformedAnswers(choiceQ, { 'it-boundary': '1' }), false);
+  check('选择题存选项文本', hasMalformedAnswers(choiceQ, { 'it-boundary': 'Semi-peripheral country' }), true);
+  check('选择题存 itemId', hasMalformedAnswers(choiceQ, { 'it-boundary': 'term_zqrgx4whm8ow' }), true);
+  // ⚠ 前面题异常、后面题正常时不能被后面的正常值「洗白」
+  check('前面的题异常就不放过', hasMalformedAnswers(
+    [choiceQ[0], ...questions],
+    { 'it-boundary': 'some text', 'it-subculture': 'subculture' },
+  ), true);
+}
+
+console.log('形态异常答卷不参与漂移');
+{
+  // Alyssa 型答卷：拼写题全存 itemId ⇒ 重放必然低分，但这不是口径问题，不提示
+  const malformed = {
+    id: 'm1', user_id: 'umal0001', name: '慕韶菲', status: 'submitted', score: 20,
+    answers: { 'it-boundary': 'term_141vk24u7ja26', 'it-subculture': 'term_bz9k5wb05vdw' },
+  } as unknown as HintSub;
+  const dm = scoreDrift(questions, [malformed]);
+  check('形态异常不计变更', dm.changed, 0);
+  check('形态异常不计分母', dm.total, 0);
+  check('形态异常 label=null', driftLabel(dm), null);
+
+  // 与正常答卷混在一起：正常的那份仍要参与
+  const dm2 = scoreDrift(questions, [
+    malformed,
+    sub('s1', 'u1111', 'Ann', 'boundary', 'subculture', 1),
+  ]);
+  check('混合时只算正常的', dm2.total, 1);
+  check('混合时正常的有漂移', dm2.changed, 1);
+  check('混合时只列正常人', dm2.samples.map((x) => x.name), ['Ann']);
+}
+
+console.log('aliasSnapshotChanged');
+{
+  // 引用相同 ⇒ 没变
+  check('同一数组引用=未变', aliasSnapshotChanged(questions, questions), false);
+  // 长度不同 ⇒ 变了
+  check('长度不同=变了', aliasSnapshotChanged(questions, [questions[0]]), true);
+  // 元素被替换 ⇒ 变了
+  const refreshed = [questions[0], { ...questions[1], aliases: ['sub-culture'] } as unknown as QuizQuestion];
+  check('元素被替换=变了', aliasSnapshotChanged(questions, refreshed), true);
+  // 逐元素引用相同的新数组 ⇒ 未变（refreshQuestionAliases 无变化时的实际形态）
+  check('逐项同一引用=未变', aliasSnapshotChanged(questions, [questions[0], questions[1]]), false);
 }
 
 console.log('aliasClusters');
@@ -145,6 +213,14 @@ console.log('aliasClusters');
     sub('s2', 'u2222', 'Bob', '', 'subculture', 1),
   ];
   check('未作答不聚簇', aliasClusters(questions, blanks, 2).length, 0);
+
+  // 形态异常的答卷不参与聚簇：两个人拼写题都存了同一个 itemId，
+  // 若参与就会被聚成「2 人都写 term_xxx」的假缺口。
+  const malformedDup = [
+    { id: 'm1', user_id: 'u1', name: 'A', status: 'submitted', score: 0, answers: { 'it-boundary': 'term_abc123', 'it-subculture': 'term_abc123' } },
+    { id: 'm2', user_id: 'u2', name: 'B', status: 'submitted', score: 0, answers: { 'it-boundary': 'term_abc123', 'it-subculture': 'term_abc123' } },
+  ] as HintSub[];
+  check('形态异常不聚簇', aliasClusters(questions, malformedDup, 2).length, 0);
 
   // 排序：人多优先
   const mixed = [

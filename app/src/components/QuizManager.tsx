@@ -7,7 +7,13 @@ import { maskEmail } from '../lib/shuffle';
 import { copyText } from '../lib/clipboard';
 import { createQuiz, updateQuiz, updateQuizQuestions, listQuizzes, listQuizSubmissions, deleteQuiz, listDeveloperIds, deleteSubmission, countSubmittedByQuizzes, regradeQuizSubmissions, ensureQuizShortCode, listMbTaskLinksForQuiz, listMbRoster, listClassesWithMb, matchMbTask, replaceMbTaskLink, deleteMbTaskLink, fetchMbMarks, writeMbMarks, listSubmissionsByQuizzes, latestMbWriteLogs, logMbWrite, duplicateQuiz, type MbTaskLinkRow, type ClassMbRow, type MbWriteLogRow, type RegradeEntry } from '../lib/cloud';
 import { staleAgainstSnapshot, staleLabel, finalScoreOf, type StaleResult } from '../lib/mbStale';
-import { aliasClusters, driftLabel, scoreDrift, type HintSub } from '../lib/regradeHints';
+import {
+  aliasClusters,
+  aliasSnapshotChanged,
+  driftLabel,
+  scoreDrift,
+  type HintSub,
+} from '../lib/regradeHints';
 import { asGrade, classMatchesGrade, firstPaperNumber, GRADE_OPTIONS, inferGrade, type Grade } from '../lib/mbSync';
 import QuizWrongBoard from './QuizWrongBoard';
 import ScrollText from './ScrollText';
@@ -255,6 +261,10 @@ export default function QuizManager() {
     if (!viewing) return null;
     const itemById = new Map(vocab.map((i) => [i.id, i]));
     const refreshed = refreshQuestionAliases(viewing.questions, itemById);
+    // 只有当**别名快照确实落后于当前词库**时，漂移才是教师能处理的信息。
+    // 快照已是最新却仍与库里分数不符，说明差异来自代码层归一化的历史变更
+    // （例如 2026-09 给 normalizeKey 加了 &→and），改别名也改不动它 —— 不提示。
+    const aliasChanged = aliasSnapshotChanged(viewing.questions, refreshed);
     const hints: HintSub[] = subs
       .filter((s) => s.status === 'submitted' && !devIds.has(s.user_id))
       .map((s) => ({
@@ -266,7 +276,9 @@ export default function QuizManager() {
         answers: s.answers,
       }));
     return {
-      drift: scoreDrift(refreshed, hints),
+      drift: aliasChanged
+        ? scoreDrift(refreshed, hints)
+        : { total: hints.length, changed: 0, samples: [] },
       // 阈值 3：同题同一错法要 3 人才提示 —— 2 人可能是各自拼错，
       // 又会把班级小卷刷成满屏提示；够不到阈值的仍能在「错题分析」里看到。
       clusters: aliasClusters(refreshed, hints, 3),
@@ -1065,7 +1077,7 @@ export default function QuizManager() {
                   {regradeHints!.drift.changed > 3 ? ` 等 ${regradeHints!.drift.changed} 人` : ''}
                 </div>
                 <div className="muted" style={{ fontSize: '0.78rem', marginTop: '0.2rem' }}>
-                  重判只改原始分和订正加分；迟交罚分在交卷时已按当时的分数算定，重判不会重算它。
+                  重判只改原始分和订正加分；迟交罚分在交卷时按满分算定，重判不会重算它。
                 </div>
               </div>
             )}
