@@ -27,6 +27,8 @@ export interface SimSession {
     targetGroupSize?: number;
     perGroupLimit?: number;
     pack?: string;
+    /** 本场参与答卷的人设（服务端 sim_set_personas 写入）；缺省 = 整包 */
+    personaIds?: string[];
   } | null;
   created_at: string;
   closed_at: string | null;
@@ -117,6 +119,20 @@ export const groupLimitOf = (s: SimSession | null): number =>
 
 export const targetSizeOf = (s: SimSession | null): number =>
   Math.max(2, Math.min(10, s?.config?.targetGroupSize ?? 5));
+
+/** 本场参与答卷的人设 id；空数组 = 整包（老会话，或教师还没勾选） */
+export const personaIdsOf = (s: SimSession | null): string[] => {
+  const ids = s?.config?.personaIds;
+  return Array.isArray(ids) ? ids.filter((x): x is string => typeof x === 'string' && x.length > 0) : [];
+};
+
+/** 从整包里挑出参与答卷的人设；勾选的 id 全失效时退回整包（与服务端兜底一致） */
+export function personasFor(all: SimPersona[], ids: string[]): SimPersona[] {
+  if (!ids.length) return all;
+  const want = new Set(ids);
+  const hit = all.filter((p) => want.has(p.id));
+  return hit.length ? hit : all;
+}
 
 // ---- 会话 ----
 
@@ -318,6 +334,15 @@ export async function freezePaper(sessionId: string, items: SimPaperItem[]): Pro
   return (data as { version: number }).version;
 }
 
+export async function setSessionPersonas(sessionId: string, personaIds: string[]): Promise<number> {
+  const { data, error } = await supabase.rpc('sim_set_personas', {
+    p_session_id: sessionId,
+    p_persona_ids: personaIds,
+  });
+  if (error) throw error;
+  return (data as { personas: number }).personas;
+}
+
 export async function storePersonaResult(args: {
   sessionId: string;
   version: number;
@@ -476,8 +501,13 @@ export function simErrorMessage(e: unknown): string {
   if (has('paper must have 1..8')) return '班级问卷需要 1–8 题';
   if (has('unknown qid')) return '有题目已失效，请刷新后重选';
   if (has('missing or invalid answer')) return '这份作答不完整，已丢弃重试';
-  if (has('not ready to reveal')) return '三位受访者还没全部答完';
+  if (has('not ready to reveal')) return '所选受访者还没全部答完';
   if (has('reveal answers first')) return '先公布答案，再公布内心';
   if (has('bad stage')) return '揭晓步骤不对';
+  if (has('not in feeding phase')) return '现在不能改参与人设（问卷还没定稿，或已进入揭晓）';
+  if (has('pick at least one persona')) return '至少要勾选一位受访者';
+  if (has('unknown persona id')) return '有受访者已失效，刷新后重新勾选';
+  if (has('persona not selected')) return '这位受访者没有勾选参与本场答卷';
+  if (has('not in pack')) return '这位受访者不属于本场的场景包';
   return raw;
 }

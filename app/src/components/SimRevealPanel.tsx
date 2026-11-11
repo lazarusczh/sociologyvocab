@@ -11,6 +11,7 @@ import {
   fetchAnswers,
   fetchPersonas,
   fetchReveals,
+  personasFor,
   reveal,
   simErrorMessage,
   subscribeSim,
@@ -30,11 +31,11 @@ interface Props {
   sessionId: string;
   paper: SimPaper;
   pack: string;
+  /** 本场参与答卷的人设 id；空数组 = 整包 */
+  selectedIds: string[];
 }
 
-
-
-export default function SimRevealPanel({ sessionId, paper, pack }: Props) {
+export default function SimRevealPanel({ sessionId, paper, pack, selectedIds }: Props) {
   const [personas, setPersonas] = useState<SimPersona[]>([]);
   const [answers, setAnswers] = useState<SimAnswerRow[]>([]);
   const [inner, setInner] = useState<InnerRow[]>([]);
@@ -43,6 +44,10 @@ export default function SimRevealPanel({ sessionId, paper, pack }: Props) {
   const [busy, setBusy] = useState('');
   const [msg, setMsg] = useState('');
 
+  // 只摊开本场勾选的人设：整包的其它卡不该出现在揭晓里（会显示成「未作答」）
+  // 依赖用字符串 key 而不是数组，避免父组件每次重渲染（每 5 秒）都重拉一遍
+  const selKey = selectedIds.join(',');
+
   const refresh = useCallback(async () => {
     const [ps, as, ins, rs] = await Promise.all([
       fetchPersonas(pack),
@@ -50,11 +55,11 @@ export default function SimRevealPanel({ sessionId, paper, pack }: Props) {
       fetchInner(sessionId, paper.version),
       fetchReveals(sessionId),
     ]);
-    setPersonas(ps);
+    setPersonas(personasFor(ps, selKey ? selKey.split(',') : []));
     setAnswers(as);
     setInner(ins);
     setReveals(rs);
-  }, [sessionId, paper.version, pack]);
+  }, [sessionId, paper.version, pack, selKey]);
 
   useEffect(() => {
     void refresh().catch((e: unknown) => setMsg(simErrorMessage(e)));

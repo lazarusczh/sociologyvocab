@@ -599,6 +599,19 @@ begin
   );
   if v_bad is not null then raise exception 'unknown qid(s): %', v_bad; end if;
 
+  -- 同一题不能在问卷里出现两次：写入答案时按 qid 一对一匹配，重复题会共用同一份答案
+  if (select count(distinct e->>'qid') from jsonb_array_elements(p_items) e) <> v_n then
+    raise exception 'duplicate qid in paper';
+  end if;
+
+  -- 选项 key 必须唯一且非空：答案校验按 key 比对，key 坏了会导致「写对了却判错」
+  select string_agg(coalesce(e->>'qid', '?'), ',') into v_bad
+  from jsonb_array_elements(p_items) e
+  where (select count(distinct coalesce(o->>'key', '')) from jsonb_array_elements(e->'options') o)
+        <> jsonb_array_length(e->'options')
+     or exists (select 1 from jsonb_array_elements(e->'options') o where coalesce(o->>'key', '') = '');
+  if v_bad is not null then raise exception 'bad option key(s) for %', v_bad; end if;
+
   select coalesce(max(version), 0) + 1 into v_version
   from public.sim_papers where session_id = p_session_id;
 
@@ -634,6 +647,8 @@ declare
   v_bad text;
   v_have int;
   v_need int;
+  v_pack text;
+  v_sel jsonb;
 begin
   if v_uid is null then raise exception 'not authenticated'; end if;
   if not exists (select 1 from public.user_roles r where r.user_id = v_uid and r.role = 'teacher') then
@@ -642,8 +657,39 @@ begin
 
   select p.items into v_items
   from public.sim_papers p
+  join public.live_sessions s on s.id = p.session_id and s.kind = 'sim'
   where p.session_id = p_session_id and p.version = p_version;
   if not found then raise exception 'paper not found'; end if;
+
+  -- 人设必须属于本场选定的场景包。缺这一条时，随便传一个 uuid 也能写进一行，
+  -- 而 v_have 只数行数，于是「三人齐了」会提前成立，阶段被推到 answered。
+  select coalesce(s.config->>'pack', 'unpaid_labour'),
+         coalesce(s.config->'personaIds', '[]'::jsonb)
+    into v_pack, v_sel
+  from public.live_sessions s where s.id = p_session_id;
+  if not exists (
+    select 1 from public.sim_personas pe where pe.id = p_persona_id and pe.pack = v_pack
+  ) then
+    raise exception 'persona % not in pack %', p_persona_id, v_pack;
+  end if;
+  -- 教师只勾了一部分人设时，未勾选的不该参与（否则会顶掉进度、也会出现在揭晓里）
+  if jsonb_array_length(v_sel) > 0
+     and p_persona_id::text not in (select jsonb_array_elements_text(v_sel)) then
+    raise exception 'persona not selected';
+  end if;
+
+  -- 答案必须与题目一一对应：不能重复、不能多出本卷没有的 qid
+  if jsonb_typeof(coalesce(p_answers, '[]'::jsonb)) <> 'array' then
+    raise exception 'answers must be an array';
+  end if;
+  if (select count(*) from jsonb_array_elements(coalesce(p_answers, '[]'::jsonb)))
+     <> (select count(distinct a->>'qid') from jsonb_array_elements(coalesce(p_answers, '[]'::jsonb)) a) then
+    raise exception 'duplicate qid in answers';
+  end if;
+  select string_agg(a->>'qid', ',') into v_bad
+  from jsonb_array_elements(coalesce(p_answers, '[]'::jsonb)) a
+  where not exists (select 1 from jsonb_array_elements(v_items) i where i->>'qid' = (a->>'qid'));
+  if v_bad is not null then raise exception 'unknown qid(s): %', v_bad; end if;
 
   -- 每题都必须有答案（或明确 skipped），且取值必须落在选项内
   select string_agg(x->>'qid', ',') into v_bad
@@ -655,6 +701,7 @@ begin
       and (
         (a ? 'skipped' and (a->>'skipped')::boolean)
         or ((x->>'qtype') = 'multi' and jsonb_typeof(a->'value') = 'array'
+            and jsonb_array_length(a->'value') > 0   -- 空数组会「空真」通过，等于允许不选就交卷
             and not exists (
               select 1 from jsonb_array_elements(a->'value') v
               where not exists (
@@ -662,6 +709,7 @@ begin
               )
             ))
         or ((x->>'qtype') = 'scale'
+            and jsonb_typeof(x->'options') = 'array'
             and (a->>'value') ~ '^[0-9]+$'
             and (a->>'value')::int between 1 and jsonb_array_length(x->'options'))
         or exists (select 1 from jsonb_array_elements(x->'options') o where o->>'key' = (a->>'value'))
@@ -679,15 +727,23 @@ begin
   on conflict (session_id, paper_version, persona_id)
   do update set inner_json = excluded.inner_json, closing = excluded.closing, raw = excluded.raw, created_at = now();
 
-  -- 三人齐了才把阶段推到 answered
-  select count(*) into v_have from public.sim_persona_answers a
-  where a.session_id = p_session_id and a.paper_version = p_version;
+  -- 所选人设全部答完才把阶段推到 answered
+  -- v_have 只数「本包内、且被勾选」的人设：野 persona_id 与未勾选的都不参与计数
+  select count(*) into v_have
+  from public.sim_persona_answers a
+  join public.sim_personas pe on pe.id = a.persona_id and pe.pack = v_pack
+  where a.session_id = p_session_id and a.paper_version = p_version
+    and (jsonb_array_length(v_sel) = 0
+         or pe.id::text in (select jsonb_array_elements_text(v_sel)));
   select count(*) into v_need
   from public.sim_personas pe
-  where pe.pack = coalesce(
-    (select s.config->>'pack' from public.live_sessions s where s.id = p_session_id),
-    'unpaid_labour'
-  );
+  where pe.pack = v_pack
+    and (jsonb_array_length(v_sel) = 0
+         or pe.id::text in (select jsonb_array_elements_text(v_sel)));
+  -- 勾选的 id 若都被删了（老会话或换过包），退回整包，别把阶段永久卡在 frozen
+  if v_need = 0 then
+    select count(*) into v_need from public.sim_personas pe where pe.pack = v_pack;
+  end if;
 
   if v_need > 0 and v_have >= v_need then
     update public.live_sessions
@@ -724,6 +780,16 @@ begin
   from public.live_sessions s where s.id = p_session_id;
   if v_phase not in ('answered', 'reveal') then raise exception 'not ready to reveal'; end if;
 
+  -- 只能揭晓本卷里真实存在的题（否则会往 sim_reveals 里写野 qid）
+  if not exists (
+    select 1 from public.sim_papers p
+    where p.session_id = p_session_id
+      and p.version = (select max(p2.version) from public.sim_papers p2 where p2.session_id = p_session_id)
+      and exists (select 1 from jsonb_array_elements(p.items) i where i->>'qid' = p_qid)
+  ) then
+    raise exception 'qid % not in paper', p_qid;
+  end if;
+
   -- 先答案后内心：inner 必须在 answers 之后
   if p_stage = 'inner' and not exists (
     select 1 from public.sim_reveals r
@@ -741,6 +807,78 @@ begin
     set config = jsonb_set(coalesce(config, '{}'::jsonb), '{phase}', '"reveal"')
     where id = p_session_id;
   end if;
+end $$;
+
+-- ============================================
+-- RPC 8：教师勾选本场参与答卷的人设（可选子集）
+--   不是每场都要用到整包十几张卡，所以允许只勾几位。
+--   只在 frozen（投喂阶段）可改：此时还没有「齐了」的结论，改选择不会丢已写的答案；
+--   一旦进入 answered/reveal 就固定下来，揭晓口径才稳定。
+--   不勾（或老会话没有 personaIds）= 整包，保持向后兼容。
+-- ============================================
+create or replace function public.sim_set_personas(
+  p_session_id uuid,
+  p_persona_ids uuid[]
+) returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_phase text;
+  v_pack text;
+  v_ids uuid[];
+  v_got int;
+  v_req int;
+  v_version int;
+begin
+  if v_uid is null then raise exception 'not authenticated'; end if;
+  if not exists (select 1 from public.user_roles r where r.user_id = v_uid and r.role = 'teacher') then
+    raise exception 'teacher only';
+  end if;
+
+  select coalesce(s.config->>'phase', 'lobby'), coalesce(s.config->>'pack', 'unpaid_labour')
+    into v_phase, v_pack
+  from public.live_sessions s
+  where s.id = p_session_id and s.kind = 'sim' and s.state = 'running';
+  if not found then raise exception 'sim session not running'; end if;
+  if v_phase <> 'frozen' then raise exception 'not in feeding phase'; end if;
+
+  select count(distinct x) into v_req from unnest(p_persona_ids) x;
+  if coalesce(v_req, 0) = 0 then raise exception 'pick at least one persona'; end if;
+
+  -- 去重 + 按包内顺序落盘（前端勾选顺序不影响生成顺序）
+  select array_agg(pe.id order by pe.order_no) into v_ids
+  from (select distinct unnest(p_persona_ids) as id) x
+  join public.sim_personas pe on pe.id = x.id
+  where pe.pack = v_pack;
+
+  v_got := coalesce(array_length(v_ids, 1), 0);
+  if v_got <> v_req then raise exception 'unknown persona id(s) for pack %', v_pack; end if;
+
+  update public.live_sessions
+  set config = jsonb_set(coalesce(config, '{}'::jsonb), '{personaIds}', to_jsonb(v_ids::text[]))
+  where id = p_session_id;
+
+  -- 取消掉「还没作答」的那几位之后，剩下的可能已经全答完：
+  -- 此时没有新的写入会再触发 sim_store_persona_result 的推进，这里补一次，
+  -- 否则老师会卡在「面板显示全部已完成，阶段还是 frozen」。
+  select max(p.version) into v_version
+  from public.sim_papers p where p.session_id = p_session_id;
+  if v_version is not null and not exists (
+    select 1 from unnest(v_ids) x(id)
+    where not exists (
+      select 1 from public.sim_persona_answers a
+      where a.session_id = p_session_id and a.paper_version = v_version and a.persona_id = x.id
+    )
+  ) then
+    update public.live_sessions
+    set config = jsonb_set(coalesce(config, '{}'::jsonb), '{phase}', '"answered"')
+    where id = p_session_id;
+  end if;
+
+  return jsonb_build_object('personas', v_got, 'ids', to_jsonb(v_ids::text[]));
 end $$;
 
 -- ============================================

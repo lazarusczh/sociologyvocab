@@ -12,6 +12,8 @@ import {
   fetchReveals,
   fetchSimSession,
   phaseOf,
+  personaIdsOf,
+  personasFor,
   subscribeSim,
   type SimAnswerRow,
   type SimPaper,
@@ -40,7 +42,7 @@ export default function SimBoard({ sessionId }: { sessionId: string }) {
     const pack = s?.config?.pack ?? 'unpaid_labour';
     const p = await fetchLatestPaper(sessionId);
     setPaper(p);
-    setPersonas(await fetchPersonas(pack));
+    setPersonas(personasFor(await fetchPersonas(pack), personaIdsOf(s)));
     if (p) {
       const [as, ins, rs] = await Promise.all([
         fetchAnswers(sessionId, p.version),
@@ -83,7 +85,7 @@ export default function SimBoard({ sessionId }: { sessionId: string }) {
           <span className="badge">AI 模拟</span> 回答由 AI 按人设卡生成，不是真实调查数据
         </p>
         <p style={{ fontSize: '2rem', ...muted }}>
-          {phase === 'answered' ? '三位受访者已作答，等老师逐题揭晓…' : '等待老师公布答案…'}
+          {phase === 'answered' ? '受访者已作答，等老师逐题揭晓…' : '等待老师公布答案…'}
         </p>
       </div>
     );

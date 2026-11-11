@@ -20,6 +20,7 @@ import {
   fetchSimSession,
   groupLimitOf,
   phaseOf,
+  personaIdsOf,
   simErrorMessage,
   subscribeSim,
   targetSizeOf,
@@ -203,7 +204,7 @@ export default function SimHost() {
       <div className="card">
         <h2 style={{ marginTop: 0 }}>模拟调研</h2>
         <p className="muted" style={{ marginTop: 0 }}>
-          学生分组写一份封闭式问卷，再请三位「受访者」作答，最后先公布答案、后公布内心。
+          学生分组写一份封闭式问卷，再请几位「受访者」作答（用哪几位由你勾选），最后先公布答案、后公布内心。
         </p>
 
         {otherRunning && (
@@ -393,7 +394,7 @@ export default function SimHost() {
           questions={questions}
           limit={limit}
           onFrozen={(v) => {
-            setMsg(`问卷已定稿（version ${v}），接下来由三位受访者作答。`);
+            setMsg(`问卷已定稿（version ${v}），接下来勾选受访者并生成回答。`);
             void refresh(session.id);
           }}
         />
@@ -410,6 +411,7 @@ export default function SimHost() {
             sessionId={session.id}
             paper={paper}
             personas={personas}
+            selectedIds={personaIdsOf(session)}
             onChanged={() => void refresh(session.id)}
           />
         ) : (
@@ -424,7 +426,12 @@ export default function SimHost() {
     <>
       {header}
       {paper ? (
-        <SimRevealPanel sessionId={session.id} paper={paper} pack={session.config?.pack ?? 'unpaid_labour'} />
+        <SimRevealPanel
+          sessionId={session.id}
+          paper={paper}
+          pack={session.config?.pack ?? 'unpaid_labour'}
+          selectedIds={personaIdsOf(session)}
+        />
       ) : (
         <div className="card"><p className="muted" style={{ margin: 0 }}>正在载入问卷…</p></div>
       )}

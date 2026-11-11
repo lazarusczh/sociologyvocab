@@ -1,4 +1,4 @@
-// 课后回看：模拟调研的问卷、三位受访者的答案与内心（教师端）
+// 课后回看：模拟调研的问卷、参与受访者的答案与内心（教师端）
 //
 // 口径：
 //   · 人设卡与内心都是 teacher-only（RLS）；学生端不展示访谈记录，只看到「由老师保存」
@@ -11,6 +11,8 @@ import {
   fetchLatestPaper,
   fetchPersonas,
   fetchSimSession,
+  personaIdsOf,
+  personasFor,
   simErrorMessage,
   type SimAnswerRow,
   type SimPaper,
@@ -37,7 +39,7 @@ export default function SimHistory({ sessionId, isTeacher }: { sessionId: string
     setPaper(p);
     if (!p) return;
     const ps = await fetchPersonas(s?.config?.pack ?? 'unpaid_labour');
-    setPersonas(ps);
+    setPersonas(personasFor(ps, personaIdsOf(s)));
     setAnswers(await fetchAnswers(sessionId, p.version));
     setInner(await fetchInner(sessionId, p.version));
   }, [sessionId]);
@@ -66,7 +68,7 @@ export default function SimHistory({ sessionId, isTeacher }: { sessionId: string
     return (
       <div className="card">
         <p className="muted" style={{ margin: 0 }}>
-          模拟调研不计分。问卷与三位受访者的访谈记录由老师保存，学生端不展示。
+          模拟调研不计分。问卷与受访者的访谈记录由老师保存，学生端不展示。
         </p>
       </div>
     );

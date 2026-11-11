@@ -135,7 +135,7 @@ export default function SimMergePanel({ sessionId, groups, participants, questio
           </button>
         </div>
         <p className="muted" style={{ fontSize: '0.82rem', margin: '0.35rem 0 0' }}>
-          定稿后学生草稿只读，接下来由三位受访者作答。改动只进班级问卷，不改学生草稿。
+          定稿后学生草稿只读，接下来由你勾选的受访者作答。改动只进班级问卷，不改学生草稿。
         </p>
         {msg && <p style={{ color: 'var(--danger)', fontSize: '0.85rem', margin: '0.35rem 0 0' }}>{msg}</p>}
 

@@ -406,7 +406,7 @@ export default function SimStudent({ sessionId }: { sessionId: string }) {
       <>
         {header}
         <div className="card" style={{ marginBottom: '0.8rem' }}>
-          <p style={{ marginTop: 0 }}>问卷已定稿，接下来老师会请三位「受访者」来填。</p>
+          <p style={{ marginTop: 0 }}>问卷已定稿，接下来老师会请几位「受访者」来填。</p>
           <p className="muted" style={{ fontSize: '0.88rem', marginBottom: 0 }}>
             共 {paper?.items.length ?? 0} 题。先想想：如果是你，会怎么答？
           </p>
@@ -438,7 +438,7 @@ export default function SimStudent({ sessionId }: { sessionId: string }) {
             : '答案与内心的揭晓在大屏上进行，手机上不用操作。'}
         </p>
         <p className="muted" style={{ fontSize: '0.82rem', marginTop: '0.4rem', marginBottom: 0 }}>
-          大屏上的三位受访者由 AI 按人设卡扮演，不是真人 —— 这正是我们要看「问卷量到了什么、漏掉了什么」的地方。
+          大屏上的受访者由 AI 按人设卡扮演，不是真人 —— 这正是我们要看「问卷量到了什么、漏掉了什么」的地方。
         </p>
       </div>
     </>
