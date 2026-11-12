@@ -5,7 +5,7 @@ import { buildQuizQuestions, sampleItems, TYPE_LABELS, KIND_LABELS, formatDurati
 import { unitListFor } from '../lib/unitMapping';
 import { maskEmail } from '../lib/shuffle';
 import { copyText } from '../lib/clipboard';
-import { createQuiz, updateQuiz, updateQuizQuestions, listQuizzes, listQuizSubmissions, deleteQuiz, listDeveloperIds, deleteSubmission, countSubmittedByQuizzes, regradeQuizSubmissions, ensureQuizShortCode, listMbTaskLinksForQuiz, listMbRoster, listClassesWithMb, matchMbTask, replaceMbTaskLink, deleteMbTaskLink, fetchMbMarks, writeMbMarks, listSubmissionsByQuizzes, latestMbWriteLogs, logMbWrite, duplicateQuiz, type MbTaskLinkRow, type ClassMbRow, type MbWriteLogRow, type RegradeEntry } from '../lib/cloud';
+import { createQuiz, updateQuiz, updateQuizQuestions, listQuizzes, listQuizSubmissions, deleteQuiz, listDeveloperIds, listStaffIds, deleteSubmission, countSubmittedByQuizzes, regradeQuizSubmissions, ensureQuizShortCode, listMbTaskLinksForQuiz, listMbRoster, listClassesWithMb, matchMbTask, replaceMbTaskLink, deleteMbTaskLink, fetchMbMarks, writeMbMarks, listSubmissionsByQuizzes, latestMbWriteLogs, logMbWrite, duplicateQuiz, type MbTaskLinkRow, type ClassMbRow, type MbWriteLogRow, type RegradeEntry } from '../lib/cloud';
 import { staleAgainstSnapshot, staleLabel, finalScoreOf, type StaleResult } from '../lib/mbStale';
 import {
   aliasClusters,
@@ -201,7 +201,10 @@ export default function QuizManager() {
   // 跨卷的答卷（仅卷列表用；与 viewing 时的 subs 分开，避免互相覆盖）
   const [listSubs, setListSubs] = useState<QuizSubmission[]>([]);
   const [detailUser, setDetailUser] = useState<string | null>(null); // 正在查看答卷详情的学生 user_id
-  const [devIds, setDevIds] = useState<Set<string>>(new Set()); // developer 账户 user_id（识别测试记录）
+  const [devIds, setDevIds] = useState<Set<string>>(new Set()); // developer 账户 user_id（仅用于「能否删除这条记录」）
+  // 教职工账户（teacher + developer）：统计、ManageBac 同步、重判提示都要排除。
+  // 教师登录后也会在 quiz_submissions 留记录（试做/自测），那不是学生成绩。
+  const [staffIds, setStaffIds] = useState<Set<string>>(new Set());
   const [manualSearch, setManualSearch] = useState(''); // 手动勾选词条的检索词
   const [pendingDraft, setPendingDraft] = useState<SavedDraft | null>(null); // 启动时检测到的暂存草稿
   // 列表按大纲筛选：'all' 之外用 syllabus id。教师可能同时教 9699 与 0495 两种班，
@@ -250,13 +253,13 @@ export default function QuizManager() {
   }, [refresh]);
 
   // 每卷的「需重新登分」判定（纯站内计算，不抓 ManageBac）。
-  // ⚠ 与 previewSync 的过滤口径保持一致：排除 developer 测试账号。
+  // ⚠ 与 previewSync 的过滤口径保持一致：排除教职工账号（teacher + developer）。
   const staleByQuiz = useMemo<Record<string, StaleResult>>(() => {
     const out: Record<string, StaleResult> = {};
     // 先按 quiz_id 分组，再逐卷判定 —— 避免每卷都全量扫一遍
     const byQuiz = new Map<string, QuizSubmission[]>();
     for (const s of listSubs) {
-      if (devIds.has(s.user_id)) continue;
+      if (staffIds.has(s.user_id)) continue;
       const arr = byQuiz.get(s.quiz_id);
       if (arr) arr.push(s); else byQuiz.set(s.quiz_id, [s]);
     }
@@ -265,11 +268,11 @@ export default function QuizManager() {
       out[q.id] = staleAgainstSnapshot(byQuiz.get(q.id) ?? [], log ?? null);
     }
     return out;
-  }, [quizzes, listSubs, writeLogs, devIds]);
+  }, [quizzes, listSubs, writeLogs, staffIds]);
 
   // 重判前检查：口径漂移 + 疑似别名缺口（纯站内计算，不抓 ManageBac，不耗配额）。
   // 只在进入某卷成绩页时算 —— 主列表一次算全部卷会白跑（绝大多数是已同步的卷）。
-  // ⚠ 排除 developer 测试账号，口径与 staleByQuiz / previewSync 一致。
+  // ⚠ 排除教职工账号（teacher + developer），口径与 staleByQuiz / previewSync 一致。
   const regradeHints = useMemo(() => {
     if (!viewing) return null;
     const itemById = new Map(vocab.map((i) => [i.id, i]));
@@ -279,7 +282,7 @@ export default function QuizManager() {
     // （例如 2026-09 给 normalizeKey 加了 &→and），改别名也改不动它 —— 不提示。
     const aliasChanged = aliasSnapshotChanged(viewing.questions, refreshed);
     const hints: HintSub[] = subs
-      .filter((s) => s.status === 'submitted' && !devIds.has(s.user_id))
+      .filter((s) => s.status === 'submitted' && !staffIds.has(s.user_id))
       .map((s) => ({
         id: s.id,
         user_id: s.user_id,
@@ -296,7 +299,7 @@ export default function QuizManager() {
       // 又会把班级小卷刷成满屏提示；够不到阈值的仍能在「错题分析」里看到。
       clusters: aliasClusters(refreshed, hints, 3),
     };
-  }, [viewing, subs, vocab, devIds]);
+  }, [viewing, subs, vocab, staffIds]);
 
   // 启动时检测是否有暂存草稿
   useEffect(() => {
@@ -538,6 +541,7 @@ export default function QuizManager() {
     try {
       setSubs(await listQuizSubmissions(q.id));
       setDevIds(new Set(await listDeveloperIds()));
+      setStaffIds(new Set(await listStaffIds()));
     } catch (e) {
       setError((e as Error).message);
     }
@@ -650,7 +654,7 @@ export default function QuizManager() {
   };
 
   // 复制成绩，供 ManageBac 用户脚本导入：每行「邮箱<Tab>分数」
-  // - 只取已交卷、带邮箱、非 developer 测试账号的记录；同一学生多次交卷取最近一次
+  // - 只取已交卷、带邮箱、非教职工账号（teacher / developer）的记录；同一学生多次交卷取最近一次
   // - 分数用最终分（含迟交罚分/订正加分），无结算则为原始分
   const copyGradesForManageBac = async () => {
     if (!viewing) return;
@@ -658,12 +662,12 @@ export default function QuizManager() {
     setMsg('');
     const byUser = new Map<string, QuizSubmission>();
     for (const s of subs) {
-      if (s.status !== 'submitted' || !s.email || devIds.has(s.user_id)) continue;
+      if (s.status !== 'submitted' || !s.email || staffIds.has(s.user_id)) continue;
       const prev = byUser.get(s.user_id);
       if (!prev || (s.submitted_at ?? '') > (prev.submitted_at ?? '')) byUser.set(s.user_id, s);
     }
     const rows = [...byUser.values()];
-    if (rows.length === 0) { setError('没有可复制的成绩（需已交卷且有邮箱，且排除测试账号）'); return; }
+    if (rows.length === 0) { setError('没有可复制的成绩（需已交卷且有邮箱，且排除教师与测试账号）'); return; }
     const maxPts = totalPoints(viewing.questions);
     const text = rows
       .map((s) => `${s.email}\t${s.grading?.final_score != null ? s.grading.final_score : s.score}`)
@@ -848,10 +852,10 @@ export default function QuizManager() {
         .map((r) => ({ key: norm(r.mb_name), email: r.email.toLowerCase() }))
         .filter((x) => x.key);
 
-      // 站内：同一学生多次交卷取最近一次（排除测试账号），分数用最终分
+      // 站内：同一学生多次交卷取最近一次（排除教职工账号），分数用最终分
       const byUser = new Map<string, QuizSubmission>();
       for (const s of subs) {
-        if (s.status !== 'submitted' || !s.email || devIds.has(s.user_id)) continue;
+        if (s.status !== 'submitted' || !s.email || staffIds.has(s.user_id)) continue;
         const prev = byUser.get(s.user_id);
         if (!prev || (s.submitted_at ?? '') > (prev.submitted_at ?? '')) byUser.set(s.user_id, s);
       }
@@ -1009,10 +1013,10 @@ export default function QuizManager() {
    */
   const markManualWritten = async () => {
     if (!viewing || !curLink || !mbClass) return;
-    // 与 previewSync 同口径：已交卷、有邮箱、排除 developer 测试账号、同一学生取最近一次
+    // 与 previewSync 同口径：已交卷、有邮箱、排除教职工账号、同一学生取最近一次
     const byUser = new Map<string, QuizSubmission>();
     for (const s of subs) {
-      if (s.status !== 'submitted' || !s.email || devIds.has(s.user_id)) continue;
+      if (s.status !== 'submitted' || !s.email || staffIds.has(s.user_id)) continue;
       const prev = byUser.get(s.user_id);
       if (!prev || (s.submitted_at ?? '') > (prev.submitted_at ?? '')) byUser.set(s.user_id, s);
     }
@@ -1435,7 +1439,16 @@ export default function QuizManager() {
                   const hasBonus = (s.grading?.bonus ?? 0) > 0;
                   return (
                     <tr key={s.id}>
-                      <td><ScrollText text={s.name || '—'} /></td>
+                      <td>
+                        <ScrollText text={s.name || '—'} />
+                        {/* 教职工自己试做/自测的答卷不是学生成绩：统计与 ManageBac 同步都已排除，
+                            这里仍列出（教师可能想核对），但要标出来源，避免当成学生成绩看。 */}
+                        {staffIds.has(s.user_id) && (
+                          <span className="badge warn" style={{ fontSize: '0.72rem', marginLeft: '0.35rem' }} title="教职工账号的试做记录，不计入统计与成绩同步">
+                            {devIds.has(s.user_id) ? '测试' : '教师'}
+                          </span>
+                        )}
+                      </td>
                       <td className="muted">{s.email ? maskEmail(s.email) : '—'}</td>
                       <td>
                         {s.score} / {maxPts}

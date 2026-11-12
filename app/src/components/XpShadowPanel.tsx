@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { fetchDailyStudy, type DailyStudy } from '../lib/xp';
 import { pendingXpCount } from '../lib/xpQueue';
 import { isDayChecked } from '../lib/checkin';
+import { listStaffIds } from '../lib/cloud';
 import type { CheckInState } from '../lib/types';
 
 /** 学生下拉里的一项（姓名用于人眼辨认，uid 才是查询键） */
@@ -100,14 +101,13 @@ export default function XpShadowPanel() {
   }, [load]);
 
   // 拉学生名单：口径与教师后台「打卡核验」一致 —— 教师身份已由 RLS 放行，
-  // 这里用当前登录 session 读全部 student_data，并**排除 developer 账号**
-  // （避免把测试号列进下拉；本面板的"自己"另有独立选项）。
+  // 这里用当前登录 session 读全部 student_data，并**排除教职工账号**
+  // （teacher + developer；教师登录时也会留一行空的 student_data）。
   useEffect(() => {
     let alive = true;
     void (async () => {
       try {
-        const { data: devRows } = await supabase.from('user_roles').select('user_id').eq('role', 'developer');
-        const devIds = new Set(((devRows ?? []) as { user_id: string }[]).map((d) => d.user_id));
+        const staffIds = new Set(await listStaffIds());
         const { data, error: err } = await supabase
           .from('student_data')
           .select('user_id, email, data')
@@ -123,7 +123,7 @@ export default function XpShadowPanel() {
             email: string | null;
             data: { name?: string; checkin?: unknown } | null;
           }[])
-            .filter((r) => !devIds.has(r.user_id))
+            .filter((r) => !staffIds.has(r.user_id))
             .map((r) => ({
               userId: r.user_id,
               name: r.data?.name || '(未命名)',

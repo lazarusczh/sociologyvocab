@@ -7,7 +7,7 @@ import { useStore } from '../lib/store';
 import type { Quiz, QuizSubmission, QuizQuestionType, QuizKind } from '../lib/types';
 import { collectWrongAttempts, TYPE_LABELS, KIND_LABELS } from '../lib/quiz';
 import type { WrongAttempt } from '../lib/quiz';
-import { listQuizzes, listSubmissionsByQuizzes, listDeveloperIds } from '../lib/cloud';
+import { listQuizzes, listSubmissionsByQuizzes, listStaffIds } from '../lib/cloud';
 import { maskEmail } from '../lib/shuffle';
 import ScrollText from './ScrollText';
 
@@ -46,10 +46,10 @@ export default function QuizWrongBoard({ onBack }: { onBack: () => void }) {
         setSubs([]);
         return;
       }
-      const devIds = new Set(await listDeveloperIds());
+      const staffIds = new Set(await listStaffIds());
       const all = await listSubmissionsByQuizzes(qs.map((q) => q.id));
-      // 排除 developer/测试账号；其余由聚合函数按 submitted 口径处理
-      setSubs(all.filter((s) => !devIds.has(s.user_id)));
+      // 排除教职工账号（teacher + developer）：教师试做/自测的卷不是学生错题
+      setSubs(all.filter((s) => !staffIds.has(s.user_id)));
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -61,7 +61,7 @@ export default function QuizWrongBoard({ onBack }: { onBack: () => void }) {
     load();
   }, [load]);
 
-  // 词条级作答明细（已交卷、已排除测试账号）
+  // 词条级作答明细（已交卷、已排除教职工账号）
   const attempts = useMemo(() => collectWrongAttempts(quizzes, subs), [quizzes, subs]);
 
   const vocabById = useMemo(() => new Map(vocab.map((i) => [i.id, i])), [vocab]);

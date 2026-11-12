@@ -14,6 +14,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { maskEmail } from '../lib/shuffle';
+import { listStaffIds } from '../lib/cloud';
 import type { Verdict } from '../lib/ai';
 
 interface AttemptRow {
@@ -128,6 +129,10 @@ export default function DefinitionReviewPanel() {
   const [awardingId, setAwardingId] = useState<number | null>(null);
   const [awarded, setAwarded] = useState<Record<number, boolean>>({});
   const [awardErr, setAwardErr] = useState<Record<number, string>>({});
+  // 教职工账号（teacher + developer）：他们试做定义题是为了验证判分，不是学生作答，
+  // 默认不进复核列表（否则教师自己的 19 条会混在「待复核」里）。需要时可用开关打开。
+  const [staffIds, setStaffIds] = useState<Set<string>>(new Set());
+  const [showStaff, setShowStaff] = useState(false);
 
   // 筛选条件
   const [fUser, setFUser] = useState('all');
@@ -164,6 +169,13 @@ export default function DefinitionReviewPanel() {
     // 学生邮箱映射（display 用；没有则退回 user_id 短标识）
     const { data: sd } = await supabase.from('student_data').select('user_id, email');
     setEmails(new Map(((sd ?? []) as { user_id: string; email: string }[]).map((r) => [r.user_id, r.email])));
+
+    // 教职工账号（教师/开发者试做的不算学生作答）
+    try {
+      setStaffIds(new Set(await listStaffIds()));
+    } catch {
+      setStaffIds(new Set());
+    }
 
     // 已签发过奖励的作答（防重复发放；失败不影响主体）
     const { data: bonusRows } = await supabase.from('student_xp_bonus').select('attempt_id');
@@ -246,36 +258,43 @@ export default function DefinitionReviewPanel() {
     setAwarded((a) => ({ ...a, [row.id]: true }));
   }, []);
 
+  // 默认只看学生作答：教师/开发者自己试做的记录不算学生学习数据。
+  // 想看全部（例如核对教师质疑过的判定）时用下面的开关打开。
+  const studentRows = useMemo(
+    () => (showStaff ? rows : rows.filter((r) => !staffIds.has(r.user_id))),
+    [rows, showStaff, staffIds],
+  );
+
   // ===== 统计（基于全部作答，而非筛选后，避免筛选把分母改掉）=====
   const stats = useMemo(() => {
-    const reviewed = rows.filter((r) => Boolean(parseReview(r.review).verdict));
+    const reviewed = studentRows.filter((r) => Boolean(parseReview(r.review).verdict));
     const agree = reviewed.filter((r) => parseReview(r.review).verdict === r.verdict);
     // 被学生主动质疑的：老师的时间该优先花在这批上
-    const disputed = rows.filter((r) => r.disputed);
+    const disputed = studentRows.filter((r) => r.disputed);
     // 「质疑成立」= 学生提出质疑、且复核判定与模型不同 —— 即**模型确实判错了**
     const disputeValid = disputed.filter((r) => {
       const rv = parseReview(r.review).verdict;
       return rv ? rv !== r.verdict : false;
     });
     return {
-      total: rows.length,
+      total: studentRows.length,
       reviewed: reviewed.length,
       agree: agree.length,
       rate: reviewed.length ? Math.round((agree.length / reviewed.length) * 100) : 0,
       disputed: disputed.length,
       disputeValid: disputeValid.length,
     };
-  }, [rows]);
+  }, [studentRows]);
 
   const userOptions = useMemo(() => {
     const m = new Map<string, number>();
-    rows.forEach((r) => m.set(r.user_id, (m.get(r.user_id) ?? 0) + 1));
+    studentRows.forEach((r) => m.set(r.user_id, (m.get(r.user_id) ?? 0) + 1));
     return [...m.entries()].sort((a, b) => b[1] - a[1]);
-  }, [rows]);
+  }, [studentRows]);
 
   const shown = useMemo(() => {
     const kw = fText.trim().toLowerCase();
-    const list = rows.filter((r) => {
+    const list = studentRows.filter((r) => {
       if (fUser !== 'all' && r.user_id !== fUser) return false;
       if (fVerdict !== 'all' && r.verdict !== fVerdict) return false;
       if (fReview === 'disputed') return Boolean(r.disputed);      // 只看被学生质疑的
@@ -299,7 +318,7 @@ export default function DefinitionReviewPanel() {
       if (ra !== rb) return ra - rb;
       return String(b.created_at ?? '').localeCompare(String(a.created_at ?? ''));
     });
-  }, [rows, fUser, fVerdict, fReview, fText, itemMap]);
+  }, [studentRows, fUser, fVerdict, fReview, fText, itemMap]);
 
   return (
     <div>
@@ -346,7 +365,7 @@ export default function DefinitionReviewPanel() {
 
         <div className="row" style={{ marginTop: '0.5rem', gap: '0.5rem', flexWrap: 'wrap' }}>
           <select value={fUser} onChange={(e) => setFUser(e.target.value)}>
-            <option value="all">全部学生（{rows.length} 条）</option>
+            <option value="all">全部学生（{studentRows.length} 条）</option>
             {userOptions.map(([uid, n]) => (
               <option key={uid} value={uid}>{labelOfUser(uid)}（{n} 条）</option>
             ))}
@@ -357,6 +376,15 @@ export default function DefinitionReviewPanel() {
             onChange={(e) => setFText(e.target.value)}
             style={{ flex: 1, minWidth: '12rem' }}
           />
+          <label className="muted" style={{ fontSize: '0.85rem', alignSelf: 'center', display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
+            <input
+              type="checkbox"
+              checked={showStaff}
+              onChange={(e) => setShowStaff(e.target.checked)}
+              style={{ width: 'auto', margin: 0 }}
+            />
+            含教师/测试账号（{rows.length - studentRows.length} 条）
+          </label>
           <span className="muted" style={{ fontSize: '0.85rem', alignSelf: 'center' }}>符合条件 {shown.length} 条</span>
         </div>
       </div>

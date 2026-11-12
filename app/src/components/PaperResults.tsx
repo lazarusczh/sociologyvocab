@@ -4,6 +4,7 @@ import {
   listGrouperRuns, updateGrouperRun, deleteGrouperRun, listMsSections,
   ensureRunShortCode, listMbTaskLinks, listMbRoster,
   matchMbTask, replaceMbTaskLink, deleteMbTaskLink, fetchMbMarks, writeMbMarks,
+  listStaffIds,
   type GrouperRunRow, type GrouperRunScore, type MsSectionRow, type MbTaskLinkRow,
 } from '../lib/cloud';
 import { maskEmail } from '../lib/shuffle';
@@ -200,9 +201,10 @@ export default function PaperResults() {
     setGradePick(inferGrade(run.title, run.paper, run.syllabus));
     // 拉班级 + 已注册学生名单（与打卡核验同口径），与已存成绩合并
     try {
-      const [clsRes, devRes, stuRes] = await Promise.all([
+      const [clsRes, staffIds, stuRes] = await Promise.all([
         supabase.from('classes').select('id, name, papers, syllabus, mb_class_url, mb_class_id').order('name'),
-        supabase.from('user_roles').select('user_id').eq('role', 'developer'),
+        // 教职工（teacher + developer）不是考生：他们登录时也会在 student_data 留一行
+        listStaffIds().catch(() => [] as string[]),
         supabase
           .from('student_data')
           .select('user_id, email, data, class_id')
@@ -211,7 +213,7 @@ export default function PaperResults() {
       const classList = ((clsRes.data ?? []) as ClassRow[]);
       setClasses(classList);
       const classMap = new Map(classList.map((c) => [c.id, c.name]));
-      const devIds = new Set(((devRes.data ?? []) as { user_id: string }[]).map((d) => d.user_id));
+      const staffSet = new Set(staffIds);
       // 额外记住 key → 邮箱（成绩快照里不含邮箱，导出给 ManageBac 时要用）
       const mailOf: Record<string, string> = {};
       for (const r of ((stuRes.data ?? []) as { user_id: string; email: string | null }[])) {
@@ -221,7 +223,7 @@ export default function PaperResults() {
       const roster: GrouperRunScore[] = ((stuRes.data ?? []) as {
         user_id: string; email: string | null; data: { name?: string } | null; class_id?: string | null;
       }[])
-        .filter((r) => !devIds.has(r.user_id))
+        .filter((r) => !staffSet.has(r.user_id))
         .map((r) => ({
           key: `account:${r.user_id}`,
           name: r.data?.name?.trim() || r.email || '（未命名）',

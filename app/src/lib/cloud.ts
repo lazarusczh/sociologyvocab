@@ -626,6 +626,17 @@ export async function listDeveloperIds(): Promise<string[]> {
   return ((data ?? []) as { user_id: string }[]).map((d) => d.user_id);
 }
 
+// 查询所有「教职工」账户（teacher + developer）的 user_id。
+// 教师只要登录过一次就会在 student_data 里留一行，但它不是学生记录：
+// 打卡核验、班级分班、成绩册、错题本这些「学生名单」都必须把教职工排除掉，
+// 否则教师自己的空行会混进名单（零打卡、无班级），也会污染统计。
+// 注意：仍要单独保留 listDeveloperIds() —— 删除答题记录的 RLS 只认 developer，
+// 「能不能删这条记录」不能拿教职工集合来判断。
+export async function listStaffIds(): Promise<string[]> {
+  const { data } = await supabase.from('user_roles').select('user_id').in('role', ['teacher', 'developer']);
+  return ((data ?? []) as { user_id: string }[]).map((d) => d.user_id);
+}
+
 // 教师删除某条答题记录（RLS 限制：仅 developer 账户的记录可删）
 export async function deleteSubmission(submissionId: string): Promise<void> {
   const { error } = await supabase.from('quiz_submissions').delete().eq('id', submissionId);

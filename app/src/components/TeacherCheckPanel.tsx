@@ -9,6 +9,7 @@ import type { AwardKind } from '../lib/awards';
 import { useStore } from '../lib/store';
 import { maskEmail } from '../lib/shuffle';
 import ScrollText from './ScrollText';
+import { listStaffIds } from '../lib/cloud';
 import type { CloudStudentData } from '../lib/cloud';
 import type { CheckInState, WrongBook } from '../lib/types';
 
@@ -202,9 +203,16 @@ export default function TeacherCheckPanel() {
     const classList = (classRows ?? []) as ClassRow[];
     setClasses(classList);
     setClassMap(new Map(classList.map((c) => [c.id, c.name])));
-    // 读取 developer 账号（统计默认排除，避免测试数据污染）
-    const { data: devRows } = await supabase.from('user_roles').select('user_id').eq('role', 'developer');
-    const devIds = new Set(((devRows ?? []) as { user_id: string }[]).map((d) => d.user_id));
+    // 读取教职工账号（teacher + developer）：打卡核验只查学生记录，
+    // 教师登录时在 student_data 留下的空行必须排除，否则会被当成零打卡的学生。
+    let staffIds = new Set<string>();
+    try {
+      staffIds = new Set(await listStaffIds());
+    } catch {
+      // 取不到角色就退回只排除 developer 的旧口径，但不要因此让整个面板打不开
+      const { data: devRows } = await supabase.from('user_roles').select('user_id').eq('role', 'developer');
+      staffIds = new Set(((devRows ?? []) as { user_id: string }[]).map((d) => d.user_id));
+    }
     // 老师身份已通过 RLS 放行，此处用当前登录 session 读取全部学生
     const { data, error: err } = await supabase
       .from('student_data')
@@ -216,7 +224,7 @@ export default function TeacherCheckPanel() {
     } else {
       // 保留原始行：月度视图需要原始的 checkin（累计统计会把逐日明细丢掉），
       // 且姓名、错题本、班级仍以本地 `student_data` 为源 —— 服务端没有这些。
-      setRawRows(((data ?? []) as StudentRow[]).filter((r) => !devIds.has(r.user_id)));
+      setRawRows(((data ?? []) as StudentRow[]).filter((r) => !staffIds.has(r.user_id)));
     }
     // 打卡判定已切服务端时，**再拉一份服务端口径**：
     // 学生看到的是服务端判定，教师核验必须与之一致，否则会出现

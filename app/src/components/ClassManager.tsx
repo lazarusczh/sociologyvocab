@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { maskEmail } from '../lib/shuffle';
 import ScrollText from './ScrollText';
-import { countMbRosterByClass, listClassesWithMb, replaceMbRoster, setClassMbBinding, setStudentMbExempt } from '../lib/cloud';
+import { countMbRosterByClass, listClassesWithMb, listStaffIds, replaceMbRoster, setClassMbBinding, setStudentMbExempt } from '../lib/cloud';
 import { parseMbClassUrl, parseRosterSheet } from '../lib/mbSync';
 import { SYLLABUS_LABELS, SYLLABUS_OPTIONS } from '../lib/syllabus';
 
@@ -68,12 +68,14 @@ export default function ClassManager() {
       setRosterCount({});
     }
 
-    // 学生列表（排除 developer 测试账号，与打卡核验一致）
-    const { data: devRows } = await supabase
-      .from('user_roles')
-      .select('user_id')
-      .eq('role', 'developer');
-    const devIds = new Set(((devRows ?? []) as { user_id: string }[]).map((d) => d.user_id));
+    // 学生列表（排除教职工账号 teacher + developer，与打卡核验一致）
+    let staffIds = new Set<string>();
+    try {
+      staffIds = new Set(await listStaffIds());
+    } catch {
+      const { data: devRows } = await supabase.from('user_roles').select('user_id').eq('role', 'developer');
+      staffIds = new Set(((devRows ?? []) as { user_id: string }[]).map((d) => d.user_id));
+    }
 
     const { data: stuRows, error: stuErr } = await supabase
       .from('student_data')
@@ -85,7 +87,7 @@ export default function ClassManager() {
       return;
     }
     const list = ((stuRows ?? []) as (StudentRow & { data: { name?: string } })[])
-      .filter((r) => !devIds.has(r.user_id))
+      .filter((r) => !staffIds.has(r.user_id))
       .map((r) => ({
         user_id: r.user_id,
         email: r.email,
