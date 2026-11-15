@@ -394,7 +394,9 @@ input:focus, textarea:focus, select:focus {
 .nav-group-items .syl-switch__opt,
 .nav-account-mobile .syl-switch__opt {
   position: relative;
-  z-index: 1;
+  /* 不设 z-index：滑块在 DOM 里排在按钮之前、又是定位元素，按绘制顺序本来就在
+     按钮下面。这里一旦抬 z-index，窄屏菜单的二级面板（.nav-mobile-submenu）就压
+     不住这两个按钮了 —— 二级面板展开时 9699 / 0495 会浮在面板上（2026-11-15 修）。 */
   width: 100%;
   height: var(--syl-item-h);
   min-height: 0;
@@ -551,6 +553,10 @@ input:focus, textarea:focus, select:focus {
   .nav-mobile-submenu {
     position: absolute;
     inset: 0;
+    /* 显式压在同级兄弟之上：面板是「独占整屏」的一层，上方汉堡里的用户菜单
+       （.nav-account-mobile，含词库视图切换器）必须被它盖住。不写 z-index 时
+       只靠 DOM 顺序取胜，任何兄弟一旦加了 z-index（哪怕是 1）就会漏出来。 */
+    z-index: 1;
     background: var(--surface);
     animation: navSlideIn .18s var(--ease) both;
   }
@@ -663,8 +669,11 @@ input:focus, textarea:focus, select:focus {
   }
 
   /* 窄屏与 .nav-account-mobile button 对齐：同触控高度、同内边距、同字号；
-     窄屏菜单条目之间本来就没有间距，这里也把 --syl-gap 收到 0。 */
-  .nav-account-mobile .syl-switch { --syl-item-h: var(--touch-min); --syl-gap: 0; }
+     窄屏菜单条目之间本来就没有间距，这里也把 --syl-gap 收到 0。
+     注意必须写 0px 而不是 0：滑块位移是 calc(index * (--syl-item-h + --syl-gap))，
+     无单位的 0 在 calc 里是 <number>，加上长度会让整条 transform 失效，
+     表现为窄屏下滑块永远停在第一项不动（2026-11-15 修）。 */
+  .nav-account-mobile .syl-switch { --syl-item-h: var(--touch-min); --syl-gap: 0px; }
   .nav-account-mobile .syl-switch__opt,
   .nav-account-mobile .syl-switch__opt.is-active {
     padding: 0.55rem 0.8rem;
