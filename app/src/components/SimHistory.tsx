@@ -111,6 +111,18 @@ export default function SimHistory({ sessionId, isTeacher }: { sessionId: string
         {msg && <p style={{ color: 'var(--danger)', fontSize: '0.85rem', margin: '0.35rem 0 0' }}>{msg}</p>}
       </div>
 
+      <details className="card" style={{ marginBottom: '0.8rem' }}>
+        <summary style={{ cursor: 'pointer', fontSize: '0.95rem' }}>
+          <strong>受访者背景</strong>
+          <span className="muted" style={{ fontSize: '0.8rem', marginLeft: '0.5rem' }}>回看时用来对照内心</span>
+        </summary>
+        {personas.map((p) => (
+          <p key={p.id} style={{ margin: '0.45rem 0 0', fontSize: '0.86rem', lineHeight: 1.55 }}>
+            <span className="badge">{p.name}</span> {p.card.brief || '（这张卡还没有背景简介）'}
+          </p>
+        ))}
+      </details>
+
       {paper.items.map((it, i) => (
         <div key={it.qid} className="card" style={{ marginBottom: '0.8rem' }}>
           <div className="row" style={{ alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>

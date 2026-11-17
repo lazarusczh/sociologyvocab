@@ -882,6 +882,51 @@ begin
 end $$;
 
 -- ============================================
+-- RPC 9：切换本场的场景包
+--   人设卡按 pack 分组，换包等于换一批受访者。只能在点名 / 分组阶段换：
+--   问卷一定稿，题目与人设的组合就固定了，再换会让已投喂的答案失去意义。
+--   起因（2026-11-17）：新建会话的 pack 原先写死成 unpaid_labour，
+--   后来补的十几张卡分别落在 education / identity_media / work_class，教师根本选不到。
+-- ============================================
+create or replace function public.sim_set_pack(
+  p_session_id uuid,
+  p_pack text
+) returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_phase text;
+  v_pack text := btrim(coalesce(p_pack, ''));
+  v_n int;
+begin
+  if v_uid is null then raise exception 'not authenticated'; end if;
+  if not exists (select 1 from public.user_roles r where r.user_id = v_uid and r.role = 'teacher') then
+    raise exception 'teacher only';
+  end if;
+
+  select coalesce(s.config->>'phase', 'lobby') into v_phase
+  from public.live_sessions s
+  where s.id = p_session_id and s.kind = 'sim' and s.state = 'running';
+  if not found then raise exception 'sim session not running'; end if;
+  if v_phase not in ('lobby', 'grouped') then
+    raise exception 'cannot change pack at phase %', v_phase;
+  end if;
+  if v_pack = '' then raise exception 'empty pack'; end if;
+
+  select count(*) into v_n from public.sim_personas pe where pe.pack = v_pack;
+  if v_n = 0 then raise exception 'pack % has no persona', v_pack; end if;
+
+  update public.live_sessions
+  set config = jsonb_set(coalesce(config, '{}'::jsonb), '{pack}', to_jsonb(v_pack))
+  where id = p_session_id;
+
+  return jsonb_build_object('pack', v_pack, 'personas', v_n);
+end $$;
+
+-- ============================================
 -- 附：人设卡怎么灌（不要在公开仓库里写卡片内容）
 --
 --   仓库是公开的，卡片一旦写进 db-migration-*.sql 就等于公开。做法：

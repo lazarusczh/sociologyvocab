@@ -14,13 +14,16 @@ import {
   fetchGroups,
   fetchLatestPaper,
   fetchParticipants,
+  fetchPersonaPacks,
   fetchPersonas,
   fetchQuestions,
   fetchRunningSimSession,
   fetchSimSession,
   groupLimitOf,
+  packLabel,
   phaseOf,
   personaIdsOf,
+  setSessionPack,
   simErrorMessage,
   subscribeSim,
   targetSizeOf,
@@ -28,6 +31,7 @@ import {
   type SimPaper,
   type SimParticipant,
   type SimPersona,
+  type SimPersonaPack,
   type SimQuestion,
   type SimSession,
 } from '../lib/sim';
@@ -61,10 +65,12 @@ export default function SimHost() {
   const [questions, setQuestions] = useState<SimQuestion[]>([]);
   const [paper, setPaper] = useState<SimPaper | null>(null);
   const [personas, setPersonas] = useState<SimPersona[]>([]);
+  const [packs, setPacks] = useState<SimPersonaPack[]>([]);
 
   const [title, setTitle] = useState('模拟调研');
   const [targetSize, setTargetSize] = useState('5');
   const [perGroup, setPerGroup] = useState('3');
+  const [pack, setPack] = useState('unpaid_labour');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   // 秒针：把「最后一位加入于 N 秒前」变成会动的判据
@@ -126,6 +132,25 @@ export default function SimHost() {
     };
   }, [refresh]);
 
+  // 云端有哪些场景包（人设卡按 pack 分组）。读不到不影响建会话，服务端仍会校验。
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      try {
+        const list = await fetchPersonaPacks();
+        if (!alive || list.length === 0) return;
+        setPacks(list);
+        // 默认还留在 unpaid_labour；只有这个包不存在时才退到第一个
+        if (!list.some((x) => x.pack === 'unpaid_labour')) setPack(list[0].pack);
+      } catch {
+        /* 忽略：下拉框会退回默认包 */
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   // 实时信号 + 5 秒兜底轮询（点名屏要看见陆续进来的人）
   useEffect(() => {
     if (!session) return;
@@ -146,6 +171,7 @@ export default function SimHost() {
       const s = await createSimSession(uid, title.trim() || '模拟调研', {
         targetGroupSize: clampInt(targetSize, 2, 10, 5),
         perGroupLimit: clampInt(perGroup, 1, 10, 3),
+        pack,
       });
       setSession(s);
       setGroups([]);
@@ -166,6 +192,22 @@ export default function SimHost() {
       const r = await assignGroups(session.id);
       await refresh(session.id);
       setMsg(`已分成 ${r.groups} 组（${r.joined} 人），学生端会自动看到自己的组号与队友。`);
+    } catch (e) {
+      setMsg(simErrorMessage(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handlePackChange = async (next: string) => {
+    if (!session) return;
+    if (next === (session.config?.pack ?? 'unpaid_labour')) return;
+    setBusy(true);
+    setMsg('');
+    try {
+      const n = await setSessionPack(session.id, next);
+      await refresh(session.id);
+      setMsg(`场景包已切到「${packLabel(next)}」，本场共 ${n} 位受访者可选。`);
     } catch (e) {
       setMsg(simErrorMessage(e));
     } finally {
@@ -256,8 +298,24 @@ export default function SimHost() {
               style={{ width: '100%', boxSizing: 'border-box' }}
             />
           </label>
+          <label style={{ display: 'block', minWidth: 0 }}>
+            <span className="muted" style={{ display: 'block', fontSize: '0.8rem', marginBottom: '0.25rem' }}>场景包</span>
+            <select
+              value={pack}
+              onChange={(e) => setPack(e.target.value)}
+              style={{ width: '100%', boxSizing: 'border-box' }}
+            >
+              {(packs.length ? packs : [{ pack: 'unpaid_labour', count: 0 }]).map((x) => (
+                <option key={x.pack} value={x.pack}>
+                  {packLabel(x.pack)}
+                  {x.count ? `（${x.count} 位）` : ''}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
         <p className="muted" style={{ fontSize: '0.85rem', marginTop: 0 }}>
+          人设卡按场景包分组：换包就换一批受访者。分组之后、问卷定稿之前还可以再换。
           组数不预先填：点「开始分组」时按当时实际人数算，每组不超过目标人数，各组人数差 ≤ 1。
         </p>
 
@@ -291,6 +349,12 @@ export default function SimHost() {
   const target = targetSizeOf(session);
   const limit = groupLimitOf(session);
   const totalQuestions = questions.length;
+  const curPack = session.config?.pack ?? 'unpaid_labour';
+  // 当前包若已不在云端（被改名/删掉），也要能在下拉里显示出来，否则 select 会空白
+  const packOptions = (() => {
+    const base = packs.length ? packs : [{ pack: curPack, count: 0 }];
+    return base.some((x) => x.pack === curPack) ? base : [{ pack: curPack, count: 0 }, ...base];
+  })();
 
   const header = (
     <div className="card" style={{ marginBottom: '0.8rem' }}>
@@ -298,8 +362,26 @@ export default function SimHost() {
         <strong>{session.title || '模拟调研'}</strong>
         <span className="badge">{PHASE_LABEL[phase] ?? phase}</span>
         <span className="muted" style={{ fontSize: '0.85rem' }}>
-          已加入 {participants.length} 人 · 目标每组 {target} 人 · 每组最多 {limit} 题
+          已加入 {participants.length} 人 · 目标每组 {target} 人 · 每组最多 {limit} 题 · 场景包
         </span>
+        {(phase === 'lobby' || phase === 'grouped') ? (
+          <select
+            value={curPack}
+            onChange={(e) => void handlePackChange(e.target.value)}
+            disabled={busy}
+            title="换包就换一批受访者；问卷定稿后不能再换"
+            style={{ width: 'auto', padding: '0.15rem 0.35rem', fontSize: '0.85rem' }}
+          >
+            {packOptions.map((x) => (
+              <option key={x.pack} value={x.pack}>
+                {packLabel(x.pack)}
+                {x.count ? `（${x.count} 位）` : ''}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <span className="muted" style={{ fontSize: '0.85rem' }}>「{packLabel(curPack)}」</span>
+        )}
         <span className="spacer" />
         <button className="ghost" onClick={handleClose} disabled={busy}>结束活动</button>
       </div>

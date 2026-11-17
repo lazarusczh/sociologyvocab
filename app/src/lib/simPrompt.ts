@@ -69,7 +69,8 @@ ${paper}
 2. 单选：给选项字母（字符串，如 "B"）；多选：给字母数组（如 ["A","D"]，至少 1 项）；量表：给该题编号里的一个整数（从 1 到该题的点数）。
 3. **卡里如果写了具体字母（例如"只勾 A、D、H"），那是对另一版试点问卷说的，不要照抄。** 必须按选项文字的**意思**重新对应到本卷的字母。
 4. 答案必须是本卷出现过的字母/数字，不能自己造选项，不能写选项文字。
-5. 另外写「内心」：只挑**有东西没说出口**的题（含所有留空的题），一题一句，第一人称口语，不超过 30 字，只讲"我为什么这么勾 / 哪里没说出来"，不要复述选项。
+5. 另外写「内心」：只挑**有东西没说出口**的题（含所有留空的题），一题一句，第一人称口语，**45–55 字**，只讲"我为什么这么勾 / 哪里没说出来"，不要复述选项。
+   这句必须能**脱离人物卡单独读懂**：第一次提到人、事、物就说清是谁 / 是什么（"婆婆""我女儿""那口锅""超时罚款"），不能一上来就用"他""那两趟""那边""家里"这类没有指代的说法。
 6. 内心与收尾**绝不能**出现这些词：${BANNED.join('、')}。也不要评价这次调查本身。
 7. closing：一句收尾的心里话，第一人称，不超过 60 字，不提问卷、不升华。
 8. 不引入人物卡之外的新事实（新的人、病、收入、事件都不行）。
@@ -153,6 +154,14 @@ export function parsePersonaResult(text: string, items: SimPaperItem[]): ParseOu
     .filter((x): x is Record<string, unknown> => !!x && typeof x === 'object')
     .map((x) => ({ qid: nonEmpty(x.qid), text: nonEmpty(x.text) }))
     .filter((x) => x.qid && x.text && qids.has(x.qid));
+
+  // 内心要能脱离人物卡读懂：太短说明只丢了半句情绪，太长会把投屏撑成小作文
+  const INNER_MAX = 70;
+  const INNER_MIN = 10;
+  const tooLong = inner.find((x) => x.text.length > INNER_MAX);
+  if (tooLong) return { result: null, error: `内心那句 ${tooLong.text.length} 字，超过 ${INNER_MAX} 字` };
+  const tooShort = inner.find((x) => x.text.length < INNER_MIN);
+  if (tooShort) return { result: null, error: `内心那句「${tooShort.text}」太短，要说清一件事` };
 
   const skipped = answers.filter((a) => a.skipped).map((a) => a.qid);
   const innerQids = new Set(inner.map((x) => x.qid));

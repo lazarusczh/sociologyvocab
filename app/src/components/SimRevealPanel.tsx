@@ -178,6 +178,11 @@ export default function SimRevealPanel({ sessionId, paper, pack, selectedIds }: 
                     <span className="muted" style={{ fontSize: '0.88rem', marginLeft: '0.4rem' }}>
                       {innerOf(p.id, it.qid) || '（这一题没有内心）'}
                     </span>
+                    {p.card.brief && (
+                      <div className="muted" style={{ fontSize: '0.78rem', marginLeft: '0.4rem', marginTop: '0.1rem' }}>
+                        背景：{p.card.brief}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -185,6 +190,21 @@ export default function SimRevealPanel({ sessionId, paper, pack, selectedIds }: 
           </div>
         );
       })}
+
+      {/* 控制台可能被投屏：默认折叠，教师需要时再展开 */}
+      <details className="card" style={{ marginBottom: '0.8rem' }}>
+        <summary style={{ cursor: 'pointer', fontSize: '0.95rem' }}>
+          <strong>受访者背景</strong>
+          <span className="muted" style={{ fontSize: '0.8rem', marginLeft: '0.5rem' }}>
+            学生看不到；投屏默认不展开
+          </span>
+        </summary>
+        {personas.map((p) => (
+          <p key={p.id} style={{ margin: '0.45rem 0 0', fontSize: '0.86rem', lineHeight: 1.55 }}>
+            <span className="badge">{p.name}</span> {p.card.brief || '（这张卡还没有背景简介）'}
+          </p>
+        ))}
+      </details>
 
       {innerDone === paper.items.length ? (
         <div className="card">

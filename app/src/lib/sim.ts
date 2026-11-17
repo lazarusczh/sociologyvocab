@@ -95,6 +95,8 @@ export interface SimPersona {
   card: {
     key?: string;
     who?: string;
+    /** 可公开的背景简介（60–110 字，不含答题映射）；投屏与教师端用它解释内心 */
+    brief?: string;
     scene?: string;
     facts?: string;
     voice?: string;
@@ -133,6 +135,21 @@ export function personasFor(all: SimPersona[], ids: string[]): SimPersona[] {
   const hit = all.filter((p) => want.has(p.id));
   return hit.length ? hit : all;
 }
+
+export interface SimPersonaPack {
+  pack: string;
+  count: number;
+}
+
+/** 场景包的中文名。没登记的新 pack 原样显示，不在这里硬失败 */
+export const PACK_LABEL: Record<string, string> = {
+  unpaid_labour: '无酬劳动与照护',
+  education: '教育',
+  identity_media: '身份与媒体',
+  work_class: '工作与阶级',
+};
+
+export const packLabel = (pack: string): string => PACK_LABEL[pack] ?? pack;
 
 // ---- 会话 ----
 
@@ -265,6 +282,19 @@ export async function fetchPersonas(pack = 'unpaid_labour'): Promise<SimPersona[
   return (data ?? []) as SimPersona[];
 }
 
+/** 云端实际存在哪些场景包（每个包里几张卡）—— 建会话时用来选包 */
+export async function fetchPersonaPacks(): Promise<SimPersonaPack[]> {
+  const { data, error } = await supabase.from('sim_personas').select('pack');
+  if (error) throw error;
+  const counts = new Map<string, number>();
+  for (const row of (data ?? []) as { pack: string }[]) {
+    counts.set(row.pack, (counts.get(row.pack) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([pack, count]) => ({ pack, count }))
+    .sort((a, b) => a.pack.localeCompare(b.pack));
+}
+
 export async function fetchAnswers(sessionId: string, version: number): Promise<SimAnswerRow[]> {
   const { data, error } = await supabase
     .from('sim_persona_answers')
@@ -332,6 +362,15 @@ export async function freezePaper(sessionId: string, items: SimPaperItem[]): Pro
   });
   if (error) throw error;
   return (data as { version: number }).version;
+}
+
+export async function setSessionPack(sessionId: string, pack: string): Promise<number> {
+  const { data, error } = await supabase.rpc('sim_set_pack', {
+    p_session_id: sessionId,
+    p_pack: pack,
+  });
+  if (error) throw error;
+  return (data as { personas: number }).personas;
 }
 
 export async function setSessionPersonas(sessionId: string, personaIds: string[]): Promise<number> {
@@ -509,5 +548,8 @@ export function simErrorMessage(e: unknown): string {
   if (has('unknown persona id')) return '有受访者已失效，刷新后重新勾选';
   if (has('persona not selected')) return '这位受访者没有勾选参与本场答卷';
   if (has('not in pack')) return '这位受访者不属于本场的场景包';
+  if (has('cannot change pack at phase')) return '问卷定稿后不能再换场景包';
+  if (has('has no persona')) return '这个场景包里还没有人设卡';
+  if (has('empty pack')) return '请先选择一个场景包';
   return raw;
 }

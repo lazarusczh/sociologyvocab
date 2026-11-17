@@ -137,6 +137,21 @@ export default function SimBoard({ sessionId }: { sessionId: string }) {
         </div>
       )}
 
+      {/* 内心里的「夜里起来两趟」「那口锅」都靠卡片背景才讲得通：
+          学生只有答案，没有卡，所以内心情景一出现就把背景一并摊开 */}
+      {innerStage && personas.some((p) => p.card.brief) && (
+        <div style={{ borderTop: '2px solid var(--border)', marginTop: '1.4rem', paddingTop: '1.2rem' }}>
+          <p style={{ fontSize: '1.4rem', margin: '0 0 0.9rem', ...muted }}>他们是谁</p>
+          {personas.map((p) =>
+            p.card.brief ? (
+              <p key={p.id} style={{ fontSize: '1.15rem', lineHeight: 1.55, margin: '0 0 0.7rem', color: '#374151' }}>
+                <strong>{p.name}</strong>：{p.card.brief}
+              </p>
+            ) : null,
+          )}
+        </div>
+      )}
+
       {innerStage && (allInner || idx === paper.items.length - 1) && (
         <div style={{ borderTop: '2px solid var(--border)', marginTop: '1.4rem', paddingTop: '1.2rem' }}>
           <p style={{ fontSize: '1.4rem', margin: '0 0 0.9rem', ...muted }}>最后一句</p>

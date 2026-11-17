@@ -205,6 +205,9 @@ export default function SimFeedPanel({ sessionId, paper, personas, selectedIds, 
                   checked={on}
                   onChange={() => void toggle(p.id)}
                   disabled={busy || saving}
+                  // 全局 input 规则带 width:100% + padding，复选框必须显式还原，
+                  // 否则它会撑成整行、把人名挤到下一行（看起来就是「框往上发飘」）
+                  style={{ width: '1rem', height: '1rem', margin: 0, flexShrink: 0, cursor: 'pointer' }}
                 />
                 <span>{p.name}</span>
                 {!on && <span className="muted" style={{ fontSize: '0.8rem' }}>本场不参与</span>}
