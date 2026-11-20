@@ -4,6 +4,7 @@ import { apiUrl } from './apiBase';
 import type { CheckInState, Progress, WrongBook, VocabItem, Quiz, QuizSubmission, CorrectionResult, SurnameOverrides } from './types';
 import { classMatchesGrade, firstPaperNumber, gradeFromPapers, inferGrade, pickShortCode, shortCodeBase, type Grade, type RosterEntry } from './mbSync';
 import { getAcceptableKeys } from './answers';
+import { generateCode } from './quiz';
 import { DEFAULT_SYLLABUS, normalizeSyllabus, type SyllabusId } from './syllabus';
 import type { OverrideOp, VocabOverride } from './vocabOverrides';
 
@@ -338,10 +339,15 @@ export async function createQuiz(input: {
   /** 归属大纲；不传落库默认 '9699'。短码的年级位靠它区分 A1 / IG。 */
   syllabus?: string;
 }): Promise<string> {
-  const code = String(Math.floor(1000 + Math.random() * 9000));
-  const { error } = await supabase.from('quizzes').insert({ ...input, code });
-  if (error) throw error;
-  return code;
+  // 4 位码只有 1 万个，撞码是真会发生的（现存 21 份卷时约 0.2%/次，且只增不减）
+  // ⇒ 撞到就换一个重试，不要把 `duplicate key` 原样抛给教师（那个报错完全看不懂）
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const code = generateCode();
+    const { error } = await supabase.from('quizzes').insert({ ...input, code });
+    if (!error) return code;
+    if (error.code !== '23505') throw error;
+  }
+  throw new Error('短码连续冲突，请重试');
 }
 
 // 教师把某份卷「另存为补交卷」（给个别学生补做用）：全新短码、题目快照原样复制、时间窗口重置。
@@ -385,7 +391,7 @@ export async function duplicateQuiz(
   };
   // 短码是 4 位随机数，撞码概率不高但存在（唯一约束）⇒ 换一个重试
   for (let attempt = 0; attempt < 5; attempt++) {
-    const code = String(Math.floor(1000 + Math.random() * 9000));
+    const code = generateCode();
     const { error } = await supabase.from('quizzes').insert({ ...row, code });
     if (!error) return code;
     if (error.code !== '23505') throw error;

@@ -4,9 +4,11 @@ import { shuffle, sample } from './shuffle';
 import { maskAnswer, isCorrectAnswer, pickSpellingPrompt } from './answers';
 import { generateCrossword, type Clue as CrosswordClue } from './crossword';
 
-// 生成 4 位数字密码（查重交由云端唯一约束兜底，冲突时由调用方重试）
+// 生成 4 位数字密码（0000–9999 全段可用；查重交由云端唯一约束兜底，冲突时由调用方重试）
+// ⚠ 必须补前导零：若只取 `String(n)`，`0123` 会变成 `"123"`，而学生端输入框固定 4 位
+//   （`replace(/\D/g,'').slice(0,4)`）→ 永远对不上。容量因此从 9000 提到 10000。
 export function generateCode(): string {
-  return String(Math.floor(1000 + Math.random() * 9000));
+  return String(Math.floor(Math.random() * 10000)).padStart(4, '0');
 }
 
 // 将词条按题型构造成一道「题目快照」
