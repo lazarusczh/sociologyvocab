@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { isDayChecked, isInWrongBook, todayKey, FULL_ATTENDANCE_DAYS } from '../lib/checkin';
+import { isDayChecked, isInWrongBook, todayKey, FULL_ATTENDANCE_DAYS, weekStartKey, parseKey, dateKeyOf, addDays } from '../lib/checkin';
 import { fetchAllServerCheckIn } from '../lib/checkinServer';
 import { isServerCheckinEnabled } from '../lib/checkinMode';
 import { useClassXpSummary } from '../lib/xpSummary';
@@ -101,22 +101,31 @@ function summarize(row: StudentRow, className: string, validIds: Set<string>): S
   };
 }
 
+/** 某自然月的全部日期键（'YYYY-MM' → 28~31 个键） */
+function daysOfMonth(ym: string): string[] {
+  const [y, m] = ym.split('-').map(Number);
+  const n = new Date(y, m, 0).getDate();
+  return Array.from({ length: n }, (_, i) => `${ym}-${String(i + 1).padStart(2, '0')}`);
+}
+
+/** 某自然周的全部日期键（周一 → 周日）；入参是周一那天的键 */
+function daysOfWeek(weekStart: string): string[] {
+  const base = parseKey(weekStart);
+  return Array.from({ length: 7 }, (_, i) => dateKeyOf(addDays(base, i)));
+}
+
 /**
- * 某自然月（ym = 'YYYY-MM'）的统计。
+ * 一段日期（自然月 / 自然周）的统计。
  * 注意：达标天数必须把 `makeup` 里的日子也算进来 —— 补签日可能**完全没有** `study` 记录，
  * 只遍历 study 会漏掉它们。纯补签天单独计数（makeupDays），便于核验时区分
  * 「真的练了」与「靠补签补上的」。
  */
-function summarizeMonth(checkin: CheckInState, ym: string): MonthStat {
-  const keys = new Set<string>();
-  for (const k of Object.keys(checkin.study)) if (k.startsWith(ym)) keys.add(k);
-  for (const k of Object.keys(checkin.makeup)) if (k.startsWith(ym)) keys.add(k);
-
+function summarizeDays(checkin: CheckInState, days: string[]): MonthStat {
   let questions = 0;
   let correct = 0;
   let checkedDays = 0;
   let makeupDays = 0;
-  for (const k of keys) {
+  for (const k of days) {
     const s = checkin.study[k];
     if (s) { questions += s.questions; correct += s.correct; }
     if (isDayChecked(checkin, k)) {
@@ -134,49 +143,61 @@ function summarizeMonth(checkin: CheckInState, ym: string): MonthStat {
   };
 }
 
+const WEEKDAY_LABEL = ['一', '二', '三', '四', '五', '六', '日'];
+
 /**
- * 月度日历格（该月一天一格，**三态**）。
+ * 日期格（一天一格，**三态**），自然月与自然周共用。
  *
  * 为什么要三态而不是「打了/没打」：实测中约 45% 的练习日**有作答但没够线**
  * （10 分钟 + 20 题），那与「整天没练」是完全不同的行为。核验全勤时把两者混为一谈，
  * 会误判学生的学习态度，所以这里刻意用三种颜色分开表达。
+ *
+ * `weekday=true`（周视图）时在格子上方补一行「一二三四五六日」，否则 7 个方格
+ * 无法判断哪格是哪天。
  */
-function MonthGrid({ checkin, ym }: { checkin: CheckInState; ym: string }) {
-  const [y, m] = ym.split('-').map(Number);
-  const daysInMonth = new Date(y, m, 0).getDate();
+function PeriodGrid({ checkin, days, weekday = false }: { checkin: CheckInState; days: string[]; weekday?: boolean }) {
   const today = todayKey();
-  const cells = [];
-
-  for (let d = 1; d <= daysInMonth; d++) {
-    const key = `${ym}-${String(d).padStart(2, '0')}`;
+  const cells = days.map((key) => {
+    const d = Number(key.slice(8));
+    const [, mm] = key.split('-').slice(1).map(Number);
+    const wd = WEEKDAY_LABEL[(parseKey(key).getDay() + 6) % 7]; // 周一=0 … 周日=6
+    const label = weekday ? `${mm}月${d}日（周${wd}）` : `${d} 日`;
     if (key > today) {
-      cells.push(<span key={d} className="mg-cell mg-future" title={`${d} 日：未到`} />);
-      continue;
+      return <span key={key} className="mg-cell mg-future" title={`${label}：未到`} />;
     }
     const s = checkin.study[key];
     if (isDayChecked(checkin, key)) {
       const pureMakeup = !!checkin.makeup[key] && (!s || s.questions === 0);
       const detail = s && s.questions > 0 ? `（${s.questions} 题 / ${Math.floor(s.seconds / 60)} 分钟）` : '';
-      cells.push(
+      return (
         <span
-          key={d}
+          key={key}
           className={`mg-cell ${pureMakeup ? 'mg-makeup' : 'mg-ok'}`}
-          title={`${d} 日：${pureMakeup ? '补签' : '已达标'}${detail}`}
-        />,
+          title={`${label}：${pureMakeup ? '补签' : '已达标'}${detail}`}
+        />
       );
-    } else if (s) {
-      cells.push(
-        <span
-          key={d}
-          className="mg-cell mg-partial"
-          title={`${d} 日：有练习但未达标（${s.questions} 题 / ${Math.floor(s.seconds / 60)} 分钟）`}
-        />,
-      );
-    } else {
-      cells.push(<span key={d} className="mg-cell mg-none" title={`${d} 日：无记录`} />);
     }
-  }
-  return <div className="mg-wrap">{cells}</div>;
+    if (s) {
+      return (
+        <span
+          key={key}
+          className="mg-cell mg-partial"
+          title={`${label}：有练习但未达标（${s.questions} 题 / ${Math.floor(s.seconds / 60)} 分钟）`}
+        />
+      );
+    }
+    return <span key={key} className="mg-cell mg-none" title={`${label}：无记录`} />;
+  });
+
+  if (!weekday) return <div className="mg-wrap">{cells}</div>;
+  return (
+    <div className="mg-week">
+      <div className="mg-weekdays">
+        {WEEKDAY_LABEL.map((w) => <span key={w}>{w}</span>)}
+      </div>
+      <div className="mg-wrap">{cells}</div>
+    </div>
+  );
 }
 
 export default function TeacherCheckPanel() {
@@ -276,7 +297,16 @@ export default function TeacherCheckPanel() {
     return [...set].sort().reverse();
   }, [effectiveRows]);
 
-  const isMonthView = periodFilter !== 'all';
+  // 口径三态：'all'（累计）| 'YYYY-MM'（自然月）| 'W:YYYY-MM-DD'（该日所在自然周的周一）
+  const isMonthView = /^\d{4}-\d{2}$/.test(periodFilter);
+  const isWeekView = periodFilter.startsWith('W:');
+  const isPeriodView = isMonthView || isWeekView;
+  // 周视图当前展示的那一周；不在周视图时以「本周」为基准（点箭头即从本周开始走）
+  const shownWeekStart = isWeekView ? periodFilter.slice(2) : weekStartKey(new Date());
+  const periodDays = useMemo(
+    () => (isMonthView ? daysOfMonth(periodFilter) : isWeekView ? daysOfWeek(shownWeekStart) : []),
+    [isMonthView, isWeekView, periodFilter, shownWeekStart],
+  );
 
   // 按班级筛选（原始行，月度视图要用）—— 用 effectiveRows，让月度视图也走同一口径
   const shownRaw = useMemo(
@@ -290,19 +320,19 @@ export default function TeacherCheckPanel() {
     [rows, classFilter],
   );
 
-  // 月度统计
-  const monthStats = useMemo(() => {
+  // 月 / 周统计（同一套算法，只是传入的日期段不同）
+  const periodStats = useMemo(() => {
     const m = new Map<string, MonthStat>();
-    if (!isMonthView) return m;
-    for (const r of shownRaw) m.set(r.user_id, summarizeMonth(r.data?.checkin ?? emptyCheckin(), periodFilter));
+    if (!isPeriodView) return m;
+    for (const r of shownRaw) m.set(r.user_id, summarizeDays(r.data?.checkin ?? emptyCheckin(), periodDays));
     return m;
-  }, [shownRaw, periodFilter, isMonthView]);
+  }, [shownRaw, periodDays, isPeriodView]);
 
   const totalStudents = shown.length;
 
   // 顶部汇总：随口径切换
   const summary = useMemo(() => {
-    if (!isMonthView) {
+    if (!isPeriodView) {
       const checkins = shown.reduce((s, r) => s + r.checkinDays, 0);
       const questions = shown.reduce((s, r) => s + r.totalQuestions, 0);
       const acc = questions > 0
@@ -319,7 +349,7 @@ export default function TeacherCheckPanel() {
     let correct = 0;
     let fullCount = 0;
     for (const r of shownRaw) {
-      const st = monthStats.get(r.user_id);
+      const st = periodStats.get(r.user_id);
       if (!st) continue;
       checkins += st.checkedDays;
       questions += st.questions;
@@ -328,11 +358,14 @@ export default function TeacherCheckPanel() {
     }
     const acc = questions > 0 ? Math.round((correct / questions) * 100) : 0;
     return {
-      a: { n: String(checkins), label: '本月打卡' },
-      b: { n: String(fullCount), label: `达全勤（≥${FULL_ATTENDANCE_DAYS} 天）` },
+      a: { n: String(checkins), label: isWeekView ? '本周打卡' : '本月打卡' },
+      // 全勤线是**月度**口径（≥28 天），周视图里没有对应阈值 ⇒ 第二格改看本周题数
+      b: isWeekView
+        ? { n: String(questions), label: '本周题数' }
+        : { n: String(fullCount), label: `达全勤（≥${FULL_ATTENDANCE_DAYS} 天）` },
       c: { n: `${acc}%`, label: '平均正确率' },
     };
-  }, [isMonthView, shown, shownRaw, monthStats]);
+  }, [isPeriodView, isWeekView, shown, shownRaw, periodStats]);
 
   // ---- 月度榜单（§4.5.4）----
   // 数据源是 staff-only 的 `get_xp_summary_all`：一次拿全班（逐人调用要 20 次往返）。
@@ -358,7 +391,7 @@ export default function TeacherCheckPanel() {
       .filter((x) => byId.has(x.user_id))
       .map((x) => {
         const r = byId.get(x.user_id)!;
-        const st = monthStats.get(x.user_id);
+        const st = periodStats.get(x.user_id);
         return {
           user_id: x.user_id,
           name: r.data?.name || maskEmail(r.email) || '(未命名)',
@@ -374,7 +407,7 @@ export default function TeacherCheckPanel() {
       // 仍并列再按姓名，保证顺序**稳定**（否则每次刷新名次都在跳，教师没法对照）。
       .sort((a, b) => b.xp - a.xp || b.checkedDays - a.checkedDays || a.name.localeCompare(b.name))
       .slice(0, BOARD_TOP_N);
-  }, [isMonthView, periodFilter, classXp.rows, shownRaw, monthStats]);
+  }, [isMonthView, periodFilter, classXp.rows, shownRaw, periodStats]);
 
   // ---- 获奖记录的两个操作（§4.5.4）----
   // ⚠ 「撤销已发放」与「撤销获奖」是**两件事**，走的是不同的 state：
@@ -410,6 +443,15 @@ export default function TeacherCheckPanel() {
       setAwardBusy('');
     }
   };
+
+  // ---- 自然周导航（周一至周日）----
+  const shiftWeek = (delta: number) => {
+    setPeriodFilter(`W:${dateKeyOf(addDays(parseKey(shownWeekStart), delta * 7))}`);
+  };
+  const currentWeekStart = weekStartKey(new Date());
+  const weekDaysShown = daysOfWeek(shownWeekStart);
+  const weekRangeShort = `${weekDaysShown[0].slice(5).replace('-', '/')}–${weekDaysShown[6].slice(5).replace('-', '/')}`;
+  const weekRangeFull = `${weekDaysShown[0]} ~ ${weekDaysShown[6]}`;
 
   return (
     <div>
@@ -450,13 +492,35 @@ export default function TeacherCheckPanel() {
             ))}
           </div>
         )}
+        {/* 自然周：周一至周日。箭头一按就切进周口径，基准是当前正在看的那一周（不在周口径时=本周）。 */}
+        {months.length > 0 && (
+          <div className="tag-filter" style={{ marginTop: '0.4rem' }}>
+            <span className="muted" style={{ fontSize: '0.85rem', alignSelf: 'center' }}>自然周：</span>
+            <button onClick={() => shiftWeek(-1)} title="上一周" aria-label="上一周">‹</button>
+            <button
+              className={isWeekView ? 'active' : ''}
+              onClick={() => setPeriodFilter(`W:${shownWeekStart}`)}
+              title={`${weekRangeFull}（周一至周日）`}
+            >
+              {weekRangeShort}
+            </button>
+            <button onClick={() => shiftWeek(1)} title="下一周" aria-label="下一周">›</button>
+            <button
+              className={isWeekView && shownWeekStart === currentWeekStart ? 'active' : ''}
+              onClick={() => setPeriodFilter(`W:${currentWeekStart}`)}
+              title={currentWeekStart}
+            >
+              本周
+            </button>
+          </div>
+        )}
         <div className="grid cols-4" style={{ marginTop: '0.6rem' }}>
           <div className="stat"><span className="num">{totalStudents}</span><span className="label">学生数</span></div>
           <div className="stat"><span className="num">{summary.a.n}</span><span className="label">{summary.a.label}</span></div>
           <div className="stat"><span className="num">{summary.b.n}</span><span className="label">{summary.b.label}</span></div>
           <div className="stat"><span className="num">{summary.c.n}</span><span className="label">{summary.c.label}</span></div>
         </div>
-        {isMonthView && months.length > 0 && (
+        {isPeriodView && months.length > 0 && (
           <p className="muted" style={{ marginTop: '0.5rem', fontSize: '0.8rem' }}>
             日历格：<span className="mg-cell mg-ok" style={{ verticalAlign: 'middle' }} /> 已达标 ·
             <span className="mg-cell mg-makeup" style={{ verticalAlign: 'middle', marginLeft: 6 }} /> 补签 ·
@@ -497,13 +561,13 @@ export default function TeacherCheckPanel() {
                 <th>姓名</th>
                 <th>班级</th>
                 <th>邮箱</th>
-                {isMonthView ? (
+                {isPeriodView ? (
                   <>
-                    <th>本月打卡</th>
-                    <th>本月题数</th>
+                    <th>{isWeekView ? '本周打卡' : '本月打卡'}</th>
+                    <th>{isWeekView ? '本周题数' : '本月题数'}</th>
                     <th>正确率</th>
-                    <th>全勤</th>
-                    <th>日历（{periodFilter}）</th>
+                    {isMonthView && <th>全勤</th>}
+                    <th>{isWeekView ? `日历（${weekRangeShort}）` : `日历（${periodFilter}）`}</th>
                   </>
                 ) : (
                   <>
@@ -519,14 +583,14 @@ export default function TeacherCheckPanel() {
             </thead>
             <tbody>
               {shown.map((r) => {
-                const st = monthStats.get(r.user_id);
+                const st = periodStats.get(r.user_id);
                 const raw = rawById.get(r.user_id);
                 return (
                   <tr key={r.user_id}>
                     <td><ScrollText text={r.name || '—'} /></td>
                     <td>{r.className || '—'}</td>
                     <td className="muted">{maskEmail(r.email)}</td>
-                    {isMonthView && st ? (
+                    {isPeriodView && st ? (
                       <>
                         <td>
                           {st.checkedDays}
@@ -536,13 +600,15 @@ export default function TeacherCheckPanel() {
                         </td>
                         <td>{st.questions}</td>
                         <td>{st.accuracy}%</td>
+                        {isMonthView && (
+                          <td>
+                            {st.fullAttendance
+                              ? <span style={{ color: 'var(--success)', fontWeight: 600 }}>✓ 达标</span>
+                              : <span className="muted">—</span>}
+                          </td>
+                        )}
                         <td>
-                          {st.fullAttendance
-                            ? <span style={{ color: 'var(--success)', fontWeight: 600 }}>✓ 达标</span>
-                            : <span className="muted">—</span>}
-                        </td>
-                        <td>
-                          <MonthGrid checkin={raw?.data?.checkin ?? emptyCheckin()} ym={periodFilter} />
+                          <PeriodGrid checkin={raw?.data?.checkin ?? emptyCheckin()} days={periodDays} weekday={isWeekView} />
                         </td>
                       </>
                     ) : (
@@ -587,13 +653,12 @@ export default function TeacherCheckPanel() {
             只列前 {BOARD_TOP_N} 名，完整名单见下方核验表。
           </p>
           {/* 获奖记录（§4.5.4 第 2~3 步）。
-              ⚠ 两个复选框的**语义不同**，别合并：勾「获奖」= 记入名单（学生端立刻可见）；
-                勾「已发放」= 奖品已交到手上（防重复发放）。取消「已发放」只撤回发放状态，
-                **不会删掉获奖记录** —— 要删请取消「获奖」。 */}
-          <p className="muted" style={{ marginTop: '0.2rem', fontSize: '0.8rem' }}>
-            勾「获奖」即把该学生记入本月名单（学生端立刻能看到「是否获奖」）；交完奖品再勾「已发放」防重复。
-            取消「已发放」只撤回发放状态，不会删除获奖记录。
-            ⚠ 这是<strong>候选数据</strong>，发放实物前必须核验（§4.5.4 第 2 条）。
+              ⚠ 两个开关的**语义不同**，别合并：点「获奖」= 记入名单（学生端立刻可见）；
+                「已发放」= 奖品已交到手上（防重复发放）。撤回「已发放」只清发放时间、
+                **保留获奖记录** —— 要删整条记录请关掉「获奖」。 */}
+          <p className="muted" style={{ marginTop: '0.2rem', marginBottom: 0, fontSize: '0.8rem' }}>
+            发奖顺序：先点「获奖」记入名单（学生端立刻可见），交完奖品再点「已发放」防重复；
+            撤回发放不会删除获奖记录。发放实物前请先核验候选数据。
           </p>
           {awards.error && (
             <p className="badge warn" style={{ marginTop: '0.5rem' }}>获奖记录读取失败：{awards.error}</p>
@@ -630,15 +695,25 @@ export default function TeacherCheckPanel() {
                     <th>其中奖励</th>
                     <th>本月打卡</th>
                     <th>全勤</th>
-                    <th>获奖 / 已发放</th>
-                    <th>备注</th>
+                    <th>奖项 · 发放</th>
                   </tr>
                 </thead>
                 <tbody>
                   {board.map((b, i) => (
                     <tr key={b.user_id}>
                       <td>{i + 1}</td>
-                      <td>{b.name}</td>
+                      <td>
+                        <ScrollText text={b.name} />
+                        {b.isNew && (
+                          <span
+                            className="badge warn"
+                            style={{ marginLeft: '0.35rem' }}
+                            title="本月新加入，次月才参评"
+                          >
+                            新
+                          </span>
+                        )}
+                      </td>
                       <td style={{ fontWeight: 600 }}>{b.xp}</td>
                       <td className="muted">{b.bonus > 0 ? `+${b.bonus}` : '—'}</td>
                       <td>{b.checkedDays} 天</td>
@@ -648,47 +723,44 @@ export default function TeacherCheckPanel() {
                           : <span className="muted">—</span>}
                       </td>
                       <td>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                        {/* 每行一个奖项：标签 + 两个药丸开关（替代原来"复选框 + 文字标签"两行叠放，
+                            后者在窄列里会折行、且两个开关的从属关系看不出来）。 */}
+                        <div className="award-cell">
                           {AWARD_ORDER.map((k) => {
                             const rec = awards.byKey.get(awardKey(b.user_id, k));
                             const busy = awardBusy === awardKey(b.user_id, k);
                             return (
-                              <div
-                                key={k}
-                                className="row tight"
-                                style={{ gap: '0.3rem', alignItems: 'center', fontSize: '0.78rem' }}
-                              >
-                                <span className="muted" title={AWARD_HINT[k]} style={{ minWidth: '3.6rem' }}>
-                                  {AWARD_LABEL[k]}
-                                </span>
-                                <label className="row tight" style={{ gap: '0.15rem', alignItems: 'center' }}>
-                                  <input
-                                    type="checkbox"
-                                    checked={!!rec}
-                                    disabled={busy}
-                                    onChange={(e) => void applyAward(b, k, e.target.checked ? 'awarded' : 'none')}
-                                  />
+                              <div key={k} className="award-row">
+                                <span className="award-kind" title={AWARD_HINT[k]}>{AWARD_LABEL[k]}</span>
+                                <button
+                                  className={`award-pill ${rec ? 'on' : ''}`}
+                                  aria-pressed={!!rec}
+                                  disabled={busy}
+                                  title={rec ? '点击撤销获奖（会删除该条记录）' : '点击记为获奖（学生端立刻可见）'}
+                                  onClick={() => void applyAward(b, k, rec ? 'none' : 'awarded')}
+                                >
                                   获奖
-                                </label>
-                                <label className="row tight" style={{ gap: '0.15rem', alignItems: 'center' }}>
-                                  <input
-                                    type="checkbox"
-                                    // ⚠ 未获奖时禁用「已发放」：没有记录可标记，
-                                    //   而且「先发后录」会让防重复的凭据晚于实物出现。
-                                    checked={!!rec?.delivered_at}
-                                    disabled={busy || !rec}
-                                    onChange={(e) => void applyAward(b, k, e.target.checked ? 'delivered' : 'awarded')}
-                                  />
+                                </button>
+                                <button
+                                  className={`award-pill ${rec?.delivered_at ? 'on' : ''}`}
+                                  aria-pressed={!!rec?.delivered_at}
+                                  // ⚠ 未获奖时禁用「已发放」：没有记录可标记，
+                                  //   而且「先发后录」会让防重复的凭据晚于实物出现。
+                                  disabled={busy || !rec}
+                                  title={!rec
+                                    ? '先标记获奖，才能记录发放'
+                                    : rec.delivered_at
+                                      ? '点击撤回发放状态（保留获奖记录）'
+                                      : '点击记录奖品已发放'}
+                                  onClick={() => void applyAward(b, k, rec?.delivered_at ? 'awarded' : 'delivered')}
+                                >
                                   已发放
-                                </label>
-                                {busy && <span className="muted">…</span>}
+                                </button>
+                                {busy && <span className="muted" style={{ fontSize: '0.7rem' }}>…</span>}
                               </div>
                             );
                           })}
                         </div>
-                      </td>
-                      <td>
-                        {b.isNew && <span className="badge warn">本月新加入·次月参评</span>}
                       </td>
                     </tr>
                   ))}

@@ -712,6 +712,30 @@ input:focus, textarea:focus, select:focus {
 .mg-none    { background: var(--c-track); }
 .mg-future  { background: transparent; border: 1px dashed var(--border); }
 
+/* 自然周视图：7 个方格上方补一行星期标签（12px 与格子同宽，逐列对齐），
+   否则单看 7 个色块无法判断哪格是哪天。 */
+.mg-week { display: flex; flex-direction: column; gap: 2px; }
+.mg-weekdays { display: flex; gap: 2px; font-size: 0.6rem; line-height: 1; color: var(--text-muted); }
+.mg-weekdays span { width: 12px; text-align: center; flex: 0 0 auto; }
+
+/* 打卡核验 · 月度榜单「奖项 · 发放」列：紧凑药丸开关
+   （原来是"复选框 + 文字标签"两行叠放，窄列里会折行、也看不出两个开关的从属关系） */
+.award-cell { display: flex; flex-direction: column; gap: 0.25rem; }
+.award-row { display: flex; align-items: center; gap: 0.35rem; }
+.award-kind { min-width: 3.8rem; font-size: 0.75rem; color: var(--text-muted); }
+.award-pill {
+  font-size: 0.72rem;
+  line-height: 1.5;
+  padding: 0.05rem 0.5rem;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.award-pill.on { border-color: var(--c-primary); background: var(--c-primary-bg); color: var(--c-primary); font-weight: 600; }
+.award-pill:disabled { opacity: 0.45; cursor: default; }
+
 /* 核验数据表 */
 .check-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
 .check-table th, .check-table td { text-align: left; padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
